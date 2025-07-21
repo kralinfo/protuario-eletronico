@@ -1,25 +1,48 @@
-// ...existing code...
-import { Component, OnInit, OnDestroy, Output, EventEmitter, Input } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+  Output,
+  EventEmitter,
+  Input,
+} from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
 import { Paciente } from './pacientes.component';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
-import { debounceTime, switchMap, takeUntil } from 'rxjs/operators';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
+import { Observable, of, Subject } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  takeUntil,
+} from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
+import { CepService } from '../services/cep.service';
 
 @Component({
-    selector: 'app-pacientes-form',
-    templateUrl: './pacientes-form.component.html',
-    styleUrls: ['./pacientes.component.scss'],
-    standalone: false
+  selector: 'app-pacientes-form',
+  templateUrl: './pacientes-form.component.html',
+  styleUrls: ['./pacientes.component.scss'],
+  standalone: false,
 })
-export class PacientesFormComponent implements OnInit, OnDestroy {
+export class PacientesFormComponent
+  implements OnInit, OnDestroy, AfterViewInit
+{
   // ...existing code...
   @Output() fechar = new EventEmitter<void>();
   @Input() pacienteEditando: Paciente | null = null;
@@ -28,8 +51,15 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
   verificandoDuplicidade = false;
   apiUrl = environment.apiUrl + '/pacientes'; // já está correto
   private destroy$ = new Subject<void>();
-  private validationSubject = new Subject<{nome: string, mae: string}>();
+  private validationSubject = new Subject<{ nome: string; mae: string }>();
   currentUser: any = null;
+
+  // Flag para controle do erro de ano inválido
+  invalidYearLength = false;
+
+  // Para acessar o input de nascimento no DOM
+  @ViewChild('nascimentoInput', { static: false })
+  nascimentoInput!: ElementRef<HTMLInputElement>;
 
   // Lista de estados brasileiros
   estadosBrasileiros = [
@@ -59,21 +89,26 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
     { sigla: 'SC', nome: 'Santa Catarina' },
     { sigla: 'SP', nome: 'São Paulo' },
     { sigla: 'SE', nome: 'Sergipe' },
-    { sigla: 'TO', nome: 'Tocantins' }
+    { sigla: 'TO', nome: 'Tocantins' },
   ];
   pacienteService: any;
+  erroCepUf = false;
 
   constructor(
     private router: Router,
     private http: HttpClient,
     private fb: FormBuilder,
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private cepService: CepService
   ) {
     this.form = this.fb.group({
       nome: ['', [Validators.required]],
       mae: ['', [Validators.required]],
-      nascimento: ['', [Validators.required,this.yearDigitsValidator, this.birthDateYearValidator]],
+      nascimento: [
+        '',
+        [Validators.required, Validators.pattern(/^\d{5}-?\d{3}$/)],
+      ],
       sexo: ['', [Validators.required]],
       estadoCivil: [''],
       profissao: [''],
@@ -81,11 +116,11 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
       raca: [''],
       endereco: [''],
       bairro: [''],
-      municipio: [''],
+      municipio: [{ value: '', disable: true }, Validators.required],
       uf: ['', [Validators.required]],
       cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
       acompanhante: [''],
-      procedencia: ['']
+      procedencia: [''],
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
@@ -93,9 +128,57 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     // Carregar informações do usuário atual
-    this.authService.user$.subscribe(user => {
+    this.authService.user$.subscribe((user) => {
       this.currentUser = user;
     });
+
+    // Verifica se o CEP é válido de acordo com o UF informado
+    this.form.get('cep')?.valueChanges
+  .pipe(debounceTime(300), distinctUntilChanged())
+  .subscribe((valor: string) => {
+    this.erroCepUf = false;
+
+    
+    const cepLimpo = valor?.replace(/\D/g, '') || '';
+
+    
+    let cepFormatado = cepLimpo;
+    if (cepLimpo.length > 5) {
+      cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
+    }
+
+    
+    this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
+
+    
+    if (cepLimpo.length === 8) {
+      this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
+        if (dados?.erro) {
+          this.form.patchValue({ municipio: '', uf: '' });
+          this.erroCepUf = true;
+          return;
+        }
+
+        
+        const estadoCompleto = this.estadosBrasileiros.find(
+          (e) => e.sigla === dados.uf
+        );
+        const ufFormatado = estadoCompleto
+          ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
+          : dados.uf;
+
+        
+        this.form.patchValue({
+          municipio: dados.localidade,
+          uf: ufFormatado,
+        });
+
+        this.erroCepUf = false;
+      });
+    } else {
+      this.form.patchValue({ municipio: '', uf: '' });
+    }
+  });
 
     // Patch do pacienteEditando se existir
     if (this.pacienteEditando) {
@@ -110,73 +193,121 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
       // Garante que estadoCivil seja uma opção válida
       // Mapeia valores sem (a) para a opção correta
       const mapEstadoCivil = {
-        'Solteiro': 'Solteiro(a)',
-        'Casado': 'Casado(a)',
-        'Viúvo': 'Viúvo(a)',
-        'Divorciado': 'Divorciado(a)',
-        'Ignorado': 'Ignorado',
+        Solteiro: 'Solteiro(a)',
+        Casado: 'Casado(a)',
+        Viúvo: 'Viúvo(a)',
+        Divorciado: 'Divorciado(a)',
+        Ignorado: 'Ignorado',
         'Solteiro(a)': 'Solteiro(a)',
         'Casado(a)': 'Casado(a)',
         'Viúvo(a)': 'Viúvo(a)',
         'Divorciado(a)': 'Divorciado(a)',
-        '': ''
+        '': '',
       };
       patch.estadoCivil = (mapEstadoCivil as any)[patch.estadoCivil] ?? '';
       this.form.patchValue(patch);
     }
 
     // Configura o Subject para validação com debounce
-    this.validationSubject.pipe(
-      debounceTime(500),
-      switchMap(({nome, mae}) => {
-        this.verificandoDuplicidade = true;
-        const params = `?nome=${encodeURIComponent(nome.trim())}&mae=${encodeURIComponent(mae.trim())}`;
-        return this.http.get<Paciente[]>(`${this.apiUrl}${params}`);
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (pacientes) => {
-        this.verificandoDuplicidade = false;
-        const nomeControl = this.form.get('nome');
-        if (nomeControl) {
-          // Só acusa duplicidade se existir paciente com mesmo nome E mesma mãe
-          const nome = this.form.get('nome')?.value?.trim().toLowerCase();
-          const mae = this.form.get('mae')?.value?.trim().toLowerCase();
-          const duplicado = pacientes.find(p => p.nome?.trim().toLowerCase() === nome && p.mae?.trim().toLowerCase() === mae && (!this.pacienteEditando || p.id !== this.pacienteEditando.id));
+    this.validationSubject
+      .pipe(
+        debounceTime(500),
+        switchMap(({ nome, mae }) => {
+          this.verificandoDuplicidade = true;
+          const params = `?nome=${encodeURIComponent(
+            nome.trim()
+          )}&mae=${encodeURIComponent(mae.trim())}`;
+          return this.http.get<Paciente[]>(`${this.apiUrl}${params}`);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (pacientes) => {
+          this.verificandoDuplicidade = false;
+          const nomeControl = this.form.get('nome');
+          if (nomeControl) {
+            // Só acusa duplicidade se existir paciente com mesmo nome E mesma mãe
+            const nome = this.form.get('nome')?.value?.trim().toLowerCase();
+            const mae = this.form.get('mae')?.value?.trim().toLowerCase();
+            const duplicado = pacientes.find(
+              (p) =>
+                p.nome?.trim().toLowerCase() === nome &&
+                p.mae?.trim().toLowerCase() === mae &&
+                (!this.pacienteEditando || p.id !== this.pacienteEditando.id)
+            );
 
-          if (duplicado) {
-            nomeControl.setErrors({
-              ...nomeControl.errors,
-              duplicado: {
-                message: `Paciente já cadastrado: ${duplicado.nome}`,
-                paciente: duplicado
+            if (duplicado) {
+              nomeControl.setErrors({
+                ...nomeControl.errors,
+                duplicado: {
+                  message: `Paciente já cadastrado: ${duplicado.nome}`,
+                  paciente: duplicado,
+                },
+              });
+            } else {
+              const errors = nomeControl.errors;
+              if (errors && errors['duplicado']) {
+                delete errors['duplicado'];
+                nomeControl.setErrors(
+                  Object.keys(errors).length > 0 ? errors : null
+                );
               }
-            });
-          } else {
-            const errors = nomeControl.errors;
-            if (errors && errors['duplicado']) {
-              delete errors['duplicado'];
-              nomeControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
             }
           }
-        }
-      },
-      error: () => {
-        this.verificandoDuplicidade = false;
-      }
-    });
+        },
+        error: () => {
+          this.verificandoDuplicidade = false;
+        },
+      });
 
     // Quando os campos "nome" ou "mae" mudarem, emitir no Subject
-    this.form.get('nome')?.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.checkDuplicidade();
-    });
+    this.form
+      .get('nome')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.checkDuplicidade();
+      });
 
-    this.form.get('mae')?.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.checkDuplicidade();
+    this.form
+      .get('mae')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.checkDuplicidade();
+      });
+  }
+
+  ngAfterViewInit() {
+    // Adiciona um listener para corrigir ano com mais de 4 dígitos e limpar
+    const inputEl = this.nascimentoInput.nativeElement;
+
+    inputEl.addEventListener('input', () => {
+      const rawValue = inputEl.value;
+      const parts = rawValue.split('-');
+
+      let year = parts[0];
+      const month = parts[1] ?? '';
+      const day = parts[2] ?? '';
+
+      if (year && year.length > 4) {
+        year = year.slice(0, 4);
+        const newValue = [year, month, day].filter(Boolean).join('-');
+
+        inputEl.value = newValue;
+
+        this.invalidYearLength = true;
+
+        this.form.get('nascimento')?.setValue(newValue, { emitEvent: false });
+        this.form.get('nascimento')?.setErrors({ invalidYearLength: true });
+      } else {
+        this.invalidYearLength = false;
+        const control = this.form.get('nascimento');
+        if (control?.hasError('invalidYearLength')) {
+          const errors = { ...control.errors };
+          delete errors['invalidYearLength'];
+          control.setErrors(Object.keys(errors).length ? errors : null);
+          control.updateValueAndValidity();
+        }
+      }
     });
   }
 
@@ -198,7 +329,7 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
         nomeControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
       }
 
-      this.validationSubject.next({nome: nome.trim(), mae: mae.trim()});
+      this.validationSubject.next({ nome: nome.trim(), mae: mae.trim() });
     } else {
       this.verificandoDuplicidade = false;
     }
@@ -226,44 +357,51 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         data: {
           title: 'Confirmação',
-          message: 'Tem certeza que deseja atualizar este registro?'
-        }
+          message: 'Tem certeza que deseja atualizar este registro?',
+        },
       });
       dialogRef.afterClosed().subscribe((confirmado: boolean) => {
         if (confirmado) {
-          this.http.put(`${this.apiUrl}/${this.pacienteEditando!.id}`, paciente).subscribe({
-            next: () => {
-              this.loading = false;
-              // Feedback verdinho
-              const feedback = this.dialog.open(FeedbackDialogComponent, {
-                data: {
-                  title: 'Sucesso',
-                  message: 'Paciente atualizado com sucesso!',
-                  type: 'success'
-                },
-                panelClass: 'success'
-              });
-              setTimeout(() => feedback.close(), 2500);
-              this.fechar.emit();
-            },
-            error: (err) => {
-              this.loading = false;
-              // Feedback vermelhinho
-              const feedback = this.dialog.open(FeedbackDialogComponent, {
-                data: {
-                  title: 'Erro',
-                  message: err?.error?.error || 'Erro ao atualizar paciente.',
-                  type: 'error'
-                },
-                panelClass: 'error'
-              });
-              setTimeout(() => feedback.close(), 2500);
-              if (err?.error?.code === 'NO_TOKEN' || err?.error?.code === 'INVALID_TOKEN' || err?.status === 401 || err?.status === 403) {
-                this.authService.logout();
-                alert('Sua sessão expirou. Faça login novamente.');
-              }
-            }
-          });
+          this.http
+            .put(`${this.apiUrl}/${this.pacienteEditando!.id}`, paciente)
+            .subscribe({
+              next: () => {
+                this.loading = false;
+                // Feedback verdinho
+                const feedback = this.dialog.open(FeedbackDialogComponent, {
+                  data: {
+                    title: 'Sucesso',
+                    message: 'Paciente atualizado com sucesso!',
+                    type: 'success',
+                  },
+                  panelClass: 'success',
+                });
+                setTimeout(() => feedback.close(), 2500);
+                this.fechar.emit();
+              },
+              error: (err) => {
+                this.loading = false;
+                // Feedback vermelhinho
+                const feedback = this.dialog.open(FeedbackDialogComponent, {
+                  data: {
+                    title: 'Erro',
+                    message: err?.error?.error || 'Erro ao atualizar paciente.',
+                    type: 'error',
+                  },
+                  panelClass: 'error',
+                });
+                setTimeout(() => feedback.close(), 2500);
+                if (
+                  err?.error?.code === 'NO_TOKEN' ||
+                  err?.error?.code === 'INVALID_TOKEN' ||
+                  err?.status === 401 ||
+                  err?.status === 403
+                ) {
+                  this.authService.logout();
+                  alert('Sua sessão expirou. Faça login novamente.');
+                }
+              },
+            });
         } else {
           this.loading = false;
         }
@@ -276,9 +414,9 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
             data: {
               title: 'Sucesso',
               message: 'Paciente cadastrado com sucesso!',
-              type: 'success'
+              type: 'success',
             },
-            panelClass: 'success'
+            panelClass: 'success',
           });
           setTimeout(() => dialogRef.close(), 3000);
           // Fecha o modal após cadastrar
@@ -286,7 +424,12 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.loading = false;
-          if (err?.error?.code === 'NO_TOKEN' || err?.error?.code === 'INVALID_TOKEN' || err?.status === 401 || err?.status === 403) {
+          if (
+            err?.error?.code === 'NO_TOKEN' ||
+            err?.error?.code === 'INVALID_TOKEN' ||
+            err?.status === 401 ||
+            err?.status === 403
+          ) {
             this.authService.logout();
             alert('Sua sessão expirou. Faça login novamente.');
           } else {
@@ -294,13 +437,13 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
               data: {
                 title: 'Erro',
                 message: err?.error?.error || 'Erro ao cadastrar paciente.',
-                type: 'error'
+                type: 'error',
               },
-              panelClass: 'error'
+              panelClass: 'error',
             });
             setTimeout(() => dialogRef.close(), 3000);
           }
-        }
+        },
       });
     }
   }
@@ -308,7 +451,9 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
   // Método para gerar PDF do cadastro do paciente
   imprimirPacientePDF() {
     if (this.form.invalid) {
-      alert('Por favor, preencha todos os campos obrigatórios antes de gerar o PDF.');
+      alert(
+        'Por favor, preencha todos os campos obrigatórios antes de gerar o PDF.'
+      );
       return;
     }
 
@@ -352,7 +497,13 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
     }
 
     if (paciente.nascimento) {
-      doc.text(`Data de Nascimento: ${new Date(paciente.nascimento).toLocaleDateString('pt-BR')}`, 20, yPosition);
+      doc.text(
+        `Data de Nascimento: ${new Date(paciente.nascimento).toLocaleDateString(
+          'pt-BR'
+        )}`,
+        20,
+        yPosition
+      );
       yPosition += lineHeight;
     }
 
@@ -434,26 +585,36 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
     const pageHeight = doc.internal.pageSize.height;
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 20, pageHeight - 20);
+    doc.text(
+      `Gerado em: ${new Date().toLocaleDateString(
+        'pt-BR'
+      )} às ${new Date().toLocaleTimeString('pt-BR')}`,
+      20,
+      pageHeight - 20
+    );
     doc.text('Sistema e-Prontuário Aliança-PE', 20, pageHeight - 10);
 
-    // Salvar o PDF
-    const nomeArquivo = `paciente_${(paciente.nome || 'novo').replace(/\s+/g, '_').toLowerCase()}_${new Date().getTime()}.pdf`;
+    // Salvar arquivo com timestamp para evitar sobrescrita
+    const nomeArquivo = `paciente_${(paciente.nome || 'novo')
+      .replace(/\s+/g, '_')
+      .toLowerCase()}_${new Date().getTime()}.pdf`;
     doc.save(nomeArquivo);
   }
 
-  // Método auxiliar para formatar sexo
   private formatarSexo(sexo: string): string {
     switch (sexo) {
-      case 'M': return 'Masculino';
-      case 'F': return 'Feminino';
-      case 'I': return 'Ignorado';
-      default: return sexo;
+      case 'M':
+        return 'Masculino';
+      case 'F':
+        return 'Feminino';
+      case 'I':
+        return 'Ignorado';
+      default:
+        return sexo;
     }
   }
 
   cancelar() {
-    console.log('Fechar modal emitido');
     this.fechar.emit();
   }
 
@@ -461,39 +622,22 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
-  /* Não permite que o admin coloque ano com mais de 4 dígitos */
+  nascimentoValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
 
-  yearDigitsValidator(control: AbstractControl): ValidationErrors | null {
-  const value = control.value;
+    if (!value) return null;
 
-  if (!value) return null;
+    // Verifica se o valor segue o formato yyyy-mm-dd
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(value)) return { invalidDateFormat: true };
 
-  // Verifica se tem padrão de data (YYYY-MM-DD)
-  const dateParts = value.split('-');
-  if (dateParts.length !== 3) return { invalidDateFormat: true };
+    const year = Number(value.split('-')[0]);
+    const currentYear = new Date().getFullYear();
 
-  const year = dateParts[0];
-  if (year.length > 4) return { invalidYearLength: true };
+    if (year > currentYear) {
+      return { futureYear: true };
+    }
 
-  return null;
-}
-/* Permite que o admin não coloque uma data maior de que o ano atual */
-birthDateYearValidator(control: AbstractControl): ValidationErrors | null {
-   const value = control.value;
-  if (!value) return null;
-
-  
-  if (value.length !== 10) return null; 
-
-  const dateParts = value.split('-');
-  if (dateParts.length !== 3) return null; 
-
-  const year = dateParts[0];
-  const currentYear = new Date().getFullYear();
-
-  if (year.length > 4) return { invalidYearLength: true };
-  if (Number(year) > currentYear) return { futureYear: true };
-
-  return null;
-}
+    return null;
+  }
 }

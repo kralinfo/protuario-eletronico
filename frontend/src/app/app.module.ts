@@ -33,6 +33,7 @@ import { AuthInterceptor } from './auth/auth.interceptor';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HomeComponent } from './home/home.component';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
+import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
 
 @NgModule({
   declarations: [
@@ -67,6 +68,9 @@ import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.co
     MatMenuModule,
     MatCardModule,
     MatTooltipModule,
+    CommonModule,
+    FormsModule,
+    RelatorioAtendimentosComponent,
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
   ],
   providers: [

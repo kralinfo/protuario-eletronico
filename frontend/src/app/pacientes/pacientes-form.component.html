@@ -1,138 +1,379 @@
-
-
-
 <!-- Modal de cadastro de paciente -->
-<div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-  <div class="w-full max-w-5xl min-h-[400px] max-h-[90vh] bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-0 flex flex-col justify-center items-center overflow-hidden relative">
-    <div class="w-full h-full p-10 flex flex-col justify-center items-center overflow-y-auto rounded-2xl pr-2">
-      <button type="button" (click)="cancelar()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 z-10" aria-label="Fechar">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-      <h2 class="text-2xl font-bold text-blue-700 mb-6 text-center">{{ pacienteEditando ? 'Editar Paciente' : 'Cadastrar Paciente' }}</h2>
-      <form [formGroup]="form" (ngSubmit)="salvar()" autocomplete="off" class="space-y-4 w-full">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-          <input type="text" formControlName="nome" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" placeholder="Nome do paciente" />
-          <div *ngIf="verificandoDuplicidade" class="text-xs text-blue-500 mt-1">Verificando se paciente já existe...</div>
-          <div *ngIf="form.get('nome')?.hasError('required') && (form.get('nome')?.dirty || form.get('nome')?.touched)" class="text-xs text-red-600 mt-1">Nome é obrigatório.</div>
-          <div *ngIf="form.get('nome')?.hasError('duplicado')" class="text-xs text-red-600 mt-1">Paciente já cadastrado com este nome e nome da mãe.</div>
+<div
+  class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+>
+  <div
+    class="w-full max-w-lg sm:max-w-2xl lg:max-w-5xl min-h-[400px] max-h-[90vh] bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-0 flex flex-col justify-center items-center overflow-hidden relative"
+  >
+    <div
+      class="w-full h-full p-4 sm:p-6 md:p-10 flex flex-col justify-center items-center overflow-y-auto rounded-2xl pr-2"
+    >
+      <button
+        type="button"
+        (click)="cancelar()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 z-10"
+        aria-label="Fechar"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+      <h2 class="text-2xl font-bold text-blue-700 mb-6 text-center">
+        {{ pacienteEditando ? "Editar Paciente" : "Cadastrar Paciente" }}
+      </h2>
+      <form
+        [formGroup]="form"
+        (ngSubmit)="salvar()"
+        autocomplete="off"
+        class="space-y-4 w-full"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Nome</label
+            >
+            <input
+              type="text"
+              formControlName="nome"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+              placeholder="Nome do paciente"
+            />
+            <div
+              *ngIf="verificandoDuplicidade"
+              class="text-xs text-blue-500 mt-1"
+            >
+              Verificando se paciente já existe...
+            </div>
+            <div
+              *ngIf="
+                form.get('nome')?.hasError('required') &&
+                (form.get('nome')?.dirty || form.get('nome')?.touched)
+              "
+              class="text-xs text-red-600 mt-1"
+            >
+              Nome é obrigatório.
+            </div>
+            <div
+              *ngIf="form.get('nome')?.hasError('duplicado')"
+              class="text-xs text-red-600 mt-1"
+            >
+              Paciente já cadastrado com este nome e nome da mãe.
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Nome da mãe</label
+            >
+            <input
+              type="text"
+              formControlName="mae"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+              placeholder="Nome da mãe"
+            />
+            <div
+              *ngIf="
+                form.get('mae')?.invalid &&
+                (form.get('mae')?.dirty || form.get('mae')?.touched)
+              "
+              class="text-xs text-red-600 mt-1"
+            >
+              Nome da mãe é obrigatório.
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Data de Nascimento</label
+            >
+            <input
+              #nascimentoInput
+              matInput
+              type="date"
+              formControlName="nascimento"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+            />
+            <div
+              *ngIf="form.get('nascimento')?.hasError('required')"
+              class="text-xs text-red-600 mt-1"
+            >
+              Data de nascimento é obrigatória.
+            </div>
+            <mat-error
+              *ngIf="invalidYearLength"
+              class="text-xs text-red-600 mt-1"
+              >O ano não pode ter mais de 4 dígitos.</mat-error
+            >
+            <mat-error
+              *ngIf="form.get('nascimento')?.errors?.['futureYear'] && (form.get('nascimento')?.dirty || form.get('nascimento')?.touched)"
+              class="text-xs text-red-600 mt-1"
+              >O ano de nascimento não pode ser maior que o ano
+              atual.</mat-error
+            >
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Sexo</label
+            >
+            <select
+              formControlName="sexo"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
+            >
+              <option value="">Selecione</option>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+              <option value="I">Ignorado</option>
+            </select>
+            <div
+              *ngIf="
+                form.get('sexo')?.invalid &&
+                (form.get('sexo')?.dirty || form.get('sexo')?.touched)
+              "
+              class="text-xs text-red-600 mt-1"
+            >
+              Sexo é obrigatório.
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Estado Civil</label
+            >
+            <select
+              formControlName="estadoCivil"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
+            >
+              <option value="">Selecione</option>
+              <option value="Solteiro(a)">Solteiro(a)</option>
+              <option value="Casado(a)">Casado(a)</option>
+              <option value="Viúvo(a)">Viúvo(a)</option>
+              <option value="Divorciado(a)">Divorciado(a)</option>
+              <option value="Ignorado">Ignorado</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Profissão</label
+            >
+            <input
+              type="text"
+              formControlName="profissao"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+            />
+          </div>
+          <!-- Escolaridade -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Escolaridade</label
+            >
+            <select
+              type="text"
+              formControlName="escolaridade"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+            >
+              <option value="">Selecione</option>
+              <option value="Analfabeto">Analfabeto</option>
+              <option value="Ensino Fundamental Incompleto">
+                Ensino Fundamental Incompleto
+              </option>
+              <option value="Ensino Fundamental Completo">
+                Ensino Fundamental Completo
+              </option>
+              <option value="Ensino Médio Incompleto">
+                Ensino Médio Incompleto
+              </option>
+              <option value="Ensino Médio Completo">
+                Ensino Médio Completo
+              </option>
+              <option value="Ensino Superior Incompleto">
+                Ensino Superior Incompleto
+              </option>
+              <option value="Ensino Superior Completo">
+                Ensino Superior Completo
+              </option>
+              <option value="Pós-graduação">Pós-graduação</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Raça/Cor</label
+            >
+            <select
+              formControlName="raca"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
+            >
+              <option value="">Selecione</option>
+              <option value="Branca">Branca</option>
+              <option value="Preta">Preta</option>
+              <option value="Parda">Parda</option>
+              <option value="Amarela">Amarela</option>
+              <option value="Indígena">Indígena</option>
+              <option value="Ignorado">Ignorado</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Endereço</label
+            >
+            <input
+              type="text"
+              formControlName="endereco"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Bairro</label
+            >
+            <input
+              type="text"
+              formControlName="bairro"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+            />
+          </div>
+          <!-- UF -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >UF</label
+            >
+            <input
+              type="text"
+              formControlName="uf"
+              class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
+              placeholder="UF"
+              maxlength="9"
+              readonly
+            />
+          </div>
+
+          <!-- CEP -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >CEP</label
+            >
+            <input
+              type="text"
+              formControlName="cep"
+              maxlength="9"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+              placeholder="12345-678"
+            />
+            <div
+              *ngIf="
+                form.get('cep')?.invalid &&
+                (form.get('cep')?.dirty || form.get('cep')?.touched)
+              "
+              class="text-xs text-red-600 mt-1"
+            >
+              CEP inválido. Ex: 12345-678
+            </div>
+
+            <!-- Erro de CEP que não pertence ao UF -->
+            <div *ngIf="erroCepUf" class="text-xs text-red-600 mt-1">
+              O CEP informado não pertence ao estado selecionado.
+            </div>
+          </div>
+
+          <!-- Município (preenchido automaticamente) -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Município</label
+            >
+            <input
+              type="text"
+              formControlName="municipio"
+              class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
+              placeholder="Município"
+              readonly
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Acompanhante</label
+            >
+            <input
+              type="text"
+              formControlName="acompanhante"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Procedência</label
+            >
+            <input
+              type="text"
+              formControlName="procedencia"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+            />
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nome da mãe</label>
-          <input type="text" formControlName="mae" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" placeholder="Nome da mãe" />
-          <div *ngIf="form.get('mae')?.invalid && (form.get('mae')?.dirty || form.get('mae')?.touched)" class="text-xs text-red-600 mt-1">Nome da mãe é obrigatório.</div>
+        <div
+          *ngIf="form.errors?.['duplicado']"
+          class="text-sm text-red-600 mt-2"
+        >
+          Já existe paciente com este nome, nome da mãe e data de nascimento.
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
-          <input type="date" formControlName="nascimento" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-          <div *ngIf="form.get('nascimento')?.invalid && (form.get('nascimento')?.dirty || form.get('nascimento')?.touched)" class="text-xs text-red-600 mt-1">Data de nascimento é obrigatória.</div>
-          <mat-error *ngIf="form.get('nascimento')?.hasError('invalidYearLength')" class="text-xs text-red-600 mt-1">O ano não pode ter mais de 4 dígitos.</mat-error>
-          <mat-error *ngIf="form.get('nascimento')?.hasError('futureYear') && (form.get('nascimento')?.dirty || form.get('nascimento')?.touched)" class="text-xs text-red-600 mt-1">O ano de nascimento não pode ser maior que o ano atual.</mat-error>
-          
+        <div
+          class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 justify-between items-stretch sm:items-center"
+        >
+          <button
+            type="submit"
+            class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
+            [disabled]="form.invalid || form.pending || form.errors?.['duplicado'] || loading"
+          >
+            <span *ngIf="!loading">{{
+              pacienteEditando ? "Atualizar" : "Salvar"
+            }}</span>
+            <svg
+              *ngIf="loading"
+              class="animate-spin h-5 w-5 text-white ml-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              ></path>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition flex items-center justify-center"
+            (click)="cancelar()"
+            [disabled]="loading"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="w-full sm:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold shadow hover:bg-purple-700 transition flex items-center justify-center"
+            (click)="imprimirPacientePDF()"
+            [disabled]="loading"
+          >
+            Gerar PDF
+          </button>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
-          <select formControlName="sexo" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900">
-            <option value="">Selecione</option>
-            <option value="M">Masculino</option>
-            <option value="F">Feminino</option>
-            <option value="I">Ignorado</option>
-          </select>
-          <div *ngIf="form.get('sexo')?.invalid && (form.get('sexo')?.dirty || form.get('sexo')?.touched)" class="text-xs text-red-600 mt-1">Sexo é obrigatório.</div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Estado Civil</label>
-          <select formControlName="estadoCivil" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900">
-            <option value="">Selecione</option>
-            <option value="Solteiro(a)">Solteiro(a)</option>
-            <option value="Casado(a)">Casado(a)</option>
-            <option value="Viúvo(a)">Viúvo(a)</option>
-            <option value="Divorciado(a)">Divorciado(a)</option>
-            <option value="Ignorado">Ignorado</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Profissão</label>
-          <input type="text" formControlName="profissao" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-        </div>
-        <!-- Escolaridade -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Escolaridade</label>
-          <select type="text" formControlName="escolaridade" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400">
-            <option value="">Selecione</option>
-            <option value="Analfabeto">Analfabeto</option>
-            <option value="Ensino Fundamental Incompleto">Ensino Fundamental Incompleto</option>
-            <option value="Ensino Fundamental Completo">Ensino Fundamental Completo</option>
-            <option value="Ensino Médio Incompleto">Ensino Médio Incompleto</option>
-            <option value="Ensino Médio Completo">Ensino Médio Completo</option>
-            <option value="Ensino Superior Incompleto">Ensino Superior Incompleto</option>
-            <option value="Ensino Superior Completo">Ensino Superior Completo</option>
-            <option value="Pós-graduação">Pós-graduação</option>
-          </select>
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Raça/Cor</label>
-          <select formControlName="raca" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900">
-            <option value="">Selecione</option>
-            <option value="Branca">Branca</option>
-            <option value="Preta">Preta</option>
-            <option value="Parda">Parda</option>
-            <option value="Amarela">Amarela</option>
-            <option value="Indígena">Indígena</option>
-            <option value="Ignorado">Ignorado</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
-          <input type="text" formControlName="endereco" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
-          <input type="text" formControlName="bairro" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Município</label>
-          <input type="text" formControlName="municipio" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">UF</label>
-          <select formControlName="uf" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900">
-            <option value="">Selecione o estado</option>
-            <option *ngFor="let estado of estadosBrasileiros" [value]="estado.sigla">{{ estado.sigla }} - {{ estado.nome }}</option>
-          </select>
-          <div *ngIf="form.get('uf')?.invalid && (form.get('uf')?.dirty || form.get('uf')?.touched)" class="text-xs text-red-600 mt-1">UF é obrigatória.</div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
-          <input type="text" formControlName="cep" maxlength="9" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" placeholder="12345-678" />
-          <div *ngIf="form.get('cep')?.invalid && (form.get('cep')?.dirty || form.get('cep')?.touched)" class="text-xs text-red-600 mt-1">CEP inválido. Ex: 12345-678</div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Acompanhante</label>
-          <input type="text" formControlName="acompanhante" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Procedência</label>
-          <input type="text" formControlName="procedencia" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-        </div>
-      </div>
-      <div *ngIf="form.errors?.['duplicado']" class="text-sm text-red-600 mt-2">Já existe paciente com este nome, nome da mãe e data de nascimento.</div>
-      <div class="flex flex-col md:flex-row gap-4 mt-6 justify-between items-center">
-        <button type="submit" class="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center" [disabled]="form.invalid || form.pending || form.errors?.['duplicado'] || loading">
-          <span *ngIf="!loading">{{ pacienteEditando ? 'Atualizar' : 'Salvar' }}</span>
-          <svg *ngIf="loading" class="animate-spin h-5 w-5 text-white ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-        </button>
-        <button type="button" class="w-full md:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition flex items-center justify-center" (click)="cancelar()" [disabled]="loading">
-          Cancelar
-        </button>
-        <button type="button" class="w-full md:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold shadow hover:bg-purple-700 transition flex items-center justify-center" (click)="imprimirPacientePDF()" [disabled]="loading">
-          Gerar PDF
-        </button>
-      </div>
       </form>
     </div>
   </div>
