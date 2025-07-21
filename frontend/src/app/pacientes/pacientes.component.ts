@@ -15,9 +15,11 @@ export interface Paciente {
   mae: string;
   nascimento: string;
   sexo: string;
-  estadoCivil: string;
-  profissao: string;
-  escolaridade: string;
+  estadoCivil?: string;
+  profissao?: string;
+  escolaridade?: string;
+  telefone?: string;
+  sus?: string;
   raca: string;
   endereco: string;
   bairro: string;
