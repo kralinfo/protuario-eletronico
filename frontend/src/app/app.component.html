@@ -1,12 +1,7 @@
 <footer class="w-full text-center text-sm text-gray-500 py-3 bg-transparent fixed left-0 bottom-0 z-50 pointer-events-none sm:text-base sm:py-4">
   <span>Sistema desenvolvido por <strong>Kralinfo</strong> Soluções Tecnológicas</span>
 </footer>
-<style>
-  body {
-    padding-bottom: 60px;
-    /* Garante espaço para o footer em telas pequenas */
-  }
-</style>
+
 <ng-container *ngIf="!isLoginRoute()">
   <!-- Menu hamburguer à esquerda do header principal -->
   <mat-menu #mainMenu="matMenu" class="main-menu-modern">
@@ -23,8 +18,10 @@
       <span class="menu-label">Usuários</span>
     </button>
   </mat-menu>
-  <div class="header-sistema w-full bg-white/90 shadow-sm flex flex-col sm:flex-row items-center justify-between px-2 sm:px-6 py-2 sm:py-0 gap-2 sm:gap-0">
-    <div class="flex items-center gap-2 w-full sm:w-auto">
+  <div class="w-full relative shadow-sm" style="background: linear-gradient(100deg, #0a224e 0%, #1e3a8a 60%, #2563eb 100%);">
+    <div class="absolute inset-0 pointer-events-none opacity-15" style="background-image: url('data:image/svg+xml;utf8,<svg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' fill=\'none\' xmlns=\'http://www.w3.org/2000/svg\'><defs><linearGradient id=\'g\' x1=\'0\' y1=\'20\' x2=\'40\' y2=\'20\' gradientUnits=\'userSpaceOnUse\'><stop stop-color=\'%23fff\' stop-opacity=\'0.28\'/><stop offset=\'1\' stop-color=\'%23fff\' stop-opacity=\'0.01\'/></linearGradient></defs><path d=\'M0 40L40 0\' stroke=\'url(%23g)\' stroke-width=\'1\'/><path d=\'M-10 30L30 -10\' stroke=\'url(%23g)\' stroke-width=\'1\'/><path d=\'M10 50L50 10\' stroke=\'url(%23g)\' stroke-width=\'1\'/></svg>'); background-size: 60px 60px;"></div>
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-6 sm:px-12 py-2 sm:py-0 gap-2 sm:gap-0 relative z-10">
+      <div class="flex items-center gap-2 w-full sm:w-auto">
       <button mat-icon-button [matMenuTriggerFor]="mainMenu" aria-label="Menu principal" class="menu-hamburguer mr-2" style="background:transparent;border:none;padding:0 2px;display:flex;align-items:center;justify-content:center;">
         <span class="menu-google-grid">
           <span class="dot"></span><span class="dot"></span><span class="dot"></span>
@@ -35,10 +32,10 @@
       <img src="assets/logo-alianca.svg" alt="Aliança-PE" class="logo-alianca h-8 w-auto mr-2">
       <div class="sistema-info-botao cursor-pointer" tabindex="0" (click)="irParaMenuPrincipal()" (keydown.enter)="irParaMenuPrincipal()" aria-label="Ir para o menu principal">
         <div class="logo-principal">e-Prontuário</div>
-        <div class="sistema-descricao">Gerenciamento de Prontuários Eletrônicos</div>
+        <div class="sistema-descricao text-white">Gerenciamento de Prontuários Eletrônicos</div>
       </div>
     </div>
-    <div class="flex items-center gap-1 sm:gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end">
+      <div class="flex items-center gap-1 sm:gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end">
       <span class="user-info hidden sm:inline-block text-gray-700 mr-1" *ngIf="authService.user">
         {{ authService.user.nome }}
       </span>
@@ -52,12 +49,14 @@
         <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
       </button>
     </div>
-    <mat-menu #userMenu="matMenu">
+      <mat-menu #userMenu="matMenu">
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Sair</span>
       </button>
-    </mat-menu>
+      </mat-menu>
+    </div>
+  </div>
 <ng-template #sobreDialog>
   <div class="sobre-modal leve max-w-xs sm:max-w-sm md:max-w-md mx-auto p-4 bg-white rounded-lg shadow text-center">
     <h2 class="sobre-titulo text-lg font-semibold mb-2">Sobre o sistema</h2>
@@ -172,6 +171,5 @@
     background: #2b69f2;
   }
 </style>
-    </div>
 </ng-container>
 <router-outlet></router-outlet>
