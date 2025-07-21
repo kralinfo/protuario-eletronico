@@ -127,7 +127,7 @@ export class RelatoriosComponent implements OnInit {
   ngOnInit() {
     // Permitir acesso apenas se o módulo selecionado for 'relatorios', 'medico' ou 'ambulatorio'
     const modulo = this.authService.getSelectedModule();
-    if (!modulo || !['relatorios', 'medico', 'ambulatorio'].includes(modulo)) {
+    if (!modulo || !['relatorios', 'medico', 'ambulatorio', 'recepcao'].includes(modulo)) {
       this.acessoNegado = true;
       return;
     }

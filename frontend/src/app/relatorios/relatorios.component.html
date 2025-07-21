@@ -9,7 +9,116 @@
     </div>
   </div>
   <ng-container *ngIf="!acessoNegado">
-    <!-- Header global removido, permanece apenas o header do app principal -->
-    <!-- ...existing code... -->
+    <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <!-- Filtros -->
+      <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6" /></svg>
+          Relatório de Pacientes
+        </h2>
+        <form [formGroup]="filtrosForm" (ngSubmit)="aplicarFiltros()" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Data Inicial</label>
+            <input type="date" class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="dataInicio">
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Data Final</label>
+            <input type="date" class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="dataFim">
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Sexo</label>
+            <select class="w-full max-w-[120px] px-2 py-2 border border-gray-300 rounded-md shadow-sm" formControlName="sexo">
+              <option *ngFor="let opt of opcoesSexo" [value]="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Município</label>
+            <input type="text" class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm" formControlName="municipio">
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">UF</label>
+            <select class="w-full max-w-[120px] px-2 py-2 border border-gray-300 rounded-md shadow-sm" formControlName="uf">
+              <option *ngFor="let opt of opcoesUF" [value]="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Estado Civil</label>
+            <select class="w-full max-w-[160px] px-2 py-2 border border-gray-300 rounded-md shadow-sm" formControlName="estadoCivil">
+              <option *ngFor="let opt of opcoesEstadoCivil" [value]="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Escolaridade</label>
+            <select class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm" formControlName="escolaridade">
+              <option *ngFor="let opt of opcoesEscolaridade" [value]="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+          <div class="flex items-end h-full gap-2">
+            <button type="submit" class="px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium">Filtrar</button>
+            <button type="button" (click)="limparFiltros()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors font-medium">Limpar</button>
+          </div>
+        </form>
+      </div>
+      <!-- Estatísticas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-blue-600">{{ pacientesFiltrados.length }}</div>
+          <div class="text-sm text-blue-800">Total de Pacientes</div>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-green-600">{{ getQuantidadeMasculino() }}</div>
+          <div class="text-sm text-green-800">Masculino</div>
+        </div>
+        <div class="bg-pink-50 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-pink-600">{{ getQuantidadeFeminino() }}</div>
+          <div class="text-sm text-pink-800">Feminino</div>
+        </div>
+        <div class="bg-indigo-50 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-indigo-600">{{ getQuantidadeMunicipios() }}</div>
+          <div class="text-sm text-indigo-800">Municípios</div>
+        </div>
+      </div>
+      <!-- Opções de Relatórios -->
+      <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8 flex flex-col sm:flex-row gap-4">
+        <button (click)="gerarRelatorioSimples()" [disabled]="pacientesFiltrados.length === 0" class="w-full sm:w-auto px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Gerar PDF Simples</button>
+        <button (click)="gerarRelatorioDetalhado()" [disabled]="pacientesFiltrados.length === 0" class="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Gerar PDF Detalhado</button>
+        <button (click)="imprimirResumo()" [disabled]="pacientesFiltrados.length === 0" class="w-full sm:w-auto px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Imprimir Resumo</button>
+      </div>
+      <!-- Resultados -->
+      <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2">
+          <h2 class="text-lg font-semibold text-gray-800">Resultados</h2>
+          <div class="text-sm text-gray-600">
+            {{ pacientesFiltrados.length }} paciente(s) encontrado(s)
+          </div>
+        </div>
+        <div *ngIf="carregando" class="flex justify-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        </div>
+        <div *ngIf="!carregando && pacientesFiltrados.length > 0" class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded shadow">
+            <thead>
+              <tr>
+                <th class="px-4 py-2">Nome</th>
+                <th class="px-4 py-2">Sexo</th>
+                <th class="px-4 py-2">Nascimento</th>
+                <th class="px-4 py-2">Município</th>
+                <th class="px-4 py-2">UF</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let paciente of pacientesFiltrados">
+                <td class="px-4 py-2">{{ paciente.nome }}</td>
+                <td class="px-4 py-2">{{ paciente.sexo }}</td>
+                <td class="px-4 py-2">{{ paciente.nascimento | date:'dd/MM/yyyy' }}</td>
+                <td class="px-4 py-2">{{ paciente.municipio }}</td>
+                <td class="px-4 py-2">{{ paciente.uf }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div *ngIf="!carregando && pacientesFiltrados.length === 0" class="text-center text-gray-500 mt-8">Nenhum paciente encontrado.</div>
+      </div>
+    </div>
   </ng-container>
 </div>
