@@ -1,31 +1,4 @@
-    <!-- Opções de Relatórios -->
-    <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-6">Gerar Relatórios</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <!-- Relatório Simples -->
-        <div class="border border-gray-200 rounded-lg p-4">
-          <div class="flex items-center space-x-3 mb-3">
-            <svg class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <h3 class="font-medium text-gray-900">Relatório Simples</h3>
-          </div>
-          <p class="text-sm text-gray-600 mb-4">Lista resumida com informações básicas dos atendimentos filtrados.</p>
-          <button (click)="gerarRelatorioSimples()" [disabled]="relatorio.length === 0" class="w-full px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Gerar PDF</button>
-        </div>
-        <!-- Relatório Detalhado -->
-        <div class="border border-gray-200 rounded-lg p-4">
-          <div class="flex items-center space-x-3 mb-3">
-            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <h3 class="font-medium text-gray-900">Relatório Detalhado</h3>
-          </div>
-          <p class="text-sm text-gray-600 mb-4">Inclui todos os campos dos atendimentos filtrados, ideal para auditoria ou exportação completa.</p>
-          <button (click)="gerarRelatorioDetalhado()" [disabled]="relatorio.length === 0" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Gerar PDF</button>
-        </div>
-      </div>
-    </div>
+
 <div class="min-h-screen bg-gray-50">
   <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
     <!-- Filtros -->
@@ -55,6 +28,55 @@
         </div>
       </form>
     </div>
+        <!-- Cards de Totalização -->
+    <div *ngIf="relatorio.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div class="bg-blue-50 p-4 rounded-lg">
+        <div class="text-2xl font-bold text-blue-600">{{ relatorio.length }}</div>
+        <div class="text-sm text-blue-800">Total de Atendimentos</div>
+      </div>
+      <div class="bg-green-50 p-4 rounded-lg">
+        <div class="text-2xl font-bold text-green-600">{{ getTotalPorProfissional('Dra. Ana') }}</div>
+        <div class="text-sm text-green-800">Dra. Ana</div>
+      </div>
+      <div class="bg-indigo-50 p-4 rounded-lg">
+        <div class="text-2xl font-bold text-indigo-600">{{ getTotalPorProfissional('Dr. João') }}</div>
+        <div class="text-sm text-indigo-800">Dr. João</div>
+      </div>
+      <div class="bg-pink-50 p-4 rounded-lg">
+        <div class="text-2xl font-bold text-pink-600">{{ getTotalPorProcedimento('Consulta') }}</div>
+        <div class="text-sm text-pink-800">Consultas</div>
+      </div>
+    </div>
+        <!-- Opções de Relatórios -->
+    <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-6">Gerar Relatórios</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <!-- Relatório Simples -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center space-x-3 mb-3">
+            <svg class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h3 class="font-medium text-gray-900">Relatório Simples</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-4">Lista resumida com informações básicas dos atendimentos filtrados.</p>
+          <button (click)="gerarRelatorioSimples()" [disabled]="relatorio.length === 0" class="w-full px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Gerar PDF</button>
+        </div>
+        
+        <!-- Relatório Detalhado -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center space-x-3 mb-3">
+            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h3 class="font-medium text-gray-900">Relatório Detalhado</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-4">Inclui todos os campos dos atendimentos filtrados, ideal para auditoria ou exportação completa.</p>
+          <button (click)="gerarRelatorioDetalhado()" [disabled]="relatorio.length === 0" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Gerar PDF</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Resultados -->
     <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2">
@@ -80,7 +102,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let item of relatorio; let i = index" [class.bg-gray-50]="i % 2 === 1">
+            <tr *ngFor="let item of paginatedRelatorio; let i = index" [class.bg-gray-50]="i % 2 === 1">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.data | date:'dd/MM/yyyy' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.paciente }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.profissional }}</td>
@@ -89,6 +111,32 @@
             </tr>
           </tbody>
         </table>
+        <!-- Paginação -->
+        <div class="flex flex-col sm:flex-row justify-end items-center mt-3 sm:mt-4 gap-2 text-xs sm:text-sm bg-gray-50 px-2 sm:px-4 py-2 rounded-b-lg border-t border-gray-200">
+          <div class="flex items-center gap-4 text-gray-600">
+            <label class="flex items-center gap-1">
+              <span>Itens por página:</span>
+              <select class="border rounded px-2 py-1 text-gray-700 bg-white focus:ring focus:ring-blue-500" (change)="onPageSizeChange($event)">
+                <option *ngFor="let opt of pageSizeOptions" [value]="opt" [selected]="opt === pageSize">{{ opt }}</option>
+              </select>
+            </label>
+            <span>{{ relatorio.length > 0 ? (currentPage * pageSize + 1) : 0 }} – {{ min((currentPage + 1) * pageSize, relatorio.length) }} de {{ relatorio.length }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Primeira página" (click)="goToFirstPage()" [disabled]="currentPage === 0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Página anterior" (click)="goToPreviousPage()" [disabled]="currentPage === 0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Próxima página" (click)="goToNextPage()" [disabled]="currentPage >= totalPages - 1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+            <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Última página" (click)="goToLastPage()" [disabled]="currentPage >= totalPages - 1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        </div>
       </div>
       <!-- Empty state -->
       <div *ngIf="!loading && relatorio.length === 0" class="flex flex-col items-center justify-center py-8 text-gray-400">

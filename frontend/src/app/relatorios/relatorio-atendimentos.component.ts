@@ -1,5 +1,3 @@
-// ...existing code up to the first closing bracket of the class...
-
 import * as jsPDF from 'jspdf';
 import { Component } from '@angular/core';
 
@@ -23,30 +21,105 @@ export class RelatorioAtendimentosComponent {
     { id: '3', nome: 'Enf. Maria' }
   ];
   relatorio: any[] = [];
+  pageSizeOptions = [5, 10, 20, 30, 50];
+  pageSize = 10;
+  currentPage = 0;
+
+  get paginatedRelatorio() {
+    const start = this.currentPage * this.pageSize;
+    return this.relatorio.slice(start, start + this.pageSize);
+  }
+  get totalPages() {
+    return Math.ceil(this.relatorio.length / this.pageSize) || 1;
+  }
+
+  goToFirstPage() { this.currentPage = 0; }
+  goToPreviousPage() { if (this.currentPage > 0) this.currentPage--; }
+  goToNextPage() { if (this.currentPage < this.totalPages - 1) this.currentPage++; }
+  goToLastPage() { this.currentPage = this.totalPages - 1; }
+  onPageSizeChange(event: any) {
+    this.pageSize = +event.target.value;
+    this.currentPage = 0;
+  }
+
   loading = false;
+
+  ngOnInit() {
+    this.carregarUltimosAtendimentos();
+  }
+
+  carregarUltimosAtendimentos() {
+    this.loading = true;
+    setTimeout(() => {
+      // Simula 30 atendimentos recentes
+      const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
+      const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
+      const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
+      this.relatorio = Array.from({ length: 30 }).map((_, i) => {
+        const data = new Date();
+        data.setDate(data.getDate() - i);
+        return {
+          data,
+          paciente: nomes[Math.floor(Math.random() * nomes.length)],
+          profissional: profissionais[Math.floor(Math.random() * profissionais.length)],
+          procedimento: procedimentos[Math.floor(Math.random() * procedimentos.length)],
+          observacoes: 'Atendimento gerado automaticamente.'
+        };
+      });
+      this.loading = false;
+    }, 800);
+  }
+
+  // Funções para totalização dos cards
+  getTotalPorProfissional(nome: string): number {
+    return this.relatorio.filter(r => r.profissional === nome).length;
+  }
+  getTotalPorProcedimento(nome: string): number {
+    return this.relatorio.filter(r => r.procedimento === nome).length;
+  }
 
   buscarRelatorio() {
     this.loading = true;
     setTimeout(() => {
-      // Simulação de dados
-      this.relatorio = [
-        {
-          data: new Date(),
-          paciente: 'José da Silva',
-          profissional: 'Dra. Ana',
-          procedimento: 'Consulta',
-          observacoes: 'Paciente apresentou melhora.'
-        },
-        {
-          data: new Date(),
-          paciente: 'Maria Souza',
-          profissional: 'Dr. João',
-          procedimento: 'Retorno',
-          observacoes: 'Solicitado novo exame.'
+      // Simula 50 atendimentos para filtrar
+      const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
+      const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
+      const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
+      const atendimentos = Array.from({ length: 50 }).map((_, i) => {
+        const data = new Date();
+        data.setDate(data.getDate() - i);
+        return {
+          data,
+          paciente: nomes[Math.floor(Math.random() * nomes.length)],
+          profissional: profissionais[Math.floor(Math.random() * profissionais.length)],
+          procedimento: procedimentos[Math.floor(Math.random() * procedimentos.length)],
+          observacoes: 'Atendimento gerado automaticamente.'
+        };
+      });
+
+      // Filtros
+      let filtrados = atendimentos;
+      if (this.dataInicial) {
+        const dataIni = new Date(this.dataInicial);
+        filtrados = filtrados.filter(a => new Date(a.data) >= dataIni);
+      }
+      if (this.dataFinal) {
+        const dataFim = new Date(this.dataFinal);
+        // Considera o fim do dia
+        dataFim.setHours(23,59,59,999);
+        filtrados = filtrados.filter(a => new Date(a.data) <= dataFim);
+      }
+      if (this.profissional) {
+        // O select usa o id, então converte id para nome
+        const profObj = this.profissionais.find(p => p.id === this.profissional);
+        if (profObj) {
+          filtrados = filtrados.filter(a => a.profissional === profObj.nome);
         }
-      ];
+      }
+      this.relatorio = filtrados;
+      this.currentPage = 0;
       this.loading = false;
-    }, 1200);
+    }, 800);
   }
   gerarRelatorioSimples() {
     const doc = new jsPDF.jsPDF();
@@ -102,5 +175,9 @@ export class RelatorioAtendimentosComponent {
       }
     });
     doc.save('relatorio-detalhado-atendimentos.pdf');
+  }
+
+  min(a: number, b: number): number {
+    return Math.min(a, b);
   }
 }
