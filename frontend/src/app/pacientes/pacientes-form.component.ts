@@ -58,8 +58,7 @@ export class PacientesFormComponent
   invalidYearLength = false;
 
   // Para acessar o input de nascimento no DOM
-  @ViewChild('nascimentoInput', { static: false })
-  nascimentoInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('nascimentoInput') nascimentoInput!: ElementRef<HTMLInputElement>;
 
   // Lista de estados brasileiros
   estadosBrasileiros = [
@@ -91,8 +90,15 @@ export class PacientesFormComponent
     { sigla: 'SE', nome: 'Sergipe' },
     { sigla: 'TO', nome: 'Tocantins' },
   ];
+
+
+  
+
+
+
   pacienteService: any;
   erroCepUf = false;
+  bloqueioAnoInvalido: any;
 
   constructor(
     private router: Router,
@@ -107,20 +113,20 @@ export class PacientesFormComponent
       mae: ['', [Validators.required]],
       nascimento: [
         '',
-        [Validators.required, Validators.pattern(/^\d{5}-?\d{3}$/)],
+        [Validators.required, this.nascimentoValidator.bind(this)],
       ],
       sexo: ['', [Validators.required]],
-      estadoCivil: [''],
-      profissao: [''],
-      escolaridade: [''],
-      raca: [''],
-      endereco: [''],
-      bairro: [''],
-      municipio: [{ value: '', disable: true }, Validators.required],
+      estadoCivil: ['',[Validators.required]],
+      profissao: ['',[Validators.required]],
+      escolaridade: ['',[Validators.required]],
+      raca: ['',[Validators.required]],
+      endereco: ['',[Validators.required]],
+      bairro: ['',[Validators.required]],
+      municipio: ['',{ disable: true }, Validators.required],
       uf: ['', [Validators.required]],
       cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
-      acompanhante: [''],
-      procedencia: [''],
+      acompanhante: ['', [Validators.required]],
+      procedencia: ['',[Validators.required]],
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
@@ -133,63 +139,85 @@ export class PacientesFormComponent
     });
 
     // Verifica se o CEP é válido de acordo com o UF informado
-    this.form.get('cep')?.valueChanges
-  .pipe(debounceTime(300), distinctUntilChanged())
-  .subscribe((valor: string) => {
-    this.erroCepUf = false;
+    this.form.get('cep')?.valueChanges.pipe(
+  debounceTime(300),
+  distinctUntilChanged()
+).subscribe((valor: string) => {
+  this.erroCepUf = false;
 
-    
-    const cepLimpo = valor?.replace(/\D/g, '') || '';
+  const cepLimpo = valor?.replace(/\D/g, '') || '';
 
-    
-    let cepFormatado = cepLimpo;
-    if (cepLimpo.length > 5) {
-      cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
-    }
+  let cepFormatado = cepLimpo;
+  if (cepLimpo.length > 5) {
+    cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
+  }
 
-    
-    this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
+  this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
 
-    
-    if (cepLimpo.length === 8) {
-      this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
-        if (dados?.erro) {
-          this.form.patchValue({ municipio: '', uf: '' });
-          this.erroCepUf = true;
-          return;
-        }
-
-        
-        const estadoCompleto = this.estadosBrasileiros.find(
-          (e) => e.sigla === dados.uf
-        );
-        const ufFormatado = estadoCompleto
-          ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
-          : dados.uf;
-
-        
-        this.form.patchValue({
-          municipio: dados.localidade,
-          uf: ufFormatado,
-        });
-
-        this.erroCepUf = false;
-      });
-    } else {
-      this.form.patchValue({ municipio: '', uf: '' });
-    }
-  });
-
-    // Patch do pacienteEditando se existir
-    if (this.pacienteEditando) {
-      const patch = { ...this.pacienteEditando };
-      if (patch.nascimento) {
-        const date = new Date(patch.nascimento);
-        const yyyy = date.getFullYear();
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const dd = String(date.getDate()).padStart(2, '0');
-        patch.nascimento = `${yyyy}-${mm}-${dd}`;
+  if (cepLimpo.length === 8) {
+    this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
+      if (dados?.erro) {
+        this.form.patchValue({ municipio: '', uf: '' });
+        console.log('CEP não encontrado. Limpando município e uf.');
+        this.erroCepUf = true;
+        return;
       }
+
+      const estadoCompleto = this.estadosBrasileiros.find(
+        (e) => e.sigla === dados.uf
+      );
+      const ufFormatado = estadoCompleto
+        ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
+        : dados.uf;
+
+      this.form.patchValue({
+        municipio: String(dados.localidade || ''), // 👉 garante string
+        uf: ufFormatado,
+      });
+
+      this.erroCepUf = false;
+    });
+  } else {
+    this.form.patchValue({ municipio: '', uf: '' });
+  }
+});
+
+// 👉 Blindagem extra: se municipio virar objeto, converte pra string automaticamente
+this.form.get('municipio')?.valueChanges.subscribe((valor) => {
+  if (typeof valor === 'object' && valor !== null) {
+    this.form.get('municipio')?.setValue(valor?.nome || '', { emitEvent: false });
+  }
+});
+
+// Patch do pacienteEditando se existir
+if (this.pacienteEditando) {
+  const patch = { ...this.pacienteEditando };
+
+  // ✅ Sanitiza campo municipio
+  if (typeof patch.municipio === 'object' && patch.municipio !== null) {
+    patch.municipio = patch.municipio || '';
+
+  } else if (typeof patch.municipio !== 'string') {
+    patch.municipio = '';
+  }
+
+  // ✅ Sanitiza campo uf
+  const uf = patch.uf as { sigla?: string; nome?: string } | string;
+  if (typeof uf === 'object' && uf !== null) {
+    patch.uf = uf.sigla ? `${uf.sigla} - ${uf.nome || ''}` : '';
+  } else if (typeof uf !== 'string') {
+    patch.uf = '';
+  }
+
+  // ✅ Formata data de nascimento corretamente
+  if (patch.nascimento) {
+    const date = new Date(patch.nascimento);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    patch.nascimento = `${yyyy}-${mm}-${dd}`;
+  }
+
       // Garante que estadoCivil seja uma opção válida
       // Mapeia valores sem (a) para a opção correta
       const mapEstadoCivil = {
@@ -276,34 +304,43 @@ export class PacientesFormComponent
       });
   }
 
-  ngAfterViewInit() {
-    // Adiciona um listener para corrigir ano com mais de 4 dígitos e limpar
+  ngAfterViewInit(): void {
     const inputEl = this.nascimentoInput.nativeElement;
 
     inputEl.addEventListener('input', () => {
       const rawValue = inputEl.value;
       const parts = rawValue.split('-');
+      const year = parts[0] ?? '';
 
-      let year = parts[0];
-      const month = parts[1] ?? '';
-      const day = parts[2] ?? '';
+      if (year.length > 4) {
+        // Limpa o valor
+        inputEl.value = '';
+        this.form.get('nascimento')?.setValue('', { emitEvent: true });
+        this.form.get('nascimento')?.markAsTouched();
+        this.form.get('nascimento')?.setErrors({ invalidYearLength: true });
+        this.invalidYearLength = true;
 
-      if (year && year.length > 4) {
-        year = year.slice(0, 4);
-        const newValue = [year, month, day].filter(Boolean).join('-');
+        // BLOQUEIO: Desativa o input temporariamente
+        inputEl.disabled = true;
+        this.form.get('nascimento')?.disable();
 
-        inputEl.value = newValue;
+        setTimeout(() => {
+          inputEl.disabled = false;
+          this.form.get('nascimento')?.enable();
+          this.bloqueioAnoInvalido = false;
+        }, 3000);
 
-        this.form.get('nascimento')?.setValue(newValue, { emitEvent: false });
-      } else {
+        return;
+      }
+
+      // Se estava inválido antes, e agora está ok → limpar o erro
+      const control = this.form.get('nascimento');
+      if (this.invalidYearLength && control?.hasError('invalidYearLength')) {
+        const errors = { ...control.errors };
+        delete errors['invalidYearLength'];
+        control.setErrors(Object.keys(errors).length ? errors : null);
+        control.updateValueAndValidity();
         this.invalidYearLength = false;
-        const control = this.form.get('nascimento');
-        if (control?.hasError('invalidYearLength')) {
-          const errors = { ...control.errors };
-          delete errors['invalidYearLength'];
-          control.setErrors(Object.keys(errors).length ? errors : null);
-          control.updateValueAndValidity();
-        }
       }
     });
   }
@@ -338,6 +375,7 @@ export class PacientesFormComponent
       alert('Sua sessão expirou. Faça login novamente.');
       return;
     }
+    
     if (this.form.invalid || this.form.pending || this.verificandoDuplicidade) {
       if (this.verificandoDuplicidade) {
         alert('Aguarde a verificação de duplicidade.');
@@ -431,6 +469,7 @@ export class PacientesFormComponent
             alert('Sua sessão expirou. Faça login novamente.');
           } else {
             const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+              
               data: {
                 title: 'Erro',
                 message: err?.error?.error || 'Erro ao cadastrar paciente.',
@@ -624,14 +663,13 @@ export class PacientesFormComponent
 
     if (!value) return null;
 
-    // Verifica se o valor segue o formato yyyy-mm-dd
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(value)) return { invalidDateFormat: true };
 
-    const year = Number(value.split('-')[0]);
+    const date = new Date(value);
     const currentYear = new Date().getFullYear();
 
-    if (year > currentYear) {
+    if (date.getFullYear() > currentYear) {
       return { futureYear: true };
     }
 
