@@ -1,22 +1,10 @@
-<footer class="footer-kralinfo">
+<footer class="w-full text-center text-sm text-gray-500 py-3 bg-transparent fixed left-0 bottom-0 z-50 pointer-events-none sm:text-base sm:py-4">
   <span>Sistema desenvolvido por <strong>Kralinfo</strong> Soluções Tecnológicas</span>
 </footer>
 <style>
-  .footer-kralinfo {
-    width: 100%;
-    text-align: center;
-    font-size: 0.95em;
-    color: #888;
-    padding: 16px 0 8px 0;
-    background: transparent;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    z-index: 100;
-    pointer-events: none;
-  }
   body {
-    padding-top: 64px;
+    padding-bottom: 60px;
+    /* Garante espaço para o footer em telas pequenas */
   }
 </style>
 <ng-container *ngIf="!isLoginRoute()">
@@ -35,49 +23,46 @@
       <span class="menu-label">Usuários</span>
     </button>
   </mat-menu>
-  <div class="header-sistema">
-    <div class="header-content">
-      <div class="logo-container">
-        <button mat-icon-button [matMenuTriggerFor]="mainMenu" aria-label="Menu principal" class="menu-hamburguer" style="background:transparent;border:none;padding:0 2px;display:flex;align-items:center;justify-content:center;">
-          <span class="menu-google-grid">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          </span>
-        </button>
-        <div class="logo-container">
-          <img src="assets/logo-alianca.svg" alt="Aliança-PE" class="logo-alianca">
-          <div class="sistema-info-botao cursor-pointer" tabindex="0" (click)="irParaMenuPrincipal()" (keydown.enter)="irParaMenuPrincipal()" aria-label="Ir para o menu principal">
-            <div class="logo-principal">e-Prontuário</div>
-            <div class="sistema-descricao">Gerenciamento de Prontuários Eletrônicos</div>
-          </div>
-        </div>
-      </div>
-      <div class="user-menu user-menu-fixo" style="top: 63%; opacity: 0.9; gap: 0px; position: static">
-        <span class="user-info" *ngIf="authService.user">
-          {{ authService.user.nome }}
+  <div class="header-sistema w-full bg-white/90 shadow-sm flex flex-col sm:flex-row items-center justify-between px-2 sm:px-6 py-2 sm:py-0 gap-2 sm:gap-0">
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <button mat-icon-button [matMenuTriggerFor]="mainMenu" aria-label="Menu principal" class="menu-hamburguer mr-2" style="background:transparent;border:none;padding:0 2px;display:flex;align-items:center;justify-content:center;">
+        <span class="menu-google-grid">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
         </span>
-        <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Menu do usuário">
-          <mat-icon>person_outline</mat-icon>
-        </button>
-        <button mat-icon-button aria-label="Sobre o sistema" (click)="abrirSobre()">
-          <mat-icon>info</mat-icon>
-        </button>
-        <button mat-icon-button (click)="alternarDarkMode()" aria-label="Alternar tema" style="margin-left: auto;">
-          <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
-        </button>
+      </button>
+      <img src="assets/logo-alianca.svg" alt="Aliança-PE" class="logo-alianca h-8 w-auto mr-2">
+      <div class="sistema-info-botao cursor-pointer" tabindex="0" (click)="irParaMenuPrincipal()" (keydown.enter)="irParaMenuPrincipal()" aria-label="Ir para o menu principal">
+        <div class="logo-principal">e-Prontuário</div>
+        <div class="sistema-descricao">Gerenciamento de Prontuários Eletrônicos</div>
       </div>
-      <mat-menu #userMenu="matMenu">
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>logout</mat-icon>
-          <span>Sair</span>
-        </button>
-      </mat-menu>
+    </div>
+    <div class="flex items-center gap-1 sm:gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end">
+      <span class="user-info hidden sm:inline-block text-gray-700 mr-1" *ngIf="authService.user">
+        {{ authService.user.nome }}
+      </span>
+      <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Menu do usuário">
+        <mat-icon>person_outline</mat-icon>
+      </button>
+      <button mat-icon-button aria-label="Sobre o sistema" (click)="abrirSobre()">
+        <mat-icon>info</mat-icon>
+      </button>
+      <button mat-icon-button (click)="alternarDarkMode()" aria-label="Alternar tema">
+        <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
+      </button>
+    </div>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Sair</span>
+      </button>
+    </mat-menu>
 <ng-template #sobreDialog>
-  <div class="sobre-modal leve">
-    <h2 class="sobre-titulo">Sobre o sistema</h2>
-    <div class="sobre-empresa">Sistema desenvolvido por <strong>Kralinfo</strong> Soluções Tecnológicas</div>
-    <ul class="sobre-versoes">
+  <div class="sobre-modal leve max-w-xs sm:max-w-sm md:max-w-md mx-auto p-4 bg-white rounded-lg shadow text-center">
+    <h2 class="sobre-titulo text-lg font-semibold mb-2">Sobre o sistema</h2>
+    <div class="sobre-empresa text-gray-500 mb-2">Sistema desenvolvido por <strong>Kralinfo</strong> Soluções Tecnológicas</div>
+    <ul class="sobre-versoes text-sm text-gray-600 mb-3">
       <li>Frontend: <strong>v1.0.0</strong> (Angular 19)</li>
       <li>Backend: <strong>v1.0.0</strong> (Node.js/Express)</li>
     </ul>
@@ -188,6 +173,5 @@
   }
 </style>
     </div>
-  </div>
 </ng-container>
 <router-outlet></router-outlet>

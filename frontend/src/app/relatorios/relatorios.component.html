@@ -2,12 +2,12 @@
   <!-- Header global removido, permanece apenas o header do app principal -->
 
   <!-- Conteúdo Principal -->
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
     <!-- Filtros -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8">
       <h2 class="text-lg font-semibold text-gray-800 mb-6">Filtros</h2>
 
-      <form [formGroup]="filtrosForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <form [formGroup]="filtrosForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <!-- Data Início -->
         <div class="space-y-2">
           <label for="dataInicio" class="block text-sm font-medium text-gray-700">
@@ -114,7 +114,7 @@
       </form>
 
       <!-- Botões de Filtro -->
-      <div class="flex flex-wrap gap-4 mt-6 pt-6 border-t border-gray-200">
+      <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
         <button
           type="button"
           (click)="aplicarFiltros()"
@@ -133,8 +133,8 @@
     </div>
 
     <!-- Resumo dos Resultados -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-      <div class="flex items-center justify-between mb-4">
+    <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2">
         <h2 class="text-lg font-semibold text-gray-800">Resultados</h2>
         <div class="text-sm text-gray-600">
           {{ pacientesFiltrados.length }} paciente(s) encontrado(s)
@@ -148,7 +148,7 @@
 
       <!-- Tabela de Resultados -->
       <div *ngIf="!carregando && pacientesFiltrados.length > 0" class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-[600px] w-full divide-y divide-gray-200 text-xs sm:text-sm">
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -203,10 +203,10 @@
     </div>
 
     <!-- Opções de Relatórios -->
-    <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
       <h2 class="text-lg font-semibold text-gray-800 mb-6">Gerar Relatórios</h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <!-- Relatório Simples -->
         <div class="border border-gray-200 rounded-lg p-4">
           <div class="flex items-center space-x-3 mb-3">
@@ -272,9 +272,9 @@
       </div>
 
       <!-- Estatísticas -->
-      <div *ngIf="pacientesFiltrados.length > 0" class="mt-8 pt-6 border-t border-gray-200">
-        <h3 class="text-md font-medium text-gray-900 mb-4">Estatísticas dos Resultados</h3>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div *ngIf="pacientesFiltrados.length > 0" class="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+        <h3 class="text-md font-medium text-gray-900 mb-3 sm:mb-4">Estatísticas dos Resultados</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <div class="bg-blue-50 p-4 rounded-lg">
             <div class="text-2xl font-bold text-blue-600">{{ pacientesFiltrados.length }}</div>
             <div class="text-sm text-blue-800">Total de Pacientes</div>

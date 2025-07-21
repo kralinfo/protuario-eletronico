@@ -3,10 +3,10 @@
   class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
 >
   <div
-    class="w-full max-w-5xl min-h-[400px] max-h-[90vh] bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-0 flex flex-col justify-center items-center overflow-hidden relative"
+    class="w-full max-w-lg sm:max-w-2xl lg:max-w-5xl min-h-[400px] max-h-[90vh] bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-0 flex flex-col justify-center items-center overflow-hidden relative"
   >
     <div
-      class="w-full h-full p-10 flex flex-col justify-center items-center overflow-y-auto rounded-2xl pr-2"
+      class="w-full h-full p-4 sm:p-6 md:p-10 flex flex-col justify-center items-center overflow-y-auto rounded-2xl pr-2"
     >
       <button
         type="button"
@@ -38,7 +38,7 @@
         autocomplete="off"
         class="space-y-4 w-full"
       >
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Nome</label
@@ -325,11 +325,11 @@
           Já existe paciente com este nome, nome da mãe e data de nascimento.
         </div>
         <div
-          class="flex flex-col md:flex-row gap-4 mt-6 justify-between items-center"
+          class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 justify-between items-stretch sm:items-center"
         >
           <button
             type="submit"
-            class="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
+            class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
             [disabled]="form.invalid || form.pending || form.errors?.['duplicado'] || loading"
           >
             <span *ngIf="!loading">{{
@@ -359,7 +359,7 @@
           </button>
           <button
             type="button"
-            class="w-full md:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition flex items-center justify-center"
+            class="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition flex items-center justify-center"
             (click)="cancelar()"
             [disabled]="loading"
           >
@@ -367,7 +367,7 @@
           </button>
           <button
             type="button"
-            class="w-full md:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold shadow hover:bg-purple-700 transition flex items-center justify-center"
+            class="w-full sm:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold shadow hover:bg-purple-700 transition flex items-center justify-center"
             (click)="imprimirPacientePDF()"
             [disabled]="loading"
           >
