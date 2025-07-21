@@ -213,10 +213,17 @@
 }
 }
 
+// Nome do usuário logado mais fino e com Olá
 .user-info {
   color: white;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 300;
+}
+.user-info-ola {
+  font-weight: 300;
+}
+.user-nome {
+  font-weight: 400;
 }
 
 :host {

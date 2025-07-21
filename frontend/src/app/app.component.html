@@ -40,8 +40,8 @@
       </div>
     </div>
       <div class="flex items-center gap-1 sm:gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end">
-      <span class="user-info hidden sm:inline-block text-gray-700 mr-1" *ngIf="authService.user">
-        {{ authService.user.nome }}
+      <span class="user-info user-info-ola hidden sm:inline-block text-gray-700 mr-1" *ngIf="authService.user">
+        Olá, <span class="user-nome">{{ authService.user.nome }}</span>
       </span>
       <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Menu do usuário">
         <mat-icon>person_outline</mat-icon>
