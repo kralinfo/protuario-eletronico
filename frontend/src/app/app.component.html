@@ -46,18 +46,22 @@
       <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Menu do usuário">
         <mat-icon>person_outline</mat-icon>
       </button>
-      <button mat-icon-button aria-label="Sobre o sistema" (click)="abrirSobre()">
-        <mat-icon>info</mat-icon>
-      </button>
-      <button mat-icon-button (click)="alternarDarkMode()" aria-label="Alternar tema">
-        <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
-      </button>
+      <!-- Botões removidos do header, agora ficam no menu do usuário -->
     </div>
-      <mat-menu #userMenu="matMenu">
-      <button mat-menu-item (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        <span>Sair</span>
-      </button>
+      <mat-menu #userMenu="matMenu" class="text-xs">
+        <button mat-menu-item (click)="alternarDarkMode()" class="text-xs">
+          <mat-icon class="!text-base">{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
+          <span class="text-xs">{{ isDarkMode ? 'Modo Claro' : 'Modo Escuro' }}</span>
+        </button>
+        <button mat-menu-item (click)="abrirSobre()" class="text-xs">
+          <mat-icon class="!text-base">info</mat-icon>
+          <span class="text-xs">Sobre o sistema</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()" class="text-xs">
+          <mat-icon class="!text-base">logout</mat-icon>
+          <span class="text-xs">Sair</span>
+        </button>
       </mat-menu>
     </div>
   </div>
