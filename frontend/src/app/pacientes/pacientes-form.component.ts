@@ -294,10 +294,7 @@ export class PacientesFormComponent
 
         inputEl.value = newValue;
 
-        this.invalidYearLength = true;
-
         this.form.get('nascimento')?.setValue(newValue, { emitEvent: false });
-        this.form.get('nascimento')?.setErrors({ invalidYearLength: true });
       } else {
         this.invalidYearLength = false;
         const control = this.form.get('nascimento');

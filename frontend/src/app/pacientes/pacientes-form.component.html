@@ -103,16 +103,12 @@
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
             />
             <div
-              *ngIf="form.get('nascimento')?.hasError('required')"
+              *ngIf="form.get('nascimento')?.hasError('required') &&
+              (form.get('nascimento')?.dirty || form.get('nascimento')?.touched)"
               class="text-xs text-red-600 mt-1"
             >
               Data de nascimento é obrigatória.
             </div>
-            <mat-error
-              *ngIf="invalidYearLength"
-              class="text-xs text-red-600 mt-1"
-              >O ano não pode ter mais de 4 dígitos.</mat-error
-            >
             <mat-error
               *ngIf="form.get('nascimento')?.errors?.['futureYear'] && (form.get('nascimento')?.dirty || form.get('nascimento')?.touched)"
               class="text-xs text-red-600 mt-1"
