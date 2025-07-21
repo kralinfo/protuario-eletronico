@@ -1,13 +1,16 @@
+
+-- Drop e cria primeiro as tabelas principais
+DROP TABLE IF EXISTS atendimentos;
 DROP TABLE IF EXISTS pacientes;
 DROP TABLE IF EXISTS usuarios;
-
--- Tabela de usuários para autenticação
+-- Criação das tabelas principais
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   senha VARCHAR(255) NOT NULL,
   nome VARCHAR(100),
   nivel VARCHAR(20) NOT NULL DEFAULT 'visualizador',
+  modulos TEXT[] DEFAULT ARRAY['recepcao'],
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -34,6 +37,22 @@ CREATE TABLE IF NOT EXISTS pacientes (
   CONSTRAINT unique_nome_nascimento UNIQUE (nome, nascimento)
 );
 
+-- Agora sim, cria a tabela atendimentos
+CREATE TABLE IF NOT EXISTS atendimentos (
+  id SERIAL PRIMARY KEY,
+  paciente_id INTEGER REFERENCES pacientes(id) ON DELETE CASCADE,
+  usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+  data_atendimento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  data_hora_chegada TIMESTAMP,
+  descricao TEXT,
+  status VARCHAR(20) DEFAULT 'aberto',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- Tabela de usuários para autenticação
+
 INSERT INTO pacientes (nome, mae, nascimento, sexo, estado_civil, profissao, escolaridade, raca, endereco, bairro, municipio, uf, cep, acompanhante, procedencia)
 VALUES
   ('Joao Silva', 'Maria Silva45', '1980-05-10', 'M', 'Solteiro', 'Professor', 'Superior', 'Branca', 'Rua das Flores, 123', 'Centro', 'Sao Paulo', 'SP', '01001-000', 'Carlos Silva', 'Residencia'),
@@ -41,10 +60,14 @@ VALUES
   ('Marcos Lima', 'Helena Lima', '1975-03-15', 'M', 'Divorciado', 'Engenheiro', 'Superior', 'Preta', 'Rua Verde, 789', 'Industrial', 'Belo Horizonte', 'MG', '30000-000', 'Lucas Lima', 'Clinica');
 
 -- Inserir usuários de teste (senha: 123456)
-INSERT INTO usuarios (email, senha, nome, nivel) VALUES
-  ('admin@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Administrador', 'admin'),
-  ('medico@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. João Silva', 'editor'),
-  ('medico1@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. Teste', 'editor'),
-  ('enfermeiro@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Enfermeiro Paulo', 'visualizador'),
-  ('fpsjunior87@gmail.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Fernando Junior', 'admin');
+INSERT INTO usuarios (email, senha, nome, nivel, modulos) VALUES
+  ('admin@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Administrador', 'admin', ARRAY['recepcao','triagem','medico','ambulatorio']),
+  ('medico@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. João Silva', 'editor', ARRAY['medico','ambulatorio']),
+  ('medico1@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. Teste', 'editor', ARRAY['medico']),
+  ('enfermeiro@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Enfermeiro Paulo', 'visualizador', ARRAY['triagem']),
+  ('fpsjunior87@gmail.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Fernando Junior', 'admin', ARRAY['recepcao','triagem','medico','ambulatorio']),
+  ('visual@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Visualizador', 'visualizador', ARRAY['recepcao']),
+  ('editor@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Editor', 'editor', ARRAY['ambulatorio']),
+  ('multi@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Multi Módulos', 'editor', ARRAY['recepcao','ambulatorio']),
+  ('recepcao@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Recepção', 'visualizador', ARRAY['recepcao']);
 ON CONFLICT (email) DO NOTHING;

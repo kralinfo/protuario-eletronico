@@ -9,6 +9,7 @@ class Usuario {
     this.nome = data.nome;
     this.nivel = data.nivel;
     this.senha = data.senha;
+    this.modulos = data.modulos || [];
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
   }
@@ -22,7 +23,6 @@ class Usuario {
         'SELECT * FROM usuarios WHERE id = $1',
         [id]
       );
-      
       return result.rows.length > 0 ? new Usuario(result.rows[0]) : null;
     } catch (error) {
       throw new Error(`Erro ao buscar usuário por ID: ${error.message}`);
@@ -38,7 +38,6 @@ class Usuario {
         'SELECT * FROM usuarios WHERE email = $1',
         [email.toLowerCase()]
       );
-      
       return result.rows.length > 0 ? new Usuario(result.rows[0]) : null;
     } catch (error) {
       throw new Error(`Erro ao buscar usuário por email: ${error.message}`);
@@ -50,7 +49,7 @@ class Usuario {
    */
   static async create(userData) {
     try {
-      const { email, senha, nome, nivel } = userData;
+      const { email, senha, nome, nivel, modulos } = userData;
       // Verificar se email já existe
       const existingUser = await Usuario.findByEmail(email);
       if (existingUser) {
@@ -59,10 +58,10 @@ class Usuario {
       // Hash da senha
       const hashedPassword = await bcrypt.hash(senha, config.BCRYPT_ROUNDS);
       const result = await database.query(
-        `INSERT INTO usuarios (email, senha, nome, nivel, created_at)
-         VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+        `INSERT INTO usuarios (email, senha, nome, nivel, modulos, created_at)
+         VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
          RETURNING *`,
-        [email.toLowerCase(), hashedPassword, nome, nivel || 'visualizador']
+        [email.toLowerCase(), hashedPassword, nome, nivel || 'visualizador', modulos || ['recepcao']]
       );
       return new Usuario(result.rows[0]);
     } catch (error) {
@@ -88,6 +87,9 @@ class Usuario {
           } else if (key === 'email') {
             updates.push(`${key} = $${paramIndex}`);
             values.push(userData[key].toLowerCase());
+          } else if (key === 'modulos') {
+            updates.push(`${key} = $${paramIndex}`);
+            values.push(userData[key]);
           } else {
             updates.push(`${key} = $${paramIndex}`);
             values.push(userData[key]);
@@ -101,7 +103,6 @@ class Usuario {
       }
 
       values.push(id);
-      
       const result = await database.query(
         `UPDATE usuarios 
          SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP 
@@ -109,7 +110,6 @@ class Usuario {
          RETURNING *`,
         values
       );
-      
       return result.rows.length > 0 ? new Usuario(result.rows[0]) : null;
     } catch (error) {
       throw new Error(`Erro ao atualizar usuário: ${error.message}`);
@@ -139,7 +139,7 @@ class Usuario {
     try {
       const { limit = 50, offset = 0, orderBy = 'created_at', order = 'DESC' } = options;
       const result = await database.query(
-        `SELECT id, email, nome, nivel, created_at, updated_at
+        `SELECT id, email, nome, nivel, modulos, created_at, updated_at
          FROM usuarios
          ORDER BY ${orderBy} ${order}
          LIMIT $1 OFFSET $2`,
@@ -202,6 +202,7 @@ class Usuario {
       email: this.email,
       nome: this.nome,
       nivel: this.nivel,
+      modulos: this.modulos,
       created_at: this.created_at,
       updated_at: this.updated_at
     };
