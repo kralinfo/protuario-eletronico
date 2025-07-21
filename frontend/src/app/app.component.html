@@ -33,7 +33,7 @@
           <span class="dot"></span><span class="dot"></span><span class="dot"></span>
         </span>
       </button>
-      <img src="assets/logo-alianca.svg" alt="Aliança-PE" class="logo-alianca h-8 w-auto mr-2">
+      <img src="assets/logo-alianca.svg" alt="Aliança-PE" class="logo-alianca h-8 w-auto mr-2 cursor-pointer" (click)="irParaMenuPrincipal()" tabindex="0" (keydown.enter)="irParaMenuPrincipal()" aria-label="Ir para a página inicial">
       <div class="sistema-info-botao cursor-pointer" tabindex="0" (click)="irParaMenuPrincipal()" (keydown.enter)="irParaMenuPrincipal()" aria-label="Ir para o menu principal">
         <div class="logo-principal">e-Prontuário</div>
         <div class="sistema-descricao text-white">Gerenciamento de Prontuários Eletrônicos</div>
