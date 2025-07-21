@@ -14,7 +14,7 @@ const router = Router();
 router.get('/public/user-modules', AuthController.getUserModules);
 
 // Rate limiting mais restritivo para auth
-const authRateLimit = rateLimit(15 * 60 * 1000, 20); // 20 tentativas por 15 minutos
+const authRateLimit = rateLimit(15 * 60 * 1000, 200); // 200 tentativas por 15 minutos (ajuste para testes)
 
 /**
  * @route POST /api/login

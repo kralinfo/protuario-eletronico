@@ -121,47 +121,34 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Se módulos ainda não foram carregados, buscar módulos do usuário
-    if (!this.modulesLoaded) {
-      this.loading = true;
-      this.errorMessage = '';
-      this.authService.login({
-        email: this.loginForm.value.email,
-        senha: this.loginForm.value.senha
-      }).subscribe({
-        next: (response) => {
-          this.loading = false;
-          const modulos = response.usuario.modulos || [];
-          this.availableModules = modulos;
-          this.modulesLoaded = true;
-          if (modulos.length === 1) {
-            this.selectedModule = modulos[0];
-          } else {
-            this.selectedModule = null;
-          }
-        },
-        error: (error) => {
-          this.loading = false;
-          if (error.status === 401) {
-            this.errorMessage = 'Email ou senha inválidos.';
-          } else if (error.status === 500) {
-            this.errorMessage = 'Erro interno do servidor. Tente novamente.';
-          } else {
-            this.errorMessage = 'Erro de conexão. Verifique sua internet.';
-          }
-        }
-      });
-      return;
-    }
-
-    // Se módulos já carregados, prosseguir com login definitivo
+    const email = this.loginForm.value.email;
+    const senha = this.loginForm.value.senha;
     const moduloSelecionado = this.loginForm.get('modulo')?.value;
+
     if (!moduloSelecionado) {
       this.errorMessage = 'Selecione o módulo para continuar.';
       return;
     }
-    this.authService.setSelectedModule(moduloSelecionado);
-    this.router.navigate(['/']);
+
+    this.loading = true;
+    this.errorMessage = '';
+    this.authService.login({ email, senha }).subscribe({
+      next: (response) => {
+        this.loading = false;
+        this.authService.setSelectedModule(moduloSelecionado);
+        this.router.navigate(['/']);
+      },
+      error: (error) => {
+        this.loading = false;
+        if (error.status === 401) {
+          this.errorMessage = 'Email ou senha inválidos.';
+        } else if (error.status === 500) {
+          this.errorMessage = 'Erro interno do servidor. Tente novamente.';
+        } else {
+          this.errorMessage = 'Erro de conexão. Verifique sua internet.';
+        }
+      }
+    });
   }
 
   // Método legado removido: selectModuleAndProceed
