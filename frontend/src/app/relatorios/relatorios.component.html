@@ -96,40 +96,40 @@
           </select>
         </div>
 
-        <!-- Escolaridade -->
-        <div class="space-y-2">
-          <label for="escolaridade" class="block text-sm font-medium text-gray-700">
-            Escolaridade
-          </label>
-          <select
-            id="escolaridade"
-            formControlName="escolaridade"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-          >
-            <option *ngFor="let opcao of opcoesEscolaridade" [value]="opcao.value">
-              {{ opcao.label }}
-            </option>
-          </select>
+        <!-- Escolaridade + Botões de Filtro -->
+        <div class="space-y-2 col-span-1 sm:col-span-2 lg:col-span-2 flex flex-col lg:flex-row items-end lg:items-end gap-2 lg:gap-4">
+          <div class="flex-[1_1_0%] min-w-0 lg:max-w-xs w-full">
+            <label for="escolaridade" class="block text-sm font-medium text-gray-700">
+              Escolaridade
+            </label>
+            <select
+              id="escolaridade"
+              formControlName="escolaridade"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+            >
+              <option *ngFor="let opcao of opcoesEscolaridade" [value]="opcao.value">
+                {{ opcao.label }}
+              </option>
+            </select>
+          </div>
+          <div class="flex flex-row gap-2 lg:gap-4 mt-2 lg:mt-0 flex-shrink-0">
+            <button
+              type="button"
+              (click)="aplicarFiltros()"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors font-medium"
+            >
+              Aplicar Filtros
+            </button>
+            <button
+              type="button"
+              (click)="limparFiltros()"
+              class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium"
+            >
+              Limpar Filtros
+            </button>
+          </div>
         </div>
       </form>
-
-      <!-- Botões de Filtro -->
-      <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
-        <button
-          type="button"
-          (click)="aplicarFiltros()"
-          class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors font-medium"
-        >
-          Aplicar Filtros
-        </button>
-        <button
-          type="button"
-          (click)="limparFiltros()"
-          class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium"
-        >
-          Limpar Filtros
-        </button>
-      </div>
     </div>
 
     <!-- Resumo dos Resultados -->
