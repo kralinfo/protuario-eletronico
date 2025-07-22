@@ -2,7 +2,7 @@ import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
 
 const registrar = async (req, res) => {
-  const { pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao } = req.body;
+  const { pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao, data_hora_chegada } = req.body;
   if (!pacienteId || !motivo) {
     return res.status(400).json({ error: 'pacienteId e motivo são obrigatórios.' });
   }
@@ -12,7 +12,7 @@ const registrar = async (req, res) => {
     return res.status(404).json({ error: 'Paciente não encontrado.' });
   }
   // Cria atendimento
-  const atendimento = await Atendimento.criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao });
+  const atendimento = await Atendimento.criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao, data_hora_chegada });
   return res.status(201).json(atendimento);
 };
 

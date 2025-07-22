@@ -2,11 +2,11 @@ import db from '../config/database.js';
 
 
 class Atendimento {
-  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'recepcao', motivo_interrupcao = 'N/A' }) {
+  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'recepcao', motivo_interrupcao = 'N/A', data_hora_chegada }) {
     const result = await db.query(
-      `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [pacienteId, motivo, status, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null]
+      `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia, data_hora_chegada)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [pacienteId, motivo, status, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null, data_hora_chegada || null]
     );
     return result.rows[0];
   }

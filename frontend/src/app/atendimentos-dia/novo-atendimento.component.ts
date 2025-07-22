@@ -77,6 +77,7 @@ export class NovoAtendimentoComponent {
   pacienteSelecionado: any = null;
   motivo: string = '';
   observacoes: string = '';
+  horario: string = '';
   mensagem: string = '';
   acompanhante: string = '';
   procedencia: string = '';
@@ -99,6 +100,12 @@ export class NovoAtendimentoComponent {
   ngOnInit() {
     // Inicializa lista vazia
     this.pacientesFiltrados = [];
+    this.atualizarHorario();
+  }
+
+  atualizarHorario() {
+    const agora = new Date();
+    this.horario = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 
   abrirCadastroPaciente() {
@@ -148,7 +155,8 @@ export class NovoAtendimentoComponent {
       acompanhante: this.acompanhante,
       procedencia: this.procedencia,
       status: this.status,
-      motivo_interrupcao: this.status === 'interrompido' ? this.motivo_interrupcao : undefined
+      motivo_interrupcao: this.status === 'interrompido' ? this.motivo_interrupcao : undefined,
+      data_hora_chegada: new Date().toISOString()
     };
     // Verifica se já existe atendimento para o paciente hoje
     const hoje = new Date().toISOString().slice(0, 10);
