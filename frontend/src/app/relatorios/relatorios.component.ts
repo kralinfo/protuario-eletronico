@@ -47,6 +47,7 @@ export class RelatoriosComponent implements OnInit {
   pacientes: Paciente[] = [];
   pacientesFiltrados: Paciente[] = [];
   carregando = false;
+  acessoNegado = false;
 
   // Opções para os filtros
   opcoesSexo = [
@@ -124,6 +125,12 @@ export class RelatoriosComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Permitir acesso apenas se o módulo selecionado for 'relatorios', 'medico' ou 'ambulatorio'
+    const modulo = this.authService.getSelectedModule();
+    if (!modulo || !['relatorios', 'medico', 'ambulatorio', 'recepcao'].includes(modulo)) {
+      this.acessoNegado = true;
+      return;
+    }
     this.carregarPacientes();
   }
 

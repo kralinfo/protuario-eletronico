@@ -113,14 +113,14 @@ export class PacientesFormComponent
       estadoCivil: [''],
       profissao: [''],
       escolaridade: [''],
+      telefone: [''],
+      sus: [''],
       raca: [''],
       endereco: [''],
       bairro: [''],
       municipio: [{ value: '', disable: true }, Validators.required],
       uf: ['', [Validators.required]],
       cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
-      acompanhante: [''],
-      procedencia: [''],
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
@@ -138,19 +138,19 @@ export class PacientesFormComponent
   .subscribe((valor: string) => {
     this.erroCepUf = false;
 
-    
+
     const cepLimpo = valor?.replace(/\D/g, '') || '';
 
-    
+
     let cepFormatado = cepLimpo;
     if (cepLimpo.length > 5) {
       cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
     }
 
-    
+
     this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
 
-    
+
     if (cepLimpo.length === 8) {
       this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
         if (dados?.erro) {
@@ -159,7 +159,7 @@ export class PacientesFormComponent
           return;
         }
 
-        
+
         const estadoCompleto = this.estadosBrasileiros.find(
           (e) => e.sigla === dados.uf
         );
@@ -167,7 +167,7 @@ export class PacientesFormComponent
           ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
           : dados.uf;
 
-        
+
         this.form.patchValue({
           municipio: dados.localidade,
           uf: ufFormatado,
@@ -192,7 +192,7 @@ export class PacientesFormComponent
       }
       // Garante que estadoCivil seja uma opção válida
       // Mapeia valores sem (a) para a opção correta
-      const mapEstadoCivil = {
+      const mapEstadoCivil: Record<string, string> = {
         Solteiro: 'Solteiro(a)',
         Casado: 'Casado(a)',
         Viúvo: 'Viúvo(a)',
@@ -204,7 +204,7 @@ export class PacientesFormComponent
         'Divorciado(a)': 'Divorciado(a)',
         '': '',
       };
-      patch.estadoCivil = (mapEstadoCivil as any)[patch.estadoCivil] ?? '';
+      patch.estadoCivil = mapEstadoCivil[String(patch.estadoCivil || '')] ?? '';
       this.form.patchValue(patch);
     }
 

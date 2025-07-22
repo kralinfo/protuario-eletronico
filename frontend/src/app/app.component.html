@@ -17,13 +17,19 @@
       <mat-icon>bar_chart</mat-icon>
       <span class="menu-label">Relatórios</span>
     </button>
-    <button mat-menu-item routerLink="/relatorios/atendimentos" routerLinkActive="font-bold">
-      <mat-icon>assignment</mat-icon>
-      <span class="menu-label">Relatório Atendimento</span>
-    </button>
     <button mat-menu-item routerLink="/usuarios" routerLinkActive="font-bold">
       <mat-icon>group</mat-icon>
       <span class="menu-label">Usuários</span>
+    </button>
+  </mat-menu>
+  <mat-menu #relatorioMenu="matMenu">
+    <button mat-menu-item routerLink="/relatorios" routerLinkActive="font-bold">
+      <mat-icon>bar_chart</mat-icon>
+      <span class="menu-label">Pacientes</span>
+    </button>
+    <button mat-menu-item routerLink="/relatorios/atendimentos" routerLinkActive="font-bold">
+      <mat-icon>assignment</mat-icon>
+      <span class="menu-label">Atendimentos</span>
     </button>
   </mat-menu>
   <div class="w-full relative shadow-sm" style="background: linear-gradient(100deg, #0a224e 0%, #1e3a8a 60%, #2563eb 100%);">

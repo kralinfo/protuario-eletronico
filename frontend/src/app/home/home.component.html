@@ -7,9 +7,19 @@
     <a routerLink="/pacientes" class="w-full max-w-xs h-32 sm:w-64 sm:h-40 flex items-center justify-center bg-green-600 text-white text-xl sm:text-2xl font-semibold rounded-lg shadow-lg hover:bg-green-700 transition cursor-pointer home-btn-3d">
       PACIENTE
     </a>
-    <a routerLink="/relatorios" class="w-full max-w-xs h-32 sm:w-64 sm:h-40 flex items-center justify-center bg-yellow-500 text-white text-xl sm:text-2xl font-semibold rounded-lg shadow-lg hover:bg-yellow-600 transition cursor-pointer home-btn-3d">
+    <button [matMenuTriggerFor]="relatorioMenu" class="w-full max-w-xs h-32 sm:w-64 sm:h-40 flex items-center justify-center bg-yellow-500 text-white text-xl sm:text-2xl font-semibold rounded-lg shadow-lg hover:bg-yellow-600 transition cursor-pointer home-btn-3d focus:outline-none border-0">
       RELATÓRIO
-    </a>
+    </button>
+    <mat-menu #relatorioMenu="matMenu">
+      <button mat-menu-item [routerLink]="'/relatorios'">
+        <mat-icon>bar_chart</mat-icon>
+        Relatório de Pacientes
+      </button>
+      <button mat-menu-item [routerLink]="'/relatorios/atendimentos'">
+        <mat-icon>assignment</mat-icon>
+        Relatório de Atendimentos
+      </button>
+    </mat-menu>
   </div>
 </div>
 <style>

@@ -1,3 +1,5 @@
+// Debug: log DATABASE_URL para garantir leitura correta do .env
+console.log('DATABASE_URL em uso:', process.env.DATABASE_URL);
 import App from './app.js';
 
 // Tratamento de erros não capturados

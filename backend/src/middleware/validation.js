@@ -73,6 +73,10 @@ export const validatePaciente = [
     .optional()
     .isLength({ min: 2, max: 2 })
     .withMessage('UF deve ter 2 caracteres'),
+  body('sus')
+    .optional()
+    .matches(/^\d{0,20}$/)
+    .withMessage('Cartão SUS deve conter até 20 dígitos'),
   handleValidationErrors
 ];
 

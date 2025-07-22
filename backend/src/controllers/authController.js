@@ -7,6 +7,24 @@ import emailService from '../services/emailService.js';
 
 class AuthController {
   /**
+   * Retorna os módulos disponíveis para um usuário pelo email (público)
+   */
+  static async getUserModules(req, res) {
+    try {
+      const { email } = req.query;
+      if (!email) {
+        return res.status(400).json({ modulos: [] });
+      }
+      const usuario = await Usuario.findByEmail(email);
+      if (!usuario) {
+        return res.json({ modulos: [] });
+      }
+      res.json({ modulos: usuario.modulos || [] });
+    } catch (error) {
+      res.status(500).json({ modulos: [] });
+    }
+  }
+  /**
    * Login do usuário
    */
   static async login(req, res) {
@@ -29,24 +47,28 @@ class AuthController {
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }
 
-      // Gerar token JWT incluindo o campo nivel
+
+      // Gerar token JWT incluindo o campo nivel e modulos
       const token = generateToken({
         id: usuario.id,
         email: usuario.email,
         nome: usuario.nome,
-        nivel: usuario.nivel
+        nivel: usuario.nivel,
+        modulos: usuario.modulos
       });
 
       console.log(`✅ [AUTH] Login realizado: ${usuario.email}`);
 
-      // Retornar também o campo nivel no objeto usuario
+
+      // Retornar também o campo nivel e modulos no objeto usuario
       res.json({
         token,
         usuario: {
           id: usuario.id,
           email: usuario.email,
           nome: usuario.nome,
-          nivel: usuario.nivel
+          nivel: usuario.nivel,
+          modulos: usuario.modulos
         }
       });
 

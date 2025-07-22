@@ -39,37 +39,21 @@
         class="space-y-4 w-full"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Nome</label
-            >
+          <div class="lg:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
             <input
               type="text"
               formControlName="nome"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               placeholder="Nome do paciente"
             />
-            <div
-              *ngIf="verificandoDuplicidade"
-              class="text-xs text-blue-500 mt-1"
-            >
-              Verificando se paciente já existe...
-            </div>
-            <div
-              *ngIf="
-                form.get('nome')?.hasError('required') &&
-                (form.get('nome')?.dirty || form.get('nome')?.touched)
-              "
-              class="text-xs text-red-600 mt-1"
-            >
-              Nome é obrigatório.
-            </div>
-            <div
-              *ngIf="form.get('nome')?.hasError('duplicado')"
-              class="text-xs text-red-600 mt-1"
-            >
-              Paciente já cadastrado com este nome e nome da mãe.
-            </div>
+            <div *ngIf="verificandoDuplicidade" class="text-xs text-blue-500 mt-1">Verificando se paciente já existe...</div>
+            <div *ngIf="form.get('nome')?.hasError('required') && (form.get('nome')?.dirty || form.get('nome')?.touched)" class="text-xs text-red-600 mt-1">Nome é obrigatório.</div>
+            <div *ngIf="form.get('nome')?.hasError('duplicado')" class="text-xs text-red-600 mt-1">Paciente já cadastrado com este nome e nome da mãe.</div>
+          </div>
+          <div class="lg:col-span-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+            <input type="text" formControlName="telefone" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" placeholder="(99) 99999-9999" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -144,13 +128,8 @@
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Estado Civil</label
-            >
-            <select
-              formControlName="estadoCivil"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
-            >
+            <label class="block text-sm font-medium text-gray-700 mb-1">Estado Civil</label>
+            <select formControlName="estadoCivil" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900">
               <option value="">Selecione</option>
               <option value="Solteiro(a)">Solteiro(a)</option>
               <option value="Casado(a)">Casado(a)</option>
@@ -160,47 +139,28 @@
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Profissão</label
-            >
-            <input
-              type="text"
-              formControlName="profissao"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
-            />
+            <label class="block text-sm font-medium text-gray-700 mb-1">Profissão</label>
+            <input type="text" formControlName="profissao" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
           </div>
           <!-- Escolaridade -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Escolaridade</label
-            >
-            <select
-              type="text"
-              formControlName="escolaridade"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
-            >
+            <label class="block text-sm font-medium text-gray-700 mb-1">Escolaridade</label>
+            <select formControlName="escolaridade" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400">
               <option value="">Selecione</option>
               <option value="Analfabeto">Analfabeto</option>
-              <option value="Ensino Fundamental Incompleto">
-                Ensino Fundamental Incompleto
-              </option>
-              <option value="Ensino Fundamental Completo">
-                Ensino Fundamental Completo
-              </option>
-              <option value="Ensino Médio Incompleto">
-                Ensino Médio Incompleto
-              </option>
-              <option value="Ensino Médio Completo">
-                Ensino Médio Completo
-              </option>
-              <option value="Ensino Superior Incompleto">
-                Ensino Superior Incompleto
-              </option>
-              <option value="Ensino Superior Completo">
-                Ensino Superior Completo
-              </option>
+              <option value="Ensino Fundamental Incompleto">Ensino Fundamental Incompleto</option>
+              <option value="Ensino Fundamental Completo">Ensino Fundamental Completo</option>
+              <option value="Ensino Médio Incompleto">Ensino Médio Incompleto</option>
+              <option value="Ensino Médio Completo">Ensino Médio Completo</option>
+              <option value="Ensino Superior Incompleto">Ensino Superior Incompleto</option>
+              <option value="Ensino Superior Completo">Ensino Superior Completo</option>
               <option value="Pós-graduação">Pós-graduação</option>
             </select>
+          <!-- Cartão SUS -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Cartão SUS</label>
+            <input type="text" formControlName="sus" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" placeholder="Número do Cartão SUS" />
+          </div>
           </div>
 
           <div>
@@ -297,26 +257,6 @@
             />
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Acompanhante</label
-            >
-            <input
-              type="text"
-              formControlName="acompanhante"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Procedência</label
-            >
-            <input
-              type="text"
-              formControlName="procedencia"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
-            />
-          </div>
         </div>
         <div
           *ngIf="form.errors?.['duplicado']"

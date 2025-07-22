@@ -30,6 +30,14 @@
       <div>
         <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
         <textarea id="observacoes" [(ngModel)]="observacoes" name="observacoes" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado"></textarea>
+      </div>
+      <div>
+        <label for="acompanhante" class="block text-sm font-medium text-gray-700 mb-1">Acompanhante</label>
+        <input id="acompanhante" [(ngModel)]="acompanhante" name="acompanhante" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" />
+      </div>
+      <div>
+        <label for="procedencia" class="block text-sm font-medium text-gray-700 mb-1">Procedência</label>
+        <input id="procedencia" [(ngModel)]="procedencia" name="procedencia" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" />
 <style>
   .disabled-input:disabled {
     background: #f3f3f3 !important;

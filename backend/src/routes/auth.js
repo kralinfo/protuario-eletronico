@@ -6,8 +6,15 @@ import { rateLimit } from '../middleware/security.js';
 
 const router = Router();
 
+/**
+ * @route GET /api/public/user-modules
+ * @desc Retorna os módulos disponíveis para um usuário pelo email (público)
+ * @access Public
+ */
+router.get('/public/user-modules', AuthController.getUserModules);
+
 // Rate limiting mais restritivo para auth
-const authRateLimit = rateLimit(15 * 60 * 1000, 20); // 20 tentativas por 15 minutos
+const authRateLimit = rateLimit(15 * 60 * 1000, 200); // 200 tentativas por 15 minutos (ajuste para testes)
 
 /**
  * @route POST /api/login
