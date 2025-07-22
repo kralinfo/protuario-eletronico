@@ -13,6 +13,32 @@ import { AuthService } from '../auth/auth.service';
   standalone: false
 })
 export class UsuariosComponent implements OnInit {
+  // ...existing code...
+
+  onModuloCheckboxChange(event: any) {
+    const modulosForm = this.usuarioForm.get('modulos');
+    if (!modulosForm) return;
+    const modulos = modulosForm.value as string[];
+    if (event.target.checked) {
+      if (!modulos.includes(event.target.value)) {
+        modulos.push(event.target.value);
+      }
+    } else {
+      const idx = modulos.indexOf(event.target.value);
+      if (idx > -1) {
+        modulos.splice(idx, 1);
+      }
+    }
+    modulosForm.setValue([...modulos]);
+    modulosForm.markAsDirty();
+  }
+  public modulosDisponiveis = [
+    { value: 'recepcao', label: 'Recepção' },
+    { value: 'triagem', label: 'Triagem' },
+    { value: 'medico', label: 'Médico' },
+    { value: 'admin', label: 'Administração' },
+    { value: 'ambulatorio', label: 'Ambulatório' }
+  ];
   cancelarEdicao() {
     this.editandoUsuario = false;
     this.selectedUser = null;
@@ -54,8 +80,10 @@ export class UsuariosComponent implements OnInit {
       nome: [{value: '', disabled: false}, Validators.required],
       email: [{value: '', disabled: false}, [Validators.required, Validators.email]],
       senha: [{value: '', disabled: false}, [Validators.required, Validators.minLength(6)]],
-      nivel: [{value: 'visualizador', disabled: false}, Validators.required]
+      nivel: [{value: 'visualizador', disabled: false}, Validators.required],
+      modulos: [["recepcao"]] // valor padrão
     });
+  // modulosDisponiveis já está declarado como membro público acima
   }
 
   ngOnInit(): void {
