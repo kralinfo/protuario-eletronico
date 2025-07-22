@@ -60,6 +60,8 @@ export class PacientesFormComponent
   // Para acessar o input de nascimento no DOM
   @ViewChild('nascimentoInput') nascimentoInput!: ElementRef<HTMLInputElement>;
 
+  maxDate: string = '';
+
   // Lista de estados brasileiros
   estadosBrasileiros = [
     { sigla: 'AC', nome: 'Acre' },
@@ -91,11 +93,6 @@ export class PacientesFormComponent
     { sigla: 'TO', nome: 'Tocantins' },
   ];
 
-
-  
-
-
-
   pacienteService: any;
   erroCepUf = false;
   bloqueioAnoInvalido: any;
@@ -122,7 +119,7 @@ export class PacientesFormComponent
       raca: [''],
       endereco: [''],
       bairro: [''],
-      municipio: [{ value: '', disable: true }, Validators.required],
+      municipio: ['', { disable: true }, Validators.required],
       uf: ['', [Validators.required]],
       cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
       acompanhante: [''],
@@ -138,89 +135,91 @@ export class PacientesFormComponent
       this.currentUser = user;
     });
 
+    const yaer = new Date().getFullYear();
+    this.maxDate = `${yaer}-12-31`
+
     // Verifica se o CEP é válido de acordo com o UF informado
-    this.form.get('cep')?.valueChanges
-  .pipe(debounceTime(300), distinctUntilChanged())
-  .subscribe((valor: string) => {
-    this.erroCepUf = false;
+    this.form
+      .get('cep')
+      ?.valueChanges.pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((valor: string) => {
+        this.erroCepUf = false;
 
-    
-    const cepLimpo = valor?.replace(/\D/g, '') || '';
+        const cepLimpo = valor?.replace(/\D/g, '') || '';
 
-    
-    let cepFormatado = cepLimpo;
-    if (cepLimpo.length > 5) {
-      cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
-    }
-
-    
-    this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
-
-    
-    if (cepLimpo.length === 8) {
-      this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
-        if (dados?.erro) {
-          this.form.patchValue({ municipio: '', uf: '' });
-          this.erroCepUf = true;
-          return;
+        let cepFormatado = cepLimpo;
+        if (cepLimpo.length > 5) {
+          cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(
+            5,
+            8
+          )}`;
         }
 
-        
-        const estadoCompleto = this.estadosBrasileiros.find(
-          (e) => e.sigla === dados.uf
-        );
-        const ufFormatado = estadoCompleto
-          ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
-          : dados.uf;
+        this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
 
-        
-        this.form.patchValue({
-          municipio: dados.localidade,
-          uf: ufFormatado,
-        });
+        if (cepLimpo.length === 8) {
+          this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
+            if (dados?.erro) {
+              this.form.patchValue({ municipio: '', uf: '' });
+              this.erroCepUf = true;
+              return;
+            }
 
-      this.erroCepUf = false;
+            const estadoCompleto = this.estadosBrasileiros.find(
+              (e) => e.sigla === dados.uf
+            );
+            const ufFormatado = estadoCompleto
+              ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
+              : dados.uf;
+
+            this.form.patchValue({
+              municipio: dados.localidade,
+              uf: ufFormatado,
+            });
+
+            this.erroCepUf = false;
+          });
+        } else {
+          this.form.patchValue({ municipio: '', uf: '' });
+        }
+      });
+
+    // 👉 Blindagem extra: se municipio virar objeto, converte pra string automaticamente
+    this.form.get('municipio')?.valueChanges.subscribe((valor) => {
+      if (typeof valor === 'object' && valor !== null) {
+        this.form
+          .get('municipio')
+          ?.setValue(valor?.nome || '', { emitEvent: false });
+      }
     });
-  } else {
-    this.form.patchValue({ municipio: '', uf: '' });
-  }
-});
 
-// 👉 Blindagem extra: se municipio virar objeto, converte pra string automaticamente
-this.form.get('municipio')?.valueChanges.subscribe((valor) => {
-  if (typeof valor === 'object' && valor !== null) {
-    this.form.get('municipio')?.setValue(valor?.nome || '', { emitEvent: false });
-  }
-});
+    // Patch do pacienteEditando se existir
+    if (this.pacienteEditando) {
+      const patch = { ...this.pacienteEditando };
 
-// Patch do pacienteEditando se existir
-if (this.pacienteEditando) {
-  const patch = { ...this.pacienteEditando };
+      // ✅ Sanitiza campo municipio
+      if (typeof patch.municipio === 'object' && patch.municipio !== null) {
+        patch.municipio = patch.municipio || '';
+      } else if (typeof patch.municipio !== 'string') {
+        patch.municipio = '';
+      }
 
-  // ✅ Sanitiza campo municipio
-  if (typeof patch.municipio === 'object' && patch.municipio !== null) {
-    patch.municipio = patch.municipio || '';
+      // ✅ Sanitiza campo uf
+      const uf = patch.uf as { sigla?: string; nome?: string } | string;
+      if (typeof uf === 'object' && uf !== null) {
+        patch.uf = uf.sigla ? `${uf.sigla} - ${uf.nome || ''}` : '';
+      } else if (typeof uf !== 'string') {
+        patch.uf = '';
+      }
 
-  } else if (typeof patch.municipio !== 'string') {
-    patch.municipio = '';
-  }
-
-  // ✅ Sanitiza campo uf
-  const uf = patch.uf as { sigla?: string; nome?: string } | string;
-  if (typeof uf === 'object' && uf !== null) {
-    patch.uf = uf.sigla ? `${uf.sigla} - ${uf.nome || ''}` : '';
-  } else if (typeof uf !== 'string') {
-    patch.uf = '';
-  }
-
-  // ✅ Formata data de nascimento corretamente
-  if (patch.nascimento) {
-    const date = new Date(patch.nascimento);
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    patch.nascimento = `${yyyy}-${mm}-${dd}`;
-  }
+      // ✅ Formata data de nascimento corretamente
+      if (patch.nascimento) {
+        const date = new Date(patch.nascimento);
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        patch.nascimento = `${yyyy}-${mm}-${dd}`;
+      }
 
       // Garante que estadoCivil seja uma opção válida
       // Mapeia valores sem (a) para a opção correta
@@ -309,45 +308,41 @@ if (this.pacienteEditando) {
   }
 
   ngAfterViewInit(): void {
-    const inputEl = this.nascimentoInput.nativeElement;
+  const inputEl = this.nascimentoInput.nativeElement;
 
-    inputEl.addEventListener('input', () => {
-      const rawValue = inputEl.value;
-      const parts = rawValue.split('-');
-      const year = parts[0] ?? '';
+  const checkAno = () => {
+    const raw = inputEl.value;
+    const year = raw.split('-')[0] ?? '';
 
-      if (year.length > 4) {
-        // Limpa o valor
-        inputEl.value = '';
-        this.form.get('nascimento')?.setValue('', { emitEvent: true });
-        this.form.get('nascimento')?.markAsTouched();
-        this.form.get('nascimento')?.setErrors({ invalidYearLength: true });
-        this.invalidYearLength = true;
+    if (year.length > 4) {
+      this.form.get('nascimento')?.setValue('', { emitEvent: true });
+      this.form.get('nascimento')?.markAsTouched();
+      this.form.get('nascimento')?.setErrors({ invalidYearLength: true });
+      this.invalidYearLength = true;
 
-        // BLOQUEIO: Desativa o input temporariamente
-        inputEl.disabled = true;
-        this.form.get('nascimento')?.disable();
+      this.form.get('nascimento')?.disable();
+      inputEl.disabled = true;
 
-        setTimeout(() => {
-          inputEl.disabled = false;
+      setTimeout(() => {
+        const rawAgain = inputEl.value;
+        const yearAgain = rawAgain.split('-')[0] ?? '';
+
+        if (yearAgain.length <= 4) {
           this.form.get('nascimento')?.enable();
-          this.bloqueioAnoInvalido = false;
-        }, 3000);
+          inputEl.disabled = false;
+          this.invalidYearLength = false;
+        }
+      }, 3000);
+    }
+  };
 
-        return;
-      }
+  // 🟡 Esse evento pega o valor em tempo real enquanto o usuário digita
+  inputEl.addEventListener('keyup', checkAno);
 
-      // Se estava inválido antes, e agora está ok → limpar o erro
-      const control = this.form.get('nascimento');
-      if (this.invalidYearLength && control?.hasError('invalidYearLength')) {
-        const errors = { ...control.errors };
-        delete errors['invalidYearLength'];
-        control.setErrors(Object.keys(errors).length ? errors : null);
-        control.updateValueAndValidity();
-        this.invalidYearLength = false;
-      }
-    });
-  }
+  // Também garante a verificação ao colar valores no campo
+  inputEl.addEventListener('input', checkAno);
+}
+
 
   ngOnDestroy() {
     this.destroy$.next();
@@ -374,12 +369,18 @@ if (this.pacienteEditando) {
   }
 
   salvar() {
+    const nascimento = this.form.get('nascimento')?.value ?? '';
+    const anoNascimento = nascimento.split('-')[0];
+    if (anoNascimento && anoNascimento.length > 4) {
+      alert('Ano de nascimento inválido. Corrija antes de salvar.');
+      return;
+    }
     if (!this.authService.isAuthenticated()) {
       this.authService.logout();
       alert('Sua sessão expirou. Faça login novamente.');
       return;
     }
-    
+
     if (this.form.invalid || this.form.pending || this.verificandoDuplicidade) {
       if (this.verificandoDuplicidade) {
         alert('Aguarde a verificação de duplicidade.');
@@ -473,7 +474,6 @@ if (this.pacienteEditando) {
             alert('Sua sessão expirou. Faça login novamente.');
           } else {
             const dialogRef = this.dialog.open(FeedbackDialogComponent, {
-              
               data: {
                 title: 'Erro',
                 message: err?.error?.error || 'Erro ao cadastrar paciente.',
