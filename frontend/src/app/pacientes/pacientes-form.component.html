@@ -40,7 +40,7 @@
       >
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div class="lg:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="nome"
@@ -57,7 +57,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Nome da mãe</label
+              >Nome da mãe <span class="text-red-600">*</span></label
             >
             <input
               type="text"
@@ -77,7 +77,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Data de Nascimento</label
+              >Data de Nascimento <span class="text-red-600">*</span></label
             >
             <input
               #nascimentoInput
@@ -106,7 +106,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Sexo</label
+              >Sexo <span class="text-red-600">*</span></label
             >
             <select
               formControlName="sexo"
@@ -158,8 +158,9 @@
             </select>
           <!-- Cartão SUS -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Cartão SUS</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Cartão SUS <span class="text-red-600">*</span></label>
             <input type="text" formControlName="sus" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" placeholder="Número do Cartão SUS" />
+            <div *ngIf="form.get('sus')?.invalid && (form.get('sus')?.dirty || form.get('sus')?.touched)" class="text-xs text-red-600 mt-1">Cartão SUS é obrigatório.</div>
           </div>
           </div>
 
@@ -189,6 +190,7 @@
               formControlName="endereco"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
             />
+            <div *ngIf="form.get('endereco')?.invalid && (form.get('endereco')?.dirty || form.get('endereco')?.touched)" class="text-xs text-red-600 mt-1">Endereço é obrigatório.</div>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -199,6 +201,7 @@
               formControlName="bairro"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
             />
+            <div *ngIf="form.get('bairro')?.invalid && (form.get('bairro')?.dirty || form.get('bairro')?.touched)" class="text-xs text-red-600 mt-1">Bairro é obrigatório.</div>
           </div>
           <!-- UF -->
           <div>
@@ -218,7 +221,7 @@
           <!-- CEP -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >CEP</label
+              >CEP <span class="text-red-600">*</span></label
             >
             <input
               type="text"
@@ -227,15 +230,8 @@
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               placeholder="12345-678"
             />
-            <div
-              *ngIf="
-                form.get('cep')?.invalid &&
-                (form.get('cep')?.dirty || form.get('cep')?.touched)
-              "
-              class="text-xs text-red-600 mt-1"
-            >
-              CEP inválido. Ex: 12345-678
-            </div>
+            <div *ngIf="form.get('cep')?.hasError('required') && (form.get('cep')?.dirty || form.get('cep')?.touched)" class="text-xs text-red-600 mt-1">CEP é obrigatório.</div>
+            <div *ngIf="form.get('cep')?.hasError('pattern') && (form.get('cep')?.dirty || form.get('cep')?.touched)" class="text-xs text-red-600 mt-1">CEP inválido. Digite 8 números (com ou sem hífen).</div>
 
             <!-- Erro de CEP que não pertence ao UF -->
             <div *ngIf="erroCepUf" class="text-xs text-red-600 mt-1">
@@ -253,8 +249,9 @@
               formControlName="municipio"
               class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
               placeholder="Município"
-              readonly
+              style="pointer-events: none; background-color: #f3f4f6;"
             />
+            <div *ngIf="form.get('municipio')?.invalid && (form.get('municipio')?.dirty || form.get('municipio')?.touched)" class="text-xs text-red-600 mt-1">Município é obrigatório.</div>
           </div>
 
         </div>
@@ -270,7 +267,7 @@
           <button
             type="submit"
             class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
-            [disabled]="form.invalid || form.pending || form.errors?.['duplicado'] || loading"
+            [disabled]="form.invalid || form.pending || loading"
           >
             <span *ngIf="!loading">{{
               pacienteEditando ? "Atualizar" : "Salvar"
@@ -307,9 +304,9 @@
           </button>
           <button
             type="button"
-            class="w-full sm:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold shadow hover:bg-purple-700 transition flex items-center justify-center"
+            class="w-full sm:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold shadow hover:bg-purple-700 transition flex items-center justify-center disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
             (click)="imprimirPacientePDF()"
-            [disabled]="loading"
+            [disabled]="form.invalid || form.pending || loading"
           >
             Gerar PDF
           </button>

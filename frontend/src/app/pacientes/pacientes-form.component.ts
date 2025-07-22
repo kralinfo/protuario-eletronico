@@ -40,10 +40,8 @@ import { CepService } from '../services/cep.service';
   styleUrls: ['./pacientes.component.scss'],
   standalone: false,
 })
-export class PacientesFormComponent
-  implements OnInit, OnDestroy, AfterViewInit
-{
-  // ...existing code...
+export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit {
+  private ignoreNextCepChange = false;
   @Output() fechar = new EventEmitter<void>();
   @Input() pacienteEditando: Paciente | null = null;
   form: FormGroup;
@@ -105,22 +103,19 @@ export class PacientesFormComponent
     this.form = this.fb.group({
       nome: ['', [Validators.required]],
       mae: ['', [Validators.required]],
-      nascimento: [
-        '',
-        [Validators.required, Validators.pattern(/^\d{5}-?\d{3}$/)],
-      ],
+      nascimento: ['', [Validators.required]],
       sexo: ['', [Validators.required]],
       estadoCivil: [''],
       profissao: [''],
       escolaridade: [''],
       telefone: [''],
-      sus: [''],
+      sus: ['', [Validators.required]],
       raca: [''],
       endereco: [''],
       bairro: [''],
-      municipio: [{ value: '', disable: true }, Validators.required],
-      uf: ['', [Validators.required]],
-      cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
+      municipio: [''],
+      uf: [''],
+      cep: ['', [Validators.required, Validators.pattern(/^\d{5}-?\d{3}$/)]],
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
@@ -134,51 +129,67 @@ export class PacientesFormComponent
 
     // Verifica se o CEP é válido de acordo com o UF informado
     this.form.get('cep')?.valueChanges
-  .pipe(debounceTime(300), distinctUntilChanged())
-  .subscribe((valor: string) => {
-    this.erroCepUf = false;
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((valor: string) => {
+        if (this.ignoreNextCepChange) {
+          this.ignoreNextCepChange = false;
+          return;
+        }
+        this.erroCepUf = false;
 
-
-    const cepLimpo = valor?.replace(/\D/g, '') || '';
-
-
-    let cepFormatado = cepLimpo;
-    if (cepLimpo.length > 5) {
-      cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
-    }
-
-
-    this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
-
-
-    if (cepLimpo.length === 8) {
-      this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
-        if (dados?.erro) {
+        if (!valor) {
+          this.ignoreNextCepChange = true;
           this.form.patchValue({ municipio: '', uf: '' });
-          this.erroCepUf = true;
+          this.form.get('municipio')?.updateValueAndValidity();
+          this.form.get('uf')?.updateValueAndValidity();
           return;
         }
 
+        const cepLimpo = valor?.replace(/\D/g, '') || '';
+        let cepFormatado = cepLimpo;
+        if (cepLimpo.length > 5) {
+          cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
+        }
+        if (valor !== cepFormatado && cepLimpo.length === 8) {
+          this.ignoreNextCepChange = true;
+          this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
+          return;
+        }
 
-        const estadoCompleto = this.estadosBrasileiros.find(
-          (e) => e.sigla === dados.uf
-        );
-        const ufFormatado = estadoCompleto
-          ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
-          : dados.uf;
+        if (cepFormatado.length === 9 && /^\d{5}-\d{3}$/.test(cepFormatado)) {
+          this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
+            if (dados?.erro) {
+              this.ignoreNextCepChange = true;
+              this.form.patchValue({ municipio: '', uf: '' });
+              this.form.get('municipio')?.updateValueAndValidity();
+              this.form.get('uf')?.updateValueAndValidity();
+              this.erroCepUf = true;
+              return;
+            }
 
+            const estadoCompleto = this.estadosBrasileiros.find(
+              (e) => e.sigla === dados.uf
+            );
+            const ufFormatado = estadoCompleto
+              ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
+              : dados.uf;
 
-        this.form.patchValue({
-          municipio: dados.localidade,
-          uf: ufFormatado,
-        });
-
-        this.erroCepUf = false;
+            this.ignoreNextCepChange = true;
+            this.form.patchValue({
+              municipio: dados.localidade,
+              uf: ufFormatado,
+            });
+            this.form.get('municipio')?.updateValueAndValidity();
+            this.form.get('uf')?.updateValueAndValidity();
+            this.erroCepUf = false;
+          });
+        } else {
+          this.ignoreNextCepChange = true;
+          this.form.patchValue({ municipio: '', uf: '' });
+          this.form.get('municipio')?.updateValueAndValidity();
+          this.form.get('uf')?.updateValueAndValidity();
+        }
       });
-    } else {
-      this.form.patchValue({ municipio: '', uf: '' });
-    }
-  });
 
     // Patch do pacienteEditando se existir
     if (this.pacienteEditando) {
@@ -509,6 +520,16 @@ export class PacientesFormComponent
 
     if (paciente.sexo) {
       doc.text(`Sexo: ${this.formatarSexo(paciente.sexo)}`, 20, yPosition);
+      yPosition += lineHeight;
+    }
+
+    if (paciente.telefone) {
+      doc.text(`Telefone: ${paciente.telefone}`, 20, yPosition);
+      yPosition += lineHeight;
+    }
+
+    if (paciente.sus) {
+      doc.text(`Cartão SUS: ${paciente.sus}`, 20, yPosition);
       yPosition += lineHeight;
     }
 
