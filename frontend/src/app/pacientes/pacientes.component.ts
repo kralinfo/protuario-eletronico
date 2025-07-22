@@ -15,9 +15,11 @@ export interface Paciente {
   mae: string;
   nascimento: string;
   sexo: string;
-  estadoCivil: string;
-  profissao: string;
-  escolaridade: string;
+  estadoCivil?: string;
+  profissao?: string;
+  escolaridade?: string;
+  telefone?: string;
+  sus?: string;
   raca: string;
   endereco: string;
   bairro: string;
@@ -300,22 +302,6 @@ export class PacientesComponent implements OnInit, AfterViewInit {
       yPosition += lineHeight + 5;
     }
 
-    // Informações adicionais
-    if (paciente.acompanhante || paciente.procedencia) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('INFORMAÇÕES ADICIONAIS', 20, yPosition);
-      yPosition += lineHeight + 2;
-
-      doc.setFont('helvetica', 'normal');
-      if (paciente.acompanhante) {
-        doc.text(`Acompanhante: ${paciente.acompanhante}`, 20, yPosition);
-        yPosition += lineHeight;
-      }
-      if (paciente.procedencia) {
-        doc.text(`Procedência: ${paciente.procedencia}`, 20, yPosition);
-        yPosition += lineHeight;
-      }
-    }
 
     // Rodapé
     const pageHeight = doc.internal.pageSize.height;

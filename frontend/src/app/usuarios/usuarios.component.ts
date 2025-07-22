@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -33,6 +35,7 @@ export class UsuariosComponent implements OnInit {
   loading = false;
   error: string | null = null;
   success: string | null = null;
+  showSuccessModal = false;
   niveis = [
     { value: 'admin', label: 'Administrador' },
     { value: 'editor', label: 'Editor' },
@@ -44,12 +47,13 @@ export class UsuariosComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    public authService: AuthService
+    public authService: AuthService,
+    private dialog: MatDialog
   ) {
     this.usuarioForm = this.fb.group({
       nome: [{value: '', disabled: false}, Validators.required],
       email: [{value: '', disabled: false}, [Validators.required, Validators.email]],
-      senha: [{value: '', disabled: false}, Validators.required],
+      senha: [{value: '', disabled: false}, [Validators.required, Validators.minLength(6)]],
       nivel: [{value: 'visualizador', disabled: false}, Validators.required]
     });
   }
@@ -188,7 +192,16 @@ export class UsuariosComponent implements OnInit {
       // PUT para editar
       this.http.put(`${environment.apiUrl}/usuarios/${this.selectedUser.id}`, this.usuarioForm.value).subscribe({
         next: () => {
-          this.success = 'Usuário editado com sucesso!';
+          const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+            data: {
+              title: 'Sucesso',
+              message: 'Usuário editado com sucesso!',
+              type: 'success'
+            }
+          });
+          setTimeout(() => {
+            dialogRef.close();
+          }, 2500);
           this.usuarioForm.reset({ nivel: 'visualizador' });
           this.listarUsuarios();
           this.loading = false;
@@ -196,7 +209,22 @@ export class UsuariosComponent implements OnInit {
           this.selectedUser = null;
         },
         error: err => {
-          this.error = err.error?.message || 'Erro ao editar usuário';
+          let msg = 'Erro ao editar usuário';
+          if (err.error?.error) {
+            msg = err.error.error;
+          } else if (err.error?.message) {
+            msg = err.error.message;
+          }
+          const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+            data: {
+              title: 'Erro',
+              message: msg,
+              type: 'error'
+            }
+          });
+          setTimeout(() => {
+            dialogRef.close();
+          }, 2500);
           this.loading = false;
         }
       });
@@ -204,20 +232,64 @@ export class UsuariosComponent implements OnInit {
       // POST para cadastrar
       this.http.post(`${environment.apiUrl}/usuarios`, this.usuarioForm.value).subscribe({
         next: () => {
-          this.success = 'Usuário cadastrado com sucesso!';
+          const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+            data: {
+              title: 'Sucesso',
+              message: 'Usuário cadastrado com sucesso!',
+              type: 'success'
+            }
+          });
+          setTimeout(() => {
+            dialogRef.close();
+          }, 2500);
           this.usuarioForm.reset({ nivel: 'visualizador' });
           this.listarUsuarios();
           this.loading = false;
         },
         error: err => {
-          this.error = err.error?.message || 'Erro ao cadastrar usuário';
+          let msg = 'Erro ao cadastrar usuário';
+          if (err.error?.error) {
+            msg = err.error.error;
+          } else if (err.error?.message) {
+            msg = err.error.message;
+          }
+          const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+            data: {
+              title: 'Erro',
+              message: msg,
+              type: 'error'
+            }
+          });
+          setTimeout(() => {
+            dialogRef.close();
+          }, 2500);
           this.loading = false;
         }
       });
     }
   }
+  fecharSuccessModal() {
+    this.showSuccessModal = false;
+    this.success = null;
+  }
 
   podeCadastrar() {
     return this.authService.isAdmin;
+  }
+
+  verificarEmailEmUso(email: string) {
+    if (!email || !email.includes('@')) return;
+    this.http.get<any[]>(`${environment.apiUrl}/usuarios?email=${encodeURIComponent(email)}`).subscribe({
+      next: (usuarios) => {
+        if (usuarios && usuarios.length > 0 && (!this.editandoUsuario || usuarios[0].id !== this.selectedUser?.id)) {
+          this.error = 'Email já está em uso';
+        } else {
+          this.error = null;
+        }
+      },
+      error: () => {
+        this.error = null;
+      }
+    });
   }
 }

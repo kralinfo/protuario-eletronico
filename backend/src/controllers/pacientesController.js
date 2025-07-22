@@ -12,7 +12,6 @@ class PacientesController {
         limit = 20,
         search = '',
         sexo = '',
-        procedencia = '',
         dataInicio = '',
         dataFim = '',
         orderBy = 'created_at',
@@ -28,7 +27,6 @@ class PacientesController {
         offset,
         search,
         sexo,
-        procedencia,
         dataInicio,
         dataFim,
         orderBy,
@@ -38,12 +36,12 @@ class PacientesController {
       // Buscar pacientes e contar total
       const [pacientes, total] = await Promise.all([
         Paciente.findAll(filters),
-        Paciente.count({ search, sexo, procedencia, dataInicio, dataFim })
+        Paciente.count({ search, sexo, dataInicio, dataFim })
       ]);
 
       // COMPATIBILIDADE COM PRODUÇÃO - Retorna formato original
       // Se não há filtros específicos (busca simples), retorna apenas o array
-      const isSimpleQuery = !search && !sexo && !procedencia && !dataInicio && !dataFim && 
+      const isSimpleQuery = !search && !sexo && !dataInicio && !dataFim && 
                            pageNum === 1 && limitNum === 20 && orderBy === 'created_at';
 
       if (isSimpleQuery) {
@@ -68,7 +66,6 @@ class PacientesController {
         filters: {
           search,
           sexo,
-          procedencia,
           dataInicio,
           dataFim,
           orderBy,
@@ -435,8 +432,6 @@ class PacientesController {
           municipio: p.municipio,
           uf: p.uf,
           cep: p.cep,
-          acompanhante: p.acompanhante,
-          procedencia: p.procedencia,
           created_at: p.created_at,
           updated_at: p.updated_at
         })),

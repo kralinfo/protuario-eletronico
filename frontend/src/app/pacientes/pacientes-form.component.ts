@@ -116,17 +116,17 @@ export class PacientesFormComponent
         [Validators.required, this.nascimentoValidator.bind(this)],
       ],
       sexo: ['', [Validators.required]],
-      estadoCivil: ['',[Validators.required]],
-      profissao: ['',[Validators.required]],
-      escolaridade: ['',[Validators.required]],
-      raca: ['',[Validators.required]],
-      endereco: ['',[Validators.required]],
-      bairro: ['',[Validators.required]],
-      municipio: ['',{ disable: true }, Validators.required],
+      estadoCivil: [''],
+      profissao: [''],
+      escolaridade: [''],
+      raca: [''],
+      endereco: [''],
+      bairro: [''],
+      municipio: [{ value: '', disable: true }, Validators.required],
       uf: ['', [Validators.required]],
       cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
-      acompanhante: ['', [Validators.required]],
-      procedencia: ['',[Validators.required]],
+      acompanhante: [''],
+      procedencia: [''],
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
@@ -139,41 +139,45 @@ export class PacientesFormComponent
     });
 
     // Verifica se o CEP é válido de acordo com o UF informado
-    this.form.get('cep')?.valueChanges.pipe(
-  debounceTime(300),
-  distinctUntilChanged()
-).subscribe((valor: string) => {
-  this.erroCepUf = false;
+    this.form.get('cep')?.valueChanges
+  .pipe(debounceTime(300), distinctUntilChanged())
+  .subscribe((valor: string) => {
+    this.erroCepUf = false;
 
-  const cepLimpo = valor?.replace(/\D/g, '') || '';
+    
+    const cepLimpo = valor?.replace(/\D/g, '') || '';
 
-  let cepFormatado = cepLimpo;
-  if (cepLimpo.length > 5) {
-    cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
-  }
+    
+    let cepFormatado = cepLimpo;
+    if (cepLimpo.length > 5) {
+      cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
+    }
 
-  this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
+    
+    this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
 
-  if (cepLimpo.length === 8) {
-    this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
-      if (dados?.erro) {
-        this.form.patchValue({ municipio: '', uf: '' });
-        console.log('CEP não encontrado. Limpando município e uf.');
-        this.erroCepUf = true;
-        return;
-      }
+    
+    if (cepLimpo.length === 8) {
+      this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
+        if (dados?.erro) {
+          this.form.patchValue({ municipio: '', uf: '' });
+          this.erroCepUf = true;
+          return;
+        }
 
-      const estadoCompleto = this.estadosBrasileiros.find(
-        (e) => e.sigla === dados.uf
-      );
-      const ufFormatado = estadoCompleto
-        ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
-        : dados.uf;
+        
+        const estadoCompleto = this.estadosBrasileiros.find(
+          (e) => e.sigla === dados.uf
+        );
+        const ufFormatado = estadoCompleto
+          ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
+          : dados.uf;
 
-      this.form.patchValue({
-        municipio: String(dados.localidade || ''), // 👉 garante string
-        uf: ufFormatado,
-      });
+        
+        this.form.patchValue({
+          municipio: dados.localidade,
+          uf: ufFormatado,
+        });
 
       this.erroCepUf = false;
     });
@@ -220,7 +224,7 @@ if (this.pacienteEditando) {
 
       // Garante que estadoCivil seja uma opção válida
       // Mapeia valores sem (a) para a opção correta
-      const mapEstadoCivil = {
+      const mapEstadoCivil: Record<string, string> = {
         Solteiro: 'Solteiro(a)',
         Casado: 'Casado(a)',
         Viúvo: 'Viúvo(a)',
@@ -232,7 +236,7 @@ if (this.pacienteEditando) {
         'Divorciado(a)': 'Divorciado(a)',
         '': '',
       };
-      patch.estadoCivil = (mapEstadoCivil as any)[patch.estadoCivil] ?? '';
+      patch.estadoCivil = mapEstadoCivil[String(patch.estadoCivil || '')] ?? '';
       this.form.patchValue(patch);
     }
 
