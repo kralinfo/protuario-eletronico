@@ -1,12 +1,12 @@
 import db from '../config/database.js';
 
 class Atendimento {
-  static async criar({ pacienteId, motivo, observacoes }) {
+  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia }) {
     const status = 'triagem pendente';
     const result = await db.query(
-      `INSERT INTO atendimentos (paciente_id, motivo, status, observacoes)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [pacienteId, motivo, status, observacoes || null]
+      `INSERT INTO atendimentos (paciente_id, motivo, status, observacoes, acompanhante, procedencia)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [pacienteId, motivo, status, observacoes || null, acompanhante || null, procedencia || null]
     );
     return result.rows[0];
   }

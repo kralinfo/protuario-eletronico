@@ -16,8 +16,6 @@ class Paciente {
     this.municipio = data.municipio;
     this.uf = data.uf;
     this.cep = data.cep;
-    this.acompanhante = data.acompanhante;
-    this.procedencia = data.procedencia;
     this.telefone = data.telefone;
     this.sus = data.sus;
     this.created_at = data.created_at;
@@ -48,21 +46,21 @@ class Paciente {
       const {
         nome, mae, nascimento, sexo, estado_civil, profissao,
         escolaridade, raca, endereco, bairro, municipio, uf,
-        cep, acompanhante, procedencia, telefone, sus
+        cep, telefone, sus
       } = pacienteData;
 
       const result = await database.query(
         `INSERT INTO pacientes (
           nome, mae, nascimento, sexo, estado_civil, profissao,
           escolaridade, raca, endereco, bairro, municipio, uf,
-          cep, acompanhante, procedencia, telefone, sus, created_at
+          cep, telefone, sus, created_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP
         ) RETURNING *`,
         [
           nome, mae, nascimento, sexo, estado_civil, profissao,
           escolaridade, raca, endereco, bairro, municipio, uf,
-          cep, acompanhante, procedencia, telefone, sus
+          cep, telefone, sus
         ]
       );
       
@@ -85,7 +83,7 @@ class Paciente {
       const allowedFields = [
         'nome', 'mae', 'nascimento', 'sexo', 'estado_civil', 'profissao',
         'escolaridade', 'raca', 'endereco', 'bairro', 'municipio', 'uf',
-        'cep', 'acompanhante', 'procedencia', 'telefone', 'sus'
+        'cep', 'telefone', 'sus'
       ];
 
       // Construir query dinâmica
@@ -402,8 +400,6 @@ class Paciente {
       municipio: this.municipio,
       uf: this.uf,
       cep: this.cep,
-      acompanhante: this.acompanhante,
-      procedencia: this.procedencia,
       idade: this.getIdade()
     };
   }
