@@ -121,8 +121,6 @@ export class PacientesFormComponent
       municipio: [{ value: '', disable: true }, Validators.required],
       uf: ['', [Validators.required]],
       cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
-      acompanhante: [''],
-      procedencia: [''],
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido

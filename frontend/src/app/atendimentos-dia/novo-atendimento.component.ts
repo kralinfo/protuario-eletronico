@@ -22,6 +22,8 @@ export class NovoAtendimentoComponent {
   motivo: string = '';
   observacoes: string = '';
   mensagem: string = '';
+  acompanhante: string = '';
+  procedencia: string = '';
   exibirCadastroPaciente: boolean = false;
   apiUrl = environment.apiUrl + '/pacientes';
   private filtroSubject = new Subject<string>();
@@ -80,7 +82,9 @@ export class NovoAtendimentoComponent {
     const atendimento = {
       pacienteId: this.pacienteSelecionado.id,
       motivo: this.motivo,
-      observacoes: this.observacoes
+      observacoes: this.observacoes,
+      acompanhante: this.acompanhante,
+      procedencia: this.procedencia
     };
     // Verifica se já existe atendimento para o paciente hoje
     const hoje = new Date().toISOString().slice(0, 10);
