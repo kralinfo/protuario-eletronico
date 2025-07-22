@@ -124,6 +124,7 @@ export class PacientesFormComponent
       cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
       acompanhante: [''],
       procedencia: [''],
+      cns: ['', [Validators.required, validarCNS]]
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
@@ -679,4 +680,24 @@ export class PacientesFormComponent
 
     return null;
   }
+}
+
+/* Mask de número do SUS */
+  export function validarCNS(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) return null;
+
+  // Remove espaços ou qualquer caractere não numérico
+  const cns = control.value.replace(/\D/g, '');
+
+  if (cns.length !== 15) return { cnsInvalido: true };
+
+  const soma = cns
+    .split('')
+    .map((digito: any, index: number) => Number(digito) * (15 - index))
+    .reduce((acc: any, curr: any) => acc + curr, 0);
+
+  const resto = soma % 11;
+  const valido = resto === 0;
+
+  return valido ? null : { cnsInvalido: true };
 }
