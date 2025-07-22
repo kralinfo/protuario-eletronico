@@ -24,6 +24,8 @@ export class NovoAtendimentoComponent {
   mensagem: string = '';
   acompanhante: string = '';
   procedencia: string = '';
+  status: string = 'recepcao';
+  motivo_interrupcao: string = '';
   exibirCadastroPaciente: boolean = false;
   apiUrl = environment.apiUrl + '/pacientes';
   private filtroSubject = new Subject<string>();
@@ -79,12 +81,18 @@ export class NovoAtendimentoComponent {
       this.mensagem = 'Selecione um paciente e informe o motivo.';
       return;
     }
+    if (this.status === 'interrompido' && !this.motivo_interrupcao) {
+      this.mensagem = 'Informe o motivo da interrupção.';
+      return;
+    }
     const atendimento = {
       pacienteId: this.pacienteSelecionado.id,
       motivo: this.motivo,
       observacoes: this.observacoes,
       acompanhante: this.acompanhante,
-      procedencia: this.procedencia
+      procedencia: this.procedencia,
+      status: this.status,
+      motivo_interrupcao: this.status === 'interrompido' ? this.motivo_interrupcao : undefined
     };
     // Verifica se já existe atendimento para o paciente hoje
     const hoje = new Date().toISOString().slice(0, 10);
@@ -139,6 +147,8 @@ export class NovoAtendimentoComponent {
           this.pacienteSelecionado = null;
           this.filtroPaciente = '';
           this.pacientesFiltrados = [];
+          this.status = 'recepcao';
+          this.motivo_interrupcao = '';
         },
         error: (err) => {
           this.mensagem = '';

@@ -38,6 +38,21 @@
       <div>
         <label for="procedencia" class="block text-sm font-medium text-gray-700 mb-1">Procedência</label>
         <input id="procedencia" [(ngModel)]="procedencia" name="procedencia" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" />
+      </div>
+      <div>
+        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status do atendimento</label>
+        <select id="status" [(ngModel)]="status" name="status" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado">
+          <option value="recepcao">Recepção</option>
+          <option value="triagem">Triagem</option>
+          <option value="sala_medica">Sala Médica</option>
+          <option value="ambulatorio">Ambulatório</option>
+          <option value="finalizado">Finalizado</option>
+          <option value="interrompido">Interrompido</option>
+        </select>
+      </div>
+      <div *ngIf="status === 'interrompido'">
+        <label for="motivo_interrupcao" class="block text-sm font-medium text-gray-700 mb-1">Motivo da Interrupção</label>
+        <input id="motivo_interrupcao" [(ngModel)]="motivo_interrupcao" name="motivo_interrupcao" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" required />
 <style>
   .disabled-input:disabled {
     background: #f3f3f3 !important;
