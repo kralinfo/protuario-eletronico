@@ -114,6 +114,8 @@ export class PacientesFormComponent
       estadoCivil: [''],
       profissao: [''],
       escolaridade: [''],
+      telefone: [''], // Adicionado
+      sus: [''],      // Adicionado
       raca: [''],
       endereco: [''],
       bairro: [''],
