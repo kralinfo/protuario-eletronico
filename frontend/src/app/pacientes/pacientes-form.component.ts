@@ -33,6 +33,7 @@ import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
 import { CepService } from '../services/cep.service';
+import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
 
 @Component({
   selector: 'app-pacientes-form',
@@ -41,7 +42,7 @@ import { CepService } from '../services/cep.service';
   standalone: false,
 })
 export class PacientesFormComponent
-  implements OnInit, OnDestroy, AfterViewInit
+  implements OnInit, OnDestroy
 {
   // ...existing code...
   @Output() fechar = new EventEmitter<void>();
@@ -58,7 +59,7 @@ export class PacientesFormComponent
   invalidYearLength = false;
 
   // Para acessar o input de nascimento no DOM
-  @ViewChild('nascimentoInput') nascimentoInput!: ElementRef<HTMLInputElement>;
+ 
 
   maxDate: string = '';
 
@@ -110,7 +111,7 @@ export class PacientesFormComponent
       mae: ['', [Validators.required]],
       nascimento: [
         '',
-        [Validators.required, this.nascimentoValidator.bind(this)],
+        [Validators.required, dataMaxHojeValidator],
       ],
       sexo: ['', [Validators.required]],
       estadoCivil: [''],
@@ -308,43 +309,6 @@ export class PacientesFormComponent
       });
   }
 
-  ngAfterViewInit(): void {
-  const inputEl = this.nascimentoInput.nativeElement;
-
-  const checkAno = () => {
-    const raw = inputEl.value;
-    const year = raw.split('-')[0] ?? '';
-
-    if (year.length > 4) {
-      this.form.get('nascimento')?.setValue('', { emitEvent: true });
-      this.form.get('nascimento')?.markAsTouched();
-      this.form.get('nascimento')?.setErrors({ invalidYearLength: true });
-      this.invalidYearLength = true;
-
-      this.form.get('nascimento')?.disable();
-      inputEl.disabled = true;
-
-      setTimeout(() => {
-        const rawAgain = inputEl.value;
-        const yearAgain = rawAgain.split('-')[0] ?? '';
-
-        if (yearAgain.length <= 4) {
-          this.form.get('nascimento')?.enable();
-          inputEl.disabled = false;
-          this.invalidYearLength = false;
-        }
-      }, 3000);
-    }
-  };
-
-  // 🟡 Esse evento pega o valor em tempo real enquanto o usuário digita
-  inputEl.addEventListener('keyup', checkAno);
-
-  // Também garante a verificação ao colar valores no campo
-  inputEl.addEventListener('input', checkAno);
-}
-
-
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -370,12 +334,6 @@ export class PacientesFormComponent
   }
 
   salvar() {
-    const nascimento = this.form.get('nascimento')?.value ?? '';
-    const anoNascimento = nascimento.split('-')[0];
-    if (anoNascimento && anoNascimento.length > 4) {
-      alert('Ano de nascimento inválido. Corrija antes de salvar.');
-      return;
-    }
     if (!this.authService.isAuthenticated()) {
       this.authService.logout();
       alert('Sua sessão expirou. Faça login novamente.');
@@ -661,24 +619,6 @@ export class PacientesFormComponent
 
   logout() {
     this.authService.logout();
-  }
-
-  nascimentoValidator(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-
-    if (!value) return null;
-
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(value)) return { invalidDateFormat: true };
-
-    const date = new Date(value);
-    const currentYear = new Date().getFullYear();
-
-    if (date.getFullYear() > currentYear) {
-      return { futureYear: true };
-    }
-
-    return null;
   }
 }
 

@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
+import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
 
 export interface Paciente {
   id?: number;
@@ -114,8 +115,8 @@ export class RelatoriosComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.filtrosForm = this.fb.group({
-      dataInicio: [''],
-      dataFim: [''],
+      dataInicio: ['', [ dataMaxHojeValidator]],
+      dataFim: ['', [dataMaxHojeValidator]],
       sexo: [''],
       municipio: [''],
       uf: [''],

@@ -35,6 +35,8 @@ import { HomeComponent } from './home/home.component';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { DateInputLimiterDirective } from './shared/directives/data.directive';
+
 
 @NgModule({
   declarations: [
@@ -72,7 +74,8 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
     CommonModule,
     FormsModule,
     RelatorioAtendimentosComponent,
-    NgxMaskDirective
+    NgxMaskDirective,
+    DateInputLimiterDirective
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
   ],
   providers: [
