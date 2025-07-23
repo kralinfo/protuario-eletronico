@@ -471,146 +471,60 @@ export class PacientesFormComponent
   // Método para gerar PDF do cadastro do paciente
   imprimirPacientePDF() {
     if (this.form.invalid) {
-      alert(
-        'Por favor, preencha todos os campos obrigatórios antes de gerar o PDF.'
-      );
+      alert('Por favor, preencha todos os campos obrigatórios antes de imprimir.');
       return;
     }
 
     const paciente = this.form.value;
-    const doc = new jsPDF.jsPDF();
-
-    // Configuração das fontes e cores
-    doc.setFontSize(20);
-    doc.setTextColor(40);
-
-    // Cabeçalho
-    doc.text('e-Prontuário Aliança-PE', 20, 20);
-    doc.setFontSize(14);
-    doc.text('Ficha de Cadastro do Paciente', 20, 30);
-
-    // Linha separadora
-    doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
-
-    // Dados do paciente
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-
-    let yPosition = 50;
-    const lineHeight = 8;
-
-    // Dados pessoais
-    doc.setFont('helvetica', 'bold');
-    doc.text('DADOS PESSOAIS', 20, yPosition);
-    yPosition += lineHeight + 2;
-
-    doc.setFont('helvetica', 'normal');
-    if (paciente.nome) {
-      doc.text(`Nome: ${paciente.nome}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.mae) {
-      doc.text(`Nome da Mãe: ${paciente.mae}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.nascimento) {
-      doc.text(
-        `Data de Nascimento: ${new Date(paciente.nascimento).toLocaleDateString(
-          'pt-BR'
-        )}`,
-        20,
-        yPosition
-      );
-      yPosition += lineHeight;
-    }
-
-    if (paciente.sexo) {
-      doc.text(`Sexo: ${this.formatarSexo(paciente.sexo)}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.telefone) {
-      doc.text(`Telefone: ${paciente.telefone}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.sus) {
-      doc.text(`Cartão SUS: ${paciente.sus}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.estadoCivil) {
-      doc.text(`Estado Civil: ${paciente.estadoCivil}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.profissao) {
-      doc.text(`Profissão: ${paciente.profissao}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.escolaridade) {
-      doc.text(`Escolaridade: ${paciente.escolaridade}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.raca) {
-      doc.text(`Raça/Cor: ${paciente.raca}`, 20, yPosition);
-      yPosition += lineHeight + 5;
-    }
-
-    // Endereço
-    doc.setFont('helvetica', 'bold');
-    doc.text('ENDEREÇO', 20, yPosition);
-    yPosition += lineHeight + 2;
-
-    doc.setFont('helvetica', 'normal');
-    if (paciente.endereco) {
-      doc.text(`Endereço: ${paciente.endereco}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.bairro) {
-      doc.text(`Bairro: ${paciente.bairro}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.municipio) {
-      doc.text(`Município: ${paciente.municipio}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.uf) {
-      doc.text(`UF: ${paciente.uf}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.cep) {
-      doc.text(`CEP: ${paciente.cep}`, 20, yPosition);
-      yPosition += lineHeight + 5;
-    }
-
-    // Rodapé
-    const pageHeight = doc.internal.pageSize.height;
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(
-      `Gerado em: ${new Date().toLocaleDateString(
-        'pt-BR'
-      )} às ${new Date().toLocaleTimeString('pt-BR')}`,
-      20,
-      pageHeight - 20
-    );
-    doc.text('Sistema e-Prontuário Aliança-PE', 20, pageHeight - 10);
-
-    // Salvar arquivo com timestamp para evitar sobrescrita
-    const nomeArquivo = `paciente_${(paciente.nome || 'novo')
-      .replace(/\s+/g, '_')
-      .toLowerCase()}_${new Date().getTime()}.pdf`;
-    doc.save(nomeArquivo);
+    // Cria uma janela temporária para impressão
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ficha de Cadastro do Paciente</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h2 { color: #2563eb; }
+            .section { margin-bottom: 24px; }
+            .label { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h2>e-Prontuário Aliança-PE</h2>
+          <h3>Ficha de Cadastro do Paciente</h3>
+          <hr />
+          <div class="section">
+            <span class="label">Nome:</span> ${paciente.nome || ''}<br />
+            <span class="label">Nome da Mãe:</span> ${paciente.mae || ''}<br />
+            <span class="label">Data de Nascimento:</span> ${paciente.nascimento ? new Date(paciente.nascimento).toLocaleDateString('pt-BR') : ''}<br />
+            <span class="label">Sexo:</span> ${this.formatarSexo(paciente.sexo) || ''}<br />
+            <span class="label">Telefone:</span> ${paciente.telefone || ''}<br />
+            <span class="label">Cartão SUS:</span> ${paciente.sus || ''}<br />
+            <span class="label">Estado Civil:</span> ${paciente.estadoCivil || ''}<br />
+            <span class="label">Profissão:</span> ${paciente.profissao || ''}<br />
+            <span class="label">Escolaridade:</span> ${paciente.escolaridade || ''}<br />
+            <span class="label">Raça/Cor:</span> ${paciente.raca || ''}<br />
+          </div>
+          <div class="section">
+            <span class="label">Endereço:</span> ${paciente.endereco || ''}<br />
+            <span class="label">Bairro:</span> ${paciente.bairro || ''}<br />
+            <span class="label">Município:</span> ${paciente.municipio || ''}<br />
+            <span class="label">UF:</span> ${paciente.uf || ''}<br />
+            <span class="label">CEP:</span> ${paciente.cep || ''}<br />
+          </div>
+          <hr />
+          <div style="margin-top: 32px; color: #666; font-size: 12px;">
+            Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br />
+            Sistema e-Prontuário Aliança-PE
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   }
 
   private formatarSexo(sexo: string): string {
