@@ -3,7 +3,15 @@ import Usuario from '../models/Usuario.js';
 const usuariosController = {
   async list(req, res) {
     try {
-      const usuarios = await Usuario.findAll();
+      const { email } = req.query;
+      let usuarios;
+      if (email) {
+        // Busca por email exato (case insensitive)
+        const usuario = await Usuario.findByEmail(email);
+        usuarios = usuario ? [usuario] : [];
+      } else {
+        usuarios = await Usuario.findAll();
+      }
       res.json(usuarios.map(u => u.toPublicJSON()));
     } catch (error) {
       res.status(500).json({ error: error.message });

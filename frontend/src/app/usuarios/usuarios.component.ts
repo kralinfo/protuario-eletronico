@@ -306,7 +306,10 @@ export class UsuariosComponent implements OnInit {
   }
 
   verificarEmailEmUso(email: string) {
-    if (!email || !email.includes('@')) return;
+    if (!email || !email.includes('@')) {
+      this.error = null;
+      return;
+    }
     this.http.get<any[]>(`${environment.apiUrl}/usuarios?email=${encodeURIComponent(email)}`).subscribe({
       next: (usuarios) => {
         if (usuarios && usuarios.length > 0 && (!this.editandoUsuario || usuarios[0].id !== this.selectedUser?.id)) {
