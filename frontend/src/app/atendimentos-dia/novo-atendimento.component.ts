@@ -45,9 +45,10 @@ export class NovoAtendimentoComponent {
   ngOnInit() {
     // Inicializa lista vazia
     this.pacientesFiltrados = [];
-    // Inicializa o horário atual no formato HH:mm
+    // Inicializa o horário atual no formato HH:mm para input type="time"
     const now = new Date();
-    this.horario = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.horario = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }
 
   abrirCadastroPaciente() {

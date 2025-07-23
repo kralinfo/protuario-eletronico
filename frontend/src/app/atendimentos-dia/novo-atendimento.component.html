@@ -18,7 +18,7 @@
       </div>
       <div>
         <label for="horario" class="block text-sm font-medium text-gray-700 mb-1">Horário do atendimento</label>
-        <input id="horario" name="horario" class="border rounded px-3 py-2 w-full bg-gray-100" [value]="horario" readonly />
+        <input id="horario" name="horario" type="time" class="border rounded px-3 py-2 w-full" [(ngModel)]="horario" required />
       </div>
       <div *ngIf="pacienteSelecionado">
         <label class="block text-sm font-medium text-gray-700 mb-1">Paciente selecionado</label>
