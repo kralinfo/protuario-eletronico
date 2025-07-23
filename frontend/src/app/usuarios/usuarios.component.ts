@@ -90,6 +90,10 @@ export class UsuariosComponent implements OnInit {
     this.isVisualizador = this.authService.user?.nivel === 'visualizador';
     this.listarUsuarios();
     this.filtrarUsuarios();
+    // Ao entrar na tela, desmarca todos os módulos
+    if (this.usuarioForm && this.usuarioForm.get('modulos')) {
+      this.usuarioForm.get('modulos')?.setValue([]);
+    }
   }
 
   onEditUser(user: any) {
@@ -100,6 +104,10 @@ export class UsuariosComponent implements OnInit {
       senha: '', // Não preenche senha por segurança
       nivel: user.nivel
     });
+    // Preenche os módulos do usuário selecionado
+    if (this.usuarioForm.get('modulos')) {
+      this.usuarioForm.get('modulos')?.setValue(user.modulos || []);
+    }
     this.editandoUsuario = true;
     // Não abre o modal aqui, só ao tentar salvar
   }
