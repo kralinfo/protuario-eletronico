@@ -32,10 +32,10 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './auth/auth.interceptor';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HomeComponent } from './home/home.component';
-import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
-import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { DateInputLimiterDirective } from './shared/directives/data.directive';
+import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 
 @NgModule({
@@ -75,8 +75,9 @@ import { DateInputLimiterDirective } from './shared/directives/data.directive';
     FormsModule,
     RelatorioAtendimentosComponent,
     NgxMaskDirective,
-    DateInputLimiterDirective
+    DateInputLimiterDirective,
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
+    MatMenuModule,
   ],
   providers: [
     {
