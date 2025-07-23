@@ -2,9 +2,6 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  AfterViewInit,
-  ViewChild,
-  ElementRef,
   Output,
   EventEmitter,
   Input,
@@ -33,6 +30,7 @@ import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
 import { CepService } from '../services/cep.service';
+import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
 
 @Component({
   selector: 'app-pacientes-form',
@@ -40,8 +38,10 @@ import { CepService } from '../services/cep.service';
   styleUrls: ['./pacientes.component.scss'],
   standalone: false,
 })
-export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit {
-  private ignoreNextCepChange = false;
+export class PacientesFormComponent
+  implements OnInit, OnDestroy
+{
+  // ...existing code...
   @Output() fechar = new EventEmitter<void>();
   @Input() pacienteEditando: Paciente | null = null;
   form: FormGroup;
@@ -56,8 +56,9 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
   invalidYearLength = false;
 
   // Para acessar o input de nascimento no DOM
-  @ViewChild('nascimentoInput', { static: false })
-  nascimentoInput!: ElementRef<HTMLInputElement>;
+
+
+  maxDate: string = '';
 
   // Lista de estados brasileiros
   estadosBrasileiros = [
@@ -89,8 +90,10 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
     { sigla: 'SE', nome: 'Sergipe' },
     { sigla: 'TO', nome: 'Tocantins' },
   ];
+
   pacienteService: any;
   erroCepUf = false;
+  bloqueioAnoInvalido: any;
 
   constructor(
     private router: Router,
@@ -103,19 +106,23 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
     this.form = this.fb.group({
       nome: ['', [Validators.required]],
       mae: ['', [Validators.required]],
-      nascimento: ['', [Validators.required]],
+      nascimento: [
+        '',
+        [Validators.required, dataMaxHojeValidator],
+      ],
       sexo: ['', [Validators.required]],
       estadoCivil: [''],
       profissao: [''],
       escolaridade: [''],
-      telefone: [''],
-      sus: ['', [Validators.required]],
       raca: [''],
       endereco: [''],
       bairro: [''],
-      municipio: [''],
-      uf: [''],
-      cep: ['', [Validators.required, Validators.pattern(/^\d{5}-?\d{3}$/)]],
+      municipio: ['', { disable: true }, Validators.required],
+      uf: ['', [Validators.required]],
+      cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
+      acompanhante: [''],
+      procedencia: [''],
+      cns: ['', [Validators.required, validarCNS]]
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
@@ -127,42 +134,32 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
       this.currentUser = user;
     });
 
+    const yaer = new Date().getFullYear();
+    this.maxDate = `${yaer}-12-31`
+
     // Verifica se o CEP é válido de acordo com o UF informado
-    this.form.get('cep')?.valueChanges
-      .pipe(debounceTime(300), distinctUntilChanged())
+    this.form
+      .get('cep')
+      ?.valueChanges.pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((valor: string) => {
-        if (this.ignoreNextCepChange) {
-          this.ignoreNextCepChange = false;
-          return;
-        }
         this.erroCepUf = false;
 
-        if (!valor) {
-          this.ignoreNextCepChange = true;
-          this.form.patchValue({ municipio: '', uf: '' });
-          this.form.get('municipio')?.updateValueAndValidity();
-          this.form.get('uf')?.updateValueAndValidity();
-          return;
-        }
-
         const cepLimpo = valor?.replace(/\D/g, '') || '';
+
         let cepFormatado = cepLimpo;
         if (cepLimpo.length > 5) {
-          cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5, 8)}`;
-        }
-        if (valor !== cepFormatado && cepLimpo.length === 8) {
-          this.ignoreNextCepChange = true;
-          this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
-          return;
+          cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(
+            5,
+            8
+          )}`;
         }
 
-        if (cepFormatado.length === 9 && /^\d{5}-\d{3}$/.test(cepFormatado)) {
+        this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
+
+        if (cepLimpo.length === 8) {
           this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
             if (dados?.erro) {
-              this.ignoreNextCepChange = true;
               this.form.patchValue({ municipio: '', uf: '' });
-              this.form.get('municipio')?.updateValueAndValidity();
-              this.form.get('uf')?.updateValueAndValidity();
               this.erroCepUf = true;
               return;
             }
@@ -174,26 +171,47 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
               ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
               : dados.uf;
 
-            this.ignoreNextCepChange = true;
             this.form.patchValue({
               municipio: dados.localidade,
               uf: ufFormatado,
             });
-            this.form.get('municipio')?.updateValueAndValidity();
-            this.form.get('uf')?.updateValueAndValidity();
+
             this.erroCepUf = false;
           });
         } else {
-          this.ignoreNextCepChange = true;
           this.form.patchValue({ municipio: '', uf: '' });
-          this.form.get('municipio')?.updateValueAndValidity();
-          this.form.get('uf')?.updateValueAndValidity();
         }
       });
+
+    // 👉 Blindagem extra: se municipio virar objeto, converte pra string automaticamente
+    this.form.get('municipio')?.valueChanges.subscribe((valor) => {
+      if (typeof valor === 'object' && valor !== null) {
+        this.form
+          .get('municipio')
+          ?.setValue(valor?.nome || '', { emitEvent: false });
+      }
+    });
 
     // Patch do pacienteEditando se existir
     if (this.pacienteEditando) {
       const patch = { ...this.pacienteEditando };
+
+      // ✅ Sanitiza campo municipio
+      if (typeof patch.municipio === 'object' && patch.municipio !== null) {
+        patch.municipio = patch.municipio || '';
+      } else if (typeof patch.municipio !== 'string') {
+        patch.municipio = '';
+      }
+
+      // ✅ Sanitiza campo uf
+      const uf = patch.uf as { sigla?: string; nome?: string } | string;
+      if (typeof uf === 'object' && uf !== null) {
+        patch.uf = uf.sigla ? `${uf.sigla} - ${uf.nome || ''}` : '';
+      } else if (typeof uf !== 'string') {
+        patch.uf = '';
+      }
+
+      // ✅ Formata data de nascimento corretamente
       if (patch.nascimento) {
         const date = new Date(patch.nascimento);
         const yyyy = date.getFullYear();
@@ -201,6 +219,7 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
         const dd = String(date.getDate()).padStart(2, '0');
         patch.nascimento = `${yyyy}-${mm}-${dd}`;
       }
+
       // Garante que estadoCivil seja uma opção válida
       // Mapeia valores sem (a) para a opção correta
       const mapEstadoCivil: Record<string, string> = {
@@ -287,41 +306,6 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
       });
   }
 
-  ngAfterViewInit() {
-    // Adiciona um listener para corrigir ano com mais de 4 dígitos e limpar
-    const inputEl = this.nascimentoInput.nativeElement;
-
-    inputEl.addEventListener('input', () => {
-      const rawValue = inputEl.value;
-      const parts = rawValue.split('-');
-
-      let year = parts[0];
-      const month = parts[1] ?? '';
-      const day = parts[2] ?? '';
-
-      if (year && year.length > 4) {
-        year = year.slice(0, 4);
-        const newValue = [year, month, day].filter(Boolean).join('-');
-
-        inputEl.value = newValue;
-
-        this.invalidYearLength = true;
-
-        this.form.get('nascimento')?.setValue(newValue, { emitEvent: false });
-        this.form.get('nascimento')?.setErrors({ invalidYearLength: true });
-      } else {
-        this.invalidYearLength = false;
-        const control = this.form.get('nascimento');
-        if (control?.hasError('invalidYearLength')) {
-          const errors = { ...control.errors };
-          delete errors['invalidYearLength'];
-          control.setErrors(Object.keys(errors).length ? errors : null);
-          control.updateValueAndValidity();
-        }
-      }
-    });
-  }
-
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -352,6 +336,7 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
       alert('Sua sessão expirou. Faça login novamente.');
       return;
     }
+
     if (this.form.invalid || this.form.pending || this.verificandoDuplicidade) {
       if (this.verificandoDuplicidade) {
         alert('Aguarde a verificação de duplicidade.');
@@ -642,23 +627,24 @@ export class PacientesFormComponent implements OnInit, OnDestroy, AfterViewInit 
   logout() {
     this.authService.logout();
   }
+}
 
-  nascimentoValidator(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
+/* Mask de número do SUS */
+  export function validarCNS(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) return null;
 
-    if (!value) return null;
+  // Remove espaços ou qualquer caractere não numérico
+  const cns = control.value.replace(/\D/g, '');
 
-    // Verifica se o valor segue o formato yyyy-mm-dd
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(value)) return { invalidDateFormat: true };
+  if (cns.length !== 15) return { cnsInvalido: true };
 
-    const year = Number(value.split('-')[0]);
-    const currentYear = new Date().getFullYear();
+  const soma = cns
+    .split('')
+    .map((digito: any, index: number) => Number(digito) * (15 - index))
+    .reduce((acc: any, curr: any) => acc + curr, 0);
 
-    if (year > currentYear) {
-      return { futureYear: true };
-    }
+  const resto = soma % 11;
+  const valido = resto === 0;
 
-    return null;
-  }
+  return valido ? null : { cnsInvalido: true };
 }
