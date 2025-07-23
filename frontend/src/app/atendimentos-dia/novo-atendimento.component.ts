@@ -181,53 +181,43 @@ export class NovoAtendimentoComponent {
   }
 
   gerarPDF() {
-    const doc = new jsPDF.jsPDF();
-    doc.setFontSize(20);
-    doc.setTextColor(40);
-    doc.text('e-Prontuário Aliança-PE', 20, 20);
-    doc.setFontSize(14);
-    doc.text('Ficha de Atendimento', 20, 30);
-    doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    let yPosition = 50;
-    const lineHeight = 8;
-    doc.setFont('helvetica', 'bold');
-    doc.text('DADOS DO ATENDIMENTO', 20, yPosition);
-    yPosition += lineHeight + 2;
-    doc.setFont('helvetica', 'normal');
-    if (this.pacienteSelecionado) {
-      doc.text(`Paciente: ${this.pacienteSelecionado.nome}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-    if (this.motivo) {
-      doc.text(`Motivo: ${this.motivo}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-    if (this.observacoes) {
-      doc.text(`Observações: ${this.observacoes}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-    if (this.acompanhante) {
-      doc.text(`Acompanhante: ${this.acompanhante}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-    if (this.procedencia) {
-      doc.text(`Procedência: ${this.procedencia}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-    if (this.status) {
-      doc.text(`Status: ${this.status}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    const pageHeight = doc.internal.pageSize.height;
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`,
-      20, pageHeight - 20);
-    doc.text('Sistema e-Prontuário Aliança-PE', 20, pageHeight - 10);
-    const nomeArquivo = `atendimento_${new Date().getTime()}.pdf`;
-    doc.save(nomeArquivo);
+    if (!this.pacienteSelecionado) return;
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ficha de Atendimento</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h2 { color: #2563eb; }
+            .section { margin-bottom: 24px; }
+            .label { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h2>e-Prontuário Aliança-PE</h2>
+          <h3>Ficha de Atendimento</h3>
+          <hr />
+          <div class="section">
+            <span class="label">Paciente:</span> ${this.pacienteSelecionado?.nome || ''}<br />
+            <span class="label">Motivo:</span> ${this.motivo || ''}<br />
+            <span class="label">Observações:</span> ${this.observacoes || ''}<br />
+            <span class="label">Acompanhante:</span> ${this.acompanhante || ''}<br />
+            <span class="label">Procedência:</span> ${this.procedencia || ''}<br />
+            <span class="label">Status:</span> ${this.status || ''}<br />
+          </div>
+          <hr />
+          <div style="margin-top: 32px; color: #666; font-size: 12px;">
+            Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br />
+            Sistema e-Prontuário Aliança-PE
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   }
 }

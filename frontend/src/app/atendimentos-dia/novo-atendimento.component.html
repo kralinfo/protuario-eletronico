@@ -69,9 +69,9 @@
       </div>
       <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow hover:bg-blue-700 transition" [disabled]="!pacienteSelecionado">Registrar Atendimento</button>
       <button type="button"
-        class="w-full py-2 px-4 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition mt-2"
+        class="w-full py-2 px-4 bg-yellow-400 text-black font-semibold rounded-md shadow hover:bg-yellow-500 transition mt-2"
         (click)="gerarPDF()" [disabled]="!pacienteSelecionado">
-        Gerar PDF
+        Imprimir
       </button>
       <div *ngIf="mensagem" class="text-sm text-green-700 mt-2">{{ mensagem }}</div>
     </form>
