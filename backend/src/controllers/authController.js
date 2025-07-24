@@ -5,7 +5,68 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
 import emailService from '../services/emailService.js';
 
+import bcrypt from 'bcryptjs';
+
 class AuthController {
+  /**
+   * Redefinir senha usando token de recuperação
+   * @route POST /api/reset-password
+   */
+  static async resetPassword(req, res) {
+    try {
+      const { token, senha } = req.body;
+      if (!token || !senha) {
+        return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+      }
+      let payload;
+      try {
+        payload = jwt.verify(token, config.JWT_SECRET);
+      } catch (err) {
+        return res.status(401).json({ error: 'Token inválido ou expirado' });
+      }
+      if (payload.type !== 'password-reset') {
+        return res.status(400).json({ error: 'Tipo de token inválido' });
+      }
+      if (!payload.userId) {
+        return res.status(400).json({ error: 'Token inválido: usuário não encontrado' });
+      }
+      if (senha.length < 6) {
+        return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' });
+      }
+      const usuario = await Usuario.findById(payload.userId);
+      if (!usuario) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+      await usuario.updatePassword(senha);
+      res.json({ message: 'Senha redefinida com sucesso' });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+  /**
+   * Valida o token de redefinição de senha
+   * @route POST /api/validate-reset-token
+   */
+  static async validateResetToken(req, res) {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ error: 'Token não informado' });
+      }
+      let payload;
+      try {
+        payload = jwt.verify(token, config.JWT_SECRET);
+      } catch (err) {
+        return res.status(401).json({ error: 'Token inválido ou expirado' });
+      }
+      if (payload.type !== 'password-reset') {
+        return res.status(400).json({ error: 'Tipo de token inválido' });
+      }
+      res.json({ valid: true, userId: payload.userId, email: payload.email });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
   /**
    * Retorna os módulos disponíveis para um usuário pelo email (público)
    */
@@ -38,11 +99,16 @@ class AuthController {
       // Buscar usuário por email
       const usuario = await Usuario.findByEmail(email);
       if (!usuario) {
+        console.log(`[LOGIN DEBUG] Usuário não encontrado para email: '${email}'`);
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }
 
       // Verificar senha
-      const senhaValida = await usuario.checkPassword(senha);
+      console.log(`[LOGIN DEBUG] Email recebido: '${email}'`);
+      console.log(`[LOGIN DEBUG] Senha recebida: '${senha}'`);
+      console.log(`[LOGIN DEBUG] Hash no banco: '${usuario.senha}'`);
+      const senhaValida = await bcrypt.compare(senha, usuario.senha);
+      console.log(`[LOGIN DEBUG] Resultado do bcrypt.compare: ${senhaValida}`);
       if (!senhaValida) {
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }
@@ -74,7 +140,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no login:', error);
-      
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -125,7 +191,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no registro:', error);
-      
+
       if (error.message.includes('já está em uso')) {
         return res.status(409).json({
           status: 'ERROR',
@@ -165,7 +231,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no logout:', error);
-      
+
       res.status(500).json({
         status: 'ERROR',
         message: 'Erro interno do servidor',
@@ -180,7 +246,7 @@ class AuthController {
   static async me(req, res) {
     try {
       const usuario = await Usuario.findById(req.user.id);
-      
+
       if (!usuario) {
         throw new AppError('Usuário não encontrado', 404, 'USER_NOT_FOUND');
       }
@@ -194,7 +260,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao obter dados do usuário:', error);
-      
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -250,7 +316,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao alterar senha:', error);
-      
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -273,7 +339,7 @@ class AuthController {
   static async verifyToken(req, res) {
     try {
       const usuario = await Usuario.findById(req.user.id);
-      
+
       if (!usuario) {
         throw new AppError('Token inválido', 401, 'INVALID_TOKEN');
       }
@@ -288,7 +354,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao verificar token:', error);
-      
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -322,17 +388,17 @@ class AuthController {
       if (!usuario) {
         // Por segurança, retornamos sucesso mesmo se o email não existir
         // Isso evita que atacantes descubram emails válidos
-        return res.json({ 
-          message: 'Se o e-mail existir em nossa base, você receberá as instruções de recuperação.' 
+        return res.json({
+          message: 'Se o e-mail existir em nossa base, você receberá as instruções de recuperação.'
         });
       }
 
       // Gerar token de recuperação de senha
       const resetToken = jwt.sign(
-        { 
+        {
           userId: usuario.id,
           email: usuario.email,
-          type: 'password-reset' 
+          type: 'password-reset'
         },
         config.JWT_SECRET,
         { expiresIn: '1h' } // Token expira em 1 hora
@@ -354,8 +420,8 @@ class AuthController {
         // Mesmo com erro no email, retornamos sucesso por segurança
       }
 
-      res.json({ 
-        message: 'As instruções para recuperação de senha foram enviadas para seu e-mail.' 
+      res.json({
+        message: 'As instruções para recuperação de senha foram enviadas para seu e-mail.'
       });
 
     } catch (error) {

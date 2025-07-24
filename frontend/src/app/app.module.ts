@@ -1,3 +1,4 @@
+import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
@@ -21,12 +22,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSelectModule } from '@angular/material/select';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from './shared/feedback-dialog.component';
-import { CommonModule } from '@angular/common';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './auth/auth.interceptor';
@@ -36,6 +37,7 @@ import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimen
 import { DateInputLimiterDirective } from './shared/directives/data.directive';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { CommonModule } from '@angular/common';
 
 
 @NgModule({
@@ -48,7 +50,8 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
     RelatoriosComponent,
     UsuariosComponent,
     HomeComponent,
-    AtendimentosDiaComponent
+    AtendimentosDiaComponent,
+    RedefinirSenhaComponent
   ],
   imports: [
     BrowserModule,
@@ -68,6 +71,7 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
     MatSelectModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatMenuModule,
     MatCardModule,
     MatTooltipModule,
@@ -76,6 +80,7 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
     RelatorioAtendimentosComponent,
     NgxMaskDirective,
     DateInputLimiterDirective,
+    // Remover diretivas e componentes dos imports, manter apenas módulos
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
     MatMenuModule,
   ],
@@ -86,7 +91,6 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
       multi: true
     },
     provideHttpClient(withInterceptorsFromDi()),
-    provideNgxMask()
   ],
   bootstrap: [AppComponent]
 })

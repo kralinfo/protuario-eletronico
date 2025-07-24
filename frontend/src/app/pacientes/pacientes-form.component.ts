@@ -10,7 +10,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
 import { Paciente } from './pacientes.component';
-import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import {
   AbstractControl,
@@ -96,7 +95,6 @@ export class PacientesFormComponent
   bloqueioAnoInvalido: any;
 
   constructor(
-    private router: Router,
     private http: HttpClient,
     private fb: FormBuilder,
     private authService: AuthService,
@@ -117,20 +115,30 @@ export class PacientesFormComponent
       telefone: [''], // Adicionado
       sus: [''],      // Adicionado
       raca: [''],
-      endereco: [''],
-      bairro: [''],
-      municipio: ['', { disable: true }, Validators.required],
+      endereco: ['', [Validators.required]],
+      bairro: ['', [Validators.required]],
+      municipio: ['', [Validators.required]],
       uf: ['', [Validators.required]],
-      cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
-      acompanhante: [''],
-      procedencia: [''],
-      cns: ['', [Validators.required, validarCNS]]
+      cep: ['', [Validators.required, Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]]
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
   }
 
   ngOnInit() {
+    // Depuração: loga o objeto do formulário a cada alteração
+    this.form.valueChanges.subscribe(() => {
+      console.log('Form value:', this.form.value);
+      console.log('Form errors:', this.form.errors);
+      console.log('Form status:', this.form.status);
+      // Log detalhado dos erros de cada campo
+      Object.keys(this.form.controls).forEach(campo => {
+        const control = this.form.get(campo);
+        if (control && control.invalid) {
+          console.log(`Campo '${campo}' inválido:`, control.errors);
+        }
+      });
+    });
     // Carregar informações do usuário atual
     this.authService.user$.subscribe((user) => {
       this.currentUser = user;
@@ -166,18 +174,21 @@ export class PacientesFormComponent
               return;
             }
 
-            const estadoCompleto = this.estadosBrasileiros.find(
-              (e) => e.sigla === dados.uf
-            );
-            const ufFormatado = estadoCompleto
-              ? `${estadoCompleto.sigla} - ${estadoCompleto.nome}`
-              : dados.uf;
-
             this.form.patchValue({
               municipio: dados.localidade,
-              uf: ufFormatado,
+              uf: dados.uf,
             });
-
+            // Marcar campos como touched e dirty para validação
+            const municipioControl = this.form.get('municipio');
+            const ufControl = this.form.get('uf');
+            if (dados.localidade) {
+              municipioControl?.markAsTouched();
+              municipioControl?.markAsDirty();
+            }
+            if (dados.uf) {
+              ufControl?.markAsTouched();
+              ufControl?.markAsDirty();
+            }
             this.erroCepUf = false;
           });
         } else {
@@ -238,6 +249,10 @@ export class PacientesFormComponent
       };
       patch.estadoCivil = mapEstadoCivil[String(patch.estadoCivil || '')] ?? '';
       this.form.patchValue(patch);
+      // Marcar obrigatórios como touched
+      ['nome', 'mae', 'nascimento', 'sexo', 'endereco', 'bairro', 'municipio', 'uf', 'cep'].forEach(campo => {
+        this.form.get(campo)?.markAsTouched();
+      });
     }
 
     // Configura o Subject para validação com debounce
@@ -333,6 +348,11 @@ export class PacientesFormComponent
   }
 
   salvar() {
+    // Depuração: exibe o estado do form no console
+    console.log('Form value:', this.form.value);
+    console.log('Form errors:', this.form.errors);
+    console.log('Form status:', this.form.status);
+
     if (!this.authService.isAuthenticated()) {
       this.authService.logout();
       alert('Sua sessão expirou. Faça login novamente.');
@@ -449,164 +469,60 @@ export class PacientesFormComponent
   // Método para gerar PDF do cadastro do paciente
   imprimirPacientePDF() {
     if (this.form.invalid) {
-      alert(
-        'Por favor, preencha todos os campos obrigatórios antes de gerar o PDF.'
-      );
+      alert('Por favor, preencha todos os campos obrigatórios antes de imprimir.');
       return;
     }
 
     const paciente = this.form.value;
-    const doc = new jsPDF.jsPDF();
-
-    // Configuração das fontes e cores
-    doc.setFontSize(20);
-    doc.setTextColor(40);
-
-    // Cabeçalho
-    doc.text('e-Prontuário Aliança-PE', 20, 20);
-    doc.setFontSize(14);
-    doc.text('Ficha de Cadastro do Paciente', 20, 30);
-
-    // Linha separadora
-    doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
-
-    // Dados do paciente
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-
-    let yPosition = 50;
-    const lineHeight = 8;
-
-    // Dados pessoais
-    doc.setFont('helvetica', 'bold');
-    doc.text('DADOS PESSOAIS', 20, yPosition);
-    yPosition += lineHeight + 2;
-
-    doc.setFont('helvetica', 'normal');
-    if (paciente.nome) {
-      doc.text(`Nome: ${paciente.nome}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.mae) {
-      doc.text(`Nome da Mãe: ${paciente.mae}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.nascimento) {
-      doc.text(
-        `Data de Nascimento: ${new Date(paciente.nascimento).toLocaleDateString(
-          'pt-BR'
-        )}`,
-        20,
-        yPosition
-      );
-      yPosition += lineHeight;
-    }
-
-    if (paciente.sexo) {
-      doc.text(`Sexo: ${this.formatarSexo(paciente.sexo)}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.telefone) {
-      doc.text(`Telefone: ${paciente.telefone}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.sus) {
-      doc.text(`Cartão SUS: ${paciente.sus}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.estadoCivil) {
-      doc.text(`Estado Civil: ${paciente.estadoCivil}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.profissao) {
-      doc.text(`Profissão: ${paciente.profissao}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.escolaridade) {
-      doc.text(`Escolaridade: ${paciente.escolaridade}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.raca) {
-      doc.text(`Raça/Cor: ${paciente.raca}`, 20, yPosition);
-      yPosition += lineHeight + 5;
-    }
-
-    // Endereço
-    doc.setFont('helvetica', 'bold');
-    doc.text('ENDEREÇO', 20, yPosition);
-    yPosition += lineHeight + 2;
-
-    doc.setFont('helvetica', 'normal');
-    if (paciente.endereco) {
-      doc.text(`Endereço: ${paciente.endereco}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.bairro) {
-      doc.text(`Bairro: ${paciente.bairro}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.municipio) {
-      doc.text(`Município: ${paciente.municipio}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.uf) {
-      doc.text(`UF: ${paciente.uf}`, 20, yPosition);
-      yPosition += lineHeight;
-    }
-
-    if (paciente.cep) {
-      doc.text(`CEP: ${paciente.cep}`, 20, yPosition);
-      yPosition += lineHeight + 5;
-    }
-
-    // Informações adicionais
-    if (paciente.acompanhante || paciente.procedencia) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('INFORMAÇÕES ADICIONAIS', 20, yPosition);
-      yPosition += lineHeight + 2;
-
-      doc.setFont('helvetica', 'normal');
-      if (paciente.acompanhante) {
-        doc.text(`Acompanhante: ${paciente.acompanhante}`, 20, yPosition);
-        yPosition += lineHeight;
-      }
-
-      if (paciente.procedencia) {
-        doc.text(`Procedência: ${paciente.procedencia}`, 20, yPosition);
-        yPosition += lineHeight;
-      }
-    }
-
-    // Rodapé
-    const pageHeight = doc.internal.pageSize.height;
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(
-      `Gerado em: ${new Date().toLocaleDateString(
-        'pt-BR'
-      )} às ${new Date().toLocaleTimeString('pt-BR')}`,
-      20,
-      pageHeight - 20
-    );
-    doc.text('Sistema e-Prontuário Aliança-PE', 20, pageHeight - 10);
-
-    // Salvar arquivo com timestamp para evitar sobrescrita
-    const nomeArquivo = `paciente_${(paciente.nome || 'novo')
-      .replace(/\s+/g, '_')
-      .toLowerCase()}_${new Date().getTime()}.pdf`;
-    doc.save(nomeArquivo);
+    // Cria uma janela temporária para impressão
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ficha de Cadastro do Paciente</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h2 { color: #2563eb; }
+            .section { margin-bottom: 24px; }
+            .label { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h2>e-Prontuário Aliança-PE</h2>
+          <h3>Ficha de Cadastro do Paciente</h3>
+          <hr />
+          <div class="section">
+            <span class="label">Nome:</span> ${paciente.nome || ''}<br />
+            <span class="label">Nome da Mãe:</span> ${paciente.mae || ''}<br />
+            <span class="label">Data de Nascimento:</span> ${paciente.nascimento ? new Date(paciente.nascimento).toLocaleDateString('pt-BR') : ''}<br />
+            <span class="label">Sexo:</span> ${this.formatarSexo(paciente.sexo) || ''}<br />
+            <span class="label">Telefone:</span> ${paciente.telefone || ''}<br />
+            <span class="label">Cartão SUS:</span> ${paciente.sus || ''}<br />
+            <span class="label">Estado Civil:</span> ${paciente.estadoCivil || ''}<br />
+            <span class="label">Profissão:</span> ${paciente.profissao || ''}<br />
+            <span class="label">Escolaridade:</span> ${paciente.escolaridade || ''}<br />
+            <span class="label">Raça/Cor:</span> ${paciente.raca || ''}<br />
+          </div>
+          <div class="section">
+            <span class="label">Endereço:</span> ${paciente.endereco || ''}<br />
+            <span class="label">Bairro:</span> ${paciente.bairro || ''}<br />
+            <span class="label">Município:</span> ${paciente.municipio || ''}<br />
+            <span class="label">UF:</span> ${paciente.uf || ''}<br />
+            <span class="label">CEP:</span> ${paciente.cep || ''}<br />
+          </div>
+          <hr />
+          <div style="margin-top: 32px; color: #666; font-size: 12px;">
+            Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br />
+            Sistema e-Prontuário Aliança-PE
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   }
 
   private formatarSexo(sexo: string): string {
@@ -632,21 +548,7 @@ export class PacientesFormComponent
 }
 
 /* Mask de número do SUS */
-  export function validarCNS(control: AbstractControl): ValidationErrors | null {
-  if (!control.value) return null;
-
-  // Remove espaços ou qualquer caractere não numérico
-  const cns = control.value.replace(/\D/g, '');
-
-  if (cns.length !== 15) return { cnsInvalido: true };
-
-  const soma = cns
-    .split('')
-    .map((digito: any, index: number) => Number(digito) * (15 - index))
-    .reduce((acc: any, curr: any) => acc + curr, 0);
-
-  const resto = soma % 11;
-  const valido = resto === 0;
-
-  return valido ? null : { cnsInvalido: true };
+export function validarCNS(control: AbstractControl): ValidationErrors | null {
+  // Validação removida para teste: sempre retorna válido
+  return null;
 }

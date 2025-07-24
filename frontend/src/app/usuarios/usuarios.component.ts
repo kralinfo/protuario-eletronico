@@ -1,7 +1,17 @@
+import { ValidatorFn, AbstractControl } from '@angular/forms';
+
+export const senhasIguaisValidator: ValidatorFn = (control: AbstractControl) => {
+  const form = control as import('@angular/forms').FormGroup;
+  const senha = form.get('senha')?.value;
+  const repetirSenha = form.get('repetirSenha')?.value;
+  return senha && repetirSenha && senha !== repetirSenha ? { senhasDiferentes: true } : null;
+};
+
+
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
@@ -13,6 +23,10 @@ import { AuthService } from '../auth/auth.service';
   standalone: false
 })
 export class UsuariosComponent implements OnInit {
+  get podeSalvarUsuario(): boolean {
+    const modulos = this.usuarioForm.get('modulos')?.value;
+    return this.usuarioForm.valid && Array.isArray(modulos) && modulos.length > 0 && !this.loading && !this.isVisualizador;
+  }
   // ...existing code...
 
   onModuloCheckboxChange(event: any) {
@@ -80,16 +94,22 @@ export class UsuariosComponent implements OnInit {
       nome: [{value: '', disabled: false}, Validators.required],
       email: [{value: '', disabled: false}, [Validators.required, Validators.email]],
       senha: [{value: '', disabled: false}, [Validators.required, Validators.minLength(6)]],
+      repetirSenha: [{value: '', disabled: false}, Validators.required],
       nivel: [{value: 'visualizador', disabled: false}, Validators.required],
       modulos: [["recepcao"]] // valor padrão
-    });
-  // modulosDisponiveis já está declarado como membro público acima
+    }, { validators: senhasIguaisValidator });
+    // modulosDisponiveis já está declarado como membro público acima
   }
+  
 
   ngOnInit(): void {
     this.isVisualizador = this.authService.user?.nivel === 'visualizador';
     this.listarUsuarios();
     this.filtrarUsuarios();
+    // Ao entrar na tela, desmarca todos os módulos
+    if (this.usuarioForm && this.usuarioForm.get('modulos')) {
+      this.usuarioForm.get('modulos')?.setValue([]);
+    }
   }
 
   onEditUser(user: any) {
@@ -100,6 +120,10 @@ export class UsuariosComponent implements OnInit {
       senha: '', // Não preenche senha por segurança
       nivel: user.nivel
     });
+    // Preenche os módulos do usuário selecionado
+    if (this.usuarioForm.get('modulos')) {
+      this.usuarioForm.get('modulos')?.setValue(user.modulos || []);
+    }
     this.editandoUsuario = true;
     // Não abre o modal aqui, só ao tentar salvar
   }
@@ -107,6 +131,42 @@ export class UsuariosComponent implements OnInit {
   onDeleteUser(user: any) {
     this.selectedUser = { ...user };
     this.showDeleteModal = true;
+  }
+
+  onRecuperarSenhaUsuario(): void {
+    if (!this.selectedUser || !this.selectedUser.email) {
+      this.dialog.open(FeedbackDialogComponent, {
+        data: {
+          title: 'Atenção',
+          message: 'Usuário ou e-mail não encontrado.',
+          type: 'error'
+        }
+      });
+      return;
+    }
+    this.loading = true;
+    this.http.post(`${environment.apiUrl}/forgot-password`, { email: this.selectedUser.email }).subscribe({
+      next: () => {
+        this.dialog.open(FeedbackDialogComponent, {
+          data: {
+            title: 'Recuperação de senha',
+            message: 'E-mail de recuperação enviado com sucesso!',
+            type: 'success'
+          }
+        });
+        this.loading = false;
+      },
+      error: (err: any) => {
+        this.dialog.open(FeedbackDialogComponent, {
+          data: {
+            title: 'Erro',
+            message: err.error?.message || 'Erro ao enviar e-mail de recuperação.',
+            type: 'error'
+          }
+        });
+        this.loading = false;
+      }
+    });
   }
 
   confirmDelete() {
@@ -196,7 +256,16 @@ export class UsuariosComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.usuarioForm.invalid) return;
+    const modulos = this.usuarioForm.get('modulos')?.value;
+    if (this.usuarioForm.invalid || !Array.isArray(modulos) || modulos.length === 0) {
+      if (this.usuarioForm.errors?.['senhasDiferentes']) {
+        this.error = 'As senhas não coincidem.';
+      }
+      if (!Array.isArray(modulos) || modulos.length === 0) {
+        this.error = 'Selecione pelo menos um módulo.';
+      }
+      return;
+    }
     if (this.editandoUsuario) {
       this.showConfirmModal = true;
     } else {
