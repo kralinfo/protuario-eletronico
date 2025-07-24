@@ -23,6 +23,10 @@ import { AuthService } from '../auth/auth.service';
   standalone: false
 })
 export class UsuariosComponent implements OnInit {
+  get podeSalvarUsuario(): boolean {
+    const modulos = this.usuarioForm.get('modulos')?.value;
+    return this.usuarioForm.valid && Array.isArray(modulos) && modulos.length > 0 && !this.loading && !this.isVisualizador;
+  }
   // ...existing code...
 
   onModuloCheckboxChange(event: any) {
@@ -252,9 +256,13 @@ export class UsuariosComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.usuarioForm.invalid) {
+    const modulos = this.usuarioForm.get('modulos')?.value;
+    if (this.usuarioForm.invalid || !Array.isArray(modulos) || modulos.length === 0) {
       if (this.usuarioForm.errors?.['senhasDiferentes']) {
         this.error = 'As senhas não coincidem.';
+      }
+      if (!Array.isArray(modulos) || modulos.length === 0) {
+        this.error = 'Selecione pelo menos um módulo.';
       }
       return;
     }
