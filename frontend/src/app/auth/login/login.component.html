@@ -95,7 +95,7 @@
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-900"
               [ngClass]="{'bg-gray-100 text-gray-500 cursor-not-allowed': loginForm.get('modulo')?.disabled}"
             >
-              <option *ngIf="!modulesLoaded || availableModules.length === 0" value="">Selecione um módulo</option>
+              <option value="" *ngIf="availableModules.length > 1">Selecione</option>
               <option *ngFor="let modulo of availableModules" [value]="modulo">{{ modulo | titlecase }}</option>
             </select>
           </div>

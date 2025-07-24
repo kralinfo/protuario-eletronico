@@ -112,6 +112,19 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/']);
     }
+    // Garante seleção automática do módulo se só houver uma opção ao iniciar
+    setTimeout(() => {
+      if (this.availableModules && this.availableModules.length === 1) {
+        this.loginForm.get('modulo')?.setValue(this.availableModules[0]);
+        this.loginForm.get('modulo')?.disable();
+      } else if (this.availableModules && this.availableModules.length > 1) {
+        this.loginForm.get('modulo')?.enable();
+        this.loginForm.get('modulo')?.setValue('');
+      } else {
+        this.loginForm.get('modulo')?.setValue('');
+        this.loginForm.get('modulo')?.disable();
+      }
+    }, 0);
   }
 
 
