@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
@@ -115,6 +116,42 @@ export class UsuariosComponent implements OnInit {
   onDeleteUser(user: any) {
     this.selectedUser = { ...user };
     this.showDeleteModal = true;
+  }
+
+  onRecuperarSenhaUsuario(): void {
+    if (!this.selectedUser || !this.selectedUser.email) {
+      this.dialog.open(FeedbackDialogComponent, {
+        data: {
+          title: 'Atenção',
+          message: 'Usuário ou e-mail não encontrado.',
+          type: 'error'
+        }
+      });
+      return;
+    }
+    this.loading = true;
+    this.http.post(`${environment.apiUrl}/forgot-password`, { email: this.selectedUser.email }).subscribe({
+      next: () => {
+        this.dialog.open(FeedbackDialogComponent, {
+          data: {
+            title: 'Recuperação de senha',
+            message: 'E-mail de recuperação enviado com sucesso!',
+            type: 'success'
+          }
+        });
+        this.loading = false;
+      },
+      error: (err: any) => {
+        this.dialog.open(FeedbackDialogComponent, {
+          data: {
+            title: 'Erro',
+            message: err.error?.message || 'Erro ao enviar e-mail de recuperação.',
+            type: 'error'
+          }
+        });
+        this.loading = false;
+      }
+    });
   }
 
   confirmDelete() {
