@@ -4,6 +4,7 @@ import { AppError } from '../middleware/errorHandler.js';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
 import emailService from '../services/emailService.js';
+
 import bcrypt from 'bcryptjs';
 
 class AuthController {
@@ -139,7 +140,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no login:', error);
-      
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -190,7 +191,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no registro:', error);
-      
+
       if (error.message.includes('já está em uso')) {
         return res.status(409).json({
           status: 'ERROR',
@@ -230,7 +231,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no logout:', error);
-      
+
       res.status(500).json({
         status: 'ERROR',
         message: 'Erro interno do servidor',
@@ -245,7 +246,7 @@ class AuthController {
   static async me(req, res) {
     try {
       const usuario = await Usuario.findById(req.user.id);
-      
+
       if (!usuario) {
         throw new AppError('Usuário não encontrado', 404, 'USER_NOT_FOUND');
       }
@@ -259,7 +260,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao obter dados do usuário:', error);
-      
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -315,7 +316,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao alterar senha:', error);
-      
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -338,7 +339,7 @@ class AuthController {
   static async verifyToken(req, res) {
     try {
       const usuario = await Usuario.findById(req.user.id);
-      
+
       if (!usuario) {
         throw new AppError('Token inválido', 401, 'INVALID_TOKEN');
       }
@@ -353,7 +354,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao verificar token:', error);
-      
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -387,17 +388,17 @@ class AuthController {
       if (!usuario) {
         // Por segurança, retornamos sucesso mesmo se o email não existir
         // Isso evita que atacantes descubram emails válidos
-        return res.json({ 
-          message: 'Se o e-mail existir em nossa base, você receberá as instruções de recuperação.' 
+        return res.json({
+          message: 'Se o e-mail existir em nossa base, você receberá as instruções de recuperação.'
         });
       }
 
       // Gerar token de recuperação de senha
       const resetToken = jwt.sign(
-        { 
+        {
           userId: usuario.id,
           email: usuario.email,
-          type: 'password-reset' 
+          type: 'password-reset'
         },
         config.JWT_SECRET,
         { expiresIn: '1h' } // Token expira em 1 hora
@@ -419,8 +420,8 @@ class AuthController {
         // Mesmo com erro no email, retornamos sucesso por segurança
       }
 
-      res.json({ 
-        message: 'As instruções para recuperação de senha foram enviadas para seu e-mail.' 
+      res.json({
+        message: 'As instruções para recuperação de senha foram enviadas para seu e-mail.'
       });
 
     } catch (error) {
