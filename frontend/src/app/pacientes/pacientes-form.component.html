@@ -236,11 +236,11 @@
             <input
               type="text"
               formControlName="sus"
-              mask="000 0000 0000 000"
+              mask="000 0000 0000 0000"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               placeholder="Número do Cartão SUS"
             />
-            <mat-error *ngIf="form.get('cns')?.hasError('cnsInvalido')">
+            <mat-error *ngIf="form.get('sus')?.hasError('cnsInvalido')" class="text-xs text-red-600 mt-1">
               Cartão SUS inválido.
             </mat-error>
           </div>

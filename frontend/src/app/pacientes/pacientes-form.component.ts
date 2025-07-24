@@ -58,7 +58,6 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
 
   // Para acessar o input de nascimento no DOM
 
-
   // Lista de estados brasileiros
   estadosBrasileiros = [
     { sigla: 'AC', nome: 'Acre' },
@@ -233,22 +232,22 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
 
     // Complementa a lógica para 'mostrar' a idade do paciente no campo de input
     this.form
-  .get('nascimento')
-  ?.valueChanges.pipe(takeUntil(this.destroy$))
-  .subscribe((dataNascimento: string) => {
-    const nascimentoControl = this.form.get('nascimento');
+      .get('nascimento')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((dataNascimento: string) => {
+        const nascimentoControl = this.form.get('nascimento');
 
-    if (nascimentoControl && nascimentoControl.valid && dataNascimento) {
-      const idade = this.calcularIdade(dataNascimento);
-      const idadeFormatada =
-        idade !== null ? (idade === 1 ? '1 ano' : `${idade} anos`) : '';
+        if (nascimentoControl && nascimentoControl.valid && dataNascimento) {
+          const idade = this.calcularIdade(dataNascimento);
+          const idadeFormatada =
+            idade !== null ? (idade === 1 ? '1 ano' : `${idade} anos`) : '';
 
-      // Atualiza campo desabilitado usando patchValue
-      this.form.get('idade')?.patchValue(idadeFormatada);
-    } else {
-      this.form.get('idade')?.patchValue('');
-    }
-  });
+          // Atualiza campo desabilitado usando patchValue
+          this.form.get('idade')?.patchValue(idadeFormatada);
+        } else {
+          this.form.get('idade')?.patchValue('');
+        }
+      });
 
     // Configura o Subject para validação com debounce
     this.validationSubject
@@ -466,13 +465,13 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
     }
 
     const paciente = this.form.getRawValue();
-   Object.entries(paciente).forEach(([key, value]) => {
-  if (value === undefined || value === null || value === '') {
-    console.warn(`⚠️ Campo ausente ou vazio: ${key}`);
-  } else {
-    console.log(`📌 ${key}:`, value);
-  }
-});
+    Object.entries(paciente).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') {
+        console.warn(` Campo ausente ou vazio: ${key}`);
+      } else {
+        console.log(`📌 ${key}:`, value);
+      }
+    });
     const doc = new jsPDF.jsPDF();
 
     // Configuração das fontes e cores
@@ -501,6 +500,12 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
     yPosition += lineHeight + 2;
 
     doc.setFont('helvetica', 'normal');
+
+    if (paciente.telefone) {
+        doc.text(`Telefone: ${paciente.telefone}`, 20, yPosition);
+        yPosition += lineHeight;
+      }
+      
     if (paciente.nome) {
       doc.text(`Nome: ${paciente.nome}`, 20, yPosition);
       yPosition += lineHeight;
@@ -521,6 +526,11 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
       );
       yPosition += lineHeight;
     }
+
+    if (paciente.idade) {
+        doc.text(`Idade: ${paciente.idade}`, 20, yPosition);
+        yPosition += lineHeight;
+      }
 
     if (paciente.sexo) {
       doc.text(`Sexo: ${this.formatarSexo(paciente.sexo)}`, 20, yPosition);
@@ -546,6 +556,11 @@ export class PacientesFormComponent implements OnInit, OnDestroy {
       doc.text(`Raça/Cor: ${paciente.raca}`, 20, yPosition);
       yPosition += lineHeight + 5;
     }
+
+    if (paciente.sus) {
+        doc.text(`Número do SUS: ${paciente.sus}`, 20, yPosition);
+        yPosition += lineHeight + 5;
+      }
 
     // Endereço
     doc.setFont('helvetica', 'bold');
