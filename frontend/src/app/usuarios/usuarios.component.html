@@ -115,15 +115,15 @@
             <table class="min-w-[600px] w-full text-xs sm:text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
               <thead class="bg-gray-100">
                 <tr>
-                  <th class="px-2 py-2 font-semibold text-gray-700 min-w-[5.5rem] max-w-[7rem] text-center">Ações</th>
+                  <th class="px-2 py-2 font-semibold text-gray-700 min-w-[3.5rem] max-w-[4.5rem] text-center">Ações</th>
                   <th class="px-6 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">Nome</th>
                   <th class="px-4 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">Email</th>
-                  <th class="px-4 py-2 font-semibold text-gray-700 min-w-[3.5rem] max-w-[5rem] ">Nível</th>
+                  <th class="px-4 py-2 font-semibold text-gray-700 min-w-[2.5rem] max-w-[3.5rem] ">Nível</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let u of paginatedUsuarios" class="border-b hover:bg-gray-50">
-                  <td class="px-2 py-2 min-w-[3.5rem] max-w-[5rem] text-center">
+                  <td class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center">
                     <div class="flex gap-2 justify-center items-center w-full">
                       <button (click)="onEditUser(u)" [disabled]="loading || isVisualizador" class="text-blue-700 hover:text-blue-900 transition" title="Editar usuário">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -139,7 +139,7 @@
                   </td>
                   <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">{{ u.nome }}</td>
                   <td class="px-4 py-2 text-gray-700">{{ u.email }}</td>
-                  <td class="px-4 py-2 text-gray-700">{{ u.nivel }}</td>
+                  <td class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]">{{ u.nivel }}</td>
                 </tr>
               </tbody>
             </table>
