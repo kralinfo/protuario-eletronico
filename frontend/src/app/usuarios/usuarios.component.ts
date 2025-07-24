@@ -1,8 +1,17 @@
+import { ValidatorFn, AbstractControl } from '@angular/forms';
+
+export const senhasIguaisValidator: ValidatorFn = (control: AbstractControl) => {
+  const form = control as import('@angular/forms').FormGroup;
+  const senha = form.get('senha')?.value;
+  const repetirSenha = form.get('repetirSenha')?.value;
+  return senha && repetirSenha && senha !== repetirSenha ? { senhasDiferentes: true } : null;
+};
+
 
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
@@ -81,11 +90,13 @@ export class UsuariosComponent implements OnInit {
       nome: [{value: '', disabled: false}, Validators.required],
       email: [{value: '', disabled: false}, [Validators.required, Validators.email]],
       senha: [{value: '', disabled: false}, [Validators.required, Validators.minLength(6)]],
+      repetirSenha: [{value: '', disabled: false}, Validators.required],
       nivel: [{value: 'visualizador', disabled: false}, Validators.required],
       modulos: [["recepcao"]] // valor padrão
-    });
-  // modulosDisponiveis já está declarado como membro público acima
+    }, { validators: senhasIguaisValidator });
+    // modulosDisponiveis já está declarado como membro público acima
   }
+  
 
   ngOnInit(): void {
     this.isVisualizador = this.authService.user?.nivel === 'visualizador';
@@ -241,7 +252,12 @@ export class UsuariosComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.usuarioForm.invalid) return;
+    if (this.usuarioForm.invalid) {
+      if (this.usuarioForm.errors?.['senhasDiferentes']) {
+        this.error = 'As senhas não coincidem.';
+      }
+      return;
+    }
     if (this.editandoUsuario) {
       this.showConfirmModal = true;
     } else {
