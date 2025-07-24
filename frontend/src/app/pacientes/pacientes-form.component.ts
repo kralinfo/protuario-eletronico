@@ -41,9 +41,7 @@ import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validat
   styleUrls: ['./pacientes.component.scss'],
   standalone: false,
 })
-export class PacientesFormComponent
-  implements OnInit, OnDestroy
-{
+export class PacientesFormComponent implements OnInit, OnDestroy {
   // ...existing code...
   @Output() fechar = new EventEmitter<void>();
   @Input() pacienteEditando: Paciente | null = null;
@@ -59,9 +57,7 @@ export class PacientesFormComponent
   invalidYearLength = false;
 
   // Para acessar o input de nascimento no DOM
- 
 
-  maxDate: string = '';
 
   // Lista de estados brasileiros
   estadosBrasileiros = [
@@ -108,11 +104,10 @@ export class PacientesFormComponent
   ) {
     this.form = this.fb.group({
       nome: ['', [Validators.required]],
+      telefone: [''],
       mae: ['', [Validators.required]],
-      nascimento: [
-        '',
-        [Validators.required, dataMaxHojeValidator],
-      ],
+      nascimento: ['', [Validators.required, dataMaxHojeValidator]],
+      idade: [{ value: '', disabled: true }],
       sexo: ['', [Validators.required]],
       estadoCivil: [''],
       profissao: [''],
@@ -123,9 +118,7 @@ export class PacientesFormComponent
       municipio: ['', { disable: true }, Validators.required],
       uf: ['', [Validators.required]],
       cep: ['', [Validators.pattern(/^[0-9]{5}-?[0-9]{3}$/)]],
-      acompanhante: [''],
-      procedencia: [''],
-      cns: ['', [Validators.required, validarCNS]]
+      sus: ['', [Validators.required, validarCNS]],
     });
 
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
@@ -136,9 +129,6 @@ export class PacientesFormComponent
     this.authService.user$.subscribe((user) => {
       this.currentUser = user;
     });
-
-    const yaer = new Date().getFullYear();
-    this.maxDate = `${yaer}-12-31`
 
     // Verifica se o CEP é válido de acordo com o UF informado
     this.form
@@ -240,6 +230,25 @@ export class PacientesFormComponent
       patch.estadoCivil = mapEstadoCivil[String(patch.estadoCivil || '')] ?? '';
       this.form.patchValue(patch);
     }
+
+    // Complementa a lógica para 'mostrar' a idade do paciente no campo de input
+    this.form
+  .get('nascimento')
+  ?.valueChanges.pipe(takeUntil(this.destroy$))
+  .subscribe((dataNascimento: string) => {
+    const nascimentoControl = this.form.get('nascimento');
+
+    if (nascimentoControl && nascimentoControl.valid && dataNascimento) {
+      const idade = this.calcularIdade(dataNascimento);
+      const idadeFormatada =
+        idade !== null ? (idade === 1 ? '1 ano' : `${idade} anos`) : '';
+
+      // Atualiza campo desabilitado usando patchValue
+      this.form.get('idade')?.patchValue(idadeFormatada);
+    } else {
+      this.form.get('idade')?.patchValue('');
+    }
+  });
 
     // Configura o Subject para validação com debounce
     this.validationSubject
@@ -456,7 +465,14 @@ export class PacientesFormComponent
       return;
     }
 
-    const paciente = this.form.value;
+    const paciente = this.form.getRawValue();
+   Object.entries(paciente).forEach(([key, value]) => {
+  if (value === undefined || value === null || value === '') {
+    console.warn(`⚠️ Campo ausente ou vazio: ${key}`);
+  } else {
+    console.log(`📌 ${key}:`, value);
+  }
+});
     const doc = new jsPDF.jsPDF();
 
     // Configuração das fontes e cores
@@ -613,6 +629,23 @@ export class PacientesFormComponent
     }
   }
 
+  /* Lógica para calcular idade do paciente */
+  private calcularIdade(dataNascimento: string): number | null {
+    if (!dataNascimento) return null;
+
+    const hoje = new Date();
+    const nascimento = new Date(dataNascimento);
+
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const mes = hoje.getMonth() - nascimento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+      idade--;
+    }
+
+    return idade;
+  }
+
   cancelar() {
     this.fechar.emit();
   }
@@ -623,7 +656,7 @@ export class PacientesFormComponent
 }
 
 /* Mask de número do SUS */
-  export function validarCNS(control: AbstractControl): ValidationErrors | null {
+export function validarCNS(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
 
   // Remove espaços ou qualquer caractere não numérico
