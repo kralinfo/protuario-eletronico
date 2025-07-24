@@ -7,6 +7,65 @@ import emailService from '../services/emailService.js';
 
 class AuthController {
   /**
+   * Redefinir senha usando token de recuperação
+   * @route POST /api/reset-password
+   */
+  static async resetPassword(req, res) {
+    try {
+      const { token, senha } = req.body;
+      if (!token || !senha) {
+        return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+      }
+      let payload;
+      try {
+        payload = jwt.verify(token, config.JWT_SECRET);
+      } catch (err) {
+        return res.status(401).json({ error: 'Token inválido ou expirado' });
+      }
+      if (payload.type !== 'password-reset') {
+        return res.status(400).json({ error: 'Tipo de token inválido' });
+      }
+      if (!payload.userId) {
+        return res.status(400).json({ error: 'Token inválido: usuário não encontrado' });
+      }
+      if (senha.length < 6) {
+        return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' });
+      }
+      const usuario = await Usuario.findById(payload.userId);
+      if (!usuario) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+      await usuario.updatePassword(senha);
+      res.json({ message: 'Senha redefinida com sucesso' });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+  /**
+   * Valida o token de redefinição de senha
+   * @route POST /api/validate-reset-token
+   */
+  static async validateResetToken(req, res) {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ error: 'Token não informado' });
+      }
+      let payload;
+      try {
+        payload = jwt.verify(token, config.JWT_SECRET);
+      } catch (err) {
+        return res.status(401).json({ error: 'Token inválido ou expirado' });
+      }
+      if (payload.type !== 'password-reset') {
+        return res.status(400).json({ error: 'Tipo de token inválido' });
+      }
+      res.json({ valid: true, userId: payload.userId, email: payload.email });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+  /**
    * Retorna os módulos disponíveis para um usuário pelo email (público)
    */
   static async getUserModules(req, res) {
@@ -38,11 +97,17 @@ class AuthController {
       // Buscar usuário por email
       const usuario = await Usuario.findByEmail(email);
       if (!usuario) {
+        console.log(`[LOGIN DEBUG] Usuário não encontrado para email: '${email}'`);
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }
 
       // Verificar senha
-      const senhaValida = await usuario.checkPassword(senha);
+      console.log(`[LOGIN DEBUG] Email recebido: '${email}'`);
+      console.log(`[LOGIN DEBUG] Senha recebida: '${senha}'`);
+      console.log(`[LOGIN DEBUG] Hash no banco: '${usuario.senha}'`);
+      const bcrypt = require('bcryptjs');
+      const senhaValida = await bcrypt.compare(senha, usuario.senha);
+      console.log(`[LOGIN DEBUG] Resultado do bcrypt.compare: ${senhaValida}`);
       if (!senhaValida) {
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }

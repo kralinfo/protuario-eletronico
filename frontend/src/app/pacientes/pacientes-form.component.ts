@@ -10,7 +10,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
 import { Paciente } from './pacientes.component';
-import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import {
   AbstractControl,
@@ -96,7 +95,6 @@ export class PacientesFormComponent
   bloqueioAnoInvalido: any;
 
   constructor(
-    private router: Router,
     private http: HttpClient,
     private fb: FormBuilder,
     private authService: AuthService,

@@ -1,0 +1,28 @@
+.redefinir-senha-container {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 32px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.full-width {
+  width: 100%;
+}
+.error {
+  color: #d32f2f;
+  margin-top: 12px;
+}
+.success {
+  color: #388e3c;
+  margin-top: 12px;
+}
+.token-invalido {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 32px;
+  background: #fff3f3;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  color: #d32f2f;
+}
