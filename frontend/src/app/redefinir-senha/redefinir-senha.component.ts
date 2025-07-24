@@ -31,10 +31,6 @@ export class RedefinirSenhaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Limpa token de autenticação ao acessar a tela
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('selected_module');
     this.route.queryParams.subscribe(params => {
       this.token = params['token'] || '';
       if (this.token) {
@@ -79,6 +75,10 @@ export class RedefinirSenhaComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.success = 'Senha redefinida com sucesso!';
+        // Encerra qualquer sessão aberta
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        localStorage.removeItem('selected_module');
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 2000);
