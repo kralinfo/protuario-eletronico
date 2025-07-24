@@ -26,3 +26,9 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   color: #d32f2f;
 }
+
+/* Header da tela de redefinir senha com gradiente igual ao header principal/login */
+.header-login {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  color: #fff;
+}
