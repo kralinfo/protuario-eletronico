@@ -4,6 +4,7 @@ import { AppError } from '../middleware/errorHandler.js';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
 import emailService from '../services/emailService.js';
+import bcrypt from 'bcryptjs';
 
 class AuthController {
   /**
@@ -105,7 +106,6 @@ class AuthController {
       console.log(`[LOGIN DEBUG] Email recebido: '${email}'`);
       console.log(`[LOGIN DEBUG] Senha recebida: '${senha}'`);
       console.log(`[LOGIN DEBUG] Hash no banco: '${usuario.senha}'`);
-      const bcrypt = require('bcryptjs');
       const senhaValida = await bcrypt.compare(senha, usuario.senha);
       console.log(`[LOGIN DEBUG] Resultado do bcrypt.compare: ${senhaValida}`);
       if (!senhaValida) {
