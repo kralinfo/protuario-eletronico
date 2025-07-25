@@ -74,8 +74,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   private fetchModules(email: string): void {
     if (!email || this.loginForm.get('email')?.invalid) {
       this.availableModules = [];
-      this.selectedModule = null;
+      this.selectedModule = '';
       this.modulesLoaded = false;
+      this.loginForm.get('modulo')?.setValue('');
+      this.loginForm.get('modulo')?.disable();
       return;
     }
     this.loading = true;
@@ -84,27 +86,21 @@ export class LoginComponent implements OnInit, OnDestroy {
         next: (resp) => {
           this.availableModules = resp.modulos || [];
           this.modulesLoaded = true;
-          if (this.availableModules.length === 1) {
-            this.loginForm.get('modulo')?.setValue(this.availableModules[0]);
-            this.loginForm.get('modulo')?.disable();
-          } else if (this.availableModules.length > 1) {
-            this.loginForm.get('modulo')?.setValue('');
-            this.loginForm.get('modulo')?.enable();
-          } else {
-            this.loginForm.get('modulo')?.setValue('');
-            this.loginForm.get('modulo')?.disable();
-          }
+          this.loginForm.get('modulo')?.setValue('');
+          this.loginForm.get('modulo')?.disable();
+          this.selectedModule = '';
           this.loading = false;
         },
         error: () => {
           this.availableModules = [];
-          this.selectedModule = null;
+          this.selectedModule = '';
           this.modulesLoaded = false;
+          this.loginForm.get('modulo')?.setValue('');
+          this.loginForm.get('modulo')?.disable();
           this.loading = false;
         }
       });
   }
-
 
 
   ngOnInit(): void {
@@ -125,6 +121,17 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.loginForm.get('modulo')?.disable();
       }
     }, 0);
+  }
+
+  // Habilita módulo só após blur do campo senha
+  onSenhaBlur(): void {
+    const senhaValida = this.loginForm.get('senha')?.valid;
+    if (senhaValida && this.availableModules.length > 0) {
+      this.loginForm.get('modulo')?.enable();
+    } else {
+      this.loginForm.get('modulo')?.setValue('');
+      this.loginForm.get('modulo')?.disable();
+    }
   }
 
 
