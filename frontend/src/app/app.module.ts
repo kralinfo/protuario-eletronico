@@ -34,9 +34,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { HomeComponent } from './home/home.component';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
-import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { DateInputLimiterDirective } from './shared/directives/data.directive';
-
 
 @NgModule({
   declarations: [
@@ -74,7 +72,6 @@ import { DateInputLimiterDirective } from './shared/directives/data.directive';
     CommonModule,
     FormsModule,
     RelatorioAtendimentosComponent,
-    NgxMaskDirective,
     DateInputLimiterDirective
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
   ],
@@ -85,7 +82,6 @@ import { DateInputLimiterDirective } from './shared/directives/data.directive';
       multi: true
     },
     provideHttpClient(withInterceptorsFromDi()),
-    provideNgxMask()
   ],
   bootstrap: [AppComponent]
 })
