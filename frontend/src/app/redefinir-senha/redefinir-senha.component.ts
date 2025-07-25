@@ -55,7 +55,12 @@ export class RedefinirSenhaComponent implements OnInit {
         this.loading = false;
       },
       error: err => {
-        this.error = err.error?.message || 'Token inválido ou expirado.';
+        // Se o erro for de link já utilizado, mostra mensagem de expirado
+        if (err.error?.error?.includes('já foi utilizado')) {
+          this.error = 'Este link de redefinição de senha já foi utilizado ou expirou.';
+        } else {
+          this.error = err.error?.message || 'Token inválido ou expirado.';
+        }
         this.loading = false;
       }
     });
