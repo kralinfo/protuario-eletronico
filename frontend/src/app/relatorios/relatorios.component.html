@@ -64,13 +64,24 @@
               class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               formControlName="dataInicio"
             />
+
+            <!-- Apenas mostra se o campo tiver sido tocado e a data for inválida -->
             <div
-              *ngIf="filtrosForm.controls['dataInicio'].errors?.['dataFuturaInvalida']"
+              *ngIf=" filtrosForm.get('dataInicio')?.touched &&filtrosForm.get('dataInicio')?.errors?.['dataMaiorQueFinal']"
               class="text-red-600 text-sm"
             >
-               A data inicial não pode ser posterior à data atual.
+              A data inicial não pode ser posterior à data final.
+            </div>
+
+            <!-- Data inicial no futuro -->
+            <div
+              *ngIf="filtrosForm.get('dataInicio')?.touched &&filtrosForm.get('dataInicio')?.errors?.['dataFuturaInvalida']"
+              class="text-red-600 text-sm"
+            >
+              A data de início não pode ser posterior ao dia atual.
             </div>
           </div>
+
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700"
               >Data Final</label
@@ -81,11 +92,22 @@
               class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               formControlName="dataFim"
             />
+
+            <!-- Apenas mostra se o campo tiver sido tocado e a data for inválida -->
             <div
-              *ngIf="filtrosForm.controls['dataFim'].errors?.['dataFuturaInvalida']"
+              *ngIf="filtrosForm.get('dataFim')?.touched &&filtrosForm.get('dataFim')?.errors?.['dataMenorQueInicio']"
               class="text-red-600 text-sm"
             >
-              A data final não pode ser posterior à data atual.
+              A data final não pode ser anterior à data inicial.
+            </div>
+
+            <!-- Data final no futuro -->
+            <div
+              *ngIf="filtrosForm.get('dataFim')?.touched &&filtrosForm.get('dataFim')?.errors?.['dataFuturaInvalida']"
+              class="text-red-600 text-sm"
+            >
+              A data de término deve corresponder a um dia até o presente
+              momento.
             </div>
           </div>
           <div class="space-y-2">

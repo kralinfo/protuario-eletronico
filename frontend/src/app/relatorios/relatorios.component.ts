@@ -1,10 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
 import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
+import { debounceTime } from 'rxjs';
 
 export interface Paciente {
   id?: number;
@@ -41,7 +48,7 @@ export interface FiltrosRelatorio {
   selector: 'app-relatorios',
   templateUrl: './relatorios.component.html',
   styleUrls: ['./relatorios.component.scss'],
-  standalone: false
+  standalone: false,
 })
 export class RelatoriosComponent implements OnInit {
   filtrosForm: FormGroup;
@@ -54,7 +61,7 @@ export class RelatoriosComponent implements OnInit {
   opcoesSexo = [
     { value: '', label: 'Todos' },
     { value: 'M', label: 'Masculino' },
-    { value: 'F', label: 'Feminino' }
+    { value: 'F', label: 'Feminino' },
   ];
 
   opcoesUF = [
@@ -85,7 +92,7 @@ export class RelatoriosComponent implements OnInit {
     { value: 'SC', label: 'Santa Catarina' },
     { value: 'SP', label: 'São Paulo' },
     { value: 'SE', label: 'Sergipe' },
-    { value: 'TO', label: 'Tocantins' }
+    { value: 'TO', label: 'Tocantins' },
   ];
 
   opcoesEstadoCivil = [
@@ -94,19 +101,28 @@ export class RelatoriosComponent implements OnInit {
     { value: 'Casado(a)', label: 'Casado(a)' },
     { value: 'Divorciado(a)', label: 'Divorciado(a)' },
     { value: 'Viúvo(a)', label: 'Viúvo(a)' },
-    { value: 'União Estável', label: 'União Estável' }
+    { value: 'União Estável', label: 'União Estável' },
   ];
 
   opcoesEscolaridade = [
     { value: '', label: 'Todos' },
     { value: 'Analfabeto', label: 'Analfabeto' },
-    { value: 'Ensino Fundamental Incompleto', label: 'Ensino Fundamental Incompleto' },
-    { value: 'Ensino Fundamental Completo', label: 'Ensino Fundamental Completo' },
+    {
+      value: 'Ensino Fundamental Incompleto',
+      label: 'Ensino Fundamental Incompleto',
+    },
+    {
+      value: 'Ensino Fundamental Completo',
+      label: 'Ensino Fundamental Completo',
+    },
     { value: 'Ensino Médio Incompleto', label: 'Ensino Médio Incompleto' },
     { value: 'Ensino Médio Completo', label: 'Ensino Médio Completo' },
-    { value: 'Ensino Superior Incompleto', label: 'Ensino Superior Incompleto' },
+    {
+      value: 'Ensino Superior Incompleto',
+      label: 'Ensino Superior Incompleto',
+    },
     { value: 'Ensino Superior Completo', label: 'Ensino Superior Completo' },
-    { value: 'Pós-graduação', label: 'Pós-graduação' }
+    { value: 'Pós-graduação', label: 'Pós-graduação' },
   ];
 
   constructor(
@@ -114,43 +130,69 @@ export class RelatoriosComponent implements OnInit {
     public authService: AuthService,
     private fb: FormBuilder
   ) {
-    this.filtrosForm = this.fb.group({
-      dataInicio: ['', [ dataMaxHojeValidator]],
-      dataFim: ['', [dataMaxHojeValidator]],
-      sexo: [''],
-      municipio: [''],
-      uf: [''],
-      estadoCivil: [''],
-      escolaridade: ['']
-    });
+    this.filtrosForm = this.fb.group(
+      {
+        dataInicio: ['', [dataMaxHojeValidator]],
+        dataFim: ['', [dataMaxHojeValidator]],
+        sexo: [''],
+        municipio: [''],
+        uf: [''],
+        estadoCivil: [''],
+        escolaridade: [''],
+      },
+      { validators: datasEmOrdemValidator }
+    );
   }
 
   ngOnInit() {
     // Permitir acesso apenas se o módulo selecionado for 'relatorios', 'medico' ou 'ambulatorio'
     const modulo = this.authService.getSelectedModule();
-    if (!modulo || !['relatorios', 'medico', 'ambulatorio', 'recepcao'].includes(modulo)) {
+    if (
+      !modulo ||
+      !['relatorios', 'medico', 'ambulatorio', 'recepcao'].includes(modulo)
+    ) {
       this.acessoNegado = true;
       return;
     }
     this.carregarPacientes();
+
+
+// Isso ajuda o Angular a reconhecer os erros mais rápido, sem esperar o usuário sair do campo.
+    this.filtrosForm
+      .get('dataInicio')
+      ?.valueChanges.pipe(debounceTime(200))
+      .subscribe(() => {
+        this.filtrosForm.get('dataInicio')?.markAsTouched(); // Garante que o erro pode ser exibido
+        this.filtrosForm.updateValueAndValidity();
+      });
+
+    this.filtrosForm
+      .get('dataFim')
+      ?.valueChanges.pipe(debounceTime(200))
+      .subscribe(() => {
+        this.filtrosForm.get('dataFim')?.markAsTouched();
+        this.filtrosForm.updateValueAndValidity();
+      });
   }
 
   carregarPacientes() {
     this.carregando = true;
     const token = this.authService.getToken();
-    this.http.get<any>(`${environment.apiUrl}/pacientes/reports`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    }).subscribe({
-      next: (response) => {
-        this.pacientes = response.data || [];
-        this.aplicarFiltros();
-        this.carregando = false;
-      },
-      error: (error) => {
-        console.error('Erro ao carregar pacientes:', error);
-        this.carregando = false;
-      }
-    });
+    this.http
+      .get<any>(`${environment.apiUrl}/pacientes/reports`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .subscribe({
+        next: (response) => {
+          this.pacientes = response.data || [];
+          this.aplicarFiltros();
+          this.carregando = false;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar pacientes:', error);
+          this.carregando = false;
+        },
+      });
   }
 
   aplicarFiltros() {
@@ -164,22 +206,29 @@ export class RelatoriosComponent implements OnInit {
     if (filtros.municipio) params.append('municipio', filtros.municipio);
     if (filtros.uf) params.append('uf', filtros.uf);
     if (filtros.estadoCivil) params.append('estadoCivil', filtros.estadoCivil);
-    if (filtros.escolaridade) params.append('escolaridade', filtros.escolaridade);
+    if (filtros.escolaridade)
+      params.append('escolaridade', filtros.escolaridade);
     const queryString = params.toString();
-    const url = `${environment.apiUrl}/pacientes/reports${queryString ? '?' + queryString : ''}`;
-    this.http.get<any>(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    }).subscribe({
-      next: (response) => {
-        this.pacientesFiltrados = response.data || [];
-        this.carregando = false;
-        console.log(`Filtros aplicados: ${this.pacientesFiltrados.length} pacientes encontrados`);
-      },
-      error: (error) => {
-        console.error('Erro ao aplicar filtros:', error);
-        this.carregando = false;
-      }
-    });
+    const url = `${environment.apiUrl}/pacientes/reports${
+      queryString ? '?' + queryString : ''
+    }`;
+    this.http
+      .get<any>(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .subscribe({
+        next: (response) => {
+          this.pacientesFiltrados = response.data || [];
+          this.carregando = false;
+          console.log(
+            `Filtros aplicados: ${this.pacientesFiltrados.length} pacientes encontrados`
+          );
+        },
+        error: (error) => {
+          console.error('Erro ao aplicar filtros:', error);
+          this.carregando = false;
+        },
+      });
   }
 
   limparFiltros() {
@@ -195,15 +244,25 @@ export class RelatoriosComponent implements OnInit {
     // Título
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('Relatório de Pacientes', pageWidth / 2, currentY, { align: 'center' });
+    doc.text('Relatório de Pacientes', pageWidth / 2, currentY, {
+      align: 'center',
+    });
     currentY += 15;
 
     // Informações do relatório
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`, 20, currentY);
+    doc.text(
+      `Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`,
+      20,
+      currentY
+    );
     currentY += 5;
-    doc.text(`Total de pacientes: ${this.pacientesFiltrados.length}`, 20, currentY);
+    doc.text(
+      `Total de pacientes: ${this.pacientesFiltrados.length}`,
+      20,
+      currentY
+    );
     currentY += 15;
 
     // Cabeçalho da tabela
@@ -225,7 +284,7 @@ export class RelatoriosComponent implements OnInit {
 
     // Dados dos pacientes
     doc.setFont('helvetica', 'normal');
-    this.pacientesFiltrados.forEach(paciente => {
+    this.pacientesFiltrados.forEach((paciente) => {
       if (currentY > 270) {
         doc.addPage();
         currentY = 20;
@@ -237,7 +296,7 @@ export class RelatoriosComponent implements OnInit {
         paciente.sexo,
         new Date(paciente.nascimento).toLocaleDateString('pt-BR'),
         paciente.municipio.substring(0, 20),
-        paciente.uf
+        paciente.uf,
       ];
 
       dados.forEach((dado, index) => {
@@ -258,15 +317,25 @@ export class RelatoriosComponent implements OnInit {
     // Título
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('Relatório Detalhado de Pacientes', pageWidth / 2, currentY, { align: 'center' });
+    doc.text('Relatório Detalhado de Pacientes', pageWidth / 2, currentY, {
+      align: 'center',
+    });
     currentY += 15;
 
     // Informações do relatório
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`, 20, currentY);
+    doc.text(
+      `Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`,
+      20,
+      currentY
+    );
     currentY += 5;
-    doc.text(`Total de pacientes: ${this.pacientesFiltrados.length}`, 20, currentY);
+    doc.text(
+      `Total de pacientes: ${this.pacientesFiltrados.length}`,
+      20,
+      currentY
+    );
     currentY += 15;
 
     // Dados detalhados de cada paciente
@@ -291,15 +360,37 @@ export class RelatoriosComponent implements OnInit {
       doc.setFont('helvetica', 'normal');
       doc.text(`Mãe: ${paciente.mae}`, 20, currentY);
       currentY += 4;
-      doc.text(`Nascimento: ${new Date(paciente.nascimento).toLocaleDateString('pt-BR')} | Sexo: ${paciente.sexo}`, 20, currentY);
+      doc.text(
+        `Nascimento: ${new Date(paciente.nascimento).toLocaleDateString(
+          'pt-BR'
+        )} | Sexo: ${paciente.sexo}`,
+        20,
+        currentY
+      );
       currentY += 4;
-      doc.text(`Estado Civil: ${paciente.estadoCivil} | Escolaridade: ${paciente.escolaridade}`, 20, currentY);
+      doc.text(
+        `Estado Civil: ${paciente.estadoCivil} | Escolaridade: ${paciente.escolaridade}`,
+        20,
+        currentY
+      );
       currentY += 4;
-      doc.text(`Endereço: ${paciente.endereco}, ${paciente.bairro}`, 20, currentY);
+      doc.text(
+        `Endereço: ${paciente.endereco}, ${paciente.bairro}`,
+        20,
+        currentY
+      );
       currentY += 4;
-      doc.text(`Município: ${paciente.municipio} - ${paciente.uf} | CEP: ${paciente.cep}`, 20, currentY);
+      doc.text(
+        `Município: ${paciente.municipio} - ${paciente.uf} | CEP: ${paciente.cep}`,
+        20,
+        currentY
+      );
       currentY += 4;
-      doc.text(`Profissão: ${paciente.profissao} | Raça: ${paciente.raca}`, 20, currentY);
+      doc.text(
+        `Profissão: ${paciente.profissao} | Raça: ${paciente.raca}`,
+        20,
+        currentY
+      );
       currentY += 8;
     });
 
@@ -337,23 +428,27 @@ export class RelatoriosComponent implements OnInit {
   }
 
   getQuantidadeFeminino(): number {
-    return this.pacientesFiltrados.filter(p => p.sexo === 'F').length;
+    return this.pacientesFiltrados.filter((p) => p.sexo === 'F').length;
   }
 
   getQuantidadeMasculino(): number {
-    return this.pacientesFiltrados.filter(p => p.sexo === 'M').length;
+    return this.pacientesFiltrados.filter((p) => p.sexo === 'M').length;
   }
 
   getQuantidadeMunicipios(): number {
-    return new Set(this.pacientesFiltrados.map(p => p.municipio)).size;
+    return new Set(this.pacientesFiltrados.map((p) => p.municipio)).size;
   }
 
   private gerarHtmlResumo(): string {
     let html = `
       <h1>Resumo de Pacientes</h1>
       <div class="info">
-        <p><strong>Data de emissão:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
-        <p><strong>Total de pacientes:</strong> ${this.pacientesFiltrados.length}</p>
+        <p><strong>Data de emissão:</strong> ${new Date().toLocaleDateString(
+          'pt-BR'
+        )}</p>
+        <p><strong>Total de pacientes:</strong> ${
+          this.pacientesFiltrados.length
+        }</p>
       </div>
       <table>
         <thead>
@@ -368,7 +463,7 @@ export class RelatoriosComponent implements OnInit {
         <tbody>
     `;
 
-    this.pacientesFiltrados.forEach(paciente => {
+    this.pacientesFiltrados.forEach((paciente) => {
       html += `
         <tr>
           <td>${paciente.nome}</td>
@@ -382,5 +477,62 @@ export class RelatoriosComponent implements OnInit {
 
     html += '</tbody></table>';
     return html;
+  }
+}
+
+//Função que válida as datas final e inicial
+export function datasEmOrdemValidator(
+  control: AbstractControl
+): ValidationErrors | null {
+  const dataInicioCtrl = control.get('dataInicio');
+  const dataFimCtrl = control.get('dataFim');
+
+  const dataInicio = dataInicioCtrl?.value;
+  const dataFim = dataFimCtrl?.value;
+
+  // Evita validação se um dos campos estiver vazio ou inválido
+  if (
+    !dataInicio ||
+    !dataFim ||
+    isNaN(Date.parse(dataInicio)) ||
+    isNaN(Date.parse(dataFim))
+  ) {
+    // Remove erros anteriores, se existirem
+    removeError(dataInicioCtrl, 'dataMaiorQueFinal');
+    removeError(dataFimCtrl, 'dataMenorQueInicio');
+    return null;
+  }
+
+  const inicio = new Date(dataInicio);
+  const fim = new Date(dataFim);
+
+  if (inicio > fim) {
+    dataInicioCtrl?.setErrors({
+      ...(dataInicioCtrl.errors ?? {}),
+      dataMaiorQueFinal: true,
+    });
+    dataFimCtrl?.setErrors({
+      ...(dataFimCtrl.errors ?? {}),
+      dataMenorQueInicio: true,
+    });
+  } else {
+    removeError(dataInicioCtrl, 'dataMaiorQueFinal');
+    removeError(dataFimCtrl, 'dataMenorQueInicio');
+  }
+
+  return null;
+}
+
+function removeError(control: AbstractControl | null, errorKey: string) {
+  if (!control) return;
+
+  const errors = control.errors;
+  if (errors && errors[errorKey]) {
+    delete errors[errorKey];
+    if (Object.keys(errors).length === 0) {
+      control.setErrors(null);
+    } else {
+      control.setErrors(errors);
+    }
   }
 }
