@@ -64,6 +64,7 @@
                 formControlName="senha"
                 placeholder="Digite sua senha"
                 autocomplete="current-password"
+                (blur)="onSenhaBlur()"
                 class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
                 [class.border-red-500]="loginForm.get('senha')?.invalid && (loginForm.get('senha')?.dirty || loginForm.get('senha')?.touched)"
                 [class.focus:ring-red-500]="loginForm.get('senha')?.invalid && (loginForm.get('senha')?.dirty || loginForm.get('senha')?.touched)"
@@ -95,7 +96,7 @@
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
               [ngClass]="loginForm.get('modulo')?.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'"
             >
-              <option *ngIf="!modulesLoaded || availableModules.length === 0" value="">Selecione um módulo</option>
+              <option value="" disabled selected hidden>Selecione</option>
               <option *ngFor="let modulo of availableModules" [value]="modulo">{{ modulo | titlecase }}</option>
             </select>
           </div>
