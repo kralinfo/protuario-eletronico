@@ -66,8 +66,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginForm.get('senha')?.valueChanges.subscribe(() => {
       const senha = this.loginForm.get('senha')?.value || '';
       const moduloControl = this.loginForm.get('modulo');
-      if (senha.length >= 6 && this.availableModules.length > 1) {
-        moduloControl?.enable();
+      if (senha.length >= 6) {
+        if (this.availableModules.length === 1) {
+          // Preenche e desabilita o dropdown, já habilita o botão de entrar
+          moduloControl?.setValue(this.availableModules[0]);
+          moduloControl?.disable();
+        } else if (this.availableModules.length > 1) {
+          moduloControl?.enable();
+        } else {
+          moduloControl?.setValue('');
+          moduloControl?.disable();
+        }
       } else {
         moduloControl?.setValue('');
         moduloControl?.disable();
