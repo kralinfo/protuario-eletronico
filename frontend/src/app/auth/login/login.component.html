@@ -64,6 +64,7 @@
                 formControlName="senha"
                 placeholder="Digite sua senha"
                 autocomplete="current-password"
+                (blur)="onSenhaBlur()"
                 class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
                 [class.border-red-500]="loginForm.get('senha')?.invalid && (loginForm.get('senha')?.dirty || loginForm.get('senha')?.touched)"
                 [class.focus:ring-red-500]="loginForm.get('senha')?.invalid && (loginForm.get('senha')?.dirty || loginForm.get('senha')?.touched)"

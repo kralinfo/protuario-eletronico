@@ -149,6 +149,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+  // Habilita módulo só após blur do campo senha
+  onSenhaBlur(): void {
+    const senhaValida = this.loginForm.get('senha')?.valid;
+    if (senhaValida && this.availableModules.length > 0) {
+      this.loginForm.get('modulo')?.enable();
+    } else {
+      this.loginForm.get('modulo')?.setValue('');
+      this.loginForm.get('modulo')?.disable();
+    }
+  }
+
 
   // Removido: toda habilitação do campo módulo é feita via valueChanges da senha (handleSenhaChange)
 
