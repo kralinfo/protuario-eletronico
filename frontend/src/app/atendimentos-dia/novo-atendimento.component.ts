@@ -7,6 +7,7 @@ import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
+import * as jsPDF from 'jspdf';
 // Import necessário para o modal
 // import { PacientesFormComponent } from '../pacientes/pacientes-form.component';
 
@@ -24,7 +25,10 @@ export class NovoAtendimentoComponent {
   mensagem: string = '';
   acompanhante: string = '';
   procedencia: string = '';
+  status: string = 'recepcao';
+  motivo_interrupcao: string = '';
   exibirCadastroPaciente: boolean = false;
+  horario: string = '';
   apiUrl = environment.apiUrl + '/pacientes';
   private filtroSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -41,6 +45,10 @@ export class NovoAtendimentoComponent {
   ngOnInit() {
     // Inicializa lista vazia
     this.pacientesFiltrados = [];
+    // Inicializa o horário atual no formato HH:mm para input type="time"
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.horario = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }
 
   abrirCadastroPaciente() {
@@ -79,12 +87,18 @@ export class NovoAtendimentoComponent {
       this.mensagem = 'Selecione um paciente e informe o motivo.';
       return;
     }
+    if (this.status === 'interrompido' && !this.motivo_interrupcao) {
+      this.mensagem = 'Informe o motivo da interrupção.';
+      return;
+    }
     const atendimento = {
       pacienteId: this.pacienteSelecionado.id,
       motivo: this.motivo,
       observacoes: this.observacoes,
       acompanhante: this.acompanhante,
-      procedencia: this.procedencia
+      procedencia: this.procedencia,
+      status: this.status,
+      motivo_interrupcao: this.status === 'interrompido' ? this.motivo_interrupcao : undefined
     };
     // Verifica se já existe atendimento para o paciente hoje
     const hoje = new Date().toISOString().slice(0, 10);
@@ -139,6 +153,8 @@ export class NovoAtendimentoComponent {
           this.pacienteSelecionado = null;
           this.filtroPaciente = '';
           this.pacientesFiltrados = [];
+          this.status = 'recepcao';
+          this.motivo_interrupcao = '';
         },
         error: (err) => {
           this.mensagem = '';
@@ -163,5 +179,46 @@ export class NovoAtendimentoComponent {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  gerarPDF() {
+    if (!this.pacienteSelecionado) return;
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ficha de Atendimento</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h2 { color: #2563eb; }
+            .section { margin-bottom: 24px; }
+            .label { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h2>e-Prontuário Aliança-PE</h2>
+          <h3>Ficha de Atendimento</h3>
+          <hr />
+          <div class="section">
+            <span class="label">Paciente:</span> ${this.pacienteSelecionado?.nome || ''}<br />
+            <span class="label">Motivo:</span> ${this.motivo || ''}<br />
+            <span class="label">Observações:</span> ${this.observacoes || ''}<br />
+            <span class="label">Acompanhante:</span> ${this.acompanhante || ''}<br />
+            <span class="label">Procedência:</span> ${this.procedencia || ''}<br />
+            <span class="label">Status:</span> ${this.status || ''}<br />
+          </div>
+          <hr />
+          <div style="margin-top: 32px; color: #666; font-size: 12px;">
+            Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br />
+            Sistema e-Prontuário Aliança-PE
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   }
 }

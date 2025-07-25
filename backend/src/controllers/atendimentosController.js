@@ -2,7 +2,7 @@ import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
 
 const registrar = async (req, res) => {
-  const { pacienteId, motivo, observacoes, acompanhante, procedencia } = req.body;
+  const { pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao, data_hora_chegada } = req.body;
   if (!pacienteId || !motivo) {
     return res.status(400).json({ error: 'pacienteId e motivo são obrigatórios.' });
   }
@@ -12,8 +12,25 @@ const registrar = async (req, res) => {
     return res.status(404).json({ error: 'Paciente não encontrado.' });
   }
   // Cria atendimento
-  const atendimento = await Atendimento.criar({ pacienteId, motivo, observacoes, acompanhante, procedencia });
+  const atendimento = await Atendimento.criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao, data_hora_chegada });
   return res.status(201).json(atendimento);
+};
+
+const atualizarStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status, motivo_interrupcao } = req.body;
+  if (!status) {
+    return res.status(400).json({ error: 'Status é obrigatório.' });
+  }
+  // Se status for interrompido, motivo_interrupcao deve ser informado
+  if (status === 'interrompido' && (!motivo_interrupcao || motivo_interrupcao.trim() === '')) {
+    return res.status(400).json({ error: 'Motivo da interrupção é obrigatório quando status for interrompido.' });
+  }
+  const atendimento = await Atendimento.atualizarStatus(id, status, status === 'interrompido' ? motivo_interrupcao : 'N/A');
+  if (!atendimento) {
+    return res.status(404).json({ error: 'Atendimento não encontrado.' });
+  }
+  return res.json(atendimento);
 };
 
 const listarPorPaciente = async (req, res) => {
@@ -38,4 +55,4 @@ const listarDoDia = async (req, res) => {
   res.json(result.rows);
 };
 
-export default { registrar, listarPorPaciente, listarDoDia };
+export default { registrar, listarPorPaciente, listarDoDia, atualizarStatus };

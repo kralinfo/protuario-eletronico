@@ -1,12 +1,12 @@
 import db from '../config/database.js';
 
+
 class Atendimento {
-  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia }) {
-    const status = 'triagem pendente';
+  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'recepcao', motivo_interrupcao = 'N/A', data_hora_chegada }) {
     const result = await db.query(
-      `INSERT INTO atendimentos (paciente_id, motivo, status, observacoes, acompanhante, procedencia)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [pacienteId, motivo, status, observacoes || null, acompanhante || null, procedencia || null]
+      `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia, data_hora_chegada)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [pacienteId, motivo, status, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null, data_hora_chegada || null]
     );
     return result.rows[0];
   }
@@ -17,6 +17,14 @@ class Atendimento {
       [pacienteId]
     );
     return result.rows;
+  }
+
+  static async atualizarStatus(id, status, motivo_interrupcao = 'N/A') {
+    const result = await db.query(
+      `UPDATE atendimentos SET status = $1, motivo_interrupcao = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *`,
+      [status, motivo_interrupcao, id]
+    );
+    return result.rows[0];
   }
 }
 

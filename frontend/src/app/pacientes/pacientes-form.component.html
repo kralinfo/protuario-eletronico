@@ -43,8 +43,8 @@
         >
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Nome</label
-            >
+              >Nome <span class="text-red-600">*</span></label>
+
             <input
               type="text"
               formControlName="nome"
@@ -75,8 +75,7 @@
           </div>
           <div class="lg:col-span-1">
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Telefone</label
-            >
+              >Telefone</label>
             <input
               type="text"
               formControlName="telefone"
@@ -86,8 +85,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Nome da mãe</label
-            >
+              >Nome da mãe <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="mae"
@@ -106,8 +104,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Data de Nascimento</label
-            >
+              >Data de Nascimento <span class="text-red-600">*</span></label>
             <input
               type="date"
               formControlName="nascimento"
@@ -148,8 +145,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Sexo</label
-            >
+              >Sexo <span class="text-red-600">*</span></label>
             <select
               formControlName="sexo"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
@@ -171,8 +167,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Estado Civil</label
-            >
+              >Estado Civil</label>
             <select
               formControlName="estadoCivil"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
@@ -187,8 +182,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Profissão</label
-            >
+              >Profissão</label>
             <input
               type="text"
               formControlName="profissao"
@@ -198,8 +192,7 @@
           <!-- Escolaridade -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Escolaridade</label
-            >
+              >Escolaridade</label>
             <select
               formControlName="escolaridade"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
@@ -230,13 +223,14 @@
           <!-- Cartão SUS -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Cartão SUS</label
-            >
+              >Cartão SUS</label>
             <input
               type="text"
               formControlName="sus"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               placeholder="Número do Cartão SUS"
+              inputmode="numeric"
+              pattern="[0-9]*"
             />
             <mat-error *ngIf="form.get('sus')?.hasError('cnsInvalido')" class="text-xs text-red-600 mt-1">
               Cartão SUS inválido.
@@ -245,8 +239,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Raça/Cor</label
-            >
+              >Raça/Cor</label>
             <select
               formControlName="raca"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
@@ -262,29 +255,28 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Endereço</label
-            >
+              >Endereço <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="endereco"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
             />
+            <div *ngIf="form.get('endereco')?.invalid && (form.get('endereco')?.dirty || form.get('endereco')?.touched)" class="text-xs text-red-600 mt-1">Endereço é obrigatório.</div>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Bairro</label
-            >
+              >Bairro <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="bairro"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
             />
+            <div *ngIf="form.get('bairro')?.invalid && (form.get('bairro')?.dirty || form.get('bairro')?.touched)" class="text-xs text-red-600 mt-1">Bairro é obrigatório.</div>
           </div>
           <!-- UF -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >UF</label
-            >
+              >UF <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="uf"
@@ -297,8 +289,7 @@
           <!-- CEP -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >CEP</label
-            >
+              >CEP <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="cep"
@@ -306,15 +297,8 @@
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               placeholder="12345-678"
             />
-            <div
-              *ngIf="
-                form.get('cep')?.invalid &&
-                (form.get('cep')?.dirty || form.get('cep')?.touched)
-              "
-              class="text-xs text-red-600 mt-1"
-            >
-              CEP inválido. Ex: 12345-678
-            </div>
+            <div *ngIf="form.get('cep')?.hasError('required') && (form.get('cep')?.dirty || form.get('cep')?.touched)" class="text-xs text-red-600 mt-1">CEP é obrigatório.</div>
+            <div *ngIf="form.get('cep')?.hasError('pattern') && (form.get('cep')?.dirty || form.get('cep')?.touched)" class="text-xs text-red-600 mt-1">CEP inválido. Digite 8 números (com ou sem hífen).</div>
 
             <!-- Erro de CEP que não encontrado -->
             <div *ngIf="erroCepUf" class="text-xs text-red-600 mt-1">
@@ -325,15 +309,15 @@
           <!-- Município (preenchido automaticamente) -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Município</label
-            >
+              >Município <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="municipio"
               class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
               placeholder="Município"
-              readonly
+              style="pointer-events: none; background-color: #f3f4f6;"
             />
+            <div *ngIf="form.get('municipio')?.invalid && (form.get('municipio')?.dirty || form.get('municipio')?.touched)" class="text-xs text-red-600 mt-1">Município é obrigatório.</div>
           </div>
         </div>
         <div
@@ -342,13 +326,14 @@
         >
           Já existe paciente com este nome, nome da mãe e data de nascimento.
         </div>
-        <div
-          class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 justify-between items-stretch sm:items-center"
-        >
+        <!-- Fim do grid de campos -->
+      <div
+        class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 justify-between items-stretch sm:items-center"
+      >
           <button
             type="submit"
             class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
-            [disabled]="form.invalid || form.pending || form.errors?.['duplicado'] || loading"
+            [disabled]="form.invalid || form.pending || loading"
           >
             <span *ngIf="!loading">{{
               pacienteEditando ? "Atualizar" : "Salvar"
@@ -387,9 +372,9 @@
             type="button"
             class="w-full sm:w-auto px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
             (click)="imprimirPacientePDF()"
-            [disabled]="loading"
+            [disabled]="form.invalid || form.pending || loading"
           >
-            Gerar PDF
+            Imprimir
           </button>
         </div>
       </form>

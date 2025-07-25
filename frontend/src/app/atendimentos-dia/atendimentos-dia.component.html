@@ -13,6 +13,7 @@
           <th class="py-2 px-4">Motivo</th>
           <th class="py-2 px-4">Status</th>
           <th class="py-2 px-4">Chegada</th>
+          <th class="py-2 px-4">Horário</th>
         </tr>
       </thead>
       <tbody>
@@ -20,10 +21,11 @@
           <td class="py-2 px-4">{{ atendimento.paciente_nome }}</td>
           <td class="py-2 px-4">{{ atendimento.motivo }}</td>
           <td class="py-2 px-4">{{ atendimento.status }}</td>
-          <td class="py-2 px-4">{{ atendimento.data_hora_chegada | date:'HH:mm' }}</td>
+          <td class="py-2 px-4">{{ atendimento.data_hora_chegada | date:'dd/MM/yyyy' }}</td>
+          <td class="py-2 px-4">{{ atendimento.data_hora_chegada | date:'HH:mm:ss' }}</td>
         </tr>
         <tr *ngIf="atendimentosFiltrados.length === 0">
-          <td colspan="4" class="py-4 text-center text-gray-500">Nenhum atendimento encontrado.</td>
+          <td colspan="5" class="py-4 text-center text-gray-500">Nenhum atendimento encontrado.</td>
         </tr>
       </tbody>
     </table>
