@@ -56,6 +56,23 @@ export class LoginComponent implements OnInit, OnDestroy {
       .subscribe(email => {
         this.fetchModules(email);
       });
+
+    // Garante que o form seja revalidado ao selecionar módulo
+    this.loginForm.get('modulo')?.valueChanges.subscribe(() => {
+      this.loginForm.updateValueAndValidity();
+    });
+
+    // Habilita/desabilita o campo módulo conforme senha válida
+    this.loginForm.get('senha')?.valueChanges.subscribe(() => {
+      const senha = this.loginForm.get('senha')?.value || '';
+      const moduloControl = this.loginForm.get('modulo');
+      if (senha.length >= 6 && this.availableModules.length > 1) {
+        moduloControl?.enable();
+      } else {
+        moduloControl?.setValue('');
+        moduloControl?.disable();
+      }
+    });
   }
 
 
@@ -110,16 +127,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Habilita módulo só após blur do campo senha
-  onSenhaBlur(): void {
-    const senhaValida = this.loginForm.get('senha')?.valid;
-    if (senhaValida && this.availableModules.length > 0) {
-      this.loginForm.get('modulo')?.enable();
-    } else {
-      this.loginForm.get('modulo')?.setValue('');
-      this.loginForm.get('modulo')?.disable();
-    }
-  }
+
+  // Removido: toda habilitação do campo módulo é feita via valueChanges da senha (handleSenhaChange)
 
 
   onSubmit(): void {
@@ -132,11 +141,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     const senha = this.loginForm.value.senha;
     const moduloSelecionado = this.loginForm.get('modulo')?.value;
 
-    if (!moduloSelecionado) {
-      this.errorMessage = 'Selecione o módulo para continuar.';
-      return;
-    }
-
+    // O botão de entrar só será habilitado se o campo módulo estiver preenchido (form válido)
     this.loading = true;
     this.errorMessage = '';
     this.authService.login({ email, senha }).subscribe({
