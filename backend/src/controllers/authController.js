@@ -7,6 +7,87 @@ import emailService from '../services/emailService.js';
 
 class AuthController {
   /**
+<<<<<<< HEAD
+=======
+   * Redefinir senha usando token de recuperação
+   * @route POST /api/reset-password
+   */
+  static async resetPassword(req, res) {
+    try {
+      const { token, senha } = req.body;
+      if (!token || !senha) {
+        return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+      }
+      let payload;
+      try {
+        payload = jwt.verify(token, config.JWT_SECRET);
+      } catch (err) {
+        return res.status(401).json({ error: 'Token inválido ou expirado' });
+      }
+      if (payload.type !== 'password-reset') {
+        return res.status(400).json({ error: 'Tipo de token inválido' });
+      }
+      if (!payload.userId) {
+        return res.status(400).json({ error: 'Token inválido: usuário não encontrado' });
+      }
+      if (senha.length < 6) {
+        return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' });
+      }
+      const usuario = await Usuario.findById(payload.userId);
+      if (!usuario) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+      // Verifica se o token já foi usado ou expirou
+      const tokenBanco = (usuario.reset_token || '').trim();
+      const tokenReq = (token || '').trim();
+      const expiracao = usuario.reset_token_expira ? new Date(usuario.reset_token_expira) : null;
+      const agora = new Date();
+      if (!tokenBanco || tokenBanco !== tokenReq || usuario.reset_token_usado || !expiracao || agora > expiracao) {
+        return res.status(400).json({ error: 'Este link de redefinição já foi utilizado ou expirou.' });
+      }
+      await usuario.updatePassword(senha);
+      // Marca o token como usado
+      await Usuario.update(usuario.id, { reset_token_usado: true });
+      res.json({ message: 'Senha redefinida com sucesso' });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+  /**
+   * Valida o token de redefinição de senha
+   * @route POST /api/validate-reset-token
+   */
+  static async validateResetToken(req, res) {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ error: 'Token não informado' });
+      }
+      let payload;
+      try {
+        payload = jwt.verify(token, config.JWT_SECRET);
+      } catch (err) {
+        return res.status(401).json({ error: 'Token inválido ou expirado' });
+      }
+      if (payload.type !== 'password-reset') {
+        return res.status(400).json({ error: 'Tipo de token inválido' });
+      }
+      // Verifica se o token já foi usado ou expirou
+      const usuario = await Usuario.findById(payload.userId);
+      const tokenBanco = (usuario?.reset_token || '').trim();
+      const tokenReq = (token || '').trim();
+      const expiracao = usuario?.reset_token_expira ? new Date(usuario.reset_token_expira) : null;
+      const agora = new Date();
+      if (!usuario || !tokenBanco || tokenBanco !== tokenReq || usuario.reset_token_usado || !expiracao || agora > expiracao) {
+        return res.status(400).json({ error: 'Este link de redefinição já foi utilizado ou expirou.' });
+      }
+      res.json({ valid: true, userId: payload.userId, email: payload.email });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+  /**
+>>>>>>> 632178f2e1797cd234406e848517d495eeaeb30e
    * Retorna os módulos disponíveis para um usuário pelo email (público)
    */
   static async getUserModules(req, res) {
@@ -335,27 +416,28 @@ class AuthController {
           type: 'password-reset' 
         },
         config.JWT_SECRET,
-        { expiresIn: '1h' } // Token expira em 1 hora
+        { expiresIn: '1h' }
       );
-
+      // Salva o token e expiração no usuário
+      await Usuario.update(usuario.id, {
+        reset_token: resetToken,
+        reset_token_expira: new Date(Date.now() + 60 * 60 * 1000), // 1 hora
+        reset_token_usado: false
+      });
       // Logs para desenvolvimento
       console.log('=== TOKEN DE RECUPERAÇÃO DE SENHA ===');
       console.log(`Usuário: ${usuario.nome} (${usuario.email})`);
       console.log(`Token: ${resetToken}`);
       console.log(`Link de recuperação: ${config.FRONTEND_URL}/reset-password?token=${resetToken}`);
       console.log('=====================================');
-
       try {
-        // Enviar email de recuperação usando o serviço de email
         await emailService.sendPasswordResetEmail(usuario.email, resetToken, usuario.nome);
         console.log(`✅ Email de recuperação enviado para: ${usuario.email}`);
       } catch (emailError) {
         console.error('❌ Erro ao enviar email:', emailError.message);
-        // Mesmo com erro no email, retornamos sucesso por segurança
       }
-
-      res.json({ 
-        message: 'As instruções para recuperação de senha foram enviadas para seu e-mail.' 
+      res.json({
+        message: 'As instruções para recuperação de senha foram enviadas para seu e-mail.'
       });
 
     } catch (error) {
