@@ -71,8 +71,13 @@
               </ng-container>
               <ng-container *ngIf="editandoUsuario">
                 <div class="flex flex-col gap-2 items-stretch">
-                  <button type="button" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" (click)="onRecuperarSenhaUsuario()">
-                    Recuperar senha
+                  <button type="button"
+                    class="w-full px-4 py-2 rounded-lg font-bold shadow-md focus:outline-none focus:ring-2 transition text-white"
+                    [ngClass]="loadingRecuperarSenha ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'"
+                    (click)="onRecuperarSenhaUsuario()"
+                    [disabled]="loadingRecuperarSenha">
+                    <span *ngIf="!loadingRecuperarSenha">Recuperar senha</span>
+                    <span *ngIf="loadingRecuperarSenha">Enviando E-mail...</span>
                   </button>
                   <div class="text-xs text-gray-500 mt-1 text-center">O usuário receberá um e-mail para redefinir a senha.</div>
                 </div>
@@ -102,10 +107,10 @@
             </div>
           </div>
           <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center" [disabled]="!podeSalvarUsuario" [class.opacity-50]="isVisualizador" [class.cursor-not-allowed]="isVisualizador">
+            <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center" [disabled]="!podeSalvarUsuario || (loading && !editandoUsuario)" [class.opacity-50]="isVisualizador" [class.cursor-not-allowed]="isVisualizador">
               <span *ngIf="!loading && !editandoUsuario">Cadastrar usuário</span>
               <span *ngIf="!loading && editandoUsuario">Salvar Alteração</span>
-              <span *ngIf="loading">Cadastrando...</span>
+              <span *ngIf="loading && !editandoUsuario">Cadastrando...</span>
             </button>
             <button *ngIf="editandoUsuario" type="button" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition" (click)="cancelarEdicao()">Cancelar</button>
           </div>
