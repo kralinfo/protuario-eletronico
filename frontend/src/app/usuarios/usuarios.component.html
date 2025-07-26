@@ -133,7 +133,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let u of paginatedUsuarios" class="border-b hover:bg-gray-50">
+                <tr *ngFor="let u of paginatedUsuarios" class="border-b hover:bg-gray-50" style="height:48px;min-height:48px;">
                   <td class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center">
                     <div class="flex gap-2 justify-center items-center w-full">
                       <button (click)="onEditUser(u)" [disabled]="loading || isVisualizador" class="text-blue-700 hover:text-blue-900 transition" title="Editar usuário">
@@ -151,6 +151,13 @@
                   <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">{{ u.nome }}</td>
                   <td class="px-4 py-2 text-gray-700">{{ u.email }}</td>
                   <td class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]">{{ u.nivel }}</td>
+                </tr>
+                <!-- Linhas vazias para manter altura padrão -->
+                <tr *ngFor="let _ of [].constructor(12 - paginatedUsuarios.length > 0 ? 12 - paginatedUsuarios.length : 0)" style="height:48px;min-height:48px;">
+                  <td class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center">&nbsp;</td>
+                  <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">&nbsp;</td>
+                  <td class="px-4 py-2 text-gray-700">&nbsp;</td>
+                  <td class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]">&nbsp;</td>
                 </tr>
               </tbody>
             </table>
