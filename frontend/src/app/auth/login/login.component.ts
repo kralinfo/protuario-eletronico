@@ -69,7 +69,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       if (senhaValida) {
         if (this.availableModules.length === 1) {
           moduloControl?.setValue(this.availableModules[0]);
-          moduloControl?.disable();
+          moduloControl?.enable();
         } else if (this.availableModules.length > 1) {
           moduloControl?.setValue('');
           moduloControl?.enable();
@@ -117,7 +117,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           if (senhaValida) {
             if (this.availableModules.length === 1) {
               moduloControl?.setValue(this.availableModules[0]);
-              moduloControl?.disable();
+              moduloControl?.enable();
             } else if (this.availableModules.length > 1) {
               moduloControl?.setValue('');
               moduloControl?.enable();
@@ -177,7 +177,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (senhaValida) {
       if (this.availableModules.length === 1) {
         moduloControl?.setValue(this.availableModules[0]);
-        moduloControl?.disable();
+        moduloControl?.enable();
       } else if (this.availableModules.length > 1) {
         moduloControl?.setValue('');
         moduloControl?.enable();
