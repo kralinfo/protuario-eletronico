@@ -29,12 +29,9 @@ export class UsuariosComponent implements OnInit {
     return this.usuarioForm.valid && Array.isArray(modulos) && modulos.length > 0 && !this.loading && !this.isVisualizador;
   }
   get emptyRows(): any[] {
-    // Só gera linhas vazias se estiver na primeira página e houver mais registros que o tamanho da página
-    if (this.userCurrentPage === 0 && this.filteredUsuarios.length > this.userPageSize) {
-      const count = this.userPageSize - (this.paginatedUsuarios?.length || 0);
-      return count > 0 ? Array(count) : [];
-    }
-    return [];
+    // Sempre preenche até userPageSize linhas
+    const count = this.userPageSize - (this.paginatedUsuarios?.length || 0);
+    return count > 0 ? Array(count) : [];
   }
   // ...existing code...
 
