@@ -9,11 +9,15 @@
         <!-- Modal de confirmação de edição -->
         <style>
           .altura-tabela-usuarios {
+            /* Altura automática por padrão */
+            display: flex;
+            flex-direction: column;
+          }
+          /* Altura fixa só se houver muitos registros */
+          .altura-tabela-usuarios.altura-fixa {
             height: 612px;
             max-height: 612px;
             min-height: 612px;
-            display: flex;
-            flex-direction: column;
           }
         </style>
         <!-- Modal de sucesso removido, agora é feito via MatDialog -->
@@ -117,12 +121,12 @@
       </div>
       <!-- Tabela à direita -->
       <div class="w-full sm:flex-1">
-        <div *ngIf="paginatedUsuarios.length" class="bg-white rounded-xl shadow p-3 sm:p-6 w-full sm:flex-1 mr-2 altura-tabela-usuarios flex flex-col" style="position:relative;">
+        <div *ngIf="paginatedUsuarios.length" class="bg-white rounded-xl shadow p-3 sm:p-6 w-full sm:flex-1 mr-2 altura-tabela-usuarios flex flex-col" [ngClass]="{'altura-fixa': paginatedUsuarios.length >= userPageSize}" style="position:relative;">
           <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3 sm:mb-4 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
             Lista de Usuários
           </h3>
-          <div class="overflow-x-auto" style="flex: 1 1 auto; overflow-y: auto; max-height: calc(612px - 56px);">
+          <div class="overflow-x-auto" style="flex: 1 1 auto; overflow-y: auto;" [ngStyle]="{ 'max-height': userCurrentPage === 0 ? 'calc(612px - 56px)' : 'none' }">
             <table class="w-full text-xs sm:text-sm text-left border border-gray-200 rounded-lg overflow-hidden" style="min-height: 100%;">
               <thead style="background: linear-gradient(90deg, #f5faff 0%, #e3f0ff 100%); border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem;">
                 <tr>
@@ -152,8 +156,8 @@
                   <td class="px-4 py-2 text-gray-700">{{ u.email }}</td>
                   <td class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]">{{ u.nivel }}</td>
                 </tr>
-                <!-- Linhas vazias para manter altura padrão -->
-                <tr *ngFor="let _ of [].constructor(12 - paginatedUsuarios.length > 0 ? 12 - paginatedUsuarios.length : 0)" style="height:48px;min-height:48px;">
+                <!-- Linhas vazias para manter altura padrão apenas na primeira página -->
+                <tr *ngFor="let _ of emptyRows" style="height:48px;min-height:48px;">
                   <td class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center">&nbsp;</td>
                   <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">&nbsp;</td>
                   <td class="px-4 py-2 text-gray-700">&nbsp;</td>
