@@ -5,10 +5,10 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
 import emailService from '../services/emailService.js';
 
-import bcrypt from 'bcryptjs';
-
 class AuthController {
   /**
+<<<<<<< HEAD
+=======
    * Redefinir senha usando token de recuperação
    * @route POST /api/reset-password
    */
@@ -37,7 +37,17 @@ class AuthController {
       if (!usuario) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
+      // Verifica se o token já foi usado ou expirou
+      const tokenBanco = (usuario.reset_token || '').trim();
+      const tokenReq = (token || '').trim();
+      const expiracao = usuario.reset_token_expira ? new Date(usuario.reset_token_expira) : null;
+      const agora = new Date();
+      if (!tokenBanco || tokenBanco !== tokenReq || usuario.reset_token_usado || !expiracao || agora > expiracao) {
+        return res.status(400).json({ error: 'Este link de redefinição já foi utilizado ou expirou.' });
+      }
       await usuario.updatePassword(senha);
+      // Marca o token como usado
+      await Usuario.update(usuario.id, { reset_token_usado: true });
       res.json({ message: 'Senha redefinida com sucesso' });
     } catch (error) {
       res.status(500).json({ error: 'Erro interno do servidor' });
@@ -62,12 +72,22 @@ class AuthController {
       if (payload.type !== 'password-reset') {
         return res.status(400).json({ error: 'Tipo de token inválido' });
       }
+      // Verifica se o token já foi usado ou expirou
+      const usuario = await Usuario.findById(payload.userId);
+      const tokenBanco = (usuario?.reset_token || '').trim();
+      const tokenReq = (token || '').trim();
+      const expiracao = usuario?.reset_token_expira ? new Date(usuario.reset_token_expira) : null;
+      const agora = new Date();
+      if (!usuario || !tokenBanco || tokenBanco !== tokenReq || usuario.reset_token_usado || !expiracao || agora > expiracao) {
+        return res.status(400).json({ error: 'Este link de redefinição já foi utilizado ou expirou.' });
+      }
       res.json({ valid: true, userId: payload.userId, email: payload.email });
     } catch (error) {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   }
   /**
+>>>>>>> 632178f2e1797cd234406e848517d495eeaeb30e
    * Retorna os módulos disponíveis para um usuário pelo email (público)
    */
   static async getUserModules(req, res) {
@@ -99,16 +119,11 @@ class AuthController {
       // Buscar usuário por email
       const usuario = await Usuario.findByEmail(email);
       if (!usuario) {
-        console.log(`[LOGIN DEBUG] Usuário não encontrado para email: '${email}'`);
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }
 
       // Verificar senha
-      console.log(`[LOGIN DEBUG] Email recebido: '${email}'`);
-      console.log(`[LOGIN DEBUG] Senha recebida: '${senha}'`);
-      console.log(`[LOGIN DEBUG] Hash no banco: '${usuario.senha}'`);
-      const senhaValida = await bcrypt.compare(senha, usuario.senha);
-      console.log(`[LOGIN DEBUG] Resultado do bcrypt.compare: ${senhaValida}`);
+      const senhaValida = await usuario.checkPassword(senha);
       if (!senhaValida) {
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }
@@ -140,7 +155,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no login:', error);
-
+      
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -191,7 +206,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no registro:', error);
-
+      
       if (error.message.includes('já está em uso')) {
         return res.status(409).json({
           status: 'ERROR',
@@ -231,7 +246,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro no logout:', error);
-
+      
       res.status(500).json({
         status: 'ERROR',
         message: 'Erro interno do servidor',
@@ -246,7 +261,7 @@ class AuthController {
   static async me(req, res) {
     try {
       const usuario = await Usuario.findById(req.user.id);
-
+      
       if (!usuario) {
         throw new AppError('Usuário não encontrado', 404, 'USER_NOT_FOUND');
       }
@@ -260,7 +275,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao obter dados do usuário:', error);
-
+      
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -316,7 +331,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao alterar senha:', error);
-
+      
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -339,7 +354,7 @@ class AuthController {
   static async verifyToken(req, res) {
     try {
       const usuario = await Usuario.findById(req.user.id);
-
+      
       if (!usuario) {
         throw new AppError('Token inválido', 401, 'INVALID_TOKEN');
       }
@@ -354,7 +369,7 @@ class AuthController {
 
     } catch (error) {
       console.error('❌ [AUTH] Erro ao verificar token:', error);
-
+      
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           status: 'ERROR',
@@ -388,38 +403,39 @@ class AuthController {
       if (!usuario) {
         // Por segurança, retornamos sucesso mesmo se o email não existir
         // Isso evita que atacantes descubram emails válidos
-        return res.json({
-          message: 'Se o e-mail existir em nossa base, você receberá as instruções de recuperação.'
+        return res.json({ 
+          message: 'Se o e-mail existir em nossa base, você receberá as instruções de recuperação.' 
         });
       }
 
       // Gerar token de recuperação de senha
       const resetToken = jwt.sign(
-        {
+        { 
           userId: usuario.id,
           email: usuario.email,
-          type: 'password-reset'
+          type: 'password-reset' 
         },
         config.JWT_SECRET,
-        { expiresIn: '1h' } // Token expira em 1 hora
+        { expiresIn: '1h' }
       );
-
+      // Salva o token e expiração no usuário
+      await Usuario.update(usuario.id, {
+        reset_token: resetToken,
+        reset_token_expira: new Date(Date.now() + 60 * 60 * 1000), // 1 hora
+        reset_token_usado: false
+      });
       // Logs para desenvolvimento
       console.log('=== TOKEN DE RECUPERAÇÃO DE SENHA ===');
       console.log(`Usuário: ${usuario.nome} (${usuario.email})`);
       console.log(`Token: ${resetToken}`);
       console.log(`Link de recuperação: ${config.FRONTEND_URL}/reset-password?token=${resetToken}`);
       console.log('=====================================');
-
       try {
-        // Enviar email de recuperação usando o serviço de email
         await emailService.sendPasswordResetEmail(usuario.email, resetToken, usuario.nome);
         console.log(`✅ Email de recuperação enviado para: ${usuario.email}`);
       } catch (emailError) {
         console.error('❌ Erro ao enviar email:', emailError.message);
-        // Mesmo com erro no email, retornamos sucesso por segurança
       }
-
       res.json({
         message: 'As instruções para recuperação de senha foram enviadas para seu e-mail.'
       });

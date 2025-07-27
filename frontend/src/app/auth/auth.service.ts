@@ -53,19 +53,18 @@ export class AuthService {
   }
 
   constructor(private http: HttpClient, private router: Router) {
-    // Evita login automático ao acessar /redefinir-senha
-    if (!window.location.pathname.includes('redefinir-senha')) {
-      this.loadStoredUser();
-      this.selectedModule = localStorage.getItem('selected_module');
-      const userStr = localStorage.getItem('auth_user');
-      if (!this.selectedModule && userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          if (user && user.modulos && user.modulos.length === 1) {
-            this.setSelectedModule(user.modulos[0]);
-          }
-        } catch {}
-      }
+    this.loadStoredUser();
+    // Sempre recupera o módulo selecionado do localStorage ao inicializar
+    this.selectedModule = localStorage.getItem('selected_module');
+    // Se não houver, mas o usuário só tem um módulo, já define automaticamente
+    const userStr = localStorage.getItem('auth_user');
+    if (!this.selectedModule && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && user.modulos && user.modulos.length === 1) {
+          this.setSelectedModule(user.modulos[0]);
+        }
+      } catch {}
     }
   }
 
@@ -138,11 +137,6 @@ export class AuthService {
   }
 
   private loadStoredUser(): void {
-    // Não carrega usuário logado se estiver na tela de redefinição de senha
-    if (window.location.pathname.includes('redefinir-senha')) {
-      this.userSubject.next(null);
-      return;
-    }
     const token = this.getToken();
     const userStr = localStorage.getItem('auth_user');
     if (token && this.isAuthenticated() && userStr) {

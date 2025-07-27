@@ -11,7 +11,6 @@ import { UsuariosComponent } from './usuarios/usuarios.component';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { HomeComponent } from './home/home.component';
 import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.component';
-import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -23,9 +22,6 @@ const routes: Routes = [
   { path: 'usuarios', component: UsuariosComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'usuarios' } },
   { path: 'atendimentos', component: AtendimentosDiaComponent },
   { path: 'atendimentos/novo', component: NovoAtendimentoComponent },
-  // Rotas para redefinição de senha via token
-  { path: 'redefinir-senha', component: RedefinirSenhaComponent },
-  { path: 'reset-password', component: RedefinirSenhaComponent },
   { path: '**', redirectTo: '' }
 ];
 

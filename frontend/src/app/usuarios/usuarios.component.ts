@@ -1,3 +1,4 @@
+
 import { ValidatorFn, AbstractControl } from '@angular/forms';
 
 export const senhasIguaisValidator: ValidatorFn = (control: AbstractControl) => {
@@ -11,7 +12,7 @@ export const senhasIguaisValidator: ValidatorFn = (control: AbstractControl) => 
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
-import { FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
@@ -26,6 +27,11 @@ export class UsuariosComponent implements OnInit {
   get podeSalvarUsuario(): boolean {
     const modulos = this.usuarioForm.get('modulos')?.value;
     return this.usuarioForm.valid && Array.isArray(modulos) && modulos.length > 0 && !this.loading && !this.isVisualizador;
+  }
+  get emptyRows(): any[] {
+    // Sempre preenche até userPageSize linhas
+    const count = this.userPageSize - (this.paginatedUsuarios?.length || 0);
+    return count > 0 ? Array(count) : [];
   }
   // ...existing code...
 
@@ -57,6 +63,10 @@ export class UsuariosComponent implements OnInit {
     this.editandoUsuario = false;
     this.selectedUser = null;
     this.usuarioForm.reset({ nivel: 'visualizador' });
+    this.clearMessages();
+  }
+
+  clearMessages() {
     this.error = null;
     this.success = null;
   }
@@ -73,6 +83,7 @@ export class UsuariosComponent implements OnInit {
   usuarios: any[] = [];
   usuarioForm: FormGroup;
   loading = false;
+  loadingRecuperarSenha = false;
   error: string | null = null;
   success: string | null = null;
   showSuccessModal = false;
@@ -94,22 +105,16 @@ export class UsuariosComponent implements OnInit {
       nome: [{value: '', disabled: false}, Validators.required],
       email: [{value: '', disabled: false}, [Validators.required, Validators.email]],
       senha: [{value: '', disabled: false}, [Validators.required, Validators.minLength(6)]],
-      repetirSenha: [{value: '', disabled: false}, Validators.required],
       nivel: [{value: 'visualizador', disabled: false}, Validators.required],
       modulos: [["recepcao"]] // valor padrão
-    }, { validators: senhasIguaisValidator });
-    // modulosDisponiveis já está declarado como membro público acima
+    });
+  // modulosDisponiveis já está declarado como membro público acima
   }
-  
 
   ngOnInit(): void {
     this.isVisualizador = this.authService.user?.nivel === 'visualizador';
     this.listarUsuarios();
     this.filtrarUsuarios();
-    // Ao entrar na tela, desmarca todos os módulos
-    if (this.usuarioForm && this.usuarioForm.get('modulos')) {
-      this.usuarioForm.get('modulos')?.setValue([]);
-    }
   }
 
   onEditUser(user: any) {
@@ -120,10 +125,6 @@ export class UsuariosComponent implements OnInit {
       senha: '', // Não preenche senha por segurança
       nivel: user.nivel
     });
-    // Preenche os módulos do usuário selecionado
-    if (this.usuarioForm.get('modulos')) {
-      this.usuarioForm.get('modulos')?.setValue(user.modulos || []);
-    }
     this.editandoUsuario = true;
     // Não abre o modal aqui, só ao tentar salvar
   }
@@ -135,36 +136,39 @@ export class UsuariosComponent implements OnInit {
 
   onRecuperarSenhaUsuario(): void {
     if (!this.selectedUser || !this.selectedUser.email) {
-      this.dialog.open(FeedbackDialogComponent, {
+      const dialogRef = this.dialog.open(FeedbackDialogComponent, {
         data: {
           title: 'Atenção',
           message: 'Usuário ou e-mail não encontrado.',
           type: 'error'
         }
       });
+      setTimeout(() => dialogRef.close(), 2500);
       return;
     }
-    this.loading = true;
+    this.loadingRecuperarSenha = true;
     this.http.post(`${environment.apiUrl}/forgot-password`, { email: this.selectedUser.email }).subscribe({
       next: () => {
-        this.dialog.open(FeedbackDialogComponent, {
+        const dialogRef = this.dialog.open(FeedbackDialogComponent, {
           data: {
             title: 'Recuperação de senha',
             message: 'E-mail de recuperação enviado com sucesso!',
             type: 'success'
           }
         });
-        this.loading = false;
+        setTimeout(() => dialogRef.close(), 2500);
+        this.loadingRecuperarSenha = false;
       },
       error: (err: any) => {
-        this.dialog.open(FeedbackDialogComponent, {
+        const dialogRef = this.dialog.open(FeedbackDialogComponent, {
           data: {
             title: 'Erro',
             message: err.error?.message || 'Erro ao enviar e-mail de recuperação.',
             type: 'error'
           }
         });
-        this.loading = false;
+        setTimeout(() => dialogRef.close(), 2500);
+        this.loadingRecuperarSenha = false;
       }
     });
   }
@@ -176,6 +180,7 @@ export class UsuariosComponent implements OnInit {
     this.http.delete(`${environment.apiUrl}/usuarios/${this.selectedUser.id}`).subscribe({
       next: () => {
         this.success = 'Usuário excluído com sucesso!';
+        setTimeout(() => { this.success = null; }, 3000);
         this.listarUsuarios();
         this.loading = false;
         this.showDeleteModal = false;
@@ -183,6 +188,7 @@ export class UsuariosComponent implements OnInit {
       },
       error: err => {
         this.error = err.error?.message || 'Erro ao excluir usuário';
+        setTimeout(() => { this.error = null; }, 3000);
         this.loading = false;
         this.showDeleteModal = false;
         this.selectedUser = null;
@@ -256,16 +262,7 @@ export class UsuariosComponent implements OnInit {
   }
 
   onSubmit() {
-    const modulos = this.usuarioForm.get('modulos')?.value;
-    if (this.usuarioForm.invalid || !Array.isArray(modulos) || modulos.length === 0) {
-      if (this.usuarioForm.errors?.['senhasDiferentes']) {
-        this.error = 'As senhas não coincidem.';
-      }
-      if (!Array.isArray(modulos) || modulos.length === 0) {
-        this.error = 'Selecione pelo menos um módulo.';
-      }
-      return;
-    }
+    if (this.usuarioForm.invalid) return;
     if (this.editandoUsuario) {
       this.showConfirmModal = true;
     } else {
@@ -299,6 +296,8 @@ export class UsuariosComponent implements OnInit {
           setTimeout(() => {
             dialogRef.close();
           }, 2500);
+          this.success = 'Usuário editado com sucesso!';
+          setTimeout(() => { this.success = null; }, 3000);
           this.usuarioForm.reset({ nivel: 'visualizador' });
           this.listarUsuarios();
           this.loading = false;
@@ -322,6 +321,8 @@ export class UsuariosComponent implements OnInit {
           setTimeout(() => {
             dialogRef.close();
           }, 2500);
+          this.error = msg;
+          setTimeout(() => { this.error = null; }, 3000);
           this.loading = false;
         }
       });
@@ -339,6 +340,8 @@ export class UsuariosComponent implements OnInit {
           setTimeout(() => {
             dialogRef.close();
           }, 2500);
+          this.success = 'Usuário cadastrado com sucesso!';
+          setTimeout(() => { this.success = null; }, 3000);
           this.usuarioForm.reset({ nivel: 'visualizador' });
           this.listarUsuarios();
           this.loading = false;
@@ -360,6 +363,8 @@ export class UsuariosComponent implements OnInit {
           setTimeout(() => {
             dialogRef.close();
           }, 2500);
+          this.error = msg;
+          setTimeout(() => { this.error = null; }, 3000);
           this.loading = false;
         }
       });
@@ -383,6 +388,7 @@ export class UsuariosComponent implements OnInit {
       next: (usuarios) => {
         if (usuarios && usuarios.length > 0 && (!this.editandoUsuario || usuarios[0].id !== this.selectedUser?.id)) {
           this.error = 'Email já está em uso';
+          setTimeout(() => { this.error = null; }, 3000);
         } else {
           this.error = null;
         }

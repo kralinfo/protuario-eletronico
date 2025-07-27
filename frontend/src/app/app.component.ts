@@ -42,8 +42,7 @@ export class AppComponent {
   }
 
   isLoginRoute(): boolean {
-    // Esconde o header global nas rotas de login e redefinir senha
-    return this.router.url === '/login' || this.router.url.startsWith('/redefinir-senha') || this.router.url.startsWith('/reset-password');
+    return this.router.url === '/login';
   }
 
   logout() {

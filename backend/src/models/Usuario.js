@@ -12,6 +12,9 @@ class Usuario {
     this.modulos = data.modulos || [];
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
+    this.reset_token = data.reset_token;
+    this.reset_token_expira = data.reset_token_expira;
+    this.reset_token_usado = data.reset_token_usado;
   }
 
   /**

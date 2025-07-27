@@ -14,8 +14,8 @@ export class ModuloGuard implements CanActivate {
     const user = this.authService.user;
     const selectedModule = this.authService.getSelectedModule();
     if (!user) {
-      // Permite navegação, o interceptor lida com sessão expirada nas requisições.
-      return true;
+      this.router.navigate(['/login']);
+      return false;
     }
     const requiredModulo = route.data['modulo'] as string;
     // Se o módulo selecionado for recepcao, libera tudo
