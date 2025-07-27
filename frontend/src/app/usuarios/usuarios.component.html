@@ -46,12 +46,33 @@
             </div>
             <!-- Senha e nível de acesso lado a lado -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Senha <span class="text-red-500">*</span></label>
-                <input type="password" formControlName="senha" autocomplete="new-password" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-                <div *ngIf="usuarioForm.get('senha')?.errors?.['required'] && usuarioForm.get('senha')?.touched" class="text-xs text-red-500 mt-1">Senha é obrigatória</div>
-                <div *ngIf="usuarioForm.get('senha')?.errors?.['minlength'] && usuarioForm.get('senha')?.touched" class="text-xs text-red-500 mt-1">Senha deve ter pelo menos 6 caracteres</div>
-              </div>
+              <ng-container *ngIf="!editandoUsuario">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Senha <span class="text-red-500">*</span></label>
+                  <input type="password" formControlName="senha" autocomplete="new-password" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
+                  <div *ngIf="usuarioForm.get('senha')?.errors?.['required'] && usuarioForm.get('senha')?.touched" class="text-xs text-red-500 mt-1">Senha é obrigatória</div>
+                  <div *ngIf="usuarioForm.get('senha')?.errors?.['minlength'] && usuarioForm.get('senha')?.touched" class="text-xs text-red-500 mt-1">Senha deve ter pelo menos 6 caracteres</div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Repetir senha <span class="text-red-500">*</span></label>
+                  <input type="password" formControlName="repetirSenha" autocomplete="new-password" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
+                  <div *ngIf="usuarioForm.get('repetirSenha')?.errors?.['required'] && usuarioForm.get('repetirSenha')?.touched" class="text-xs text-red-500 mt-1">Repetir senha é obrigatório</div>
+                  <div *ngIf="usuarioForm.errors?.['senhasDiferentes'] && usuarioForm.get('repetirSenha')?.touched" class="text-xs text-red-500 mt-1">As senhas não coincidem</div>
+                </div>
+              </ng-container>
+              <ng-container *ngIf="editandoUsuario">
+                <div class="flex flex-col gap-2 items-stretch">
+                  <button type="button"
+                    class="w-full px-4 py-2 rounded-lg font-bold shadow-md focus:outline-none focus:ring-2 transition text-white"
+                    [ngClass]="loadingRecuperarSenha ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'"
+                    (click)="onRecuperarSenhaUsuario()"
+                    [disabled]="loadingRecuperarSenha">
+                    <span *ngIf="!loadingRecuperarSenha">Recuperar senha</span>
+                    <span *ngIf="loadingRecuperarSenha">Enviando E-mail...</span>
+                  </button>
+                  <div class="text-xs text-gray-500 mt-1 text-center">O usuário receberá um e-mail para redefinir a senha.</div>
+                </div>
+              </ng-container>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nível de acesso <span class="text-red-500">*</span></label>
                 <select formControlName="nivel" autocomplete="off" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900">
@@ -77,10 +98,10 @@
             </div>
           </div>
           <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center" [disabled]="usuarioForm.invalid || loading || isVisualizador" [class.opacity-50]="isVisualizador" [class.cursor-not-allowed]="isVisualizador">
+            <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center" [disabled]="!podeSalvarUsuario || (loading && !editandoUsuario)" [class.opacity-50]="isVisualizador" [class.cursor-not-allowed]="isVisualizador">
               <span *ngIf="!loading && !editandoUsuario">Cadastrar usuário</span>
               <span *ngIf="!loading && editandoUsuario">Salvar Alteração</span>
-              <span *ngIf="loading">Cadastrando...</span>
+              <span *ngIf="loading && !editandoUsuario">Cadastrando...</span>
             </button>
             <button *ngIf="editandoUsuario" type="button" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition" (click)="cancelarEdicao()">Cancelar</button>
           </div>
@@ -92,38 +113,56 @@
       </div>
       <!-- Tabela à direita -->
       <div class="w-full sm:flex-1">
-        <div *ngIf="paginatedUsuarios.length" class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 mt-0">
-          <div class="overflow-x-auto">
-          <table class="min-w-[500px] w-full rounded-2xl overflow-hidden text-xs sm:text-sm">
-            <thead>
-              <tr class="bg-blue-50">
-                <th class="py-3 px-4 text-center text-sm font-semibold text-blue-700">Ações</th>
-                <th class="py-3 px-4 text-left text-sm font-semibold text-blue-700">Nome</th>
-                <th class="py-3 px-4 text-left text-sm font-semibold text-blue-700">Email</th>
-                <th class="py-3 px-4 text-left text-sm font-semibold text-blue-700">Nível</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let u of paginatedUsuarios" class="hover:bg-blue-50">
-                <td class="py-2 px-4 text-center">
-                  <button class="inline-flex items-center justify-center p-2 rounded-full hover:bg-blue-100 text-blue-600 disabled:text-gray-400 disabled:cursor-not-allowed transition" title="Editar" (click)="onEditUser(u)" [disabled]="isVisualizador">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z" /></svg>
-                  </button>
-                  <button class="inline-flex items-center justify-center p-2 rounded-full hover:bg-red-100 text-red-600 disabled:text-gray-400 disabled:cursor-not-allowed transition ml-2" title="Excluir" (click)="onDeleteUser(u)" [disabled]="isVisualizador">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                </td>
-                <td class="py-2 px-4 text-gray-900">{{ u.nome }}</td>
-                <td class="py-2 px-4 text-gray-900">{{ u.email }}</td>
-                <td class="py-2 px-4 text-gray-900">{{ u.nivel }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <!-- Rodapé customizado -->
-          <div class="flex flex-col sm:flex-row justify-end items-center gap-2 text-xs sm:text-sm bg-gray-50 px-2 sm:px-4 py-2 rounded-b-lg border-t border-gray-200">
+        <div *ngIf="paginatedUsuarios.length" class="bg-white rounded-xl shadow p-3 sm:p-6 w-full sm:flex-1 mr-2 altura-tabela-usuarios flex flex-col" style="position:relative;">
+          <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3 sm:mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+            Lista de Usuários
+          </h3>
+          <div class="overflow-x-auto" style="flex: 1 1 auto; overflow-y: auto;" [ngStyle]="{ 'max-height': userCurrentPage === 0 ? 'calc(612px - 56px)' : 'none' }">
+            <table class="w-full text-xs sm:text-sm text-left border border-gray-200 rounded-lg overflow-hidden" style="min-height: 100%;">
+              <thead style="background: linear-gradient(90deg, #f5faff 0%, #e3f0ff 100%); border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem;">
+                <tr>
+                  <th class="px-2 py-2 font-semibold text-gray-700 min-w-[3.5rem] max-w-[4.5rem] text-center">Ações</th>
+                  <th class="px-6 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">Nome</th>
+                  <th class="px-4 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">Email</th>
+                  <th class="px-4 py-2 font-semibold text-gray-700 min-w-[2.5rem] max-w-[3.5rem] ">Nível</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let u of paginatedUsuarios" class="border-b hover:bg-gray-50" style="height:48px;min-height:48px;">
+                  <td class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center">
+                    <div class="flex gap-2 justify-center items-center w-full">
+                      <button (click)="onEditUser(u)" [disabled]="loading || isVisualizador" class="text-blue-700 hover:text-blue-900 transition" title="Editar usuário">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" />
+                        </svg>
+                      </button>
+                      <button (click)="onDeleteUser(u)" [disabled]="loading || isVisualizador" class="text-red-700 hover:text-red-900 transition" title="Remover usuário">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                  <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">{{ u.nome }}</td>
+                  <td class="px-4 py-2 text-gray-700">{{ u.email }}</td>
+                  <td class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]">{{ u.nivel }}</td>
+                </tr>
+                <!-- Linhas vazias para manter altura padrão apenas na primeira página -->
+                <tr *ngFor="let _ of emptyRows" style="height:48px;min-height:48px;">
+                  <td class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center">&nbsp;</td>
+                  <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">&nbsp;</td>
+                  <td class="px-4 py-2 text-gray-700">&nbsp;</td>
+                  <td class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]">&nbsp;</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Rodapé customizado fixo -->
+          <div class="flex flex-col sm:flex-row justify-end items-center gap-2 text-xs sm:text-sm bg-gray-50 px-2 sm:px-4 py-2 rounded-b-lg border-t border-gray-200" style="height: 56px; min-height: 56px;">
             <div class="flex items-center gap-4 text-gray-600">
               <label class="flex items-center gap-1">
-                <span>Items per page:</span>
+                <span>Items por página:</span>
                 <select class="border rounded px-2 py-1 text-gray-700 bg-white focus:ring focus:ring-blue-500" (change)="onUserPageSizeChange($event)">
                   <option *ngFor="let opt of userPageSizeOptions" [value]="opt" [selected]="opt === userPageSize">{{ opt }}</option>
                 </select>
@@ -145,8 +184,23 @@
               </button>
             </div>
           </div>
+              <!-- Rodapé duplicado removido -->
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Primeira página" (click)="goToUserFirstPage()" [disabled]="userCurrentPage === 0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Página anterior" (click)="goToUserPreviousPage()" [disabled]="userCurrentPage === 0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Próxima página" (click)="goToUserNextPage()" [disabled]="userCurrentPage >= userTotalPages - 1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
+              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Última página" (click)="goToUserLastPage()" [disabled]="userCurrentPage >= userTotalPages - 1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>

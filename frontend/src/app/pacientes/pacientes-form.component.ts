@@ -223,20 +223,28 @@ export class PacientesFormComponent
       }
 
       // Garante que estadoCivil seja uma opção válida
-      // Mapeia valores sem (a) para a opção correta
+      // Mapeia valores sem (a) para a opção correta e trata objeto
       const mapEstadoCivil: Record<string, string> = {
-        Solteiro: 'Solteiro(a)',
-        Casado: 'Casado(a)',
-        Viúvo: 'Viúvo(a)',
-        Divorciado: 'Divorciado(a)',
-        Ignorado: 'Ignorado',
+        'Solteiro': 'Solteiro(a)',
+        'Solteira': 'Solteiro(a)',
+        'Casado': 'Casado(a)',
+        'Casada': 'Casado(a)',
+        'Viúvo': 'Viúvo(a)',
+        'Viúva': 'Viúvo(a)',
+        'Divorciado': 'Divorciado(a)',
+        'Divorciada': 'Divorciado(a)',
+        'Ignorado': 'Ignorado',
         'Solteiro(a)': 'Solteiro(a)',
         'Casado(a)': 'Casado(a)',
         'Viúvo(a)': 'Viúvo(a)',
         'Divorciado(a)': 'Divorciado(a)',
         '': '',
       };
-      patch.estadoCivil = mapEstadoCivil[String(patch.estadoCivil || '')] ?? '';
+      let estadoCivil = patch.estadoCivil;
+      if (typeof estadoCivil === 'object' && estadoCivil !== null) {
+        estadoCivil = (estadoCivil as any).nome || '';
+      }
+      patch.estadoCivil = mapEstadoCivil[String(estadoCivil || '')] ?? '';
       this.form.patchValue(patch);
     }
 

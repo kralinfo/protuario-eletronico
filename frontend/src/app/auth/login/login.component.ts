@@ -41,8 +41,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private http: HttpClient
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      senha: ['', [Validators.required, Validators.minLength(6)]],
+      user_email: ['', [Validators.required, Validators.email]],
+      user_senha: ['', [Validators.required, Validators.minLength(6)]],
       modulo: [{ value: '', disabled: true }, Validators.required]
     });
 
@@ -56,6 +56,32 @@ export class LoginComponent implements OnInit, OnDestroy {
       .subscribe(email => {
         this.fetchModules(email);
       });
+
+    // Garante que o form seja revalidado ao selecionar módulo
+    this.loginForm.get('modulo')?.valueChanges.subscribe(() => {
+      this.loginForm.updateValueAndValidity();
+    });
+
+    // Habilita/desabilita o campo módulo conforme senha válida
+    this.loginForm.get('user_senha')?.valueChanges.subscribe(() => {
+      const senhaValida = this.loginForm.get('user_senha')?.valid;
+      const moduloControl = this.loginForm.get('modulo');
+      if (senhaValida) {
+        if (this.availableModules.length === 1) {
+          moduloControl?.setValue(this.availableModules[0]);
+          moduloControl?.enable();
+        } else if (this.availableModules.length > 1) {
+          moduloControl?.setValue('');
+          moduloControl?.enable();
+        } else {
+          moduloControl?.setValue('');
+          moduloControl?.disable();
+        }
+      } else {
+        moduloControl?.setValue('');
+        moduloControl?.disable();
+      }
+    });
   }
 
 
@@ -67,15 +93,17 @@ export class LoginComponent implements OnInit, OnDestroy {
 
 
   onEmailBlur(): void {
-    const email = this.loginForm.get('email')?.value;
+    const email = this.loginForm.get('user_email')?.value;
     this.emailInput$.next(email);
   }
 
   private fetchModules(email: string): void {
-    if (!email || this.loginForm.get('email')?.invalid) {
+    if (!email || this.loginForm.get('user_email')?.invalid) {
       this.availableModules = [];
-      this.selectedModule = null;
+      this.selectedModule = '';
       this.modulesLoaded = false;
+      this.loginForm.get('modulo')?.setValue('');
+      this.loginForm.get('modulo')?.disable();
       return;
     }
     this.loading = true;
@@ -84,27 +112,36 @@ export class LoginComponent implements OnInit, OnDestroy {
         next: (resp) => {
           this.availableModules = resp.modulos || [];
           this.modulesLoaded = true;
-          if (this.availableModules.length === 1) {
-            this.loginForm.get('modulo')?.setValue(this.availableModules[0]);
-            this.loginForm.get('modulo')?.disable();
-          } else if (this.availableModules.length > 1) {
-            this.loginForm.get('modulo')?.setValue('');
-            this.loginForm.get('modulo')?.enable();
+          const senhaValida = this.loginForm.get('user_senha')?.valid;
+          const moduloControl = this.loginForm.get('modulo');
+          if (senhaValida) {
+            if (this.availableModules.length === 1) {
+              moduloControl?.setValue(this.availableModules[0]);
+              moduloControl?.enable();
+            } else if (this.availableModules.length > 1) {
+              moduloControl?.setValue('');
+              moduloControl?.enable();
+            } else {
+              moduloControl?.setValue('');
+              moduloControl?.disable();
+            }
           } else {
-            this.loginForm.get('modulo')?.setValue('');
-            this.loginForm.get('modulo')?.disable();
+            moduloControl?.setValue('');
+            moduloControl?.disable();
           }
+          this.selectedModule = '';
           this.loading = false;
         },
         error: () => {
           this.availableModules = [];
-          this.selectedModule = null;
+          this.selectedModule = '';
           this.modulesLoaded = false;
+          this.loginForm.get('modulo')?.setValue('');
+          this.loginForm.get('modulo')?.disable();
           this.loading = false;
         }
       });
   }
-
 
 
   ngOnInit(): void {
@@ -112,7 +149,50 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/']);
     }
+    // Garante seleção automática do módulo se só houver uma opção ao iniciar
+    setTimeout(() => {
+      const senhaValida = this.loginForm.get('user_senha')?.valid;
+      if (senhaValida) {
+        if (this.availableModules && this.availableModules.length === 1) {
+          this.loginForm.get('modulo')?.setValue(this.availableModules[0]);
+          this.loginForm.get('modulo')?.disable();
+        } else if (this.availableModules && this.availableModules.length > 1) {
+          this.loginForm.get('modulo')?.enable();
+          this.loginForm.get('modulo')?.setValue('');
+        } else {
+          this.loginForm.get('modulo')?.setValue('');
+          this.loginForm.get('modulo')?.disable();
+        }
+      } else {
+        this.loginForm.get('modulo')?.setValue('');
+        this.loginForm.get('modulo')?.disable();
+      }
+    }, 0);
   }
+
+  // Habilita módulo só após blur do campo senha
+  onSenhaBlur(): void {
+    const senhaValida = this.loginForm.get('user_senha')?.valid;
+    const moduloControl = this.loginForm.get('modulo');
+    if (senhaValida) {
+      if (this.availableModules.length === 1) {
+        moduloControl?.setValue(this.availableModules[0]);
+        moduloControl?.enable();
+      } else if (this.availableModules.length > 1) {
+        moduloControl?.setValue('');
+        moduloControl?.enable();
+      } else {
+        moduloControl?.setValue('');
+        moduloControl?.disable();
+      }
+    } else {
+      moduloControl?.setValue('');
+      moduloControl?.disable();
+    }
+  }
+
+
+  // Removido: toda habilitação do campo módulo é feita via valueChanges da senha (handleSenhaChange)
 
 
   onSubmit(): void {
@@ -121,15 +201,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const email = this.loginForm.value.email;
-    const senha = this.loginForm.value.senha;
+    const email = this.loginForm.value.user_email;
+    const senha = this.loginForm.value.user_senha;
     const moduloSelecionado = this.loginForm.get('modulo')?.value;
 
-    if (!moduloSelecionado) {
-      this.errorMessage = 'Selecione o módulo para continuar.';
-      return;
-    }
-
+    // O botão de entrar só será habilitado se o campo módulo estiver preenchido (form válido)
     this.loading = true;
     this.errorMessage = '';
     this.authService.login({ email, senha }).subscribe({
@@ -154,7 +230,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   // Método legado removido: selectModuleAndProceed
 
   getEmailErrorMessage(): string {
-    const emailControl = this.loginForm.get('email');
+    const emailControl = this.loginForm.get('user_email');
     if (emailControl?.hasError('required')) {
       return 'Email é obrigatório';
     }
@@ -165,7 +241,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   getSenhaErrorMessage(): string {
-    const senhaControl = this.loginForm.get('senha');
+    const senhaControl = this.loginForm.get('user_senha');
     if (senhaControl?.hasError('required')) {
       return 'Senha é obrigatória';
     }

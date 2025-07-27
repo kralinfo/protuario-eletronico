@@ -12,4 +12,8 @@ export class AtendimentoService {
   listarAtendimentosDoDia() {
     return this.http.get<any[]>('http://localhost:3001/api/atendimentos?dia=hoje');
   }
+
+  removerAtendimento(id: number) {
+    return this.http.delete(`http://localhost:3001/api/atendimentos/${id}`);
+  }
 }
