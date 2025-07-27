@@ -60,9 +60,11 @@ export class RedefinirSenhaComponent implements OnInit {
         // Se o erro for de link já utilizado, mostra mensagem de expirado
         const msg = 'Este link de redefinição de senha já foi utilizado ou expirou. Solicite um novo link para redefinir sua senha.';
         this.loading = false;
-        // Desloga e redireciona imediatamente para login com mensagem
-        this.authService.logout();
-        this.router.navigate(['/login'], { queryParams: { error: msg } });
+        // Desloga sem exibir dialog de sessão expirada, apenas redireciona para login com mensagem
+        this.authService.logout(); // apenas limpa sessão
+        setTimeout(() => {
+          this.router.navigate(['/login'], { queryParams: { error: msg } });
+        }, 0);
       }
     });
   }
