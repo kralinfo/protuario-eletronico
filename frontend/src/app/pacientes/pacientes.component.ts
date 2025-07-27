@@ -37,6 +37,60 @@ export interface Paciente {
     standalone: false
 })
 export class PacientesComponent implements OnInit, AfterViewInit {
+  imprimirFichaPacienteEmBranco() {
+    const doc = new jsPDF.jsPDF();
+
+    doc.setFontSize(20);
+    doc.setTextColor(40);
+    doc.text('e-Prontuário Aliança-PE', 20, 20);
+    doc.setFontSize(14);
+    doc.text('Ficha de Cadastro do Paciente (Em Branco)', 20, 30);
+    doc.setLineWidth(0.5);
+    doc.line(20, 35, 190, 35);
+
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    let yPosition = 50;
+    const lineHeight = 12;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('DADOS PESSOAIS', 20, yPosition);
+    yPosition += lineHeight + 2;
+    doc.setFont('helvetica', 'normal');
+
+    // Campos com espaço para preenchimento manual
+    const campos = [
+      'Nome',
+      'Nome da Mãe',
+      'Data de Nascimento',
+      'Idade',
+      'Sexo',
+      'Estado Civil',
+      'Profissão',
+      'Escolaridade',
+      'Telefone',
+      'Cartão SUS',
+      'Raça/Cor',
+      'Endereço',
+      'Bairro',
+      'Município',
+      'UF',
+      'CEP',
+      'Acompanhante',
+      'Procedência'
+    ];
+    campos.forEach(campo => {
+      doc.text(`${campo}:`, 20, yPosition);
+      doc.line(45, yPosition + 1, 190, yPosition + 1); // linha para preenchimento manual
+      yPosition += lineHeight;
+    });
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Gerado em branco para preenchimento manual. Sistema e-Prontuário Aliança-PE', 20, 280);
+
+    doc.save('ficha-paciente-em-branco.pdf');
+  }
   pageSizeOptions = [5, 10, 25, 50];
   pageSize = 10;
   currentPage = 0;
