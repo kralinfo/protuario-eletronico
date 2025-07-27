@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AtendimentoService } from '../services/atendimento.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
 
@@ -21,7 +23,7 @@ export class AtendimentosDiaComponent implements OnInit {
   pageSizeOptions = [5, 10, 20, 50];
   loading = false;
 
-  constructor(private atendimentoService: AtendimentoService) {}
+  constructor(private atendimentoService: AtendimentoService, private dialog: MatDialog) {}
 
   ngOnInit() {
     this.carregarAtendimentos();
@@ -78,14 +80,31 @@ export class AtendimentosDiaComponent implements OnInit {
   }
 
   editarAtendimento(atendimento: any) {
-    // Implementar lógica de edição se necessário
+    // Exemplo: navegar para tela de edição ou abrir modal
+    // this.router.navigate(['/atendimentos/editar', atendimento.id]);
+    alert('Função de edição de atendimento ainda não implementada.');
   }
 
   imprimirAtendimentoPDF(atendimento: any) {
-    // Implementar lógica de impressão PDF se necessário
+    // Exemplo: gerar PDF simples
+    const doc = new (window as any).jsPDF();
+    doc.text(`Ficha de Atendimento\n\nPaciente: ${atendimento.paciente_nome}\nMotivo: ${atendimento.motivo}\nData: ${atendimento.data_hora_atendimento}\nStatus: ${atendimento.status}`, 10, 10);
+    doc.save(`atendimento_${atendimento.id}.pdf`);
   }
 
   removerAtendimento(id: number) {
-    // Implementar lógica de remoção se necessário
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Confirmar exclusão',
+        message: 'Deseja realmente remover este atendimento?'
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.atendimentoService.removerAtendimento(id).subscribe(() => {
+          this.carregarAtendimentos();
+        });
+      }
+    });
   }
 }

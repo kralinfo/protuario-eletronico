@@ -55,4 +55,13 @@ const listarDoDia = async (req, res) => {
   res.json(result.rows);
 };
 
-export default { registrar, listarPorPaciente, listarDoDia, atualizarStatus };
+const remover = async (req, res) => {
+  const { id } = req.params;
+  const result = await db.query('DELETE FROM atendimentos WHERE id = $1 RETURNING *', [id]);
+  if (result.rowCount === 0) {
+    return res.status(404).json({ error: 'Atendimento não encontrado.' });
+  }
+  return res.json({ success: true });
+};
+
+export default { registrar, listarPorPaciente, listarDoDia, atualizarStatus, remover };
