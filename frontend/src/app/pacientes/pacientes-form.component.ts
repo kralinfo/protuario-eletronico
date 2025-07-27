@@ -38,8 +38,8 @@ import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validat
   standalone: false,
 })
 export class PacientesFormComponent
-  implements OnInit, OnDestroy
-{
+  implements OnInit, OnDestroy {
+    idade: number | null = null;
   // ...existing code...
   @Output() fechar = new EventEmitter<any>();
   @Input() pacienteEditando: Paciente | null = null;
@@ -126,6 +126,21 @@ export class PacientesFormComponent
   }
 
   ngOnInit() {
+    // Atualiza idade ao alterar nascimento
+    this.form.get('nascimento')?.valueChanges.subscribe((valor: string) => {
+      if (valor) {
+        const hoje = new Date();
+        const nasc = new Date(valor);
+        let idade = hoje.getFullYear() - nasc.getFullYear();
+        const m = hoje.getMonth() - nasc.getMonth();
+        if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
+          idade--;
+        }
+        this.idade = idade >= 0 ? idade : null;
+      } else {
+        this.idade = null;
+      }
+    });
     // Depuração: loga o objeto do formulário a cada alteração
     this.form.valueChanges.subscribe(() => {
       console.log('Form value:', this.form.value);
@@ -504,6 +519,7 @@ export class PacientesFormComponent
             <span class="label">Nome:</span> ${paciente.nome || ''}<br />
             <span class="label">Nome da Mãe:</span> ${paciente.mae || ''}<br />
             <span class="label">Data de Nascimento:</span> ${paciente.nascimento ? new Date(paciente.nascimento).toLocaleDateString('pt-BR') : ''}<br />
+            <span class="label">Idade:</span> ${this.idade !== null ? this.idade + ' anos' : ''}<br />
             <span class="label">Sexo:</span> ${this.formatarSexo(paciente.sexo) || ''}<br />
             <span class="label">Telefone:</span> ${paciente.telefone || ''}<br />
             <span class="label">Cartão SUS:</span> ${paciente.sus || ''}<br />
