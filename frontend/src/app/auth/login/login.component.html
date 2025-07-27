@@ -24,7 +24,7 @@
           <p class="text-gray-600 text-sm">Entre com suas credenciais para continuar</p>
         </div>
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6" autocomplete="off">
           <!-- Campo Email -->
           <div class="relative">
             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
@@ -32,9 +32,12 @@
               <input
                 id="email"
                 type="email"
-                formControlName="email"
+                formControlName="user_email"
                 placeholder="Digite seu e-mail"
-                autocomplete="email"
+                autocomplete="new-email"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
                 (blur)="onEmailBlur()"
                 class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
                 [class.border-red-500]="loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)"
@@ -61,10 +64,15 @@
               <input
                 id="senha"
                 [type]="hidePassword ? 'password' : 'text'"
-                formControlName="senha"
+                formControlName="user_senha"
                 placeholder="Digite sua senha"
-                autocomplete="current-password"
+                autocomplete="new-password"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                (blur)="onSenhaBlur()"
                 class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                [disabled]="!loginForm.get('email')?.valid"
                 [class.border-red-500]="loginForm.get('senha')?.invalid && (loginForm.get('senha')?.dirty || loginForm.get('senha')?.touched)"
                 [class.focus:ring-red-500]="loginForm.get('senha')?.invalid && (loginForm.get('senha')?.dirty || loginForm.get('senha')?.touched)"
               >
@@ -94,8 +102,9 @@
             <select id="modulo" formControlName="modulo" required
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
               [ngClass]="loginForm.get('modulo')?.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'"
+               [disabled]="!loginForm.get('senha')?.valid"
             >
-              <option value="" disabled selected hidden>Selecione</option>
+              <option value="" *ngIf="availableModules.length > 1">Selecione</option>
               <option *ngFor="let modulo of availableModules" [value]="modulo">{{ modulo | titlecase }}</option>
             </select>
           </div>
@@ -112,7 +121,7 @@
           <button
             type="submit"
             class="w-full flex justify-center items-center px-4 py-3 text-sm font-semibold rounded-lg text-white btn-login-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
-            [disabled]="loading || loginForm.invalid">
+            [disabled]="loading || !loginForm.get('user_email')?.valid || !loginForm.get('user_senha')?.valid || !loginForm.get('modulo')?.value">
 
             <svg *ngIf="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

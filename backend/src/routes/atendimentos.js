@@ -8,5 +8,6 @@ router.post('/', controller.registrar);
 router.get('/', controller.listarDoDia); // Novo endpoint para atendimentos do dia
 router.get('/:pacienteId', controller.listarPorPaciente);
 router.patch('/:id/status', controller.atualizarStatus);
+router.delete('/:id', controller.remover);
 
 export default router;

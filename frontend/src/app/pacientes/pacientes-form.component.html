@@ -43,8 +43,8 @@
         >
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Nome</label
-            >
+              >Nome <span class="text-red-600">*</span></label>
+
             <input
               type="text"
               formControlName="nome"
@@ -75,19 +75,18 @@
           </div>
           <div class="lg:col-span-1">
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Telefone</label
-            >
+              >Telefone</label>
             <input
               type="text"
               formControlName="telefone"
+              mask="(00) 00000-0000"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               placeholder="(99) 99999-9999"
             />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Nome da mãe <span class="text-red-600">*</span></label
-            >
+              >Nome da mãe <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="mae"
@@ -106,8 +105,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Data de Nascimento <span class="text-red-600">*</span></label
-            >
+              >Data de Nascimento <span class="text-red-600">*</span></label>
             <input
               type="date"
               formControlName="nascimento"
@@ -138,8 +136,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Sexo <span class="text-red-600">*</span></label
-            >
+              >Sexo <span class="text-red-600">*</span></label>
             <select
               formControlName="sexo"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
@@ -161,8 +158,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Estado Civil</label
-            >
+              >Estado Civil</label>
             <select
               formControlName="estadoCivil"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
@@ -177,8 +173,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Profissão</label
-            >
+              >Profissão</label>
             <input
               type="text"
               formControlName="profissao"
@@ -188,8 +183,7 @@
           <!-- Escolaridade -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Escolaridade</label
-            >
+              >Escolaridade</label>
             <select
               formControlName="escolaridade"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
@@ -220,24 +214,23 @@
           <!-- Cartão SUS -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Cartão SUS</label
-            >
+              >Cartão SUS</label>
             <input
               type="text"
               formControlName="sus"
-              mask="000 0000 0000 000"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               placeholder="Número do Cartão SUS"
+              inputmode="numeric"
+              pattern="[0-9]*"
             />
-            <mat-error *ngIf="form.get('cns')?.hasError('cnsInvalido')">
+            <mat-error *ngIf="form.get('sus')?.hasError('susInvalido')">
               Cartão SUS inválido.
             </mat-error>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Raça/Cor</label
-            >
+              >Raça/Cor</label>
             <select
               formControlName="raca"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
@@ -253,8 +246,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Endereço</label
-            >
+              >Endereço <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="endereco"
@@ -264,8 +256,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Bairro</label
-            >
+              >Bairro <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="bairro"
@@ -276,8 +267,7 @@
           <!-- UF -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >UF</label
-            >
+              >UF <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="uf"
@@ -290,8 +280,7 @@
           <!-- CEP -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >CEP <span class="text-red-600">*</span></label
-            >
+              >CEP <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="cep"
@@ -311,8 +300,7 @@
           <!-- Município (preenchido automaticamente) -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Município</label
-            >
+              >Município <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="municipio"
@@ -329,9 +317,10 @@
         >
           Já existe paciente com este nome, nome da mãe e data de nascimento.
         </div>
-        <div
-          class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 justify-between items-stretch sm:items-center"
-        >
+        <!-- Fim do grid de campos -->
+      <div
+        class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 justify-between items-stretch sm:items-center"
+      >
           <button
             type="submit"
             class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
@@ -372,11 +361,11 @@
           </button>
           <button
             type="button"
-            class="w-full sm:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold shadow hover:bg-purple-700 transition flex items-center justify-center disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+            class="w-full sm:w-auto px-6 py-3 bg-yellow-400 text-black rounded-lg font-semibold shadow hover:bg-yellow-500 transition flex items-center justify-center disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
             (click)="imprimirPacientePDF()"
             [disabled]="form.invalid || form.pending || loading"
           >
-            Gerar PDF
+            Imprimir
           </button>
         </div>
       </form>
