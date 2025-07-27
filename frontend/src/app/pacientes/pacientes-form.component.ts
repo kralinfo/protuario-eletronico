@@ -41,7 +41,7 @@ export class PacientesFormComponent
   implements OnInit, OnDestroy
 {
   // ...existing code...
-  @Output() fechar = new EventEmitter<void>();
+  @Output() fechar = new EventEmitter<any>();
   @Input() pacienteEditando: Paciente | null = null;
   form: FormGroup;
   loading = false;
@@ -434,7 +434,7 @@ export class PacientesFormComponent
       });
     } else {
       this.http.post(this.apiUrl, paciente).subscribe({
-        next: () => {
+        next: (res: any) => {
           this.loading = false;
           const dialogRef = this.dialog.open(FeedbackDialogComponent, {
             data: {
@@ -445,8 +445,8 @@ export class PacientesFormComponent
             panelClass: 'success',
           });
           setTimeout(() => dialogRef.close(), 3000);
-          // Fecha o modal após cadastrar
-          this.fechar.emit();
+          // Fecha o modal após cadastrar e envia o paciente cadastrado
+          this.fechar.emit(res?.data ? res.data : paciente);
         },
         error: (err) => {
           this.loading = false;

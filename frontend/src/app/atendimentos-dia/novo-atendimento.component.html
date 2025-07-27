@@ -97,5 +97,5 @@
       <div *ngIf="mensagem" class="text-sm text-green-700 mt-2 md:col-span-2">{{ mensagem }}</div>
     </form>
   </div>
-  <app-pacientes-form *ngIf="exibirCadastroPaciente" (fechar)="fecharCadastroPaciente()"></app-pacientes-form>
+  <app-pacientes-form *ngIf="exibirCadastroPaciente" (fechar)="onPacienteCadastrado($event)"></app-pacientes-form>
 </div>

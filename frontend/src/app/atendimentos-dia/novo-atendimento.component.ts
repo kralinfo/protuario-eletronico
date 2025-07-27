@@ -78,6 +78,13 @@ export class NovoAtendimentoComponent {
     this.exibirCadastroPaciente = false;
   }
 
+  onPacienteCadastrado(paciente: any) {
+    this.exibirCadastroPaciente = false;
+    if (paciente) {
+      this.selecionarPaciente(paciente);
+    }
+  }
+
   filtrarPacientes(filtro: string) {
     filtro = filtro?.trim();
     if (filtro && filtro.length > 1) {
