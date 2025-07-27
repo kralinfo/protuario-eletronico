@@ -91,4 +91,26 @@ router.get('/verify',
   AuthController.verifyToken
 );
 
+/**
+ * @route POST /api/validate-reset-token
+ * @desc Valida o token de redefinição de senha
+ * @access Public
+ */
+router.post('/validate-reset-token',
+  authRateLimit,
+  sanitizeInput,
+  AuthController.validateResetToken
+);
+
+/**
+ * @route POST /api/reset-password
+ * @desc Redefinir senha usando token de recuperação
+ * @access Public
+ */
+router.post('/reset-password',
+  authRateLimit,
+  sanitizeInput,
+  AuthController.resetPassword
+);
+
 export default router;

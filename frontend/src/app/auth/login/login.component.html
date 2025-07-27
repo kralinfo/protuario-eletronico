@@ -104,7 +104,7 @@
               [ngClass]="loginForm.get('modulo')?.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'"
                [disabled]="!loginForm.get('senha')?.valid"
             >
-              <option *ngIf="!modulesLoaded || availableModules.length === 0" value="">Selecione um módulo</option>
+              <option value="" *ngIf="availableModules.length > 1">Selecione</option>
               <option *ngFor="let modulo of availableModules" [value]="modulo">{{ modulo | titlecase }}</option>
             </select>
           </div>
