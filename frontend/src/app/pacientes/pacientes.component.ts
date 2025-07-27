@@ -249,6 +249,21 @@ export class PacientesComponent implements OnInit, AfterViewInit {
     doc.text(`Data de Nascimento: ${new Date(paciente.nascimento).toLocaleDateString('pt-BR')}`, 20, yPosition);
     yPosition += lineHeight;
 
+    // Cálculo da idade
+    let idadeTexto = '';
+    if (paciente.nascimento) {
+      const nascimentoDate = new Date(paciente.nascimento);
+      const hoje = new Date();
+      let idade = hoje.getFullYear() - nascimentoDate.getFullYear();
+      const m = hoje.getMonth() - nascimentoDate.getMonth();
+      if (m < 0 || (m === 0 && hoje.getDate() < nascimentoDate.getDate())) {
+        idade--;
+      }
+      idadeTexto = idade + ' anos';
+    }
+    doc.text(`Idade: ${idadeTexto}`, 20, yPosition);
+    yPosition += lineHeight;
+
     doc.text(`Sexo: ${this.formatarSexo(paciente.sexo)}`, 20, yPosition);
     yPosition += lineHeight;
 
