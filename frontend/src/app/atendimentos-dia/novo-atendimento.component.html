@@ -1,8 +1,8 @@
 <div class="min-h-screen bg-gray-50 flex flex-col items-center py-10">
   <h2 class="text-2xl font-bold text-blue-700 mb-6">Novo Atendimento</h2>
   <div class="w-full max-w-xl bg-white rounded-lg shadow p-6">
-    <form (ngSubmit)="registrar()" class="space-y-6">
-      <div>
+    <form (ngSubmit)="registrar()" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="md:col-span-2">
         <label for="paciente" class="block text-sm font-medium text-gray-700 mb-1">Pesquisar paciente</label>
         <input id="paciente" [(ngModel)]="filtroPaciente" name="filtroPaciente" placeholder="Digite o nome do paciente..." class="border rounded px-3 py-2 w-full disabled-input" (ngModelChange)="onFiltroPacienteChange()" />
         <div *ngIf="pacientesFiltrados.length > 0" class="mt-2">
@@ -20,20 +20,9 @@
         <label for="horario" class="block text-sm font-medium text-gray-700 mb-1">Horário do atendimento</label>
         <input id="horario" name="horario" type="time" class="border rounded px-3 py-2 w-full" [(ngModel)]="horario" required />
       </div>
-      <div *ngIf="pacienteSelecionado">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Paciente selecionado</label>
-        <div class="p-3 bg-gray-100 rounded mb-2">
-          <strong>{{ pacienteSelecionado.nome }}</strong><br>
-          <span class="text-xs text-gray-500">{{ pacienteSelecionado.nascimento | date:'dd/MM/yyyy' }}</span>
-        </div>
-      </div>
       <div>
         <label for="motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo do atendimento</label>
         <input id="motivo" [(ngModel)]="motivo" name="motivo" required class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" />
-      </div>
-      <div>
-        <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-        <textarea id="observacoes" [(ngModel)]="observacoes" name="observacoes" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado"></textarea>
       </div>
       <div>
         <label for="acompanhante" class="block text-sm font-medium text-gray-700 mb-1">Acompanhante</label>
@@ -54,26 +43,37 @@
           <option value="interrompido">Interrompido</option>
         </select>
       </div>
-      <div *ngIf="status === 'interrompido'">
+      <div>
+        <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+        <textarea id="observacoes" [(ngModel)]="observacoes" name="observacoes" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado"></textarea>
+      </div>
+      <div *ngIf="pacienteSelecionado" class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Paciente selecionado</label>
+        <div class="p-3 bg-gray-100 rounded mb-2">
+          <strong>{{ pacienteSelecionado.nome }}</strong><br>
+          <span class="text-xs text-gray-500">{{ pacienteSelecionado.nascimento | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+      <div *ngIf="status === 'interrompido'" class="md:col-span-2">
         <label for="motivo_interrupcao" class="block text-sm font-medium text-gray-700 mb-1">Motivo da Interrupção</label>
         <input id="motivo_interrupcao" [(ngModel)]="motivo_interrupcao" name="motivo_interrupcao" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" required />
-<style>
-  .disabled-input:disabled {
-    background: #f3f3f3 !important;
-    color: #bdbdbd !important;
-    border-color: #e0e0e0 !important;
-    cursor: not-allowed;
-    opacity: 1;
-  }
-</style>
       </div>
-      <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow hover:bg-blue-700 transition" [disabled]="!pacienteSelecionado">Registrar Atendimento</button>
+      <style>
+        .disabled-input:disabled {
+          background: #f3f3f3 !important;
+          color: #bdbdbd !important;
+          border-color: #e0e0e0 !important;
+          cursor: not-allowed;
+          opacity: 1;
+        }
+      </style>
+      <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow hover:bg-blue-700 transition md:col-span-2" [disabled]="!pacienteSelecionado">Registrar Atendimento</button>
       <button type="button"
-        class="w-full py-2 px-4 bg-yellow-400 text-black font-semibold rounded-md shadow hover:bg-yellow-500 transition mt-2"
+        class="w-full py-2 px-4 bg-yellow-400 text-black font-semibold rounded-md shadow hover:bg-yellow-500 transition mt-2 md:col-span-2"
         (click)="gerarPDF()" [disabled]="!pacienteSelecionado">
         Imprimir
       </button>
-      <div *ngIf="mensagem" class="text-sm text-green-700 mt-2">{{ mensagem }}</div>
+      <div *ngIf="mensagem" class="text-sm text-green-700 mt-2 md:col-span-2">{{ mensagem }}</div>
     </form>
   </div>
   <app-pacientes-form *ngIf="exibirCadastroPaciente" (fechar)="fecharCadastroPaciente()"></app-pacientes-form>
