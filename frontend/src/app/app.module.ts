@@ -1,3 +1,4 @@
+import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
@@ -21,20 +22,20 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSelectModule } from '@angular/material/select';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from './shared/feedback-dialog.component';
-import { CommonModule } from '@angular/common';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './auth/auth.interceptor';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HomeComponent } from './home/home.component';
-import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
-import { DateInputLimiterDirective } from './shared/directives/data.directive';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
+import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
+
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.co
     RelatoriosComponent,
     UsuariosComponent,
     HomeComponent,
-    AtendimentosDiaComponent
+    AtendimentosDiaComponent,
+    RedefinirSenhaComponent
   ],
   imports: [
     BrowserModule,
@@ -66,16 +68,12 @@ import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.co
     MatSelectModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatMenuModule,
     MatCardModule,
     MatTooltipModule,
-    CommonModule,
-    FormsModule,
-    RelatorioAtendimentosComponent,
-    DateInputLimiterDirective,
     // Remover diretivas e componentes dos imports, manter apenas módulos
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
-    MatMenuModule,
   ],
   providers: [
     {

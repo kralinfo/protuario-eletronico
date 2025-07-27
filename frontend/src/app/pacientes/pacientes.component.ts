@@ -28,7 +28,6 @@ export interface Paciente {
   cep: string;
   acompanhante: string;
   procedencia: string;
-  idade?: string;
 }
 
 @Component({

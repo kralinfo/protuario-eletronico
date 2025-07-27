@@ -382,6 +382,54 @@ app.post('/api/forgot-password', async (req, res) => {
   }
 });
 
+// Endpoint para validar token de redefinição de senha
+app.post('/api/validate-reset-token', async (req, res) => {
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+  const now = new Date().toISOString();
+  console.log(`🔑 [LOG] /api/validate-reset-token | ${now} | IP: ${ip} | Body:`, req.body);
+  const { token } = req.body;
+  if (!token) {
+    return res.status(400).json({ error: 'Token não informado' });
+  }
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.type !== 'password-reset') {
+      return res.status(400).json({ error: 'Tipo de token inválido' });
+    }
+    res.json({ valid: true, userId: payload.userId, email: payload.email });
+  } catch (err) {
+    res.status(401).json({ error: 'Token inválido ou expirado' });
+  }
+});
+
+// Endpoint para redefinir a senha usando o token
+app.post('/api/reset-password', async (req, res) => {
+  const { token, senha } = req.body;
+  if (!token || !senha) {
+    return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+  }
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.type !== 'password-reset') {
+      return res.status(400).json({ error: 'Tipo de token inválido' });
+    }
+    if (!payload.userId) {
+      return res.status(400).json({ error: 'Token inválido: usuário não encontrado' });
+    }
+    if (senha.length < 6) {
+      return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' });
+    }
+    const senhaHash = await bcrypt.hash(senha, 10);
+    const result = await pool.query('UPDATE usuarios SET senha = $1 WHERE id = $2 RETURNING id, email, nome', [senhaHash, payload.userId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    res.json({ message: 'Senha redefinida com sucesso' });
+  } catch (err) {
+    res.status(401).json({ error: 'Token inválido ou expirado' });
+  }
+});
+
 // Executa o script de criação da tabela ao iniciar o backend (apenas em ambiente de desenvolvimento)
 if (process.env.NODE_ENV === 'development') {
   const initSql = fs.readFileSync(new URL('../init.sql', import.meta.url), 'utf8');

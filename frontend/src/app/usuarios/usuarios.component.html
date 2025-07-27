@@ -2,11 +2,20 @@
 
 <div class="w-full p-2 sm:p-4">
   <h2 class="text-2xl font-bold mb-6 text-blue-700">Usuários</h2>
-  <div class="flex flex-col sm:flex-row gap-4 sm:gap-8 w-full">
-    <div class="flex flex-col w-full items-start gap-4 sm:gap-8 align-top-fix">
+  <div class="flex flex-row w-full items-start gap-4 sm:gap-8 align-top-fix">
+    <div class="flex flex-row w-full items-start gap-4 sm:gap-8 align-top-fix">
       <!-- Modal e Formulário à esquerda -->
-      <div class="w-full sm:w-[420px] self-start">
+      <div class="w-full sm:w-[420px] self-start flex-shrink-0">
         <!-- Modal de confirmação de edição -->
+        <style>
+          .altura-tabela-usuarios {
+            height: 612px;
+            max-height: 612px;
+            min-height: 612px;
+            display: flex;
+            flex-direction: column;
+          }
+        </style>
         <!-- Modal de sucesso removido, agora é feito via MatDialog -->
         <div *ngIf="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
@@ -186,19 +195,10 @@
           </div>
               <!-- Rodapé duplicado removido -->
             </div>
-            <div class="flex items-center gap-2">
-              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Primeira página" (click)="goToUserFirstPage()" [disabled]="userCurrentPage === 0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Página anterior" (click)="goToUserPreviousPage()" [disabled]="userCurrentPage === 0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Próxima página" (click)="goToUserNextPage()" [disabled]="userCurrentPage >= userTotalPages - 1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-              </button>
-              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Última página" (click)="goToUserLastPage()" [disabled]="userCurrentPage >= userTotalPages - 1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-              </button>
+            <!-- Empty state -->
+            <div *ngIf="filteredUsuarios.length === 0" class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6" /></svg>
+              <p class="text-lg">Nenhum usuário encontrado</p>
             </div>
           </div>
         </div>
