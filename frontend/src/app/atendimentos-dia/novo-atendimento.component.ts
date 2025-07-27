@@ -81,6 +81,14 @@ export class NovoAtendimentoComponent {
   onPacienteCadastrado(paciente: any) {
     this.exibirCadastroPaciente = false;
     if (paciente) {
+      // Garante que o nome esteja presente e não vazio
+      if ((!paciente.nome || paciente.nome.trim() === '') && paciente.NOME) {
+        paciente.nome = paciente.NOME;
+      }
+      // Se ainda estiver vazio, tenta buscar por outros campos comuns
+      if (!paciente.nome || paciente.nome.trim() === '') {
+        paciente.nome = paciente.nome || paciente.nome_completo || paciente.nomePaciente || '';
+      }
       this.selecionarPaciente(paciente);
     }
   }
