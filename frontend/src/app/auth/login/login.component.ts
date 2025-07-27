@@ -149,6 +149,14 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/']);
     }
+    // Exibe mensagem de erro vinda da redefinição de senha (link expirado)
+    this.router.routerState.root.queryParams.subscribe(params => {
+      if (params['error']) {
+        this.errorMessage = params['error'];
+        // Remove o parâmetro da URL para evitar reexibição
+        this.router.navigate([], { queryParams: { error: null }, queryParamsHandling: 'merge' });
+      }
+    });
     // Garante seleção automática do módulo se só houver uma opção ao iniciar
     setTimeout(() => {
       const senhaValida = this.loginForm.get('user_senha')?.valid;
