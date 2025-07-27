@@ -18,6 +18,21 @@ import * as jsPDF from 'jspdf';
   standalone: false,
 })
 export class NovoAtendimentoComponent {
+  motivosPossiveis: string[] = [
+    'Consulta médica',
+    'Retorno',
+    'Avaliação',
+    'Emergência',
+    'Triagem',
+    'Vacinação',
+    'Orientação',
+    'Encaminhamento',
+    'Sutura',
+    'Curativo',
+    'Retirada de pontos',
+    'Administração de medicação',
+    'Outro'
+  ];
   goBack() {
     window.history.back();
   }

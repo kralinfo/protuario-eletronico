@@ -32,7 +32,10 @@
       </div>
       <div>
         <label for="motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo do atendimento</label>
-        <input id="motivo" [(ngModel)]="motivo" name="motivo" required class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" />
+        <select id="motivo" [(ngModel)]="motivo" name="motivo" required class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado">
+          <option value="" disabled selected>Selecione o motivo</option>
+          <option *ngFor="let m of motivosPossiveis" [value]="m">{{ m }}</option>
+        </select>
       </div>
       <div>
         <label for="acompanhante" class="block text-sm font-medium text-gray-700 mb-1">Acompanhante</label>
