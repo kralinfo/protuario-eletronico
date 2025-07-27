@@ -40,7 +40,23 @@ const listarPorPaciente = async (req, res) => {
 };
 
 const listarDoDia = async (req, res) => {
-  // Busca atendimentos do dia atual
+  // Se vier pacienteId e data, filtra por ambos
+  const { pacienteId, data } = req.query;
+  if (pacienteId && data) {
+    // data no formato yyyy-mm-dd
+    const inicio = new Date(data + 'T00:00:00');
+    const fim = new Date(data + 'T23:59:59');
+    const result = await db.query(
+      `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       WHERE a.paciente_id = $1 AND a.data_hora_atendimento BETWEEN $2 AND $3
+       ORDER BY a.data_hora_atendimento DESC`,
+      [pacienteId, inicio, fim]
+    );
+    return res.json(result.rows);
+  }
+  // Busca atendimentos do dia atual (sem filtro)
   const hoje = new Date();
   const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0);
   const fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59);
