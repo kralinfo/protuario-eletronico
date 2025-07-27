@@ -1,3 +1,4 @@
+
 import { Component, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -17,6 +18,9 @@ import * as jsPDF from 'jspdf';
   standalone: false,
 })
 export class NovoAtendimentoComponent {
+  goBack() {
+    window.history.back();
+  }
   filtroPaciente: string = '';
   pacientesFiltrados: any[] = [];
   pacienteSelecionado: any = null;
