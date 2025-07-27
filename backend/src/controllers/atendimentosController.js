@@ -2,7 +2,7 @@ import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
 
 const registrar = async (req, res) => {
-  const { pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao, data_hora_chegada } = req.body;
+  const { pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao } = req.body;
   if (!pacienteId || !motivo) {
     return res.status(400).json({ error: 'pacienteId e motivo são obrigatórios.' });
   }
@@ -12,7 +12,7 @@ const registrar = async (req, res) => {
     return res.status(404).json({ error: 'Paciente não encontrado.' });
   }
   // Cria atendimento
-  const atendimento = await Atendimento.criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao, data_hora_chegada });
+  const atendimento = await Atendimento.criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status, motivo_interrupcao });
   return res.status(201).json(atendimento);
 };
 
@@ -48,8 +48,8 @@ const listarDoDia = async (req, res) => {
     `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento
      FROM atendimentos a
      JOIN pacientes p ON p.id = a.paciente_id
-     WHERE a.data_hora_chegada BETWEEN $1 AND $2
-     ORDER BY a.data_hora_chegada DESC`,
+     WHERE a.data_hora_atendimento BETWEEN $1 AND $2
+     ORDER BY a.data_hora_atendimento DESC`,
     [inicio, fim]
   );
   res.json(result.rows);
