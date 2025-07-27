@@ -55,7 +55,7 @@ export const validatePaciente = [
   body('sexo')
     .optional()
     .isIn(['M', 'F', 'I'])
-    .withMessage('Sexo deve ser M ou F'),
+    .withMessage('Sexo deve ser M, F ou I'),
   body('email')
     .optional()
     .isEmail()
@@ -105,7 +105,7 @@ export const validateRelatorio = [
   query('sexo')
     .optional()
     .isIn(['M', 'F', 'I'])
-    .withMessage('Sexo deve ser M ou F'),
+    .withMessage('Sexo deve ser M, F ou I'),
   query('procedencia')
     .optional()
     .isIn(['Emergência', 'Ambulatorial', 'Internação'])

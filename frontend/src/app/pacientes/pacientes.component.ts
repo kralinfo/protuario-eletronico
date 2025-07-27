@@ -190,6 +190,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
     this.pacienteEditando = null;
     this.novoPaciente = { nome: '', mae: '', nascimento: '', sexo: '', estadoCivil: '', profissao: '', escolaridade: '', raca: '', endereco: '', bairro: '', municipio: '', uf: '', cep: '', acompanhante: '', procedencia: '' };
     this.exibirFormulario = false;
+    this.listarPacientes();
     this.cdr.detectChanges();
   }
 
