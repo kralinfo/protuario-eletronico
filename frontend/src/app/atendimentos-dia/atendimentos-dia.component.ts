@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AtendimentoService } from '../services/atendimento.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
+import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
 
@@ -101,8 +102,28 @@ export class AtendimentosDiaComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.atendimentoService.removerAtendimento(id).subscribe(() => {
-          this.carregarAtendimentos();
+        this.atendimentoService.removerAtendimento(id).subscribe({
+          next: () => {
+            this.carregarAtendimentos();
+            const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+              data: {
+                title: 'Sucesso',
+                message: 'Atendimento excluído com sucesso!',
+                type: 'success'
+              }
+            });
+            setTimeout(() => dialogRef.close(), 1800);
+          },
+          error: () => {
+            const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+              data: {
+                title: 'Erro',
+                message: 'Falha ao excluir atendimento. Tente novamente.',
+                type: 'error'
+              }
+            });
+            setTimeout(() => dialogRef.close(), 2200);
+          }
         });
       }
     });
