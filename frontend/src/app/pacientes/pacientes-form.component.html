@@ -324,7 +324,7 @@
       >
           <button
             type="submit"
-            class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
+            class="w-full sm:w-48 h-12 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
             [disabled]="form.invalid || form.pending || loading"
           >
             <span *ngIf="!loading">{{
@@ -354,7 +354,7 @@
           </button>
           <button
             type="button"
-            class="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition flex items-center justify-center"
+            class="w-full sm:w-48 h-12 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition flex items-center justify-center"
             (click)="cancelar()"
             [disabled]="loading"
           >
@@ -362,7 +362,7 @@
           </button>
           <button
             type="button"
-            class="w-full sm:w-auto px-6 py-3 bg-yellow-400 text-black rounded-lg font-semibold shadow hover:bg-yellow-500 transition flex items-center justify-center disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+            class="w-full sm:w-48 h-12 px-6 py-3 bg-yellow-400 text-black rounded-lg font-semibold shadow hover:bg-yellow-500 transition flex items-center justify-center disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
             (click)="imprimirPacientePDF()"
             [disabled]="form.invalid || form.pending || loading"
           >
