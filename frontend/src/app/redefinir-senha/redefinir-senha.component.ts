@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-redefinir-senha',
@@ -22,7 +23,8 @@ export class RedefinirSenhaComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.redefinirForm = this.fb.group({
       senha: ['', [Validators.required, Validators.minLength(6)]],
@@ -56,17 +58,22 @@ export class RedefinirSenhaComponent implements OnInit {
       },
       error: err => {
         // Se o erro for de link já utilizado, mostra mensagem de expirado
-        if (err.error?.error?.includes('já foi utilizado')) {
-          this.error = 'Este link de redefinição de senha já foi utilizado ou expirou.';
-        } else {
-          this.error = err.error?.message || 'Token inválido ou expirado.';
-        }
+        const msg = 'Este link de redefinição de senha já foi utilizado ou expirou. Solicite um novo link para redefinir sua senha.';
         this.loading = false;
+        // Desloga sem exibir dialog de sessão expirada, apenas redireciona para login com mensagem
+        this.authService.logout(); // apenas limpa sessão
+        setTimeout(() => {
+          this.router.navigate(['/login'], { queryParams: { error: msg } });
+        }, 0);
       }
     });
   }
 
   onSubmit() {
+    if (!this.tokenValido) {
+      this.error = 'Token inválido ou expirado.';
+      return;
+    }
     if (this.redefinirForm.invalid) {
       if (this.redefinirForm.errors?.['senhasDiferentes']) {
         this.error = 'As senhas não coincidem.';

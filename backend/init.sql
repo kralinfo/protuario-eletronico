@@ -18,7 +18,7 @@ CREATE TABLE pacientes (
   nome VARCHAR(100) NOT NULL,
   mae VARCHAR(100),
   nascimento DATE NOT NULL,
-  sexo VARCHAR(1),
+  sexo VARCHAR(1) CHECK (sexo IN ('M', 'F', 'I')),
   estado_civil VARCHAR(20),
   profissao VARCHAR(50),
   escolaridade VARCHAR(50),

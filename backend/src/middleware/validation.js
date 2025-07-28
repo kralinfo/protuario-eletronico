@@ -54,8 +54,8 @@ export const validatePaciente = [
     .withMessage('Data de nascimento deve estar no formato YYYY-MM-DD'),
   body('sexo')
     .optional()
-    .isIn(['M', 'F'])
-    .withMessage('Sexo deve ser M ou F'),
+    .isIn(['M', 'F', 'I'])
+    .withMessage('Sexo deve ser M, F ou I'),
   body('email')
     .optional()
     .isEmail()
@@ -104,8 +104,8 @@ export const validateRelatorio = [
     .withMessage('Data de fim deve estar no formato YYYY-MM-DD'),
   query('sexo')
     .optional()
-    .isIn(['M', 'F'])
-    .withMessage('Sexo deve ser M ou F'),
+    .isIn(['M', 'F', 'I'])
+    .withMessage('Sexo deve ser M, F ou I'),
   query('procedencia')
     .optional()
     .isIn(['Emergência', 'Ambulatorial', 'Internação'])
