@@ -30,8 +30,10 @@ export class AppComponent {
   }
 
   imprimirFichaAtendimentoEmBrancoGlobal() {
-    // Implemente aqui a lógica de impressão da ficha de atendimento em branco quando disponível
-    alert('Impressão da ficha de atendimento em branco ainda não implementada.');
+    // Chama a função de impressão da ficha de atendimento em branco
+    import('./atendimento/imprimir-ficha-atendimento-em-branco').then(mod => {
+      mod.imprimirFichaAtendimentoEmBranco();
+    });
   }
 
   constructor(public authService: AuthService, private router: Router, private dialog: MatDialog) {
