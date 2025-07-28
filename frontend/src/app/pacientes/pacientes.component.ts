@@ -67,12 +67,17 @@ export class PacientesComponent implements OnInit, AfterViewInit {
       // Título
       doc.setFontSize(13);
       doc.setFont('helvetica', 'bold');
-      doc.text('FICHA DE CADASTRO DO PACIENTE', 55, 40);
+      // Centralizar o texto no centro da folha A4 (210mm de largura)
+      const fichaTitulo = 'FICHA DE CADASTRO DO PACIENTE';
+      const fichaTituloW = doc.getTextWidth(fichaTitulo);
+      const pageWidth = 210; // largura da folha A4 em mm
+      const fichaTituloX = (pageWidth - fichaTituloW) / 2;
+      doc.text(fichaTitulo, fichaTituloX, 40);
 
       // Quadro principal externo
       const marginX = 20;
-      const quadroW = 170;
-      const quadroH = 215;
+      const quadroW = 180; // aumentado de 170 para 180
+      const quadroH = 235; // aumentado de 215 para 235
 
       doc.rect(marginX, 45, quadroW, quadroH, 'S');
 
@@ -151,42 +156,101 @@ export class PacientesComponent implements OnInit, AfterViewInit {
 
 
       // Estado Civil
+
+      // Estado Civil e Profissão na mesma linha
       doc.setFont('helvetica', 'bold');
       doc.text('Estado Civil:', labelX, y);
       doc.setFont('helvetica', 'normal');
       const estadoCivilW = 40;
       doc.rect(fieldX, y - fieldH + 3, estadoCivilW, fieldH, 'S');
-      y += gapY + fieldH;
 
-      // Profissão
+      // Profissão ao lado
+      const profissaoLabelX = fieldX + estadoCivilW + 8;
       doc.setFont('helvetica', 'bold');
-      doc.text('Profissão:', labelX, y);
+      doc.text('Profissão:', profissaoLabelX, y);
       doc.setFont('helvetica', 'normal');
-      doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
+      const profissaoFieldX = profissaoLabelX + 22;
+      const profissaoW = (fieldX + fieldW) - profissaoFieldX;
+      doc.rect(profissaoFieldX, y - fieldH + 3, profissaoW, fieldH, 'S');
       y += gapY + fieldH;
 
-      // Telefone
+      // Telefone e Escolaridade na mesma linha
       doc.setFont('helvetica', 'bold');
       doc.text('Telefone:', labelX, y);
       doc.setFont('helvetica', 'normal');
+      const telefoneW = 50;
+      doc.rect(fieldX, y - fieldH + 3, telefoneW, fieldH, 'S');
+
+      // Escolaridade ao lado
+      const escolaridadeLabelX = fieldX + telefoneW + 8;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Escolaridade:', escolaridadeLabelX, y);
+      doc.setFont('helvetica', 'normal');
+      const escolaridadeFieldX = escolaridadeLabelX + 28;
+      const escolaridadeW = (fieldX + fieldW) - escolaridadeFieldX;
+      doc.rect(escolaridadeFieldX, y - fieldH + 3, escolaridadeW, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Demais campos (sem repetição de Profissão, Telefone e Escolaridade)
+      // Raça/Cor com largura igual ao campo Telefone
+      doc.setFont('helvetica', 'bold');
+      doc.text('Raça/Cor:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      doc.rect(fieldX, y - fieldH + 3, 50, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Demais campos
+      // Endereço (linha única)
+      doc.setFont('helvetica', 'bold');
+      doc.text('Endereço:', labelX, y);
+      doc.setFont('helvetica', 'normal');
       doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
       y += gapY + fieldH;
 
+      // Bairro e CEP na mesma linha
 
-      // Cartão do SUS
+      // Bairro e UF na mesma linha
+      doc.setFont('helvetica', 'bold');
+      doc.text('Bairro:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      const bairroW = 60; // diminuído para 60mm
+      doc.rect(fieldX, y - fieldH + 3, bairroW, fieldH, 'S');
+
+      // O campo UF deve terminar alinhado com o final dos demais campos (fieldX + fieldW)
+      const ufW = 18; // mantém 18mm
+      const ufFieldX = fieldX + fieldW - ufW;
+      const ufLabelX = ufFieldX - 10; // espaço de 10mm antes do campo
+      doc.setFont('helvetica', 'bold');
+      doc.text('UF:', ufLabelX, y);
+      doc.setFont('helvetica', 'normal');
+      doc.rect(ufFieldX, y - fieldH + 3, ufW, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Demais campos
+      // Município e CEP na mesma linha
+      // Município e UF na mesma linha
+
+      // Município e CEP na mesma linha
+      doc.setFont('helvetica', 'bold');
+      doc.text('Município:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      const municipioW = 60;
+      doc.rect(fieldX, y - fieldH + 3, municipioW, fieldH, 'S');
+
+      const cep2LabelX = fieldX + municipioW + 8;
+      doc.setFont('helvetica', 'bold');
+      doc.text('CEP:', cep2LabelX, y);
+      doc.setFont('helvetica', 'normal');
+      const cep2FieldX = cep2LabelX + 13;
+      const cep2W = (fieldX + fieldW) - cep2FieldX;
+      doc.rect(cep2FieldX, y - fieldH + 3, cep2W, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // UF em linha separada
+
 
       // Demais campos
       const camposRestantes = [
-        'Profissão',
-        'Escolaridade',
-        'Telefone',
-        'Cartão SUS',
-        'Raça/Cor',
-        'Endereço',
-        'Bairro',
-        'Município',
-        'UF',
-        'CEP',
         'Acompanhante',
         'Procedência'
       ];
@@ -199,10 +263,9 @@ export class PacientesComponent implements OnInit, AfterViewInit {
       });
 
       // Rodapé
-      const rodapeYTopo = 235 + (quadroH - 200);
-      const rodapeAltura = (45 + quadroH) - rodapeYTopo;
+      // Assinatura do profissional mais próxima da borda inferior do quadro
       const assinaturaLabelX = marginX + 5;
-      const assinaturaY = rodapeYTopo + rodapeAltura / 2 - 1;
+      const assinaturaY = 45 + quadroH - 7; // agora 7mm acima da base do quadro
       const assinaturaLinhaX1 = assinaturaLabelX + 45;
       const assinaturaLinhaX2 = marginX + quadroW - 10;
       doc.setFontSize(9);
