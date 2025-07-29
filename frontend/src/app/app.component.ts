@@ -1,10 +1,10 @@
-
 import { Component, ViewChild, TemplateRef } from '@angular/core';
 import { PacientesComponent } from './pacientes/pacientes.component';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from './auth/auth.service';
 import { Router } from '@angular/router';
 import { MatMenu } from '@angular/material/menu';
+import { FeedbackDialogComponent } from './shared/feedback-dialog.component';
 
 @Component({
   selector: 'app-root',
@@ -36,11 +36,46 @@ export class AppComponent {
     });
   }
 
+  exibirSessaoExpiradaERedirecionar() {
+    const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+      width: '350px',
+      disableClose: true,
+      data: {
+        title: 'Sessão expirada',
+        message: 'Por segurança, sua sessão foi encerrada. Você será redirecionado para o login.',
+        type: 'error'
+      }
+    });
+    setTimeout(() => {
+      dialogRef.close();
+      this.router.navigate(['/login']);
+    }, 2500); // 2.5 segundos
+  }
+
   constructor(public authService: AuthService, private router: Router, private dialog: MatDialog) {
     this.currentUser = this.authService.user;
     this.authService.user$.subscribe(user => {
       this.currentUser = user;
     });
+    // Logout automático ao fechar aba ou navegador
+    window.addEventListener('beforeunload', () => {
+      this.authService.logout();
+      // Marca logout no localStorage para outras abas
+      localStorage.setItem('logout-event', Date.now().toString());
+    });
+    // Sincroniza logout entre abas/janelas
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'logout-event') {
+        this.authService.logout();
+        this.exibirSessaoExpiradaERedirecionar();
+      }
+    });
+    // Redireciona para login se não estiver autenticado ao abrir o app
+    setTimeout(() => {
+      if (!this.authService.isAuthenticated()) {
+        this.exibirSessaoExpiradaERedirecionar();
+      }
+    }, 0);
   }
 
   getNomeCurto(nomeCompleto: string): string {
