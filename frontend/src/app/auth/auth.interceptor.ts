@@ -25,10 +25,17 @@ export class AuthInterceptor implements HttpInterceptor {
         }
       });
     }
-
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 401 || error.status === 403) {
+        if ((error.status === 401 || error.status === 403)) {
+          // Verifica se é erro de recuperação de senha (token expirado ou já utilizado)
+          const isResetTokenError = request.url.includes('/validate-reset-token') || request.url.includes('/reset-password');
+          const msg = error.error?.message || error.error?.error || '';
+          if (isResetTokenError && (msg.includes('expirado') || msg.includes('utilizado'))) {
+            // Não exibe dialog de sessão expirada, deixa o fluxo do componente tratar
+            return throwError(() => error);
+          }
+          // Caso contrário, exibe dialog de sessão expirada
           const dialogRef = this.dialog.open(FeedbackDialogComponent, {
             data: {
               title: 'Sessão expirada',

@@ -400,20 +400,29 @@ export class UsuariosComponent implements OnInit {
 
   verificarEmailEmUso(email: string) {
     if (!email || !email.includes('@')) {
-      this.error = null;
+      // Não limpa erro de outras validações
       return;
     }
     this.http.get<any[]>(`${environment.apiUrl}/usuarios?email=${encodeURIComponent(email)}`).subscribe({
       next: (usuarios) => {
-        if (usuarios && usuarios.length > 0 && (!this.editandoUsuario || usuarios[0].id !== this.selectedUser?.id)) {
-          this.error = 'Email já está em uso';
-          setTimeout(() => { this.error = null; }, 3000);
+        // Se está editando, ignora o próprio usuário
+        const emailEmUso = usuarios && usuarios.length > 0 && (!this.editandoUsuario || usuarios[0].id !== this.selectedUser?.id);
+        if (emailEmUso) {
+          if (this.error !== 'Email já está em uso') {
+            this.error = 'Email já está em uso';
+            setTimeout(() => {
+              if (this.error === 'Email já está em uso') this.error = null;
+            }, 3000);
+          }
         } else {
-          this.error = null;
+          // Só limpa se não houver outros erros de validação
+          if (this.error === 'Email já está em uso') {
+            this.error = null;
+          }
         }
       },
       error: () => {
-        this.error = null;
+        // Não sobrescreve outros erros
       }
     });
   }

@@ -1,0 +1,3 @@
+ALTER TABLE pacientes
+  DROP COLUMN IF EXISTS telefone,
+  DROP COLUMN IF EXISTS sus;

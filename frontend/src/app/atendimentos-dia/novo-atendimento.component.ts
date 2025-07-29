@@ -18,6 +18,21 @@ import * as jsPDF from 'jspdf';
   standalone: false,
 })
 export class NovoAtendimentoComponent {
+  motivosPossiveis: string[] = [
+    'Consulta médica',
+    'Retorno',
+    'Avaliação',
+    'Emergência',
+    'Triagem',
+    'Vacinação',
+    'Orientação',
+    'Encaminhamento',
+    'Sutura',
+    'Curativo',
+    'Retirada de pontos',
+    'Administração de medicação',
+    'Outro'
+  ];
   goBack() {
     window.history.back();
   }
@@ -63,6 +78,21 @@ export class NovoAtendimentoComponent {
     this.exibirCadastroPaciente = false;
   }
 
+  onPacienteCadastrado(paciente: any) {
+    this.exibirCadastroPaciente = false;
+    if (paciente) {
+      // Garante que o nome esteja presente e não vazio
+      if ((!paciente.nome || paciente.nome.trim() === '') && paciente.NOME) {
+        paciente.nome = paciente.NOME;
+      }
+      // Se ainda estiver vazio, tenta buscar por outros campos comuns
+      if (!paciente.nome || paciente.nome.trim() === '') {
+        paciente.nome = paciente.nome || paciente.nome_completo || paciente.nomePaciente || '';
+      }
+      this.selecionarPaciente(paciente);
+    }
+  }
+
   filtrarPacientes(filtro: string) {
     filtro = filtro?.trim();
     if (filtro && filtro.length > 1) {
@@ -84,6 +114,32 @@ export class NovoAtendimentoComponent {
     this.pacienteSelecionado = paciente;
     this.filtroPaciente = paciente.nome;
     this.pacientesFiltrados = [];
+    // Verifica se já existe atendimento para o paciente hoje ao selecionar
+    const hoje = new Date().toISOString().slice(0, 10);
+    this.mensagem = '';
+    this.http.get<any>(`${environment.apiUrl}/atendimentos?pacienteId=${paciente.id}&data=${hoje}`)
+      .subscribe(
+        res => {
+          if (res && res.length > 0) {
+            const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+              data: {
+                title: 'Atenção',
+                message: 'Já existe atendimento registrado para este paciente na data de hoje. Deseja criar outro atendimento mesmo assim?'
+              }
+            });
+            dialogRef.afterClosed().subscribe(result => {
+              if (!result) {
+                // Usuário não quer prosseguir, limpa seleção
+                this.pacienteSelecionado = null;
+                this.filtroPaciente = '';
+              }
+            });
+          }
+        },
+        () => {
+          // Em caso de erro, não exibe mensagem
+        }
+      );
   }
 
   registrar() {
@@ -104,35 +160,19 @@ export class NovoAtendimentoComponent {
       status: this.status,
       motivo_interrupcao: this.status === 'interrompido' ? this.motivo_interrupcao : undefined
     };
-    // Verifica se já existe atendimento para o paciente hoje
-    const hoje = new Date().toISOString().slice(0, 10);
-    this.http.get<any>(`${environment.apiUrl}/atendimentos?pacienteId=${atendimento.pacienteId}&data=${hoje}`)
-      .subscribe(
-        res => {
-          if (res && res.length > 0) {
-            // Já existe atendimento hoje, perguntar ao usuário
-            const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-              data: {
-                title: 'Atenção',
-                message: 'Já existe atendimento registrado para este paciente na data de hoje. Deseja criar outro atendimento mesmo assim?'
-              }
-            });
-            dialogRef.afterClosed().subscribe(result => {
-              if (result) {
-                this.criarAtendimento(atendimento);
-              }
-              // Se não, não faz nada
-            });
-          } else {
-            // Não existe, pode criar direto
-            this.criarAtendimento(atendimento);
-          }
-        },
-        () => {
-          // Em caso de erro na verificação, permite criar
-          this.criarAtendimento(atendimento);
-        }
-      );
+    // Exibe dialog de confirmação antes de registrar
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Confirmação',
+        message: 'Registrar atendimento para este paciente?'
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.criarAtendimento(atendimento);
+      }
+      // Se não, apenas fecha o dialog
+    });
   }
 
   criarAtendimento(atendimento: any) {

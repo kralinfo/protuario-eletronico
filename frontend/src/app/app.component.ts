@@ -1,4 +1,6 @@
+
 import { Component, ViewChild, TemplateRef } from '@angular/core';
+import { PacientesComponent } from './pacientes/pacientes.component';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from './auth/auth.service';
 import { Router } from '@angular/router';
@@ -20,6 +22,17 @@ export class AppComponent {
   title = 'frontend';
   currentUser: any;
   isDarkMode = false;
+
+  imprimirFichaPacienteEmBrancoGlobal() {
+    // Cria uma instância temporária do PacientesComponent apenas para imprimir
+    const temp = new PacientesComponent(undefined as any, undefined as any, undefined as any, undefined as any, undefined as any);
+    temp.imprimirFichaPacienteEmBranco();
+  }
+
+  imprimirFichaAtendimentoEmBrancoGlobal() {
+    // Implemente aqui a lógica de impressão da ficha de atendimento em branco quando disponível
+    alert('Impressão da ficha de atendimento em branco ainda não implementada.');
+  }
 
   constructor(public authService: AuthService, private router: Router, private dialog: MatDialog) {
     this.currentUser = this.authService.user;

@@ -21,6 +21,21 @@
       <mat-icon>group</mat-icon>
       <span class="menu-label">Usuários</span>
     </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item [matMenuTriggerFor]="impressaoMenu">
+      <mat-icon>print</mat-icon>
+      <span class="menu-label">Impressão</span>
+    </button>
+    <mat-menu #impressaoMenu="matMenu">
+      <button mat-menu-item (click)="imprimirFichaPacienteEmBrancoGlobal()">
+        <mat-icon>print</mat-icon>
+        <span class="menu-label">Ficha de paciente em branco</span>
+      </button>
+      <button mat-menu-item (click)="imprimirFichaAtendimentoEmBrancoGlobal()">
+        <mat-icon>print</mat-icon>
+        <span class="menu-label">Ficha de atendimento em branco</span>
+      </button>
+    </mat-menu>
   </mat-menu>
   <mat-menu #relatorioMenu="matMenu">
     <button mat-menu-item routerLink="/relatorios" routerLinkActive="font-bold">
