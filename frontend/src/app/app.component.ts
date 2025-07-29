@@ -36,13 +36,19 @@ export class AppComponent {
     });
   }
 
-  exibirSessaoExpiradaERedirecionar() {
+  exibirSessaoExpiradaERedirecionar(tipo: 'expirada' | 'sessao-aberta' = 'sessao-aberta') {
+    let title = 'Já existe sessão aberta';
+    let message = 'Já existe uma sessão ativa para este usuário em outro navegador ou dispositivo. Você será redirecionado para o login.';
+    if (tipo === 'expirada') {
+      title = 'Sessão expirada';
+      message = 'Por segurança, sua sessão foi encerrada. Você será redirecionado para o login.';
+    }
     const dialogRef = this.dialog.open(FeedbackDialogComponent, {
       width: '350px',
       disableClose: true,
       data: {
-        title: 'Sessão expirada',
-        message: 'Por segurança, sua sessão foi encerrada. Você será redirecionado para o login.',
+        title,
+        message,
         type: 'error'
       }
     });
@@ -67,7 +73,7 @@ export class AppComponent {
     window.addEventListener('storage', (event) => {
       if (event.key === 'logout-event') {
         this.authService.logout();
-        this.exibirSessaoExpiradaERedirecionar();
+        this.exibirSessaoExpiradaERedirecionar('expirada');
       }
     });
     // Redireciona para login se não estiver autenticado ao abrir o app
