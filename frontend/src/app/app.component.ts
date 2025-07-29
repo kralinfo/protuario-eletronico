@@ -43,6 +43,12 @@ export class AppComponent {
     });
   }
 
+  getNomeCurto(nomeCompleto: string): string {
+    if (!nomeCompleto) return '';
+    const partes = nomeCompleto.trim().split(' ');
+    return partes.slice(0, 2).join(' ');
+  }
+
   abrirSobre() {
     this.sobreDialogRef = this.dialog.open(this.sobreDialog, {
       width: '350px',
