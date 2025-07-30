@@ -29,6 +29,7 @@ import {
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
+import { formatTelefoneValue } from '../utils/telefone-util';
 import { CepService } from '../services/cep.service';
 import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
 
@@ -349,18 +350,7 @@ export class PacientesFormComponent
 
     formatTelefone(event: Event) {
     const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '').slice(0, 11); // Máximo 11 dígitos
-    if (value.length > 2) {
-      value = '(' + value.slice(0, 2) + ')';
-      if (value.length > 3) {
-        value += input.value.replace(/\D/g, '').slice(2, 7); // 5 dígitos após DDD
-      }
-      if (input.value.replace(/\D/g, '').length > 7) {
-        value += '-' + input.value.replace(/\D/g, '').slice(7, 11); // 4 dígitos finais
-      }
-    } else {
-      value = input.value.replace(/\D/g, '');
-    }
+    const value = formatTelefoneValue(input.value);
     input.value = value;
     const telefoneControl = this.form?.get('telefone');
     if (telefoneControl) {
