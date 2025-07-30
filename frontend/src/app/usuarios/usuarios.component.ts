@@ -24,6 +24,10 @@ import { AuthService } from '../auth/auth.service';
   standalone: false
 })
 export class UsuariosComponent implements OnInit {
+
+  hidePassword = true;
+  hideRepeatedPassword = true;
+
   get podeSalvarUsuario(): boolean {
     const modulos = this.usuarioForm.get('modulos')?.value;
     return this.usuarioForm.valid && Array.isArray(modulos) && modulos.length > 0 && !this.loading && !this.isVisualizador;
