@@ -33,22 +33,22 @@ export class AuthInterceptor implements HttpInterceptor {
           const msg = error.error?.message || error.error?.error || '';
           if (isResetTokenError && (msg.includes('expirado') || msg.includes('utilizado'))) {
             // Não exibe dialog de sessão expirada, deixa o fluxo do componente tratar
+            // Caso contrário, exibe dialog de sessão expirada
+            const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+              data: {
+                title: 'Sessão expirada',
+                message: 'Sua sessão expirou. Faça login novamente.s',
+                type: 'error'
+              },
+              disableClose: true
+            });
+            setTimeout(() => {
+              dialogRef.close();
+              this.router.navigate(['/login']);
+            }, 2000);
+          }
             return throwError(() => error);
           }
-          // Caso contrário, exibe dialog de sessão expirada
-          const dialogRef = this.dialog.open(FeedbackDialogComponent, {
-            data: {
-              title: 'Sessão expirada',
-              message: 'Sua sessão expirou. Faça login novamente.',
-              type: 'error'
-            },
-            disableClose: true
-          });
-          setTimeout(() => {
-            dialogRef.close();
-            this.router.navigate(['/login']);
-          }, 2000);
-        }
         return throwError(() => error);
       })
     );
