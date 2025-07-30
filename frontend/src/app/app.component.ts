@@ -63,25 +63,7 @@ export class AppComponent {
     this.authService.user$.subscribe(user => {
       this.currentUser = user;
     });
-    // Logout automático ao fechar aba ou navegador
-    window.addEventListener('beforeunload', () => {
-      this.authService.logout();
-      // Marca logout no localStorage para outras abas
-      localStorage.setItem('logout-event', Date.now().toString());
-    });
-    // Sincroniza logout entre abas/janelas
-    window.addEventListener('storage', (event) => {
-      if (event.key === 'logout-event') {
-        this.authService.logout();
-        this.exibirSessaoExpiradaERedirecionar('expirada');
-      }
-    });
-    // Redireciona para login se não estiver autenticado ao abrir o app
-    setTimeout(() => {
-      if (!this.authService.isAuthenticated()) {
-        this.exibirSessaoExpiradaERedirecionar();
-      }
-    }, 0);
+    // Removido logout automático e redirecionamento ao recarregar a página
   }
 
   getNomeCurto(nomeCompleto: string): string {
