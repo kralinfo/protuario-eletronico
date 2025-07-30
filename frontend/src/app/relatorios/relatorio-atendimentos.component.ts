@@ -1,20 +1,22 @@
 import * as jsPDF from 'jspdf';
-import { Component } from '@angular/core';
-
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validators-util';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-relatorio-atendimentos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './relatorio-atendimentos.component.html',
   styleUrls: ['./relatorio-atendimentos.component.scss']
 })
 export class RelatorioAtendimentosComponent {
-  dataInicial: string = '';
-  dataFinal: string = '';
-  profissional: string = '';
+  filtrosForm: FormGroup;
+  get dataInicial() { return this.filtrosForm.get('dataInicial')?.value; }
+  get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
+  get profissional() { return this.filtrosForm.get('profissional')?.value; }
   profissionais = [
     { id: '1', nome: 'Dra. Ana' },
     { id: '2', nome: 'Dr. João' },
@@ -43,6 +45,14 @@ export class RelatorioAtendimentosComponent {
   }
 
   loading = false;
+
+  constructor(private fb: FormBuilder) {
+    this.filtrosForm = this.fb.group({
+      dataInicial: ['', [dataMaxHojeValidator]],
+      dataFinal: ['', [dataMaxHojeValidator]],
+      profissional: ['']
+    }, { validators: datasInicioFimValidator });
+  }
 
   ngOnInit() {
     this.carregarUltimosAtendimentos();
@@ -81,7 +91,6 @@ export class RelatorioAtendimentosComponent {
   buscarRelatorio() {
     this.loading = true;
     setTimeout(() => {
-      // Simula 50 atendimentos para filtrar
       const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
       const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
       const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
@@ -98,20 +107,19 @@ export class RelatorioAtendimentosComponent {
       });
 
       // Filtros
+      const filtros = this.filtrosForm.value;
       let filtrados = atendimentos;
-      if (this.dataInicial) {
-        const dataIni = new Date(this.dataInicial);
+      if (filtros.dataInicial) {
+        const dataIni = new Date(filtros.dataInicial);
         filtrados = filtrados.filter(a => new Date(a.data) >= dataIni);
       }
-      if (this.dataFinal) {
-        const dataFim = new Date(this.dataFinal);
-        // Considera o fim do dia
+      if (filtros.dataFinal) {
+        const dataFim = new Date(filtros.dataFinal);
         dataFim.setHours(23,59,59,999);
         filtrados = filtrados.filter(a => new Date(a.data) <= dataFim);
       }
-      if (this.profissional) {
-        // O select usa o id, então converte id para nome
-        const profObj = this.profissionais.find(p => p.id === this.profissional);
+      if (filtros.profissional) {
+        const profObj = this.profissionais.find(p => p.id === filtros.profissional);
         if (profObj) {
           filtrados = filtrados.filter(a => a.profissional === profObj.nome);
         }
