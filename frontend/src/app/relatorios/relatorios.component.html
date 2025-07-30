@@ -28,193 +28,187 @@
   </div>
   <ng-container *ngIf="!acessoNegado">
     <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-      <!-- Filtros -->
-      <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8">
-        <h2
-          class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-7 w-7 text-blue-700"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+      <!-- Filtros e Estatísticas lado a lado -->
+      <div class="flex flex-col md:flex-row gap-4 mb-6 sm:mb-8">
+        <!-- Card de Filtros -->
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 w-full md:w-1/2 min-w-[320px] max-w-full">
+          <h2
+            class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6"
-            />
-          </svg>
-          Relatório de Pacientes
-        </h2>
-        <form
-          [formGroup]="filtrosForm"
-          (ngSubmit)="aplicarFiltros()"
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end"
-        >
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700"
-              >Data Inicial</label
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-7 w-7 text-blue-700"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-            <input
-              type="date"
-              appDateInputLimiter
-              class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              formControlName="dataInicio"
-            />
-            <div
-              *ngIf="filtrosForm.controls['dataInicio'].errors?.['dataFuturaInvalida']"
-              class="text-red-600 text-sm"
-            >
-               A data inicial não pode ser posterior à data atual.
-            </div>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700"
-              >Data Final</label
-            >
-            <input
-              type="date"
-              appDateInputLimiter
-              class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              formControlName="dataFim"
-            />
-            <div
-              *ngIf="filtrosForm.controls['dataFim'].errors?.['dataFuturaInvalida']"
-              class="text-red-600 text-sm"
-            >
-              A data final não pode ser posterior à data atual.
-            </div>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">Sexo</label>
-            <select
-              class="w-full max-w-[120px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
-              formControlName="sexo"
-            >
-              <option *ngFor="let opt of opcoesSexo" [value]="opt.value">
-                {{ opt.label }}
-              </option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700"
-              >Município</label
-            >
-            <input
-              type="text"
-              class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
-              formControlName="municipio"
-            />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">UF</label>
-            <select
-              class="w-full max-w-[120px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
-              formControlName="uf"
-            >
-              <option *ngFor="let opt of opcoesUF" [value]="opt.value">
-                {{ opt.label }}
-              </option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700"
-              >Estado Civil</label
-            >
-            <select
-              class="w-full max-w-[160px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
-              formControlName="estadoCivil"
-            >
-              <option *ngFor="let opt of opcoesEstadoCivil" [value]="opt.value">
-                {{ opt.label }}
-              </option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700"
-              >Escolaridade</label
-            >
-            <select
-              class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
-              formControlName="escolaridade"
-            >
-              <option
-                *ngFor="let opt of opcoesEscolaridade"
-                [value]="opt.value"
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6"
+              />
+            </svg>
+            Relatório de Pacientes
+          </h2>
+          <form
+            [formGroup]="filtrosForm"
+            (ngSubmit)="aplicarFiltros()"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end"
+          >
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700"
+                >Data Inicial</label
               >
-                {{ opt.label }}
-              </option>
-            </select>
+              <input
+                type="date"
+                appDateInputLimiter
+                class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                formControlName="dataInicio"
+              />
+              <div
+                *ngIf="filtrosForm.controls['dataInicio'].errors?.['dataFuturaInvalida']"
+                class="text-red-600 text-sm"
+              >
+                A data inicial não pode ser posterior à data atual.
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700"
+                >Data Final</label
+              >
+              <input
+                type="date"
+                appDateInputLimiter
+                class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                formControlName="dataFim"
+              />
+              <div
+                *ngIf="filtrosForm.controls['dataFim'].errors?.['dataFuturaInvalida']"
+                class="text-red-600 text-sm"
+              >
+                A data final não pode ser posterior à data atual.
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Sexo</label>
+              <select
+                class="w-full max-w-[120px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
+                formControlName="sexo"
+              >
+                <option *ngFor="let opt of opcoesSexo" [value]="opt.value">
+                  {{ opt.label }}
+                </option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700"
+                >Município</label
+              >
+              <input
+                type="text"
+                class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
+                formControlName="municipio"
+              />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">UF</label>
+              <select
+                class="w-full max-w-[120px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
+                formControlName="uf"
+              >
+                <option *ngFor="let opt of opcoesUF" [value]="opt.value">
+                  {{ opt.label }}
+                </option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700"
+                >Estado Civil</label
+              >
+              <select
+                class="w-full max-w-[160px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
+                formControlName="estadoCivil"
+              >
+                <option *ngFor="let opt of opcoesEstadoCivil" [value]="opt.value">
+                  {{ opt.label }}
+                </option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700"
+                >Escolaridade</label
+              >
+              <select
+                class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm"
+                formControlName="escolaridade"
+              >
+                <option
+                  *ngFor="let opt of opcoesEscolaridade"
+                  [value]="opt.value"
+                >
+                  {{ opt.label }}
+                </option>
+              </select>
+            </div>
+            <div class="flex items-end h-full gap-2">
+              <button
+                type="submit"
+                class="px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
+              >
+                Filtrar
+              </button>
+              <button
+                type="button"
+                (click)="limparFiltros()"
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors font-medium"
+              >
+                Limpar
+              </button>
+            </div>
+          </form>
+        </div>
+        <!-- Card de Estatísticas em linha dentro de um card -->
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 flex-1 flex flex-col gap-2 min-w-[320px] items-stretch">
+          <div class="flex flex-row gap-[3px]">
+            <div class="bg-blue-50 p-10 min-h-[180px] rounded-lg flex flex-col items-center justify-center flex-1 min-w-[140px]">
+              <div class="text-2xl font-bold text-blue-600">{{ pacientesFiltrados.length }}</div>
+              <div class="text-sm text-blue-800">Total de Pacientes</div>
+            </div>
+            <div class="bg-green-50 p-10 min-h-[180px] rounded-lg flex flex-col items-center justify-center flex-1 min-w-[140px]">
+              <div class="text-2xl font-bold text-green-600">{{ getQuantidadeMasculino() }}</div>
+              <div class="text-sm text-green-800">Masculino</div>
+            </div>
+            <div class="bg-pink-50 p-10 min-h-[180px] rounded-lg flex flex-col items-center justify-center flex-1 min-w-[140px]">
+              <div class="text-2xl font-bold text-pink-600">{{ getQuantidadeFeminino() }}</div>
+              <div class="text-sm text-pink-800">Feminino</div>
+            </div>
+            <div class="bg-indigo-50 p-10 min-h-[180px] rounded-lg flex flex-col items-center justify-center flex-1 min-w-[140px]">
+              <div class="text-2xl font-bold text-indigo-600">{{ getQuantidadeMunicipios() }}</div>
+              <div class="text-sm text-indigo-800">Municípios</div>
+            </div>
           </div>
-          <div class="flex items-end h-full gap-2">
+          <!-- Botões de PDF abaixo dos cards -->
+          <div class="flex flex-row justify-center items-center gap-2 mt-2">
             <button
-              type="submit"
-              class="px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
+              (click)="gerarRelatorioSimples()"
+              [disabled]="pacientesFiltrados.length === 0"
+              class="w-full sm:w-auto px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              Filtrar
+              Gerar PDF Simples
             </button>
             <button
-              type="button"
-              (click)="limparFiltros()"
-              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors font-medium"
+              (click)="gerarRelatorioDetalhado()"
+              [disabled]="pacientesFiltrados.length === 0"
+              class="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              Limpar
+              Gerar PDF Detalhado
             </button>
           </div>
-        </form>
-      </div>
-      <!-- Estatísticas -->
-      <div
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6"
-      >
-        <div class="bg-blue-50 p-4 rounded-lg">
-          <div class="text-2xl font-bold text-blue-600">
-            {{ pacientesFiltrados.length }}
-          </div>
-          <div class="text-sm text-blue-800">Total de Pacientes</div>
-        </div>
-        <div class="bg-green-50 p-4 rounded-lg">
-          <div class="text-2xl font-bold text-green-600">
-            {{ getQuantidadeMasculino() }}
-          </div>
-          <div class="text-sm text-green-800">Masculino</div>
-        </div>
-        <div class="bg-pink-50 p-4 rounded-lg">
-          <div class="text-2xl font-bold text-pink-600">
-            {{ getQuantidadeFeminino() }}
-          </div>
-          <div class="text-sm text-pink-800">Feminino</div>
-        </div>
-        <div class="bg-indigo-50 p-4 rounded-lg">
-          <div class="text-2xl font-bold text-indigo-600">
-            {{ getQuantidadeMunicipios() }}
-          </div>
-          <div class="text-sm text-indigo-800">Municípios</div>
         </div>
       </div>
       <!-- Opções de Relatórios -->
-      <div
-        class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8 flex flex-col sm:flex-row gap-4"
-      >
-        <button
-          (click)="gerarRelatorioSimples()"
-          [disabled]="pacientesFiltrados.length === 0"
-          class="w-full sm:w-auto px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          Gerar PDF Simples
-        </button>
-        <button
-          (click)="gerarRelatorioDetalhado()"
-          [disabled]="pacientesFiltrados.length === 0"
-          class="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          Gerar PDF Detalhado
-        </button>
-
-      </div>
+      <!-- Botões de PDF movidos para o card de estatísticas acima -->
       <!-- Resultados -->
       <div class="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8">
         <div
