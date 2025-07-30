@@ -89,6 +89,12 @@
               >
                 A data final não pode ser posterior à data atual.
               </div>
+              <div
+                *ngIf="filtrosForm.errors?.['dataFimMenorQueInicio']"
+                class="text-red-600 text-sm"
+              >
+                A data final não pode ser anterior à data inicial.
+              </div>
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700">Sexo</label>
