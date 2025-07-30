@@ -95,12 +95,9 @@ export class AppComponent {
   }
 
   alternarDarkMode() {
-    this.isDarkMode = !this.isDarkMode;
-    const body = document.body;
-    if (this.isDarkMode) {
-      body.classList.add('dark-mode');
-    } else {
-      body.classList.remove('dark-mode');
-    }
+    // Modo escuro desabilitado
+    // Esta função não faz nada pois o modo escuro está sempre desabilitado
+    this.isDarkMode = false;
+    document.body.classList.remove('dark-mode');
   }
 }

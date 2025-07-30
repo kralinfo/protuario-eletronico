@@ -74,13 +74,13 @@
       <!-- Botões removidos do header, agora ficam no menu do usuário -->
     </div>
       <mat-menu #userMenu="matMenu" class="text-xs">
-        <button mat-menu-item (click)="alternarDarkMode()" class="text-xs">
-          <mat-icon class="!text-base">{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
-          <span class="text-xs">{{ isDarkMode ? 'Modo Claro' : 'Modo Escuro' }}</span>
-        </button>
         <button mat-menu-item (click)="abrirSobre()" class="text-xs">
           <mat-icon class="!text-base">info</mat-icon>
           <span class="text-xs">Sobre o sistema</span>
+        </button>
+        <button mat-menu-item [disabled]="true" class="text-xs">
+          <mat-icon class="!text-base">dark_mode</mat-icon>
+          <span class="text-xs">Modo escuro</span>
         </button>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="logout()" class="text-xs">
