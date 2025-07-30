@@ -30,6 +30,7 @@ import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
 import { formatTelefoneValue } from '../utils/telefone-util';
+import { formatCepValue } from '../utils/cep-util';
 import { CepService } from '../services/cep.service';
 import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
 
@@ -171,18 +172,10 @@ export class PacientesFormComponent
       .subscribe((valor: string) => {
         this.erroCepUf = false;
 
-        const cepLimpo = valor?.replace(/\D/g, '') || '';
-
-        let cepFormatado = cepLimpo;
-        if (cepLimpo.length > 5) {
-          cepFormatado = `${cepLimpo.substring(0, 5)}-${cepLimpo.substring(
-            5,
-            8
-          )}`;
-        }
-
+        const cepFormatado = formatCepValue(valor || '');
         this.form.get('cep')?.setValue(cepFormatado, { emitEvent: false });
 
+        const cepLimpo = cepFormatado.replace(/\D/g, '');
         if (cepLimpo.length === 8) {
           this.cepService.buscarCep(cepLimpo).subscribe((dados) => {
             if (dados?.erro) {
