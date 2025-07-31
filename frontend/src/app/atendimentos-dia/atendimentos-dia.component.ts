@@ -32,8 +32,12 @@ export class AtendimentosDiaComponent implements OnInit {
 
   carregarAtendimentos() {
     this.loading = true;
-    this.atendimentoService.listarAtendimentosDoDia().subscribe((dados: any[]) => {
-      this.atendimentos = dados;
+    // Exemplo de filtro: data do dia atual
+    const hoje = new Date();
+    const dataInicial = hoje.toISOString().slice(0, 10);
+    const dataFinal = dataInicial;
+    this.atendimentoService.buscarRelatorioAtendimentos({ dataInicial, dataFinal }).subscribe((res: any) => {
+      this.atendimentos = res.data || [];
       this.totalPaginas = Math.max(1, Math.ceil(this.atendimentosFiltradosSemPaginacao.length / this.itensPorPagina));
       this.paginaAtual = 1;
       this.loading = false;

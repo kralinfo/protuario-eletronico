@@ -1,3 +1,58 @@
+// Relatório avançado de atendimentos
+const reports = async (req, res) => {
+  const { dataInicial, dataFinal, profissional } = req.query;
+  let query = `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento
+    FROM atendimentos a
+    JOIN pacientes p ON p.id = a.paciente_id
+    WHERE 1=1`;
+  const params = [];
+  let idx = 1;
+  if (dataInicial) {
+    query += ` AND a.created_at >= $${idx}`;
+    params.push(new Date(dataInicial + 'T00:00:00'));
+    idx++;
+  }
+  if (dataFinal) {
+    query += ` AND a.created_at <= $${idx}`;
+    params.push(new Date(dataFinal + 'T23:59:59'));
+    idx++;
+  }
+  if (profissional) {
+    query += ` AND a.usuario_id = $${idx}`;
+    params.push(profissional);
+    idx++;
+  }
+  query += ` ORDER BY a.created_at DESC`;
+  const result = await db.query(query, params);
+  const atendimentos = result.rows || [];
+
+  // Estatísticas
+  const total = atendimentos.length;
+  const masculino = atendimentos.filter(a => a.paciente_sexo === 'M').length;
+  const feminino = atendimentos.filter(a => a.paciente_sexo === 'F').length;
+  const municipios = new Set(atendimentos.map(a => a.paciente_municipio)).size;
+
+  // Filtros retornados
+  const filters = {
+    dataInicio: dataInicial || '',
+    dataFim: dataFinal || '',
+    profissional: profissional || '',
+    orderBy: 'created_at',
+    order: 'DESC'
+  };
+
+  res.json({
+    status: 'SUCCESS',
+    data: atendimentos,
+    statistics: {
+      total,
+      masculino,
+      feminino,
+      municipios
+    },
+    filters
+  });
+};
 import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
 
@@ -80,4 +135,4 @@ const remover = async (req, res) => {
   return res.json({ success: true });
 };
 
-export default { registrar, listarPorPaciente, listarDoDia, atualizarStatus, remover };
+export default { registrar, listarPorPaciente, listarDoDia, atualizarStatus, remover, reports };

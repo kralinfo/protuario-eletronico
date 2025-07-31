@@ -1,6 +1,8 @@
 import * as jsPDF from 'jspdf';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validators-util';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -12,7 +14,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   templateUrl: './relatorio-atendimentos.component.html',
   styleUrls: ['./relatorio-atendimentos.component.scss']
 })
-export class RelatorioAtendimentosComponent {
+export class RelatorioAtendimentosComponent implements OnInit {
   filtrosForm: FormGroup;
   get dataInicial() { return this.filtrosForm.get('dataInicial')?.value; }
   get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
@@ -46,7 +48,7 @@ export class RelatorioAtendimentosComponent {
 
   loading = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private http: HttpClient) {
     this.filtrosForm = this.fb.group({
       dataInicial: ['', [dataMaxHojeValidator]],
       dataFinal: ['', [dataMaxHojeValidator]],
@@ -55,29 +57,7 @@ export class RelatorioAtendimentosComponent {
   }
 
   ngOnInit() {
-    this.carregarUltimosAtendimentos();
-  }
-
-  carregarUltimosAtendimentos() {
-    this.loading = true;
-    setTimeout(() => {
-      // Simula 30 atendimentos recentes
-      const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
-      const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
-      const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
-      this.relatorio = Array.from({ length: 30 }).map((_, i) => {
-        const data = new Date();
-        data.setDate(data.getDate() - i);
-        return {
-          data,
-          paciente: nomes[Math.floor(Math.random() * nomes.length)],
-          profissional: profissionais[Math.floor(Math.random() * profissionais.length)],
-          procedimento: procedimentos[Math.floor(Math.random() * procedimentos.length)],
-          observacoes: 'Atendimento gerado automaticamente.'
-        };
-      });
-      this.loading = false;
-    }, 800);
+    this.buscarRelatorio();
   }
 
   // Funções para totalização dos cards
@@ -90,44 +70,23 @@ export class RelatorioAtendimentosComponent {
 
   buscarRelatorio() {
     this.loading = true;
-    setTimeout(() => {
-      const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
-      const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
-      const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
-      const atendimentos = Array.from({ length: 50 }).map((_, i) => {
-        const data = new Date();
-        data.setDate(data.getDate() - i);
-        return {
-          data,
-          paciente: nomes[Math.floor(Math.random() * nomes.length)],
-          profissional: profissionais[Math.floor(Math.random() * profissionais.length)],
-          procedimento: procedimentos[Math.floor(Math.random() * procedimentos.length)],
-          observacoes: 'Atendimento gerado automaticamente.'
-        };
-      });
-
-      // Filtros
-      const filtros = this.filtrosForm.value;
-      let filtrados = atendimentos;
-      if (filtros.dataInicial) {
-        const dataIni = new Date(filtros.dataInicial);
-        filtrados = filtrados.filter(a => new Date(a.data) >= dataIni);
+    const filtros = this.filtrosForm.value;
+    const params = new URLSearchParams();
+    if (filtros.dataInicial) params.append('dataInicial', filtros.dataInicial);
+    if (filtros.dataFinal) params.append('dataFinal', filtros.dataFinal);
+    if (filtros.profissional) params.append('profissional', filtros.profissional);
+    const url = `${environment.apiUrl}/atendimentos/reports${params.toString() ? '?' + params.toString() : ''}`;
+    this.http.get<any>(url).subscribe({
+      next: (response) => {
+        this.relatorio = response.data || [];
+        this.currentPage = 0;
+        this.loading = false;
+      },
+      error: (error) => {
+        this.relatorio = [];
+        this.loading = false;
       }
-      if (filtros.dataFinal) {
-        const dataFim = new Date(filtros.dataFinal);
-        dataFim.setHours(23,59,59,999);
-        filtrados = filtrados.filter(a => new Date(a.data) <= dataFim);
-      }
-      if (filtros.profissional) {
-        const profObj = this.profissionais.find(p => p.id === filtros.profissional);
-        if (profObj) {
-          filtrados = filtrados.filter(a => a.profissional === profObj.nome);
-        }
-      }
-      this.relatorio = filtrados;
-      this.currentPage = 0;
-      this.loading = false;
-    }, 800);
+    });
   }
   gerarRelatorioSimples() {
     const doc = new jsPDF.jsPDF();

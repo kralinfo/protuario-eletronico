@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post('/', controller.registrar);
 router.get('/', controller.listarDoDia); // Novo endpoint para atendimentos do dia
+router.get('/reports', controller.reports); // Endpoint para filtros avançados
 router.get('/:pacienteId', controller.listarPorPaciente);
 router.patch('/:id/status', controller.atualizarStatus);
 router.delete('/:id', controller.remover);
