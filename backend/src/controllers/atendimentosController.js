@@ -1,7 +1,7 @@
 // Relatório avançado de atendimentos
 const reports = async (req, res) => {
-  const { dataInicial, dataFinal, profissional } = req.query;
-  let query = `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento
+  const { dataInicial, dataFinal } = req.query;
+  let query = `SELECT a.id, a.created_at as data, a.paciente_id as paciente, a.data_hora_atendimento as hora, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
     FROM atendimentos a
     JOIN pacientes p ON p.id = a.paciente_id
     WHERE 1=1`;
@@ -17,11 +17,7 @@ const reports = async (req, res) => {
     params.push(new Date(dataFinal + 'T23:59:59'));
     idx++;
   }
-  if (profissional) {
-    query += ` AND a.usuario_id = $${idx}`;
-    params.push(profissional);
-    idx++;
-  }
+  // profissional removido do filtro e do retorno
   query += ` ORDER BY a.created_at DESC`;
   const result = await db.query(query, params);
   const atendimentos = result.rows || [];
@@ -36,7 +32,6 @@ const reports = async (req, res) => {
   const filters = {
     dataInicio: dataInicial || '',
     dataFim: dataFinal || '',
-    profissional: profissional || '',
     orderBy: 'created_at',
     order: 'DESC'
   };
