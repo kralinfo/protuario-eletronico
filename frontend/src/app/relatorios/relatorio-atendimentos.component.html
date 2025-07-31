@@ -72,7 +72,7 @@
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profissional</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Procedimento</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observações</th>
             </tr>
@@ -81,7 +81,7 @@
             <tr *ngFor="let item of paginatedRelatorio; let i = index" [class.bg-gray-50]="i % 2 === 1">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.data | date:'dd/MM/yyyy' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.paciente }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.profissional }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.status | titlecase }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.procedimento }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.observacoes }}</td>
             </tr>
