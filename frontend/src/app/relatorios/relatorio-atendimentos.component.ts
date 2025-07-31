@@ -8,6 +8,7 @@ interface Atendimento {
   usuario_id: string;
   procedencia: string;
   observacoes: string;
+  status?: string;
 }
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validators-util';
@@ -21,7 +22,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   templateUrl: './relatorio-atendimentos.component.html',
   styleUrls: ['./relatorio-atendimentos.component.scss']
 })
-export class RelatorioAtendimentosComponent {
+export class RelatorioAtendimentosComponent implements OnInit {
   filtrosForm: FormGroup;
   get dataInicial() { return this.filtrosForm.get('dataInicial')?.value; }
   get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
@@ -87,12 +88,17 @@ export class RelatorioAtendimentosComponent {
     });
   }
 
-  // Funções para totalização dos cards
-  getTotalPorProfissional(nome: string): number {
-    return this.relatorio.filter(r => r.profissional === nome).length;
+  // Totalização por status para o card
+  getTotalStatus(): number {
+    return this.relatorio.length;
   }
-  getTotalPorProcedimento(nome: string): number {
-    return this.relatorio.filter(r => r.procedimento === nome).length;
+  getStatusList(): { status: string, total: number }[] {
+    const statusMap: { [key: string]: number } = {};
+    for (const r of this.relatorio) {
+      const status = (r.status as string) || 'Sem status';
+      statusMap[status] = (statusMap[status] || 0) + 1;
+    }
+    return Object.entries(statusMap).map(([status, total]) => ({ status, total: total as number }));
   }
 
   buscarRelatorio() {
@@ -118,7 +124,8 @@ export class RelatorioAtendimentosComponent {
           paciente: a.paciente_id || '',
           profissional: a.usuario_id || '',
           procedimento: a.procedencia || '',
-          observacoes: a.observacoes || ''
+          observacoes: a.observacoes || '',
+          status: a.status || 'Sem status'
         }));
         this.currentPage = 0;
         this.loading = false;
