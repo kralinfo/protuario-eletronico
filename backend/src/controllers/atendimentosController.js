@@ -71,6 +71,16 @@ const listarDoDia = async (req, res) => {
   res.json(result.rows);
 };
 
+const listarTodos = async (req, res) => {
+  try {
+    const atendimentos = await Atendimento.listarTodos();
+    res.json(atendimentos);
+  } catch (error) {
+    console.error('Erro ao listar todos os atendimentos:', error);
+    res.status(500).json({ error: 'Erro ao listar atendimentos' });
+  }
+};
+
 const remover = async (req, res) => {
   const { id } = req.params;
   const result = await db.query('DELETE FROM atendimentos WHERE id = $1 RETURNING *', [id]);
@@ -80,4 +90,4 @@ const remover = async (req, res) => {
   return res.json({ success: true });
 };
 
-export default { registrar, listarPorPaciente, listarDoDia, atualizarStatus, remover };
+export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, remover };

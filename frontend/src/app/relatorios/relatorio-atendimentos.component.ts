@@ -1,5 +1,14 @@
 import * as jsPDF from 'jspdf';
 import { Component, OnInit } from '@angular/core';
+import { AtendimentoService } from '../services/atendimento.service';
+
+interface Atendimento {
+  created_at: string;
+  paciente_id: string;
+  usuario_id: string;
+  procedencia: string;
+  observacoes: string;
+}
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validators-util';
 import { CommonModule } from '@angular/common';
@@ -46,7 +55,7 @@ export class RelatorioAtendimentosComponent {
 
   loading = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private atendimentoService: AtendimentoService) {
     this.filtrosForm = this.fb.group({
       dataInicial: ['', [dataMaxHojeValidator]],
       dataFinal: ['', [dataMaxHojeValidator]],
@@ -55,29 +64,27 @@ export class RelatorioAtendimentosComponent {
   }
 
   ngOnInit() {
-    this.carregarUltimosAtendimentos();
+    this.carregarAtendimentosReais();
   }
 
-  carregarUltimosAtendimentos() {
+  carregarAtendimentosReais() {
     this.loading = true;
-    setTimeout(() => {
-      // Simula 30 atendimentos recentes
-      const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
-      const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
-      const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
-      this.relatorio = Array.from({ length: 30 }).map((_, i) => {
-        const data = new Date();
-        data.setDate(data.getDate() - i);
-        return {
-          data,
-          paciente: nomes[Math.floor(Math.random() * nomes.length)],
-          profissional: profissionais[Math.floor(Math.random() * profissionais.length)],
-          procedimento: procedimentos[Math.floor(Math.random() * procedimentos.length)],
-          observacoes: 'Atendimento gerado automaticamente.'
-        };
-      });
-      this.loading = false;
-    }, 800);
+    this.atendimentoService.listarTodosAtendimentos().subscribe({
+      next: (atendimentos: Atendimento[]) => {
+        this.relatorio = atendimentos.map((a: Atendimento) => ({
+          data: a.created_at ? new Date(a.created_at) : new Date(),
+          paciente: a.paciente_id || '',
+          profissional: a.usuario_id || '',
+          procedimento: a.procedencia || '',
+          observacoes: a.observacoes || ''
+        }));
+        this.loading = false;
+      },
+      error: (error: any) => {
+        console.error('Erro ao buscar atendimentos:', error);
+        this.loading = false;
+      }
+    });
   }
 
   // Funções para totalização dos cards
@@ -90,44 +97,37 @@ export class RelatorioAtendimentosComponent {
 
   buscarRelatorio() {
     this.loading = true;
-    setTimeout(() => {
-      const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
-      const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
-      const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
-      const atendimentos = Array.from({ length: 50 }).map((_, i) => {
-        const data = new Date();
-        data.setDate(data.getDate() - i);
-        return {
-          data,
-          paciente: nomes[Math.floor(Math.random() * nomes.length)],
-          profissional: profissionais[Math.floor(Math.random() * profissionais.length)],
-          procedimento: procedimentos[Math.floor(Math.random() * procedimentos.length)],
-          observacoes: 'Atendimento gerado automaticamente.'
-        };
-      });
-
-      // Filtros
-      const filtros = this.filtrosForm.value;
-      let filtrados = atendimentos;
-      if (filtros.dataInicial) {
-        const dataIni = new Date(filtros.dataInicial);
-        filtrados = filtrados.filter(a => new Date(a.data) >= dataIni);
-      }
-      if (filtros.dataFinal) {
-        const dataFim = new Date(filtros.dataFinal);
-        dataFim.setHours(23,59,59,999);
-        filtrados = filtrados.filter(a => new Date(a.data) <= dataFim);
-      }
-      if (filtros.profissional) {
-        const profObj = this.profissionais.find(p => p.id === filtros.profissional);
-        if (profObj) {
-          filtrados = filtrados.filter(a => a.profissional === profObj.nome);
+    this.atendimentoService.listarTodosAtendimentos().subscribe({
+      next: (atendimentos: Atendimento[]) => {
+        const filtros = this.filtrosForm.value;
+        let filtrados = atendimentos;
+        if (filtros.dataInicial) {
+          const dataIni = new Date(filtros.dataInicial);
+          filtrados = filtrados.filter((a: Atendimento) => new Date(a.created_at) >= dataIni);
         }
+        if (filtros.dataFinal) {
+          const dataFim = new Date(filtros.dataFinal);
+          dataFim.setHours(23,59,59,999);
+          filtrados = filtrados.filter((a: Atendimento) => new Date(a.created_at) <= dataFim);
+        }
+        if (filtros.profissional) {
+          filtrados = filtrados.filter((a: Atendimento) => a.usuario_id == filtros.profissional);
+        }
+        this.relatorio = filtrados.map((a: Atendimento) => ({
+          data: a.created_at ? new Date(a.created_at) : new Date(),
+          paciente: a.paciente_id || '',
+          profissional: a.usuario_id || '',
+          procedimento: a.procedencia || '',
+          observacoes: a.observacoes || ''
+        }));
+        this.currentPage = 0;
+        this.loading = false;
+      },
+      error: (error: any) => {
+        console.error('Erro ao buscar atendimentos:', error);
+        this.loading = false;
       }
-      this.relatorio = filtrados;
-      this.currentPage = 0;
-      this.loading = false;
-    }, 800);
+    });
   }
   gerarRelatorioSimples() {
     const doc = new jsPDF.jsPDF();
