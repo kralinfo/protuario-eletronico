@@ -26,12 +26,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
   filtrosForm: FormGroup;
   get dataInicial() { return this.filtrosForm.get('dataInicial')?.value; }
   get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
-  get profissional() { return this.filtrosForm.get('profissional')?.value; }
-  profissionais = [
-    { id: '1', nome: 'Dra. Ana' },
-    { id: '2', nome: 'Dr. João' },
-    { id: '3', nome: 'Enf. Maria' }
-  ];
+  get status() { return this.filtrosForm.get('status')?.value; }
   relatorio: any[] = [];
   pageSizeOptions = [5, 10, 20, 30, 50];
   pageSize = 10;
@@ -60,7 +55,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
     this.filtrosForm = this.fb.group({
       dataInicial: ['', [dataMaxHojeValidator]],
       dataFinal: ['', [dataMaxHojeValidator]],
-      profissional: ['']
+      status: ['']
     }, { validators: datasInicioFimValidator });
   }
 
@@ -77,7 +72,8 @@ export class RelatorioAtendimentosComponent implements OnInit {
           paciente: a.paciente_id || '',
           profissional: a.usuario_id || '',
           procedimento: a.procedencia || '',
-          observacoes: a.observacoes || ''
+          observacoes: a.observacoes || '',
+          status: a.status || ''
         }));
         this.loading = false;
       },
@@ -93,12 +89,23 @@ export class RelatorioAtendimentosComponent implements OnInit {
     return this.relatorio.length;
   }
   getStatusList(): { status: string, total: number }[] {
+    // Status possíveis conforme cadastro
+    const statusPossiveis = [
+      { key: 'recepcao', label: 'Recepção' },
+      { key: 'triagem', label: 'Triagem' },
+      { key: 'sala_medica', label: 'Sala Médica' },
+      { key: 'ambulatorio', label: 'Ambulatório' },
+      { key: 'finalizado', label: 'Finalizado' },
+      { key: 'interrompido', label: 'Interrompido' }
+    ];
     const statusMap: { [key: string]: number } = {};
     for (const r of this.relatorio) {
-      const status = (r.status as string) || 'Sem status';
-      statusMap[status] = (statusMap[status] || 0) + 1;
+      const status = r.status as string;
+      if (statusPossiveis.some(s => s.key === status)) {
+        statusMap[status] = (statusMap[status] || 0) + 1;
+      }
     }
-    return Object.entries(statusMap).map(([status, total]) => ({ status, total: total as number }));
+    return statusPossiveis.map(s => ({ status: s.label, total: statusMap[s.key] || 0 }));
   }
 
   buscarRelatorio() {
@@ -116,8 +123,8 @@ export class RelatorioAtendimentosComponent implements OnInit {
           dataFim.setHours(23,59,59,999);
           filtrados = filtrados.filter((a: Atendimento) => new Date(a.created_at) <= dataFim);
         }
-        if (filtros.profissional) {
-          filtrados = filtrados.filter((a: Atendimento) => a.usuario_id == filtros.profissional);
+        if (filtros.status) {
+          filtrados = filtrados.filter((a: Atendimento) => (a.status || 'Sem status') === filtros.status);
         }
         this.relatorio = filtrados.map((a: Atendimento) => ({
           data: a.created_at ? new Date(a.created_at) : new Date(),
@@ -125,7 +132,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
           profissional: a.usuario_id || '',
           procedimento: a.procedencia || '',
           observacoes: a.observacoes || '',
-          status: a.status || 'Sem status'
+          status: a.status || ''
         }));
         this.currentPage = 0;
         this.loading = false;

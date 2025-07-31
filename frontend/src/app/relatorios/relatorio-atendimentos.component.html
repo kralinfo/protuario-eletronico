@@ -17,10 +17,15 @@
           <input type="date" class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value">
         </div>
         <div class="space-y-2">
-          <label class="block text-sm font-medium text-gray-700">Profissional</label>
-          <select class="w-full max-w-[200px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="profissional">
+          <label class="block text-sm font-medium text-gray-700">Status</label>
+          <select class="w-full max-w-[200px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="status">
             <option value="">Todos</option>
-            <option *ngFor="let prof of profissionais" [value]="prof.id">{{ prof.nome }}</option>
+            <option value="recepcao">Recepção</option>
+            <option value="triagem">Triagem</option>
+            <option value="sala_medica">Sala Médica</option>
+            <option value="ambulatorio">Ambulatório</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="interrompido">Interrompido</option>
           </select>
         </div>
         <div class="flex items-end h-full">
@@ -32,17 +37,14 @@
       </div>
     </div>
         <!-- Cards de Totalização -->
-    <div *ngIf="relatorio.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
+    <div *ngIf="relatorio.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <div class="bg-blue-50 p-4 rounded-lg">
         <div class="text-2xl font-bold text-blue-600">{{ relatorio.length }}</div>
         <div class="text-sm text-blue-800">Total de Atendimentos</div>
       </div>
-      <div class="bg-yellow-50 p-4 rounded-lg">
-        <div class="text-2xl font-bold text-yellow-600">{{ getTotalStatus() }}</div>
-        <div class="text-sm text-yellow-800">Status dos Atendimentos</div>
-        <ul class="mt-2 text-xs text-gray-700">
-          <li *ngFor="let s of getStatusList()">{{ s.status }}: {{ s.total }}</li>
-        </ul>
+      <div *ngFor="let s of getStatusList()" class="bg-yellow-50 p-4 rounded-lg">
+        <div class="text-2xl font-bold text-yellow-600">{{ s.total }}</div>
+        <div class="text-sm text-yellow-800">{{ s.status }}</div>
       </div>
     </div>
         <!-- Opções de Relatórios -->
