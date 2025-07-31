@@ -80,7 +80,7 @@
           <tbody class="bg-white divide-y divide-gray-200">
             <tr *ngFor="let item of paginatedRelatorio; let i = index" [class.bg-gray-50]="i % 2 === 1">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.data | date:'dd/MM/yyyy' }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.paciente }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.paciente_nome }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.status | titlecase }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.procedimento }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.observacoes }}</td>

@@ -21,7 +21,10 @@ class Atendimento {
 
   static async listarTodos() {
     const result = await db.query(
-      `SELECT * FROM atendimentos ORDER BY data_hora_atendimento DESC`
+      `SELECT a.*, p.nome as paciente_nome
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       ORDER BY a.data_hora_atendimento DESC`
     );
     return result.rows;
   }

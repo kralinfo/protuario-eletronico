@@ -66,10 +66,10 @@ export class RelatorioAtendimentosComponent implements OnInit {
   carregarAtendimentosReais() {
     this.loading = true;
     this.atendimentoService.listarTodosAtendimentos().subscribe({
-      next: (atendimentos: Atendimento[]) => {
-        this.relatorio = atendimentos.map((a: Atendimento) => ({
+      next: (atendimentos: any[]) => {
+        this.relatorio = atendimentos.map((a: any) => ({
           data: a.created_at ? new Date(a.created_at) : new Date(),
-          paciente: a.paciente_id || '',
+          paciente_nome: a.paciente_nome || '',
           profissional: a.usuario_id || '',
           procedimento: a.procedencia || '',
           observacoes: a.observacoes || '',
@@ -111,24 +111,24 @@ export class RelatorioAtendimentosComponent implements OnInit {
   buscarRelatorio() {
     this.loading = true;
     this.atendimentoService.listarTodosAtendimentos().subscribe({
-      next: (atendimentos: Atendimento[]) => {
+      next: (atendimentos: any[]) => {
         const filtros = this.filtrosForm.value;
         let filtrados = atendimentos;
         if (filtros.dataInicial) {
           const dataIni = new Date(filtros.dataInicial);
-          filtrados = filtrados.filter((a: Atendimento) => new Date(a.created_at) >= dataIni);
+          filtrados = filtrados.filter((a: any) => new Date(a.created_at) >= dataIni);
         }
         if (filtros.dataFinal) {
           const dataFim = new Date(filtros.dataFinal);
           dataFim.setHours(23,59,59,999);
-          filtrados = filtrados.filter((a: Atendimento) => new Date(a.created_at) <= dataFim);
+          filtrados = filtrados.filter((a: any) => new Date(a.created_at) <= dataFim);
         }
         if (filtros.status) {
-          filtrados = filtrados.filter((a: Atendimento) => (a.status || 'Sem status') === filtros.status);
+          filtrados = filtrados.filter((a: any) => (a.status || 'Sem status') === filtros.status);
         }
-        this.relatorio = filtrados.map((a: Atendimento) => ({
+        this.relatorio = filtrados.map((a: any) => ({
           data: a.created_at ? new Date(a.created_at) : new Date(),
-          paciente: a.paciente_id || '',
+          paciente_nome: a.paciente_nome || '',
           profissional: a.usuario_id || '',
           procedimento: a.procedencia || '',
           observacoes: a.observacoes || '',
@@ -157,7 +157,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
     doc.line(20, y - 5, 190, y - 5);
     this.relatorio.forEach(item => {
       doc.text(new Date(item.data).toLocaleDateString('pt-BR'), 20, y);
-      doc.text(item.paciente, 60, y);
+      doc.text(item.paciente_nome, 60, y);
       doc.text(item.profissional, 130, y);
       y += 8;
       if (y > 270) {
@@ -185,7 +185,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
     doc.line(20, y - 13, 190, y - 13);
     this.relatorio.forEach(item => {
       doc.text(new Date(item.data).toLocaleDateString('pt-BR'), 20, y);
-      doc.text(item.paciente, 50, y);
+      doc.text(item.paciente_nome, 50, y);
       doc.text(item.profissional, 100, y);
       doc.text(item.procedimento, 140, y);
       y += 8;
