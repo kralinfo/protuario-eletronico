@@ -29,7 +29,15 @@ export class UsuariosComponent implements OnInit {
   hideRepeatedPassword = true;
 
   get podeSalvarUsuario(): boolean {
+    const nome = this.usuarioForm.get('nome')?.value?.trim();
+    const email = this.usuarioForm.get('email')?.value?.trim();
+    const nivel = this.usuarioForm.get('nivel')?.value;
     const modulos = this.usuarioForm.get('modulos')?.value;
+    if (this.editandoUsuario) {
+      // Para edição, só exige nome, email, nível e ao menos um módulo
+      return !!nome && !!email && !!nivel && Array.isArray(modulos) && modulos.length > 0 && !this.loading && !this.isVisualizador && !!this.usuarioForm.get('email')?.valid;
+    }
+    // Para cadastro, exige todos os campos e validação normal
     return this.usuarioForm.valid && Array.isArray(modulos) && modulos.length > 0 && !this.loading && !this.isVisualizador;
   }
   get emptyRows(): any[] {
@@ -108,14 +116,22 @@ export class UsuariosComponent implements OnInit {
     this.usuarioForm = this.fb.group({
       nome: [{value: '', disabled: false}, Validators.required],
       email: [{value: '', disabled: false}, [Validators.required, Validators.email]],
-      senha: [{value: '', disabled: false}, [Validators.required, Validators.minLength(6)]],
-      repetirSenha: [{value: '', disabled: false}, Validators.required],
+      senha: [{value: '', disabled: false}],
+      repetirSenha: [{value: '', disabled: false}],
       nivel: [{value: 'visualizador', disabled: false}, Validators.required],
       modulos: [["recepcao"]] // valor padrão
-    }, { validators: senhasIguaisValidator });
+    }, {
+      validators: (form) => {
+        // Só valida senha se não estiver editando
+        if (!this.editandoUsuario) {
+          return senhasIguaisValidator(form) || (form.get('senha')?.value?.length < 6 ? { senhaCurta: true } : null);
+        }
+        return null;
+      }
+    });
     // modulosDisponiveis já está declarado como membro público acima
   }
-  
+
 
   ngOnInit(): void {
     this.isVisualizador = this.authService.user?.nivel === 'visualizador';

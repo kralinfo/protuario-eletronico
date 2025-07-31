@@ -70,44 +70,6 @@
   .add-btn {
     height: 48px;
     padding: 0 24px;
-    background: linear-gradient(135deg, #2c5aa0 0%, #1e3a8a 100%);
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(44, 90, 160, 0.3);
-    }
-
-    mat-icon {
-      margin-right: 8px;
-    }
-  }
-}
-
-// Seção de filtros
-.filters-section {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-
-  mat-card-content {
-    padding: 24px;
-  }
-}
-
-.filters-row {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-
-  .search-field {
-    flex: 1;
-    max-width: 400px;
-
-    .mat-form-field-outline {
-      border-radius: 8px;
     }
 
     .mat-form-field-prefix {
@@ -146,7 +108,6 @@
       white-space: nowrap;
     }
   }
-}
 
 // Seção da tabela
 .table-section {
@@ -675,18 +636,6 @@ mat-list {
   overflow: hidden;
 }
 
-th {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  color: #1e293b;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  border-radius: 0;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-}
-.mat-mdc-table .mdc-data-table__header-row {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
-}
 
 mat-divider {
   margin: 24px 0;

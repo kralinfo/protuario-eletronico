@@ -79,9 +79,10 @@
             <input
               type="text"
               formControlName="telefone"
-              mask="(00) 00000-0000"
+              maxlength="15"
               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
-              placeholder="(99) 99999-9999"
+              placeholder="(99)99999-9999"
+              (input)="formatTelefone($event)"
             />
           </div>
           <div>

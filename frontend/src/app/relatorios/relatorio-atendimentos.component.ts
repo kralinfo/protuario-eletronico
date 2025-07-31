@@ -1,25 +1,32 @@
 import * as jsPDF from 'jspdf';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { AtendimentoService } from '../services/atendimento.service';
 
+interface Atendimento {
+  created_at: string;
+  paciente_id: string;
+  usuario_id: string;
+  procedencia: string;
+  observacoes: string;
+  status?: string;
+}
+import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validators-util';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-relatorio-atendimentos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './relatorio-atendimentos.component.html',
   styleUrls: ['./relatorio-atendimentos.component.scss']
 })
-export class RelatorioAtendimentosComponent {
-  dataInicial: string = '';
-  dataFinal: string = '';
-  profissional: string = '';
-  profissionais = [
-    { id: '1', nome: 'Dra. Ana' },
-    { id: '2', nome: 'Dr. João' },
-    { id: '3', nome: 'Enf. Maria' }
-  ];
+export class RelatorioAtendimentosComponent implements OnInit {
+  filtrosForm: FormGroup;
+  get dataInicial() { return this.filtrosForm.get('dataInicial')?.value; }
+  get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
+  get status() { return this.filtrosForm.get('status')?.value; }
   relatorio: any[] = [];
   pageSizeOptions = [5, 10, 20, 30, 50];
   pageSize = 10;
@@ -44,82 +51,97 @@ export class RelatorioAtendimentosComponent {
 
   loading = false;
 
+  constructor(private fb: FormBuilder, private atendimentoService: AtendimentoService) {
+    this.filtrosForm = this.fb.group({
+      dataInicial: ['', [dataMaxHojeValidator]],
+      dataFinal: ['', [dataMaxHojeValidator]],
+      status: ['']
+    }, { validators: datasInicioFimValidator });
+  }
+
   ngOnInit() {
-    this.carregarUltimosAtendimentos();
+    this.carregarAtendimentosReais();
   }
 
-  carregarUltimosAtendimentos() {
+  carregarAtendimentosReais() {
     this.loading = true;
-    setTimeout(() => {
-      // Simula 30 atendimentos recentes
-      const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
-      const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
-      const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
-      this.relatorio = Array.from({ length: 30 }).map((_, i) => {
-        const data = new Date();
-        data.setDate(data.getDate() - i);
-        return {
-          data,
-          paciente: nomes[Math.floor(Math.random() * nomes.length)],
-          profissional: profissionais[Math.floor(Math.random() * profissionais.length)],
-          procedimento: procedimentos[Math.floor(Math.random() * procedimentos.length)],
-          observacoes: 'Atendimento gerado automaticamente.'
-        };
-      });
-      this.loading = false;
-    }, 800);
+    this.atendimentoService.listarTodosAtendimentos().subscribe({
+      next: (atendimentos: any[]) => {
+        this.relatorio = atendimentos.map((a: any) => ({
+          data: a.created_at ? new Date(a.created_at) : new Date(),
+          paciente_nome: a.paciente_nome || '',
+          profissional: a.usuario_id || '',
+          procedimento: a.procedencia || '',
+          observacoes: a.observacoes || '',
+          status: a.status || ''
+        }));
+        this.loading = false;
+      },
+      error: (error: any) => {
+        console.error('Erro ao buscar atendimentos:', error);
+        this.loading = false;
+      }
+    });
   }
 
-  // Funções para totalização dos cards
-  getTotalPorProfissional(nome: string): number {
-    return this.relatorio.filter(r => r.profissional === nome).length;
+  // Totalização por status para o card
+  getTotalStatus(): number {
+    return this.relatorio.length;
   }
-  getTotalPorProcedimento(nome: string): number {
-    return this.relatorio.filter(r => r.procedimento === nome).length;
+  getStatusList(): { status: string, total: number }[] {
+    // Status possíveis conforme cadastro
+    const statusPossiveis = [
+      { key: 'recepcao', label: 'Recepção' },
+      { key: 'triagem', label: 'Triagem' },
+      { key: 'sala_medica', label: 'Sala Médica' },
+      { key: 'ambulatorio', label: 'Ambulatório' },
+      { key: 'finalizado', label: 'Finalizado' },
+      { key: 'interrompido', label: 'Interrompido' }
+    ];
+    const statusMap: { [key: string]: number } = {};
+    for (const r of this.relatorio) {
+      const status = r.status as string;
+      if (statusPossiveis.some(s => s.key === status)) {
+        statusMap[status] = (statusMap[status] || 0) + 1;
+      }
+    }
+    return statusPossiveis.map(s => ({ status: s.label, total: statusMap[s.key] || 0 }));
   }
 
   buscarRelatorio() {
     this.loading = true;
-    setTimeout(() => {
-      // Simula 50 atendimentos para filtrar
-      const profissionais = ['Dra. Ana', 'Dr. João', 'Enf. Maria'];
-      const procedimentos = ['Consulta', 'Retorno', 'Exame', 'Vacina'];
-      const nomes = ['José da Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'João Pedro', 'Fernanda Alves', 'Lucas Rocha', 'Patrícia Gomes'];
-      const atendimentos = Array.from({ length: 50 }).map((_, i) => {
-        const data = new Date();
-        data.setDate(data.getDate() - i);
-        return {
-          data,
-          paciente: nomes[Math.floor(Math.random() * nomes.length)],
-          profissional: profissionais[Math.floor(Math.random() * profissionais.length)],
-          procedimento: procedimentos[Math.floor(Math.random() * procedimentos.length)],
-          observacoes: 'Atendimento gerado automaticamente.'
-        };
-      });
-
-      // Filtros
-      let filtrados = atendimentos;
-      if (this.dataInicial) {
-        const dataIni = new Date(this.dataInicial);
-        filtrados = filtrados.filter(a => new Date(a.data) >= dataIni);
-      }
-      if (this.dataFinal) {
-        const dataFim = new Date(this.dataFinal);
-        // Considera o fim do dia
-        dataFim.setHours(23,59,59,999);
-        filtrados = filtrados.filter(a => new Date(a.data) <= dataFim);
-      }
-      if (this.profissional) {
-        // O select usa o id, então converte id para nome
-        const profObj = this.profissionais.find(p => p.id === this.profissional);
-        if (profObj) {
-          filtrados = filtrados.filter(a => a.profissional === profObj.nome);
+    this.atendimentoService.listarTodosAtendimentos().subscribe({
+      next: (atendimentos: any[]) => {
+        const filtros = this.filtrosForm.value;
+        let filtrados = atendimentos;
+        if (filtros.dataInicial) {
+          const dataIni = new Date(filtros.dataInicial);
+          filtrados = filtrados.filter((a: any) => new Date(a.created_at) >= dataIni);
         }
+        if (filtros.dataFinal) {
+          const dataFim = new Date(filtros.dataFinal);
+          dataFim.setHours(23,59,59,999);
+          filtrados = filtrados.filter((a: any) => new Date(a.created_at) <= dataFim);
+        }
+        if (filtros.status) {
+          filtrados = filtrados.filter((a: any) => (a.status || 'Sem status') === filtros.status);
+        }
+        this.relatorio = filtrados.map((a: any) => ({
+          data: a.created_at ? new Date(a.created_at) : new Date(),
+          paciente_nome: a.paciente_nome || '',
+          profissional: a.usuario_id || '',
+          procedimento: a.procedencia || '',
+          observacoes: a.observacoes || '',
+          status: a.status || ''
+        }));
+        this.currentPage = 0;
+        this.loading = false;
+      },
+      error: (error: any) => {
+        console.error('Erro ao buscar atendimentos:', error);
+        this.loading = false;
       }
-      this.relatorio = filtrados;
-      this.currentPage = 0;
-      this.loading = false;
-    }, 800);
+    });
   }
   gerarRelatorioSimples() {
     const doc = new jsPDF.jsPDF();
@@ -135,7 +157,7 @@ export class RelatorioAtendimentosComponent {
     doc.line(20, y - 5, 190, y - 5);
     this.relatorio.forEach(item => {
       doc.text(new Date(item.data).toLocaleDateString('pt-BR'), 20, y);
-      doc.text(item.paciente, 60, y);
+      doc.text(item.paciente_nome, 60, y);
       doc.text(item.profissional, 130, y);
       y += 8;
       if (y > 270) {
@@ -163,7 +185,7 @@ export class RelatorioAtendimentosComponent {
     doc.line(20, y - 13, 190, y - 13);
     this.relatorio.forEach(item => {
       doc.text(new Date(item.data).toLocaleDateString('pt-BR'), 20, y);
-      doc.text(item.paciente, 50, y);
+      doc.text(item.paciente_nome, 50, y);
       doc.text(item.profissional, 100, y);
       doc.text(item.procedimento, 140, y);
       y += 8;

@@ -6,6 +6,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
+import { MatDialog } from '@angular/material/dialog';
+import { FeedbackDialogComponent } from '../../shared/feedback-dialog.component';
 
 @Component({
     selector: 'app-login',
@@ -38,7 +40,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private dialog: MatDialog
   ) {
     this.loginForm = this.fb.group({
       user_email: ['', [Validators.required, Validators.email]],
@@ -224,7 +227,18 @@ export class LoginComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.loading = false;
-        if (error.status === 401) {
+        if (error.status === 409 && error.error && error.error.code === 'SESSION_EXISTS') {
+          // Exibe modal informativo de sessão já aberta
+          this.dialog.open(FeedbackDialogComponent, {
+            width: '350px',
+            disableClose: true,
+            data: {
+              title: 'Sessão já aberta',
+              message: 'Já existe uma sessão ativa para este usuário em outro navegador ou dispositivo.',
+              type: 'error'
+            }
+          });
+        } else if (error.status === 401) {
           this.errorMessage = 'Email ou senha inválidos.';
         } else if (error.status === 500) {
           this.errorMessage = 'Erro interno do servidor. Tente novamente.';

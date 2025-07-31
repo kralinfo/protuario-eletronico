@@ -18,7 +18,7 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'pacientes', component: PacientesComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'pacientes' } },
   { path: 'pacientes/novo', component: PacientesFormComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'pacientes' } },
-  { path: 'relatorios', component: RelatoriosComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'relatorios' } },
+  { path: 'relatorios/pacientes', component: RelatoriosComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'relatorios' } },
   { path: 'relatorios/atendimentos', component: RelatorioAtendimentosComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'relatorios' } },
   { path: 'usuarios', component: UsuariosComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'usuarios' } },
   { path: 'atendimentos', component: AtendimentosDiaComponent },

@@ -13,7 +13,7 @@
       <mat-icon>medical_services</mat-icon>
       <span class="menu-label">Atendimentos</span>
     </button>
-    <button mat-menu-item routerLink="/relatorios" routerLinkActive="font-bold">
+    <button mat-menu-item [matMenuTriggerFor]="relatorioMenu">
       <mat-icon>bar_chart</mat-icon>
       <span class="menu-label">Relatórios</span>
     </button>
@@ -38,13 +38,13 @@
     </mat-menu>
   </mat-menu>
   <mat-menu #relatorioMenu="matMenu">
-    <button mat-menu-item routerLink="/relatorios" routerLinkActive="font-bold">
+    <button mat-menu-item routerLink="/relatorios/pacientes" routerLinkActive="font-bold">
       <mat-icon>bar_chart</mat-icon>
-      <span class="menu-label">Pacientes</span>
+      <span class="menu-label">Relatório de Pacientes</span>
     </button>
     <button mat-menu-item routerLink="/relatorios/atendimentos" routerLinkActive="font-bold">
       <mat-icon>assignment</mat-icon>
-      <span class="menu-label">Atendimentos</span>
+      <span class="menu-label">Relatório de Atendimento</span>
     </button>
   </mat-menu>
   <div class="w-full relative shadow-sm" style="background: linear-gradient(100deg, #0a224e 0%, #1e3a8a 60%, #2563eb 100%);">
@@ -66,7 +66,7 @@
     </div>
       <div class="flex items-center gap-1 sm:gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end">
       <span class="user-info user-info-ola hidden sm:inline-block text-gray-700 mr-1" *ngIf="authService.user">
-        Olá, <span class="user-nome">{{ authService.user.nome }}</span>
+        Olá, <span class="user-nome">{{ getNomeCurto(authService.user.nome) }}</span>
       </span>
       <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Menu do usuário">
         <mat-icon>person_outline</mat-icon>
@@ -74,13 +74,13 @@
       <!-- Botões removidos do header, agora ficam no menu do usuário -->
     </div>
       <mat-menu #userMenu="matMenu" class="text-xs">
-        <button mat-menu-item (click)="alternarDarkMode()" class="text-xs">
-          <mat-icon class="!text-base">{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
-          <span class="text-xs">{{ isDarkMode ? 'Modo Claro' : 'Modo Escuro' }}</span>
-        </button>
         <button mat-menu-item (click)="abrirSobre()" class="text-xs">
           <mat-icon class="!text-base">info</mat-icon>
           <span class="text-xs">Sobre o sistema</span>
+        </button>
+        <button mat-menu-item [disabled]="true" class="text-xs">
+          <mat-icon class="!text-base">dark_mode</mat-icon>
+          <span class="text-xs">Modo escuro</span>
         </button>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="logout()" class="text-xs">

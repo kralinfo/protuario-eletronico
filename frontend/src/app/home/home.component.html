@@ -1,4 +1,9 @@
-<div class="bg-gray-50 fixed inset-0 -z-10"></div>
+<div class="relative w-full min-h-screen bg-gray-50">
+  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 w-[90vw] max-w-6xl pointer-events-none select-none" style="z-index:0;">
+    <img src="assets/logo-alianca.svg" alt="Prefeitura de Aliança" class="w-full h-auto" draggable="false" />
+  </div>
+  <!-- Conteúdo principal -->
+  <div class="relative z-10">
 <div class="flex flex-col items-center justify-center gap-8 pt-24 w-full">
   <div class="flex gap-8 flex-col md:flex-row items-center justify-center w-full">
     <a routerLink="/atendimentos" class="w-full max-w-xs h-32 sm:w-64 sm:h-40 flex items-center justify-center bg-blue-600 text-white text-xl sm:text-2xl font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition cursor-pointer home-btn-3d">
@@ -11,7 +16,7 @@
       RELATÓRIO
     </button>
     <mat-menu #relatorioMenu="matMenu">
-      <button mat-menu-item [routerLink]="'/relatorios'">
+      <button mat-menu-item [routerLink]="'/relatorios/pacientes'">
         <mat-icon>bar_chart</mat-icon>
         Relatório de Pacientes
       </button>
@@ -32,20 +37,18 @@
   }
   .home-btn-3d {
     box-shadow:
-      0 8px 32px 0 rgba(43,105,242,0.28),
-      0 2px 0 0 #fff inset,
-      0 2px 16px 0 rgba(0,0,0,0.18);
-    border-bottom: 6px solid rgba(43,105,242,0.18);
+      0 24px 64px 0 rgba(43,105,242,0.45),
+      0 8px 32px 0 rgba(0,0,0,0.32);
+    border-bottom: 10px solid rgba(43,105,242,0.22);
     transform: translateY(0);
     transition: box-shadow 0.22s cubic-bezier(.4,0,.2,1), transform 0.22s cubic-bezier(.4,0,.2,1);
   }
   .home-btn-3d:hover {
     box-shadow:
-      0 16px 48px 0 rgba(43,105,242,0.36),
-      0 2px 0 0 #fff inset,
-      0 4px 24px 0 rgba(0,0,0,0.22);
-    transform: translateY(-4px) scale(1.06);
-    border-bottom: 10px solid rgba(43,105,242,0.24);
-    filter: brightness(1.07) saturate(1.12);
+      0 16px 32px 0 rgba(43,105,242,0.28),
+      0 4px 12px 0 rgba(0,0,0,0.14);
+    transform: translateY(-1.5px) scale(1.015);
+    border-bottom: 8px solid rgba(43,105,242,0.16);
+    filter: brightness(1.02) saturate(1.04);
   }
 </style>
