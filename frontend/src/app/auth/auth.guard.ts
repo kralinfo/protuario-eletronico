@@ -13,8 +13,14 @@ export class AuthGuard  {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    
-    // Permite navegação para telas protegidas, o interceptor lida com sessão expirada nas requisições.
-    return true;
+
+    // Verifica se o usuário está autenticado
+    if (this.authService.isAuthenticated()) {
+      return true;
+    }
+
+    // Se não estiver autenticado, redireciona para login
+    this.router.navigate(['/login']);
+    return false;
   }
 }

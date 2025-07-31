@@ -14,19 +14,19 @@ import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.co
 import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
+  { path: '', component: HomeComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'pacientes', component: PacientesComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'pacientes' } },
   { path: 'pacientes/novo', component: PacientesFormComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'pacientes' } },
   { path: 'relatorios/pacientes', component: RelatoriosComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'relatorios' } },
   { path: 'relatorios/atendimentos', component: RelatorioAtendimentosComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'relatorios' } },
   { path: 'usuarios', component: UsuariosComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'usuarios' } },
-  { path: 'atendimentos', component: AtendimentosDiaComponent },
-  { path: 'atendimentos/novo', component: NovoAtendimentoComponent },
+  { path: 'atendimentos', component: AtendimentosDiaComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'atendimentos' } },
+  { path: 'atendimentos/novo', component: NovoAtendimentoComponent, canActivate: [AuthGuard, ModuloGuard], data: { modulo: 'atendimentos' } },
   // Rotas para redefinição de senha via token
   { path: 'redefinir-senha', component: RedefinirSenhaComponent },
   { path: 'reset-password', component: RedefinirSenhaComponent },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '/login' }
 ];
 
 @NgModule({
