@@ -1,78 +1,161 @@
-<footer class="fixed left-0 bottom-0 z-50 px-2 py-1 text-xs text-gray-400 bg-transparent pointer-events-none select-none" style="min-width: 0;">
-  <span class="whitespace-nowrap">Sistema desenvolvido por <strong class="font-normal">Kralinfo</strong> Soluções Tecnológicas</span>
+<footer
+  class="fixed left-0 bottom-0 z-50 px-2 py-1 text-xs text-gray-400 bg-transparent pointer-events-none select-none"
+  style="min-width: 0"
+>
+  <span class="whitespace-nowrap"
+    >Sistema desenvolvido por
+    <strong class="font-normal">Kralinfo</strong> Soluções Tecnológicas</span
+  >
 </footer>
 
 <ng-container *ngIf="!isLoginRoute()">
   <!-- Menu hamburguer à esquerda do header principal -->
-  <mat-menu #mainMenu="matMenu" class="main-menu-modern">
+  <mat-menu #mainMenu="matMenu" class="main-menu-modern text-xs">
     <button mat-menu-item routerLink="/pacientes" routerLinkActive="font-bold">
       <mat-icon>person_search</mat-icon>
-      <span class="menu-label">Pacientes</span>
+      <span class="menu-label text-xs">Pacientes</span>
     </button>
-    <button mat-menu-item routerLink="/atendimentos" routerLinkActive="font-bold">
+    <button
+      mat-menu-item
+      routerLink="/atendimentos"
+      routerLinkActive="font-bold"
+    >
       <mat-icon>medical_services</mat-icon>
-      <span class="menu-label">Atendimentos</span>
+      <span class="menu-label text-xs">Atendimentos</span>
     </button>
     <button mat-menu-item [matMenuTriggerFor]="relatorioMenu">
       <mat-icon>bar_chart</mat-icon>
-      <span class="menu-label">Relatórios</span>
+      <span class="menu-label text-xs">Relatórios</span>
     </button>
     <button mat-menu-item routerLink="/usuarios" routerLinkActive="font-bold">
       <mat-icon>group</mat-icon>
-      <span class="menu-label">Usuários</span>
+      <span class="menu-label text-xs">Usuários</span>
     </button>
     <mat-divider></mat-divider>
     <button mat-menu-item [matMenuTriggerFor]="impressaoMenu">
       <mat-icon>print</mat-icon>
-      <span class="menu-label">Impressão</span>
+      <span class="menu-label text-xs">Impressão</span>
     </button>
     <mat-menu #impressaoMenu="matMenu">
       <button mat-menu-item (click)="imprimirFichaPacienteEmBrancoGlobal()">
         <mat-icon>print</mat-icon>
-        <span class="menu-label">Ficha de paciente em branco</span>
+        <span class="menu-label text-xs">Ficha de paciente em branco</span>
       </button>
       <button mat-menu-item (click)="imprimirFichaAtendimentoEmBrancoGlobal()">
         <mat-icon>print</mat-icon>
-        <span class="menu-label">Ficha de atendimento em branco</span>
+        <span class="menu-label text-xs">Ficha de atendimento em branco</span>
       </button>
     </mat-menu>
   </mat-menu>
   <mat-menu #relatorioMenu="matMenu">
-    <button mat-menu-item routerLink="/relatorios/pacientes" routerLinkActive="font-bold">
+    <button
+      mat-menu-item
+      routerLink="/relatorios/pacientes"
+      routerLinkActive="font-bold"
+    >
       <mat-icon>bar_chart</mat-icon>
-      <span class="menu-label">Relatório de Pacientes</span>
+      <span class="menu-label text-xs">Relatório de Pacientes</span>
     </button>
-    <button mat-menu-item routerLink="/relatorios/atendimentos" routerLinkActive="font-bold">
+    <button
+      mat-menu-item
+      routerLink="/relatorios/atendimentos"
+      routerLinkActive="font-bold"
+    >
       <mat-icon>assignment</mat-icon>
-      <span class="menu-label">Relatório de Atendimento</span>
+      <span class="menu-label text-xs">Relatório de Atendimento</span>
     </button>
   </mat-menu>
-  <div class="w-full relative shadow-sm" style="background: linear-gradient(100deg, #0a224e 0%, #1e3a8a 60%, #2563eb 100%);">
-    <div class="absolute inset-0 pointer-events-none opacity-15" style="background-image: url('data:image/svg+xml;utf8,<svg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' fill=\'none\' xmlns=\'http://www.w3.org/2000/svg\'><defs><linearGradient id=\'g\' x1=\'0\' y1=\'20\' x2=\'40\' y2=\'20\' gradientUnits=\'userSpaceOnUse\'><stop stop-color=\'%23fff\' stop-opacity=\'0.28\'/><stop offset=\'1\' stop-color=\'%23fff\' stop-opacity=\'0.01\'/></linearGradient></defs><path d=\'M0 40L40 0\' stroke=\'url(%23g)\' stroke-width=\'1\'/><path d=\'M-10 30L30 -10\' stroke=\'url(%23g)\' stroke-width=\'1\'/><path d=\'M10 50L50 10\' stroke=\'url(%23g)\' stroke-width=\'1\'/></svg>'); background-size: 60px 60px;"></div>
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-6 sm:px-12 py-2 sm:py-0 gap-2 sm:gap-0 relative z-10">
-      <div class="flex items-center gap-2 w-full sm:w-auto">
-      <button mat-icon-button [matMenuTriggerFor]="mainMenu" aria-label="Menu principal" class="menu-hamburguer mr-2" style="background:transparent;border:none;padding:0 2px;display:flex;align-items:center;justify-content:center;">
-        <span class="menu-google-grid">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </span>
-      </button>
-      <img src="assets/logo-alianca.svg" alt="Aliança-PE" class="logo-alianca h-8 w-auto mr-2 cursor-pointer" (click)="irParaMenuPrincipal()" tabindex="0" (keydown.enter)="irParaMenuPrincipal()" aria-label="Ir para a página inicial">
-      <div class="sistema-info-botao cursor-pointer" tabindex="0" (click)="irParaMenuPrincipal()" (keydown.enter)="irParaMenuPrincipal()" aria-label="Ir para o menu principal">
-        <div class="logo-principal">e-Prontuário</div>
-        <div class="sistema-descricao text-white">Gerenciamento de Prontuários Eletrônicos</div>
+  <div
+    class="w-full relative shadow-sm"
+    style="
+      background: linear-gradient(
+        100deg,
+        #0a224e 0%,
+        #1e3a8a 60%,
+        #2563eb 100%
+      );
+    "
+  >
+    <div
+      class="absolute inset-0 pointer-events-none opacity-15"
+      style="
+        background-image: url('data:image/svg+xml;utf8,<svg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' fill=\'none\' xmlns=\'http://www.w3.org/2000/svg\'><defs><linearGradient id=\'g\' x1=\'0\' y1=\'20\' x2=\'40\' y2=\'20\' gradientUnits=\'userSpaceOnUse\'><stop stop-color=\'%23fff\' stop-opacity=\'0.28\'/><stop offset=\'1\' stop-color=\'%23fff\' stop-opacity=\'0.01\'/></linearGradient></defs><path d=\'M0 40L40 0\' stroke=\'url(%23g)\' stroke-width=\'1\'/><path d=\'M-10 30L30 -10\' stroke=\'url(%23g)\' stroke-width=\'1\'/><path d=\'M10 50L50 10\' stroke=\'url(%23g)\' stroke-width=\'1\'/></svg>');
+        background-size: 60px 60px;
+      "
+    ></div>
+    <div
+      class=" mx-auto flex flex-row  items-center justify-between"
+    >
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-start">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="mainMenu"
+          aria-label="Menu principal"
+          class="menu-hamburguer mr-2"
+          style="
+            background: transparent;
+            border: none;
+            padding: 0 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <span class="menu-google-grid">
+            <span class="dot"></span><span class="dot"></span
+            ><span class="dot"></span> <span class="dot"></span
+            ><span class="dot"></span><span class="dot"></span>
+            <span class="dot"></span><span class="dot"></span
+            ><span class="dot"></span>
+          </span>
+        </button>
+        <div
+          class="sistema-info-botao cursor-pointer"
+          tabindex="0"
+          (click)="irParaMenuPrincipal()"
+          (keydown.enter)="irParaMenuPrincipal()"
+          aria-label="Ir para o menu principal"
+        >
+          <div class="logo-principal">e-Prontuário</div>
+          <div class="sistema-descricao text-white">
+            Gerenciamento de Prontuários Eletrônicos
+          </div>
+        </div>
       </div>
-    </div>
-      <div class="flex items-center gap-1 sm:gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end">
-      <span class="user-info user-info-ola hidden sm:inline-block text-gray-700 mr-1" *ngIf="authService.user">
-        Olá, <span class="user-nome">{{ getNomeCurto(authService.user.nome) }}</span>
-      </span>
-      <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Menu do usuário">
-        <mat-icon>person_outline</mat-icon>
-      </button>
-      <!-- Botões removidos do header, agora ficam no menu do usuário -->
-    </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
+            <img
+          src="assets/logo-alianca.svg"
+          alt="Aliança-PE"
+          class="logo-alianca h-auto w-auto mr-2 cursor-pointer"
+          (click)="irParaMenuPrincipal()"
+          tabindex="0"
+          (keydown.enter)="irParaMenuPrincipal()"
+          aria-label="Ir para a página inicial"
+        />
+
+      </div>
+
+      <div
+        class="flex items-center gap-1 sm:gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end"
+      >
+        <span
+          class="user-info user-info-ola hidden sm:inline-block text-gray-700 mr-1"
+          *ngIf="authService.user"
+        >
+          Olá,
+          <span class="user-nome">{{
+            getNomeCurto(authService.user.nome)
+          }}</span>
+        </span>
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="userMenu"
+          aria-label="Menu do usuário"
+        >
+          <mat-icon>person_outline</mat-icon>
+        </button>
+        <!-- Botões removidos do header, agora ficam no menu do usuário -->
+      </div>
       <mat-menu #userMenu="matMenu" class="text-xs">
         <button mat-menu-item (click)="abrirSobre()" class="text-xs">
           <mat-icon class="!text-base">info</mat-icon>
@@ -90,119 +173,129 @@
       </mat-menu>
     </div>
   </div>
-<ng-template #sobreDialog>
-  <div class="sobre-modal leve max-w-xs sm:max-w-sm md:max-w-md mx-auto p-4 bg-white rounded-lg shadow text-center">
-    <h2 class="sobre-titulo text-lg font-semibold mb-2">Sobre o sistema</h2>
-    <div class="sobre-empresa text-gray-500 mb-2">Sistema desenvolvido por <strong>Kralinfo</strong> Soluções Tecnológicas</div>
-    <ul class="sobre-versoes text-sm text-gray-600 mb-3">
-      <li>Frontend: <strong>v1.0.0</strong> (Angular 19)</li>
-      <li>Backend: <strong>v1.0.0</strong> (Node.js/Express)</li>
-    </ul>
-    <button mat-stroked-button color="primary" (click)="fecharSobre()">Fechar</button>
-  </div>
-</ng-template>
-<style>
-  .sobre-modal.leve {
-    min-width: 260px;
-    padding: 16px 8px 12px 8px;
-    text-align: center;
-    font-size: 0.98em;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    border-radius: 8px;
-  }
-  .user-menu-fixo {
-    position: absolute;
-    top: 63%;
-    right: 24px;
-    height: auto;
-    display: flex;
-    align-items: center;
-    transform: translateY(-50%);
-    z-index: 101;
-  }
-  .sobre-titulo {
-    font-size: 1.08em;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #444;
-  }
-  .sobre-empresa {
-    font-size: 0.97em;
-    color: #888;
-    margin-bottom: 8px;
-  }
-  .sobre-versoes {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 12px 0;
-    font-size: 0.95em;
-    color: #666;
-  }
-  .sobre-versoes li {
-    margin-bottom: 2px;
-  }
-  .user-info {
-    font-size: 14px;
-    font-weight: 300;
-    color: white;
-    margin-right: 2px;
-    margin-left: 0;
-    display: inline-block;
-    vertical-align: middle;
-    font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-    letter-spacing: 0.2px;
-  }
-  .user-menu-fixo button[mat-icon-button] {
-    margin-left: 0;
-    margin-right: 0;
-    vertical-align: middle;
-  }
-  .main-menu-modern .mat-menu-content {
-    padding: 12px 0;
-    background: linear-gradient(135deg, #e3eafe 0%, #f7f7fa 100%);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px 0 rgba(43,105,242,0.10), 0 1.5px 0 0 #fff inset;
-  }
-  .main-menu-modern .mat-menu-item {
-    border-radius: 8px;
-    margin: 4px 8px;
-    padding: 10px 18px;
-    font-size: 1.08em;
-    font-weight: 500;
-    color: #2b69f2;
-    transition: background 0.18s, color 0.18s;
-  }
-  .main-menu-modern .mat-menu-item:hover {
-    background: #e3eafe;
-    color: #1741a6;
-  }
-  .main-menu-modern .mat-icon {
-    font-size: 1.5em !important;
-    margin-right: 10px;
-    color: #2b69f2 !important;
-  }
-  .menu-label {
-    letter-spacing: 0.2px;
-  }
-  .menu-google-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 7px);
-    grid-template-rows: repeat(3, 7px);
-    gap: 4px;
-    width: 27px;
-    height: 27px;
-  }
-  .menu-google-grid .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #bdbdbd;
-    transition: background 0.2s;
-  }
-  .menu-hamburguer:hover .dot {
-    background: #2b69f2;
-  }
-</style>
+  <ng-template #sobreDialog>
+    <div
+      class="sobre-modal leve max-w-xs sm:max-w-sm md:max-w-md mx-auto p-4 bg-white rounded-lg shadow text-center"
+    >
+      <h2 class="sobre-titulo text-lg font-semibold mb-2">Sobre o sistema</h2>
+      <div class="sobre-empresa text-gray-500 mb-2">
+        Sistema desenvolvido por <strong>Kralinfo</strong> Soluções Tecnológicas
+      </div>
+      <ul class="sobre-versoes text-sm text-gray-600 mb-3">
+        <li>Frontend: <strong>v1.0.0</strong> (Angular 19)</li>
+        <li>Backend: <strong>v1.0.0</strong> (Node.js/Express)</li>
+      </ul>
+      <button mat-stroked-button color="primary" (click)="fecharSobre()">
+        Fechar
+      </button>
+    </div>
+  </ng-template>
+  <style>
+    .sobre-modal.leve {
+      min-width: 260px;
+      padding: 16px 8px 12px 8px;
+      text-align: center;
+      font-size: 0.98em;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border-radius: 8px;
+    }
+    .user-menu-fixo {
+      position: absolute;
+      top: 63%;
+      right: 24px;
+      height: auto;
+      display: flex;
+      align-items: center;
+      transform: translateY(-50%);
+      z-index: 101;
+    }
+    .sobre-titulo {
+      font-size: 1.08em;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #444;
+    }
+    .sobre-empresa {
+      font-size: 0.97em;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .sobre-versoes {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 12px 0;
+      font-size: 0.95em;
+      color: #666;
+    }
+    .sobre-versoes li {
+      margin-bottom: 2px;
+    }
+    .user-info {
+      font-size: 14px;
+      font-weight: 300;
+      color: white;
+      margin-right: 2px;
+      margin-left: 0;
+      display: inline-block;
+      vertical-align: middle;
+      font-family: "Segoe UI", "Roboto", "Arial", sans-serif;
+      letter-spacing: 0.2px;
+    }
+    .user-menu-fixo button[mat-icon-button] {
+      margin-left: 0;
+      margin-right: 0;
+      vertical-align: middle;
+    }
+    .main-menu-modern .mat-menu-content {
+      padding: 12px 0;
+      background: linear-gradient(135deg, #e3eafe 0%, #f7f7fa 100%);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px 0 rgba(43, 105, 242, 0.1), 0 1.5px 0 0 #fff inset;
+    }
+    .main-menu-modern .mat-menu-item {
+      border-radius: 8px;
+      margin: 4px 8px;
+      padding: 10px 18px;
+      font-size: 1.08em;
+      font-weight: 500;
+      color: #2b69f2;
+      transition: background 0.18s, color 0.18s;
+    }
+    .main-menu-modern .mat-menu-item:hover {
+      background: #e3eafe;
+      color: #1741a6;
+    }
+    .main-menu-modern .mat-icon {
+      font-size: 1.5em !important;
+      margin-right: 10px;
+      color: #2b69f2 !important;
+    }
+    .menu-label {
+      letter-spacing: 0.2px;
+    }
+    .menu-google-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 7px);
+      grid-template-rows: repeat(3, 7px);
+      gap: 4px;
+      width: 27px;
+      height: 27px;
+    }
+    .menu-google-grid .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #bdbdbd;
+      transition: background 0.2s;
+    }
+    .menu-hamburguer:hover .dot {
+      background: #2b69f2;
+    }
+  </style>
 </ng-container>
+
+<!-- Breadcrumb Navigation -->
+<app-breadcrumb *ngIf="!isLoginRoute()"></app-breadcrumb>
+
 <router-outlet></router-outlet>

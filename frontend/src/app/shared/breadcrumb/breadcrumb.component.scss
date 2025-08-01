@@ -1,0 +1,35 @@
+.breadcrumb-nav {
+  @apply px-4 py-2 bg-gray-50 rounded-lg border border-gray-200;
+}
+
+.breadcrumb-list {
+  @apply flex items-center flex-wrap gap-2 text-sm;
+}
+
+.breadcrumb-item {
+  @apply flex items-center text-gray-600 hover:text-blue-500 transition-colors;
+}
+
+.breadcrumb-link {
+  @apply flex items-center hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 focus:rounded;
+}
+
+.breadcrumb-current {
+  @apply flex items-center cursor-default;
+}
+
+.breadcrumb-content {
+  @apply flex items-center gap-1;
+}
+
+.breadcrumb-icon {
+  @apply h-4 w-4;
+}
+
+.breadcrumb-separator {
+  @apply mx-1 flex items-center;
+}
+
+.breadcrumb-label {
+  @apply truncate max-w-xs md:max-w-md;
+}
