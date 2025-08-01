@@ -50,17 +50,25 @@ const listarDoDia = async (req, res) => {
     whereClauses.push(`a.paciente_id = $${idx++}`);
     params.push(pacienteId);
   }
+  const getBrasiliaDateRange = (dateString) => {
+    // Retorna início e fim do dia em America/Sao_Paulo (Brasília)
+    const date = dateString ? new Date(dateString) : new Date();
+    // Ajusta para o timezone de Brasília
+    const toBrasilia = (d) => {
+      // America/Sao_Paulo = UTC-3 (sem considerar horário de verão)
+      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+      return new Date(utc - (3 * 60 * 60 * 1000));
+    };
+    const inicio = toBrasilia(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0));
+    const fim = toBrasilia(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59));
+    return [inicio, fim];
+  };
   if (data) {
-    // data no formato yyyy-mm-dd
-    const inicio = new Date(data + 'T00:00:00');
-    const fim = new Date(data + 'T23:59:59');
+    const [inicio, fim] = getBrasiliaDateRange(data);
     whereClauses.push(`a.data_hora_atendimento BETWEEN $${idx++} AND $${idx++}`);
     params.push(inicio, fim);
   } else {
-    // Se não veio data, busca do dia atual
-    const hoje = new Date();
-    const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0);
-    const fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59);
+    const [inicio, fim] = getBrasiliaDateRange();
     whereClauses.push(`a.data_hora_atendimento BETWEEN $${idx++} AND $${idx++}`);
     params.push(inicio, fim);
   }
