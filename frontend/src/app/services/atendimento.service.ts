@@ -5,6 +5,13 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AtendimentoService {
+  buscarRelatorioAtendimentos(filtros: any) {
+    const params = new URLSearchParams();
+    if (filtros.dataInicial) params.append('dataInicial', filtros.dataInicial);
+    if (filtros.dataFinal) params.append('dataFinal', filtros.dataFinal);
+    // Adicione outros filtros conforme necessário
+    return this.http.get<any[]>(`http://localhost:3001/api/atendimentos/reports?${params.toString()}`);
+  }
   constructor(private http: HttpClient) {}
 
   registrarAtendimento(dto: { pacienteId: number; motivo: string; observacoes?: string }) {

@@ -1,3 +1,4 @@
+
 DROP TABLE IF EXISTS atendimentos;
 DROP TABLE IF EXISTS pacientes;
 DROP TABLE IF EXISTS usuarios;

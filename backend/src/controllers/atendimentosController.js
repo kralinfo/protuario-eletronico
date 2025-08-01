@@ -1,3 +1,53 @@
+// Relatório avançado de atendimentos
+const reports = async (req, res) => {
+  const { dataInicial, dataFinal } = req.query;
+  let query = `SELECT a.id, a.created_at as data, a.paciente_id as paciente, a.data_hora_atendimento as hora, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
+    FROM atendimentos a
+    JOIN pacientes p ON p.id = a.paciente_id
+    WHERE 1=1`;
+  const params = [];
+  let idx = 1;
+  if (dataInicial) {
+    query += ` AND a.created_at >= $${idx}`;
+    params.push(new Date(dataInicial + 'T00:00:00'));
+    idx++;
+  }
+  if (dataFinal) {
+    query += ` AND a.created_at <= $${idx}`;
+    params.push(new Date(dataFinal + 'T23:59:59'));
+    idx++;
+  }
+  // profissional removido do filtro e do retorno
+  query += ` ORDER BY a.created_at DESC`;
+  const result = await db.query(query, params);
+  const atendimentos = result.rows || [];
+
+  // Estatísticas
+  const total = atendimentos.length;
+  const masculino = atendimentos.filter(a => a.paciente_sexo === 'M').length;
+  const feminino = atendimentos.filter(a => a.paciente_sexo === 'F').length;
+  const municipios = new Set(atendimentos.map(a => a.paciente_municipio)).size;
+
+  // Filtros retornados
+  const filters = {
+    dataInicio: dataInicial || '',
+    dataFim: dataFinal || '',
+    orderBy: 'created_at',
+    order: 'DESC'
+  };
+
+  res.json({
+    status: 'SUCCESS',
+    data: atendimentos,
+    statistics: {
+      total,
+      masculino,
+      feminino,
+      municipios
+    },
+    filters
+  });
+};
 import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
 
