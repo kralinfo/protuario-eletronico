@@ -10,10 +10,10 @@
 
 <ng-container *ngIf="!isLoginRoute()">
   <!-- Menu hamburguer à esquerda do header principal -->
-  <mat-menu #mainMenu="matMenu" class="main-menu-modern">
+  <mat-menu #mainMenu="matMenu" class="main-menu-modern text-xs">
     <button mat-menu-item routerLink="/pacientes" routerLinkActive="font-bold">
       <mat-icon>person_search</mat-icon>
-      <span class="menu-label">Pacientes</span>
+      <span class="menu-label text-xs">Pacientes</span>
     </button>
     <button
       mat-menu-item
@@ -21,29 +21,29 @@
       routerLinkActive="font-bold"
     >
       <mat-icon>medical_services</mat-icon>
-      <span class="menu-label">Atendimentos</span>
+      <span class="menu-label text-xs">Atendimentos</span>
     </button>
     <button mat-menu-item [matMenuTriggerFor]="relatorioMenu">
       <mat-icon>bar_chart</mat-icon>
-      <span class="menu-label">Relatórios</span>
+      <span class="menu-label text-xs">Relatórios</span>
     </button>
     <button mat-menu-item routerLink="/usuarios" routerLinkActive="font-bold">
       <mat-icon>group</mat-icon>
-      <span class="menu-label">Usuários</span>
+      <span class="menu-label text-xs">Usuários</span>
     </button>
     <mat-divider></mat-divider>
     <button mat-menu-item [matMenuTriggerFor]="impressaoMenu">
       <mat-icon>print</mat-icon>
-      <span class="menu-label">Impressão</span>
+      <span class="menu-label text-xs">Impressão</span>
     </button>
     <mat-menu #impressaoMenu="matMenu">
       <button mat-menu-item (click)="imprimirFichaPacienteEmBrancoGlobal()">
         <mat-icon>print</mat-icon>
-        <span class="menu-label">Ficha de paciente em branco</span>
+        <span class="menu-label text-xs">Ficha de paciente em branco</span>
       </button>
       <button mat-menu-item (click)="imprimirFichaAtendimentoEmBrancoGlobal()">
         <mat-icon>print</mat-icon>
-        <span class="menu-label">Ficha de atendimento em branco</span>
+        <span class="menu-label text-xs">Ficha de atendimento em branco</span>
       </button>
     </mat-menu>
   </mat-menu>
@@ -54,7 +54,7 @@
       routerLinkActive="font-bold"
     >
       <mat-icon>bar_chart</mat-icon>
-      <span class="menu-label">Relatório de Pacientes</span>
+      <span class="menu-label text-xs">Relatório de Pacientes</span>
     </button>
     <button
       mat-menu-item
@@ -62,7 +62,7 @@
       routerLinkActive="font-bold"
     >
       <mat-icon>assignment</mat-icon>
-      <span class="menu-label">Relatório de Atendimento</span>
+      <span class="menu-label text-xs">Relatório de Atendimento</span>
     </button>
   </mat-menu>
   <div
