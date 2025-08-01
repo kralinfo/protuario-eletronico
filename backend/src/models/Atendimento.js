@@ -13,8 +13,18 @@ class Atendimento {
 
   static async listarPorPaciente(pacienteId) {
     const result = await db.query(
-      `SELECT * FROM atendimentos WHERE paciente_id = $1 ORDER BY data_atendimento DESC`,
+      `SELECT * FROM atendimentos WHERE paciente_id = $1 ORDER BY created_at DESC`,
       [pacienteId]
+    );
+    return result.rows;
+  }
+
+  static async listarTodos() {
+    const result = await db.query(
+      `SELECT a.*, p.nome as paciente_nome
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       ORDER BY a.data_hora_atendimento DESC`
     );
     return result.rows;
   }

@@ -23,4 +23,8 @@ export class AtendimentoService {
   removerAtendimento(id: number) {
     return this.http.delete(`http://localhost:3001/api/atendimentos/${id}`);
   }
+
+  listarTodosAtendimentos() {
+    return this.http.get<any[]>('http://localhost:3001/api/atendimentos/todos_atendimentos');
+  }
 }
