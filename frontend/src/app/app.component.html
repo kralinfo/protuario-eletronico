@@ -205,4 +205,8 @@
   }
 </style>
 </ng-container>
+
+<!-- Breadcrumb Navigation -->
+<app-breadcrumb *ngIf="!isLoginRoute()"></app-breadcrumb>
+
 <router-outlet></router-outlet>
