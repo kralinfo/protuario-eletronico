@@ -14,41 +14,41 @@ import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.co
 import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 
 const routes: Routes = [
-  { 
-    path: '', 
-    component: HomeComponent, 
+  {
+    path: '',
+    component: HomeComponent,
     canActivate: [AuthGuard],
-    data: { 
+    data: {
       breadcrumb: 'Home',
       icon: 'home',
       title: 'Dashboard Principal'
     }
   },
-  { 
-    path: 'login', 
+  {
+    path: 'login',
     component: LoginComponent,
-    data: { 
+    data: {
       breadcrumb: 'Login',
       icon: 'login',
       hideInBreadcrumb: true
     }
   },
-  { 
-    path: 'pacientes', 
-    component: PacientesComponent, 
-    canActivate: [AuthGuard, ModuloGuard], 
-    data: { 
+  {
+    path: 'pacientes',
+    component: PacientesComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
       modulo: 'pacientes',
       breadcrumb: 'Pacientes',
       icon: 'people',
       title: 'Gestão de Pacientes'
     }
   },
-  { 
-    path: 'pacientes/novo', 
-    component: PacientesFormComponent, 
-    canActivate: [AuthGuard, ModuloGuard], 
-    data: { 
+  {
+    path: 'pacientes/novo',
+    component: PacientesFormComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
       modulo: 'pacientes',
       breadcrumb: 'Novo Paciente',
       icon: 'person_add',
@@ -56,11 +56,11 @@ const routes: Routes = [
       parent: 'pacientes'
     }
   },
-  { 
-    path: 'relatorios/pacientes', 
-    component: RelatoriosComponent, 
-    canActivate: [AuthGuard, ModuloGuard], 
-    data: { 
+  {
+    path: 'relatorios/pacientes',
+    component: RelatoriosComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
       modulo: 'relatorios',
       breadcrumb: 'Relatório de Pacientes',
       icon: 'assessment',
@@ -68,11 +68,11 @@ const routes: Routes = [
       parent: 'relatorios'
     }
   },
-  { 
-    path: 'relatorios/atendimentos', 
-    component: RelatorioAtendimentosComponent, 
-    canActivate: [AuthGuard, ModuloGuard], 
-    data: { 
+  {
+    path: 'relatorios/atendimentos',
+    component: RelatorioAtendimentosComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
       modulo: 'relatorios',
       breadcrumb: 'Relatório de Atendimentos',
       icon: 'analytics',
@@ -80,33 +80,33 @@ const routes: Routes = [
       parent: 'relatorios'
     }
   },
-  { 
-    path: 'usuarios', 
-    component: UsuariosComponent, 
-    canActivate: [AuthGuard, ModuloGuard], 
-    data: { 
+  {
+    path: 'usuarios',
+    component: UsuariosComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
       modulo: 'usuarios',
       breadcrumb: 'Usuários',
       icon: 'manage_accounts',
       title: 'Gestão de Usuários'
     }
   },
-  { 
-    path: 'atendimentos', 
-    component: AtendimentosDiaComponent, 
-    canActivate: [AuthGuard, ModuloGuard], 
-    data: { 
+  {
+    path: 'atendimentos',
+    component: AtendimentosDiaComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
       modulo: 'atendimentos',
       breadcrumb: 'Atendimentos',
       icon: 'medical_services',
       title: 'Atendimentos do Dia'
     }
   },
-  { 
-    path: 'atendimentos/novo', 
-    component: NovoAtendimentoComponent, 
-    canActivate: [AuthGuard, ModuloGuard], 
-    data: { 
+  {
+    path: 'atendimentos/novo',
+    component: NovoAtendimentoComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
       modulo: 'atendimentos',
       breadcrumb: 'Novo Atendimento',
       icon: 'add_circle',
@@ -115,19 +115,19 @@ const routes: Routes = [
     }
   },
   // Rotas para redefinição de senha via token
-  { 
-    path: 'redefinir-senha', 
+  {
+    path: 'redefinir-senha',
     component: RedefinirSenhaComponent,
-    data: { 
+    data: {
       breadcrumb: 'Redefinir Senha',
       icon: 'lock_reset',
       hideInBreadcrumb: true
     }
   },
-  { 
-    path: 'reset-password', 
+  {
+    path: 'reset-password',
     component: RedefinirSenhaComponent,
-    data: { 
+    data: {
       breadcrumb: 'Redefinir Senha',
       icon: 'lock_reset',
       hideInBreadcrumb: true

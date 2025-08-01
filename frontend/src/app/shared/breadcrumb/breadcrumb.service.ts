@@ -42,14 +42,14 @@ export class BreadcrumbService {
       if (children.length === 0) {
         break;
       }
-      
+
       route = children[0];
-      
+
       if (route.snapshot.url.length > 0) {
         url += '/' + route.snapshot.url.map(segment => segment.path).join('/');
-        
+
         const routeData = route.snapshot.data;
-        
+
         if (routeData && routeData['breadcrumb'] && !routeData['hideInBreadcrumb']) {
           // Check if parent breadcrumb should be added
           if (routeData['parent']) {
@@ -58,7 +58,7 @@ export class BreadcrumbService {
               breadcrumbs.push(parentBreadcrumb);
             }
           }
-          
+
           breadcrumbs.push({
             label: routeData['breadcrumb'],
             url: url,
@@ -118,8 +118,8 @@ export class BreadcrumbService {
   }
 
   private isLoginPage(): boolean {
-    return this.router.url === '/login' || 
-           this.router.url.includes('/redefinir-senha') || 
+    return this.router.url === '/login' ||
+           this.router.url.includes('/redefinir-senha') ||
            this.router.url.includes('/reset-password');
   }
 
