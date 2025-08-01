@@ -1,7 +1,10 @@
 
+
+
 DROP TABLE IF EXISTS atendimentos;
 DROP TABLE IF EXISTS pacientes;
 DROP TABLE IF EXISTS usuarios;
+
 CREATE TABLE usuarios (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -9,6 +12,9 @@ CREATE TABLE usuarios (
   nome VARCHAR(100),
   nivel VARCHAR(20) NOT NULL DEFAULT 'visualizador',
   permissoes TEXT[],
+  reset_token VARCHAR(255),
+  reset_token_expira TIMESTAMP,
+  reset_token_usado BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -37,12 +43,15 @@ CREATE TABLE pacientes (
 
 CREATE TABLE atendimentos (
   id SERIAL PRIMARY KEY,
-  paciente_id INTEGER REFERENCES pacientes(id) ON DELETE CASCADE,
+  paciente_id INTEGER NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
   usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+  profissional VARCHAR(100),
   data_atendimento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   data_hora_chegada TIMESTAMP,
+  motivo VARCHAR(255),
   descricao TEXT,
-  status VARCHAR(30) NOT NULL DEFAULT 'recepcao',
+  status VARCHAR(50) NOT NULL DEFAULT 'triagem pendente',
+  observacoes TEXT,
   motivo_interrupcao VARCHAR(255) DEFAULT 'N/A',
   acompanhante VARCHAR(100),
   procedencia VARCHAR(100),
@@ -60,14 +69,16 @@ VALUES
   ('Marcos Lima', 'Helena Lima', '1975-03-15', 'M', 'Divorciado', 'Engenheiro', 'Superior', '(31) 97777-3333', '111222333444555', 'Preta', 'Rua Verde, 789', 'Industrial', 'Belo Horizonte', 'MG', '30000-000');
 
 -- Inserir usuários de teste (senha: 123456)
-INSERT INTO usuarios (email, senha, nome, nivel, permissoes) VALUES
-  ('admin@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Administrador', 'admin', ARRAY['recepcao','triagem','medico','ambulatorio']),
-  ('medico@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. João Silva', 'editor', ARRAY['medico','ambulatorio']),
-  ('medico1@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. Teste', 'editor', ARRAY['medico']),
-  ('enfermeiro@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Enfermeiro Paulo', 'visualizador', ARRAY['triagem']),
-  ('fpsjunior87@gmail.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Fernando Junior', 'admin', ARRAY['recepcao','triagem','medico','ambulatorio']),
-  ('visual@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Visualizador', 'visualizador', ARRAY['recepcao']),
-  ('editor@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Editor', 'editor', ARRAY['ambulatorio']),
-  ('multi@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Multi Módulos', 'editor', ARRAY['recepcao','ambulatorio']),
-  ('recepcao@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Recepção', 'visualizador', ARRAY['recepcao']);
+INSERT INTO usuarios (
+  email, senha, nome, nivel, permissoes, reset_token, reset_token_expira, reset_token_usado
+) VALUES
+  ('admin@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Administrador', 'admin', ARRAY['recepcao','triagem','medico','ambulatorio'], NULL, NULL, FALSE),
+  ('medico@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. João Silva', 'editor', ARRAY['medico','ambulatorio'], NULL, NULL, FALSE),
+  ('medico1@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. Teste', 'editor', ARRAY['medico'], NULL, NULL, FALSE),
+  ('enfermeiro@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Enfermeiro Paulo', 'visualizador', ARRAY['triagem'], NULL, NULL, FALSE),
+  ('fpsjunior87@gmail.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Fernando Junior', 'admin', ARRAY['recepcao','triagem','medico','ambulatorio'], NULL, NULL, FALSE),
+  ('visual@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Visualizador', 'visualizador', ARRAY['recepcao'], NULL, NULL, FALSE),
+  ('editor@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Editor', 'editor', ARRAY['ambulatorio'], NULL, NULL, FALSE),
+  ('multi@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Multi Módulos', 'editor', ARRAY['recepcao','ambulatorio'], NULL, NULL, FALSE),
+  ('recepcao@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Recepção', 'visualizador', ARRAY['recepcao'], NULL, NULL, FALSE);
 ON CONFLICT (email) DO NOTHING;
