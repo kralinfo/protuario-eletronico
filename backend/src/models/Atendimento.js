@@ -3,10 +3,15 @@ import db from '../config/database.js';
 
 class Atendimento {
   static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'recepcao', motivo_interrupcao = 'N/A' }) {
+    // Gera data/hora local de Brasília (America/Sao_Paulo)
+    const now = new Date();
+    const offsetMs = -3 * 60 * 60 * 1000; // UTC-3
+    const brasiliaDate = new Date(now.getTime() + offsetMs);
+    const brasiliaISOString = brasiliaDate.toISOString().replace('T', ' ').substring(0, 19); // 'YYYY-MM-DD HH:MM:SS'
     const result = await db.query(
       `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia, data_hora_atendimento)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *`,
-      [pacienteId, motivo, status, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null]
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [pacienteId, motivo, status, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null, brasiliaISOString]
     );
     return result.rows[0];
   }
