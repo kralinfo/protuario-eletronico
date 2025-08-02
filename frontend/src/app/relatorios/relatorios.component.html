@@ -235,28 +235,55 @@
           *ngIf="!carregando && pacientesFiltrados.length > 0"
           class="overflow-x-auto"
         >
-          <table class="min-w-full bg-white rounded shadow">
-            <thead>
+          <table class="min-w-[600px] w-full text-xs sm:text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
+            <thead style="background: linear-gradient(90deg, #f5faff 0%, #e3f0ff 100%); border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem;">
               <tr>
-                <th class="px-4 py-2">Nome</th>
-                <th class="px-4 py-2">Sexo</th>
-                <th class="px-4 py-2">Nascimento</th>
-                <th class="px-4 py-2">Município</th>
-                <th class="px-4 py-2">UF</th>
+                <th class="px-6 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">Nome</th>
+                <th class="px-4 py-2 font-semibold text-gray-700">Sexo</th>
+                <th class="px-4 py-2 font-semibold text-gray-700 min-w-[7rem]">Nascimento</th>
+                <th class="px-4 py-2 font-semibold text-gray-700">Município</th>
+                <th class="px-4 py-2 font-semibold text-gray-700">UF</th>
               </tr>
             </thead>
-            <tbody>
-              <tr *ngFor="let paciente of pacientesFiltrados">
-                <td class="px-4 py-2">{{ paciente.nome }}</td>
-                <td class="px-4 py-2">{{ paciente.sexo }}</td>
-                <td class="px-4 py-2">
-                  {{ paciente.nascimento | date : "dd/MM/yyyy" }}
-                </td>
-                <td class="px-4 py-2">{{ paciente.municipio }}</td>
-                <td class="px-4 py-2">{{ paciente.uf }}</td>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let paciente of paginatedPacientes" class="border-b hover:bg-gray-50">
+                <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">{{ paciente.nome }}</td>
+                <td class="px-4 py-2 text-gray-700">{{ paciente.sexo }}</td>
+                <td class="px-4 py-2 text-gray-700">{{ paciente.nascimento | date : "dd/MM/yyyy" }}</td>
+                <td class="px-4 py-2 text-gray-700">{{ paciente.municipio }}</td>
+                <td class="px-4 py-2 text-gray-700">{{ paciente.uf }}</td>
               </tr>
             </tbody>
           </table>
+          <!-- Rodapé padronizado -->
+          <div class="table-footer" *ngIf="pacientesFiltrados.length > 0">
+            <div class="table-footer-info">
+              <div class="table-footer-page-size">
+                <span>Items por página:</span>
+                <select (change)="onPageSizeChange($event)">
+                  <option *ngFor="let opt of pageSizeOptions" [value]="opt" [selected]="opt === pageSize">{{ opt }}</option>
+                </select>
+              </div>
+              <span class="table-footer-range">{{ paginatedPacientes.length > 0 ? (currentPage * pageSize + 1) : 0 }} – {{ currentPage * pageSize + paginatedPacientes.length }} de {{ pacientesFiltrados.length }}</span>
+            </div>
+            <div class="table-footer-pagination">
+              <button class="table-footer-btn" title="Primeira página" (click)="goToFirstPage()" [disabled]="currentPage === 0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <button class="table-footer-btn" title="Página anterior" (click)="goToPreviousPage()" [disabled]="currentPage === 0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <div class="table-footer-page-info">
+                <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+              </div>
+              <button class="table-footer-btn" title="Próxima página" (click)="goToNextPage()" [disabled]="currentPage >= totalPages - 1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
+              <button class="table-footer-btn" title="Última página" (click)="goToLastPage()" [disabled]="currentPage >= totalPages - 1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+          </div>
         </div>
         <div
           *ngIf="!carregando && pacientesFiltrados.length === 0"

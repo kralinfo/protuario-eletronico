@@ -40,7 +40,7 @@ export interface FiltrosRelatorio {
 @Component({
   selector: 'app-relatorios',
   templateUrl: './relatorios.component.html',
-  styleUrls: ['./relatorios.component.scss'],
+  styleUrls: ['./relatorios.component.scss', '../shared/styles/table-footer.css'],
   standalone: false
 })
 export class RelatoriosComponent implements OnInit {
@@ -49,6 +49,13 @@ export class RelatoriosComponent implements OnInit {
   pacientesFiltrados: Paciente[] = [];
   carregando = false;
   acessoNegado = false;
+
+  // Propriedades de paginação
+  currentPage = 0;
+  pageSize = 10;
+  totalPages = 0;
+  pageSizeOptions = [5, 10, 20, 50];
+  paginatedPacientes: Paciente[] = [];
 
   // Opções para os filtros
   opcoesSexo = [
@@ -173,6 +180,7 @@ export class RelatoriosComponent implements OnInit {
       next: (response) => {
         this.pacientesFiltrados = response.data || [];
         this.carregando = false;
+        this.updatePagination();
         console.log(`Filtros aplicados: ${this.pacientesFiltrados.length} pacientes encontrados`);
       },
       error: (error) => {
@@ -382,5 +390,50 @@ export class RelatoriosComponent implements OnInit {
 
     html += '</tbody></table>';
     return html;
+  }
+
+  // Métodos de paginação
+  updatePagination() {
+    this.totalPages = Math.ceil(this.pacientesFiltrados.length / this.pageSize);
+    if (this.currentPage >= this.totalPages) {
+      this.currentPage = Math.max(0, this.totalPages - 1);
+    }
+    this.updatePaginatedData();
+  }
+
+  updatePaginatedData() {
+    const startIndex = this.currentPage * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedPacientes = this.pacientesFiltrados.slice(startIndex, endIndex);
+  }
+
+  onPageSizeChange(event: any) {
+    this.pageSize = parseInt(event.target.value);
+    this.currentPage = 0;
+    this.updatePagination();
+  }
+
+  goToFirstPage() {
+    this.currentPage = 0;
+    this.updatePaginatedData();
+  }
+
+  goToPreviousPage() {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.updatePaginatedData();
+    }
+  }
+
+  goToNextPage() {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.updatePaginatedData();
+    }
+  }
+
+  goToLastPage() {
+    this.currentPage = this.totalPages - 1;
+    this.updatePaginatedData();
   }
 }
