@@ -3,9 +3,8 @@
   <div class="w-full max-w-5xl m-2 sm:m-8 flex flex-col min-h-[90vh] sm:min-h-0">
     <div class="relative bg-white rounded-xl shadow-sm border border-gray-200/70 overflow-visible hover:shadow-md transition-shadow duration-300 flex flex-col min-h-[80vh] max-h-[95vh] sm:min-h-0 p-2 sm:p-6">
       <!-- Header visual igual ao de usuário -->
-      <header class="mb-1 text-center sm:text-left p-2 sm:p-3 pb-1 bg-white z-20 shadow-sm">
+      <header class="mb-1 text-center sm:text-left p-2 sm:p-3 pb-1 bg-white z-20">
        
-        <p class="text-gray-600 max-w-2xl text-sm">Preencha os dados do paciente para cadastro ou atualização no sistema.</p>
         <button
           type="button"
           (click)="cancelar()"
@@ -151,54 +150,74 @@
         </div>
         <!-- Fim do grid de campos -->
       <div class="flex justify-center items-center mt-6 w-full">
-        <div class="flex gap-3">
-          <button
-            type="submit"
-            class="h-7 px-3 py-1 bg-blue-600 text-white rounded-lg font-medium shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center text-xs min-w-[90px] min-h-0"
-            [disabled]="form.invalid || form.pending || loading"
-          >
-            <span class="flex items-center justify-center w-full">
-              <span *ngIf="!loading">{{ pacienteEditando ? "Atualizar" : "Salvar" }}</span>
-              <span *ngIf="loading" class="flex items-center justify-center w-full">
-                <svg
-                  class="animate-spin h-3 w-3 text-white ml-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8z"
-                  ></path>
-                </svg>
+        <div class="flex w-full gap-3 pt-8">
+          <div class="flex w-full justify-center gap-4">
+            <button
+              type="submit"
+              class="action-btn bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500"
+              [disabled]="form.invalid || form.pending || loading"
+            >
+              <span class="flex items-center justify-center w-full">
+                <span *ngIf="!loading">{{ pacienteEditando ? "Atualizar" : "Salvar" }}</span>
+                <span *ngIf="loading" class="flex items-center justify-center w-full">
+                  <svg
+                    class="animate-spin h-4 w-4 text-white ml-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
+                  </svg>
+                </span>
               </span>
-            </span>
-          </button>
-          <button
-            type="button"
-            class="h-7 px-3 py-1 bg-gray-200 text-gray-700 rounded-lg font-medium shadow hover:bg-gray-300 transition flex items-center justify-center text-xs min-w-[90px] min-h-0"
-            (click)="cancelar()"
-            [disabled]="loading"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            class="h-7 px-3 py-1 bg-yellow-400 text-black rounded-lg font-medium shadow hover:bg-yellow-500 transition flex items-center justify-center text-xs min-w-[90px] min-h-0 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-            (click)="imprimirPacientePDF()"
-            [disabled]="form.invalid || form.pending || loading"
-          >
-            Imprimir
-          </button>
+            </button>
+            <button
+              type="button"
+              class="action-btn bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+              (click)="cancelar()"
+              [disabled]="loading"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="action-btn bg-yellow-400 text-black hover:bg-yellow-500 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+              (click)="imprimirPacientePDF()"
+              [disabled]="form.invalid || form.pending || loading"
+            >
+              Imprimir
+            </button>
+          </div>
+<style>
+.action-btn {
+  height: 40px !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  padding: 0 !important;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 4px 0 rgb(0 0 0 / 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  text-align: center;
+}
+</style>
         </div>
       </div>
       </form>
