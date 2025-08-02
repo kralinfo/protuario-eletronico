@@ -1,37 +1,30 @@
 <!-- Modal de cadastro de paciente -->
-<div
-  class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
->
-  <div
-    class="w-full max-w-lg sm:max-w-2xl lg:max-w-5xl min-h-[400px] max-h-[90vh] bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-0 flex flex-col justify-center items-center overflow-hidden relative"
-  >
-    <div
-      class="w-full h-full p-4 sm:p-6 md:p-10 flex flex-col justify-center items-center overflow-y-auto rounded-2xl pr-2"
-    >
-      <button
-        type="button"
-        (click)="cancelar()"
-        class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 z-10"
-        aria-label="Fechar"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+<div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 sm:p-8">
+  <div class="w-full max-w-5xl p-2 sm:p-7">
+    <div class="relative bg-white rounded-xl shadow-sm border border-gray-200/70 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col">
+      <!-- Header visual igual ao de usuário -->
+      <header class="mb-2 text-center sm:text-left p-6 pb-2">
+        <div class="inline-flex items-center gap-2 mb-2">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-r from-blue-100 to-indigo-200 flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </div>
+          <h1 class="text-base font-normal text-blue-600 flex items-center h-7">{{ pacienteEditando ? 'Editar Paciente' : 'Cadastro de Paciente' }}</h1>
+        </div>
+        <p class="text-gray-600 max-w-2xl text-sm">Preencha os dados do paciente para cadastro ou atualização no sistema.</p>
+        <button
+          type="button"
+          (click)="cancelar()"
+          class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 z-10"
+          aria-label="Fechar"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-      <h2 class="text-2xl font-bold text-blue-700 mb-6 text-center">
-        {{ pacienteEditando ? "Editar Paciente" : "Cadastrar Paciente" }}
-      </h2>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+      <div class="p-5 pt-0 flex flex-col h-full overflow-y-auto">
       <form
         [formGroup]="form"
         (ngSubmit)="salvar()"
@@ -39,12 +32,11 @@
         class="space-y-4 w-full"
       >
         <div
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
         >
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Nome <span class="text-red-600">*</span></label>
-
             <input
               type="text"
               formControlName="nome"
@@ -73,18 +65,6 @@
               Paciente já cadastrado com este nome e nome da mãe.
             </div>
           </div>
-          <div class="lg:col-span-1">
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Telefone</label>
-            <input
-              type="text"
-              formControlName="telefone"
-              maxlength="15"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
-              placeholder="(99)99999-9999"
-              (input)="formatTelefone($event)"
-            />
-          </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Nome da mãe <span class="text-red-600">*</span></label>
@@ -104,7 +84,19 @@
               Nome da mãe é obrigatório.
             </div>
           </div>
-          <div class="md:col-span-2 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Telefone</label>
+            <input
+              type="text"
+              formControlName="telefone"
+              maxlength="15"
+              class="w-40 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+              placeholder="(99)99999-9999"
+              (input)="formatTelefone($event)"
+            />
+          </div>
+          <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento <span class="text-red-600">*</span></label>
               <input
@@ -112,7 +104,7 @@
                 formControlName="nascimento"
                 maxlength="10"
                 appDateInputLimiter
-                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+                class="w-40 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               />
               <div
                 *ngIf="form.get('nascimento')?.hasError('required') && (form.get('nascimento')?.dirty || form.get('nascimento')?.touched)"
@@ -248,19 +240,18 @@
               <option value="Ignorado">Ignorado</option>
             </select>
           </div>
-          <div>
+          <div class="flex flex-col">
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >CEP <span class="text-red-600">*</span></label>
             <input
               type="text"
               formControlName="cep"
               maxlength="9"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+              class="w-40 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
               placeholder="12345-678"
             />
             <div *ngIf="form.get('cep')?.hasError('required') && (form.get('cep')?.dirty || form.get('cep')?.touched)" class="text-xs text-red-600 mt-1">CEP é obrigatório.</div>
             <div *ngIf="form.get('cep')?.hasError('pattern') && (form.get('cep')?.dirty || form.get('cep')?.touched)" class="text-xs text-red-600 mt-1">CEP inválido. Digite 8 números (com ou sem hífen).</div>
-
             <!-- Erro de CEP que não encontrado -->
             <div *ngIf="erroCepUf" class="text-xs text-red-600 mt-1">
               CEP não encontrado
@@ -293,7 +284,7 @@
             <input
               type="text"
               formControlName="uf"
-              class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
+              class="w-24 px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
               placeholder="UF"
               readonly
             />
