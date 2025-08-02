@@ -1,10 +1,10 @@
-
 import { Component, ViewChild, TemplateRef } from '@angular/core';
 import { PacientesComponent } from './pacientes/pacientes.component';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from './auth/auth.service';
 import { Router } from '@angular/router';
 import { MatMenu } from '@angular/material/menu';
+import { FeedbackDialogComponent } from './shared/feedback-dialog.component';
 
 @Component({
   selector: 'app-root',
@@ -30,8 +30,32 @@ export class AppComponent {
   }
 
   imprimirFichaAtendimentoEmBrancoGlobal() {
-    // Implemente aqui a lógica de impressão da ficha de atendimento em branco quando disponível
-    alert('Impressão da ficha de atendimento em branco ainda não implementada.');
+    // Chama a função de impressão da ficha de atendimento em branco
+    import('./atendimento/imprimir-ficha-atendimento-em-branco').then(mod => {
+      mod.imprimirFichaAtendimentoEmBranco();
+    });
+  }
+
+  exibirSessaoExpiradaERedirecionar(tipo: 'expirada' | 'sessao-aberta' = 'sessao-aberta') {
+    let title = 'Já existe sessão aberta';
+    let message = 'Já existe uma sessão ativa para este usuário em outro navegador ou dispositivo. Você será redirecionado para o login.';
+    if (tipo === 'expirada') {
+      title = 'Sessão expirada';
+      message = 'Por segurança, sua sessão foi encerrada. Você será redirecionado para o login.';
+    }
+    const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+      width: '350px',
+      disableClose: true,
+      data: {
+        title,
+        message,
+        type: 'error'
+      }
+    });
+    setTimeout(() => {
+      dialogRef.close();
+      this.router.navigate(['/login']);
+    }, 2500); // 2.5 segundos
   }
 
   constructor(public authService: AuthService, private router: Router, private dialog: MatDialog) {
@@ -39,6 +63,13 @@ export class AppComponent {
     this.authService.user$.subscribe(user => {
       this.currentUser = user;
     });
+    // Removido logout automático e redirecionamento ao recarregar a página
+  }
+
+  getNomeCurto(nomeCompleto: string): string {
+    if (!nomeCompleto) return '';
+    const partes = nomeCompleto.trim().split(' ');
+    return partes.slice(0, 2).join(' ');
   }
 
   abrirSobre() {
@@ -64,12 +95,9 @@ export class AppComponent {
   }
 
   alternarDarkMode() {
-    this.isDarkMode = !this.isDarkMode;
-    const body = document.body;
-    if (this.isDarkMode) {
-      body.classList.add('dark-mode');
-    } else {
-      body.classList.remove('dark-mode');
-    }
+    // Modo escuro desabilitado
+    // Esta função não faz nada pois o modo escuro está sempre desabilitado
+    this.isDarkMode = false;
+    document.body.classList.remove('dark-mode');
   }
 }

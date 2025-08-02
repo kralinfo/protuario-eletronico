@@ -33,63 +33,249 @@ export interface Paciente {
 @Component({
     selector: 'app-pacientes',
     templateUrl: './pacientes.component.html',
-    styleUrls: ['./pacientes.component.scss'],
+    styleUrls: ['./pacientes.component.scss', '../shared/styles/table-footer.css'],
     standalone: false
 })
 export class PacientesComponent implements OnInit, AfterViewInit {
   imprimirFichaPacienteEmBranco() {
-    const doc = new jsPDF.jsPDF();
+    // Carrega a imagem do brasão dinamicamente do assets e gera o PDF após carregamento
+    const img = new window.Image();
+    img.src = 'assets/brasao-alianca.png';
+    img.onload = () => {
+      const doc = new jsPDF.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-    doc.setFontSize(20);
-    doc.setTextColor(40);
-    doc.text('e-Prontuário Aliança-PE', 20, 20);
-    doc.setFontSize(14);
-    doc.text('Ficha de Cadastro do Paciente (Em Branco)', 20, 30);
-    doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
+      // Cabeçalho institucional (igual ficha de atendimento)
+      const logoX = 10;
+      const logoY = 4;
+      const logoH = 32;
+      const logoW = 32;
+      const textX = logoX + logoW + 7;
 
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    let yPosition = 50;
-    const lineHeight = 12;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.addImage(img, 'PNG', logoX, logoY, logoW, logoH);
+      doc.text('PREFEITURA DA ALIANÇA', textX, 13);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('SECRETARIA MUNICIPAL DE SAÚDE', textX, 18);
+      doc.text('UNIDADE MISTA MUNICIPAL DE ALIANÇA', textX, 22);
+      doc.setFontSize(8);
+      doc.text('Rua Marechal Deodoro, s/n - Aliança - PE - CEP: 55.890-000', textX, 26);
+      doc.text('Fones: 3637.1340 / 3637.1388', textX, 29);
+      doc.text('E-mail: unidademista2009@hotmail.com', textX, 32);
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('DADOS PESSOAIS', 20, yPosition);
-    yPosition += lineHeight + 2;
-    doc.setFont('helvetica', 'normal');
+      // Título
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      // Centralizar o texto no centro da folha A4 (210mm de largura)
+      const fichaTitulo = 'FICHA DE CADASTRO DO PACIENTE';
+      const fichaTituloW = doc.getTextWidth(fichaTitulo);
+      const pageWidth = 210; // largura da folha A4 em mm
+      const fichaTituloX = (pageWidth - fichaTituloW) / 2;
+      doc.text(fichaTitulo, fichaTituloX, 40);
 
-    // Campos com espaço para preenchimento manual
-    const campos = [
-      'Nome',
-      'Nome da Mãe',
-      'Data de Nascimento',
-      'Idade',
-      'Sexo',
-      'Estado Civil',
-      'Profissão',
-      'Escolaridade',
-      'Telefone',
-      'Cartão SUS',
-      'Raça/Cor',
-      'Endereço',
-      'Bairro',
-      'Município',
-      'UF',
-      'CEP',
-      'Acompanhante',
-      'Procedência'
-    ];
-    campos.forEach(campo => {
-      doc.text(`${campo}:`, 20, yPosition);
-      doc.line(45, yPosition + 1, 190, yPosition + 1); // linha para preenchimento manual
-      yPosition += lineHeight;
-    });
+      // Quadro principal externo
+      const marginX = 20;
+      const quadroW = 180; // aumentado de 170 para 180
+      const quadroH = 235; // aumentado de 215 para 235
 
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text('Gerado em branco para preenchimento manual. Sistema e-Prontuário Aliança-PE', 20, 280);
+      doc.rect(marginX, 45, quadroW, quadroH, 'S');
 
-    doc.save('ficha-paciente-em-branco.pdf');
+      // Variáveis de altura e espaçamento dos campos (precisam estar antes do uso)
+      const fieldH = 8;
+      const gapY = 10;
+      const labelX = marginX + 7;
+      const fieldX = marginX + 50;
+      const fieldW = quadroW - 60;
+
+      // Título do quadro
+
+      // Título do quadro e Cartão do SUS alinhado à direita
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      const dadosPessoaisY = 52;
+      doc.text('DADOS PESSOAIS', marginX + 5, dadosPessoaisY);
+      // Cartão do SUS apenas como texto no topo, alinhado à direita
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      const susLabel = 'Cartão do SUS:';
+      const susLabelW = doc.getTextWidth(susLabel);
+      const susFieldW = 40;
+      const susFieldX = fieldX + fieldW - susFieldW;
+      doc.text(susLabel, susFieldX - susLabelW - 2, dadosPessoaisY);
+
+      // Linha horizontal após título
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.line(marginX, 55, marginX + quadroW, 55);
+
+      let y = 67;
+
+
+      // Campos principais
+      // Nome
+      doc.setFont('helvetica', 'bold');
+      doc.text('Nome:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Nome da Mãe
+      doc.setFont('helvetica', 'bold');
+      doc.text('Nome da Mãe:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
+      y += gapY + fieldH;
+
+
+      // Data de Nascimento, Idade e Sexo na mesma linha (Sexo alinhado ao final dos campos)
+      doc.setFont('helvetica', 'bold');
+      doc.text('Data de Nascimento:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      const nascW = 28;
+      doc.rect(fieldX, y - fieldH + 3, nascW, fieldH, 'S');
+      doc.setFont('helvetica', 'bold');
+      const idadeLabelX = fieldX + nascW + 6;
+      doc.text('Idade:', idadeLabelX, y);
+      doc.setFont('helvetica', 'normal');
+      const idadeFieldX = idadeLabelX + 13;
+      doc.rect(idadeFieldX, y - fieldH + 3, 15, fieldH, 'S');
+      doc.setFont('helvetica', 'bold');
+      const sexoLabelX = idadeFieldX + 15 + 6;
+      doc.text('Sexo:', sexoLabelX, y);
+      doc.setFont('helvetica', 'normal');
+      // O campo Sexo vai até o final dos campos principais (fieldX + fieldW)
+      const sexoFieldX = sexoLabelX + 13;
+      const sexoW = (fieldX + fieldW) - sexoFieldX;
+      doc.rect(sexoFieldX, y - fieldH + 3, sexoW, fieldH, 'S');
+      y += gapY + fieldH;
+
+
+      // Estado Civil na linha
+
+
+      // Estado Civil
+
+      // Estado Civil e Profissão na mesma linha
+      doc.setFont('helvetica', 'bold');
+      doc.text('Estado Civil:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      const estadoCivilW = 40;
+      doc.rect(fieldX, y - fieldH + 3, estadoCivilW, fieldH, 'S');
+
+      // Profissão ao lado
+      const profissaoLabelX = fieldX + estadoCivilW + 8;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Profissão:', profissaoLabelX, y);
+      doc.setFont('helvetica', 'normal');
+      const profissaoFieldX = profissaoLabelX + 22;
+      const profissaoW = (fieldX + fieldW) - profissaoFieldX;
+      doc.rect(profissaoFieldX, y - fieldH + 3, profissaoW, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Telefone e Escolaridade na mesma linha
+      doc.setFont('helvetica', 'bold');
+      doc.text('Telefone:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      const telefoneW = 50;
+      doc.rect(fieldX, y - fieldH + 3, telefoneW, fieldH, 'S');
+
+      // Escolaridade ao lado
+      const escolaridadeLabelX = fieldX + telefoneW + 8;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Escolaridade:', escolaridadeLabelX, y);
+      doc.setFont('helvetica', 'normal');
+      const escolaridadeFieldX = escolaridadeLabelX + 28;
+      const escolaridadeW = (fieldX + fieldW) - escolaridadeFieldX;
+      doc.rect(escolaridadeFieldX, y - fieldH + 3, escolaridadeW, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Demais campos (sem repetição de Profissão, Telefone e Escolaridade)
+      // Raça/Cor com largura igual ao campo Telefone
+      doc.setFont('helvetica', 'bold');
+      doc.text('Raça/Cor:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      doc.rect(fieldX, y - fieldH + 3, 50, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Demais campos
+      // Endereço (linha única)
+      doc.setFont('helvetica', 'bold');
+      doc.text('Endereço:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Bairro e CEP na mesma linha
+
+      // Bairro e UF na mesma linha
+      doc.setFont('helvetica', 'bold');
+      doc.text('Bairro:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      const bairroW = 60; // diminuído para 60mm
+      doc.rect(fieldX, y - fieldH + 3, bairroW, fieldH, 'S');
+
+      // O campo UF deve terminar alinhado com o final dos demais campos (fieldX + fieldW)
+      const ufW = 18; // mantém 18mm
+      const ufFieldX = fieldX + fieldW - ufW;
+      const ufLabelX = ufFieldX - 10; // espaço de 10mm antes do campo
+      doc.setFont('helvetica', 'bold');
+      doc.text('UF:', ufLabelX, y);
+      doc.setFont('helvetica', 'normal');
+      doc.rect(ufFieldX, y - fieldH + 3, ufW, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // Demais campos
+      // Município e CEP na mesma linha
+      // Município e UF na mesma linha
+
+      // Município e CEP na mesma linha
+      doc.setFont('helvetica', 'bold');
+      doc.text('Município:', labelX, y);
+      doc.setFont('helvetica', 'normal');
+      const municipioW = 60;
+      doc.rect(fieldX, y - fieldH + 3, municipioW, fieldH, 'S');
+
+      const cep2LabelX = fieldX + municipioW + 8;
+      doc.setFont('helvetica', 'bold');
+      doc.text('CEP:', cep2LabelX, y);
+      doc.setFont('helvetica', 'normal');
+      const cep2FieldX = cep2LabelX + 13;
+      const cep2W = (fieldX + fieldW) - cep2FieldX;
+      doc.rect(cep2FieldX, y - fieldH + 3, cep2W, fieldH, 'S');
+      y += gapY + fieldH;
+
+      // UF em linha separada
+
+
+      // Demais campos
+      const camposRestantes = [
+        'Acompanhante',
+        'Procedência'
+      ];
+      camposRestantes.forEach((campo) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(campo + ':', labelX, y);
+        doc.setFont('helvetica', 'normal');
+        doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
+        y += gapY + fieldH;
+      });
+
+      // Rodapé
+      // Assinatura do profissional mais próxima da borda inferior do quadro
+      const assinaturaLabelX = marginX + 5;
+      const assinaturaY = 45 + quadroH - 7; // agora 7mm acima da base do quadro
+      const assinaturaLinhaX1 = assinaturaLabelX + 45;
+      const assinaturaLinhaX2 = marginX + quadroW - 10;
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text('Assinatura do Profissional:', assinaturaLabelX, assinaturaY);
+      doc.setDrawColor(100);
+      doc.line(assinaturaLinhaX1, assinaturaY + 1, assinaturaLinhaX2, assinaturaY + 1);
+
+      doc.save('ficha-paciente-em-branco.pdf');
+    };
   }
   pageSizeOptions = [5, 10, 25, 50];
   pageSize = 10;

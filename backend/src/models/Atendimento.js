@@ -3,18 +3,33 @@ import db from '../config/database.js';
 
 class Atendimento {
   static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'recepcao', motivo_interrupcao = 'N/A' }) {
+    // Gera data/hora local de Brasília (America/Sao_Paulo)
+    const now = new Date();
+    const offsetMs = -3 * 60 * 60 * 1000; // UTC-3
+    const brasiliaDate = new Date(now.getTime() + offsetMs);
+    const brasiliaISOString = brasiliaDate.toISOString().replace('T', ' ').substring(0, 19); // 'YYYY-MM-DD HH:MM:SS'
     const result = await db.query(
       `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia, data_hora_atendimento)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *`,
-      [pacienteId, motivo, status, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null]
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [pacienteId, motivo, status, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null, brasiliaISOString]
     );
     return result.rows[0];
   }
 
   static async listarPorPaciente(pacienteId) {
     const result = await db.query(
-      `SELECT * FROM atendimentos WHERE paciente_id = $1 ORDER BY data_hora_atendimento DESC`,
+      `SELECT * FROM atendimentos WHERE paciente_id = $1 ORDER BY created_at DESC`,
       [pacienteId]
+    );
+    return result.rows;
+  }
+
+  static async listarTodos() {
+    const result = await db.query(
+      `SELECT a.*, p.nome as paciente_nome
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       ORDER BY a.data_hora_atendimento DESC`
     );
     return result.rows;
   }

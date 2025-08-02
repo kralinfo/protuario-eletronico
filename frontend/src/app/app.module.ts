@@ -35,6 +35,8 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { HomeComponent } from './home/home.component';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
+import { SessaoExpiradaDialog } from './sessao-expirada.dialog';
+import { BreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 
 
 @NgModule({
@@ -48,12 +50,14 @@ import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimen
     UsuariosComponent,
     HomeComponent,
     AtendimentosDiaComponent,
-    RedefinirSenhaComponent
+    RedefinirSenhaComponent,
+    BreadcrumbComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    RelatorioAtendimentosComponent,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,

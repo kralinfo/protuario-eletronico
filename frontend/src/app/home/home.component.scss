@@ -1,8 +1,68 @@
-a.botao-3d {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18), 0 2px 0 #bdbdbd !important;
-  transition: box-shadow 0.18s, transform 0.18s !important;
+// a.botao-3d {
+//   box-shadow: 0 4px 16px rgba(0,0,0,0.18), 0 2px 0 #bdbdbd !important;
+//   transition: box-shadow 0.18s, transform 0.18s !important;
+// }
+// a.botao-3d:hover {
+//   box-shadow: 0 12px 32px rgba(0,0,0,0.32), 0 4px 0 #888 !important;
+//   transform: translateY(-5px) scale(1.08) !important;
+// }
+
+
+// .disabled-input:disabled {
+//     background: #f3f3f3 !important;
+//     color: #bdbdbd !important;
+//     border-color: #e0e0e0 !important;
+//     cursor: not-allowed;
+//     opacity: 1;
+//   }
+//   .home-btn-3d {
+//     box-shadow:
+//       0 24px 64px 0 rgba(43,105,242,0.45),
+//       0 8px 32px 0 rgba(0,0,0,0.32);
+//     border-bottom: 10px solid rgba(43,105,242,0.22);
+//     transform: translateY(0);
+//     transition: box-shadow 0.22s cubic-bezier(.4,0,.2,1), transform 0.22s cubic-bezier(.4,0,.2,1);
+//   }
+//   .home-btn-3d:hover {
+//     box-shadow:
+//       0 16px 32px 0 rgba(43,105,242,0.28),
+//       0 4px 12px 0 rgba(0,0,0,0.14);
+//     transform: translateY(-1.5px) scale(1.015);
+//     border-bottom: 8px solid rgba(43,105,242,0.16);
+//     filter: brightness(1.02) saturate(1.04);
+//   }
+
+.perspective-1000 {
+  perspective: 1000px;
 }
-a.botao-3d:hover {
-  box-shadow: 0 12px 32px rgba(0,0,0,0.32), 0 4px 0 #888 !important;
-  transform: translateY(-5px) scale(1.08) !important;
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-x-15 {
+  transform: rotateX(15deg);
+}
+
+/* Animação de hover suave */
+.group:hover .group-hover\:rotate-x-15 {
+  transform: rotateX(15deg);
+}
+
+.group:hover .group-hover\:-translate-y-2 {
+  transform: translateY(-0.5rem);
+}
+
+/* Efeito de profundidade */
+.shadow-xl {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.hover\:shadow-2xl:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }

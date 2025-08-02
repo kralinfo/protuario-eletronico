@@ -26,7 +26,6 @@ services:
       - db
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/prontuario
       - JWT_SECRET=jwt_secret_development_local_key_123
       - FRONTEND_URL=http://localhost:4200
 volumes:

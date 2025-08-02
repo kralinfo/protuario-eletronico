@@ -1,3 +1,53 @@
+// Relatório avançado de atendimentos
+const reports = async (req, res) => {
+  const { dataInicial, dataFinal } = req.query;
+  let query = `SELECT a.id, a.created_at as data, a.paciente_id as paciente, a.data_hora_atendimento as hora, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
+    FROM atendimentos a
+    JOIN pacientes p ON p.id = a.paciente_id
+    WHERE 1=1`;
+  const params = [];
+  let idx = 1;
+  if (dataInicial) {
+    query += ` AND a.created_at >= $${idx}`;
+    params.push(new Date(dataInicial + 'T00:00:00'));
+    idx++;
+  }
+  if (dataFinal) {
+    query += ` AND a.created_at <= $${idx}`;
+    params.push(new Date(dataFinal + 'T23:59:59'));
+    idx++;
+  }
+  // profissional removido do filtro e do retorno
+  query += ` ORDER BY a.created_at DESC`;
+  const result = await db.query(query, params);
+  const atendimentos = result.rows || [];
+
+  // Estatísticas
+  const total = atendimentos.length;
+  const masculino = atendimentos.filter(a => a.paciente_sexo === 'M').length;
+  const feminino = atendimentos.filter(a => a.paciente_sexo === 'F').length;
+  const municipios = new Set(atendimentos.map(a => a.paciente_municipio)).size;
+
+  // Filtros retornados
+  const filters = {
+    dataInicio: dataInicial || '',
+    dataFim: dataFinal || '',
+    orderBy: 'created_at',
+    order: 'DESC'
+  };
+
+  res.json({
+    status: 'SUCCESS',
+    data: atendimentos,
+    statistics: {
+      total,
+      masculino,
+      feminino,
+      municipios
+    },
+    filters
+  });
+};
 import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
 
@@ -40,35 +90,62 @@ const listarPorPaciente = async (req, res) => {
 };
 
 const listarDoDia = async (req, res) => {
-  // Se vier pacienteId e data, filtra por ambos
-  const { pacienteId, data } = req.query;
-  if (pacienteId && data) {
-    // data no formato yyyy-mm-dd
-    const inicio = new Date(data + 'T00:00:00');
-    const fim = new Date(data + 'T23:59:59');
-    const result = await db.query(
-      `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento
-       FROM atendimentos a
-       JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.paciente_id = $1 AND a.data_hora_atendimento BETWEEN $2 AND $3
-       ORDER BY a.data_hora_atendimento DESC`,
-      [pacienteId, inicio, fim]
-    );
-    return res.json(result.rows);
+  // Filtros: pacienteId, data, status
+  const { pacienteId, data, status } = req.query;
+  let whereClauses = [];
+  let params = [];
+  let idx = 1;
+
+  if (pacienteId) {
+    whereClauses.push(`a.paciente_id = $${idx++}`);
+    params.push(pacienteId);
   }
-  // Busca atendimentos do dia atual (sem filtro)
-  const hoje = new Date();
-  const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0);
-  const fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59);
+  const getBrasiliaDateRange = (dateString) => {
+    // Retorna início e fim do dia em America/Sao_Paulo (Brasília)
+    const date = dateString ? new Date(dateString) : new Date();
+    // Ajusta para o timezone de Brasília
+    const toBrasilia = (d) => {
+      // America/Sao_Paulo = UTC-3 (sem considerar horário de verão)
+      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+      return new Date(utc - (3 * 60 * 60 * 1000));
+    };
+    const inicio = toBrasilia(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0));
+    const fim = toBrasilia(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59));
+    return [inicio, fim];
+  };
+  if (data) {
+    const [inicio, fim] = getBrasiliaDateRange(data);
+    whereClauses.push(`a.data_hora_atendimento BETWEEN $${idx++} AND $${idx++}`);
+    params.push(inicio, fim);
+  } else {
+    const [inicio, fim] = getBrasiliaDateRange();
+    whereClauses.push(`a.data_hora_atendimento BETWEEN $${idx++} AND $${idx++}`);
+    params.push(inicio, fim);
+  }
+  if (status) {
+    whereClauses.push(`a.status = $${idx++}`);
+    params.push(status);
+  }
+  const whereSql = whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : '';
   const result = await db.query(
     `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento
      FROM atendimentos a
      JOIN pacientes p ON p.id = a.paciente_id
-     WHERE a.data_hora_atendimento BETWEEN $1 AND $2
+     ${whereSql}
      ORDER BY a.data_hora_atendimento DESC`,
-    [inicio, fim]
+    params
   );
   res.json(result.rows);
+};
+
+const listarTodos = async (req, res) => {
+  try {
+    const atendimentos = await Atendimento.listarTodos();
+    res.json(atendimentos);
+  } catch (error) {
+    console.error('Erro ao listar todos os atendimentos:', error);
+    res.status(500).json({ error: 'Erro ao listar atendimentos' });
+  }
 };
 
 const remover = async (req, res) => {
@@ -80,4 +157,4 @@ const remover = async (req, res) => {
   return res.json({ success: true });
 };
 
-export default { registrar, listarPorPaciente, listarDoDia, atualizarStatus, remover };
+export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, remover };

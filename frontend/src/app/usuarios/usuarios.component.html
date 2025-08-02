@@ -1,206 +1,611 @@
-
-
-<div class="w-full p-2 sm:p-4">
-  <h2 class="text-2xl font-bold mb-6 text-blue-700">Usuários</h2>
-  <div class="flex flex-row w-full items-start gap-4 sm:gap-8 align-top-fix">
-    <div class="flex flex-row w-full items-start gap-4 sm:gap-8 align-top-fix">
-      <!-- Modal e Formulário à esquerda -->
-      <div class="w-full sm:w-[420px] self-start flex-shrink-0">
-        <!-- Modal de confirmação de edição -->
-        <style>
-          .altura-tabela-usuarios {
-            height: 612px;
-            max-height: 612px;
-            min-height: 612px;
-            display: flex;
-            flex-direction: column;
-          }
-        </style>
-        <!-- Modal de sucesso removido, agora é feito via MatDialog -->
-        <div *ngIf="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-            <h3 class="text-xl font-bold mb-4 text-blue-700">Confirmar edição</h3>
-            <p class="mb-6 text-gray-700">Tem certeza que deseja salvar as alterações deste usuário?</p>
-            <div class="flex justify-center gap-4">
-              <button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition" (click)="confirmEdit()">Confirmar</button>
-              <button class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition" (click)="cancelEdit()">Cancelar</button>
-            </div>
-          </div>
-        </div>
-        <!-- Modal de confirmação de exclusão -->
-        <div *ngIf="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-            <h3 class="text-xl font-bold mb-4 text-red-700">Confirmar exclusão</h3>
-            <p class="mb-6 text-gray-700">Deseja realmente excluir este usuário?</p>
-            <div class="flex justify-center gap-4">
-              <button class="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold shadow hover:bg-red-700 transition" (click)="confirmDelete()">Excluir</button>
-              <button class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition" (click)="cancelDelete()">Cancelar</button>
-            </div>
-          </div>
-        </div>
-        <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()" class="mb-6 sm:mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-4 sm:p-8 flex flex-col gap-4 sm:gap-6">
-          <div class="flex flex-col gap-6">
-            <!-- Nome em uma linha -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Nome <span class="text-red-500">*</span></label>
-              <input formControlName="nome" autocomplete="off" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-              <div *ngIf="usuarioForm.get('nome')?.invalid && usuarioForm.get('nome')?.touched" class="text-xs text-red-500 mt-1">Nome é obrigatório</div>
-            </div>
-            <!-- Email em outra linha -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
-              <input formControlName="email" autocomplete="new-email" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" (blur)="verificarEmailEmUso(usuarioForm.get('email')?.value)" />
-              <div *ngIf="error === 'Email já está em uso' && usuarioForm.get('email')?.touched" class="text-xs text-red-500 mt-1">{{ error }}</div>
-              <div *ngIf="usuarioForm.get('email')?.invalid && usuarioForm.get('email')?.touched" class="text-xs text-red-500 mt-1">Email válido é obrigatório</div>
-            </div>
-            <!-- Senha e nível de acesso lado a lado -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ng-container *ngIf="!editandoUsuario">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Senha <span class="text-red-500">*</span></label>
-                  <input type="password" formControlName="senha" autocomplete="new-password" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-                  <div *ngIf="usuarioForm.get('senha')?.errors?.['required'] && usuarioForm.get('senha')?.touched" class="text-xs text-red-500 mt-1">Senha é obrigatória</div>
-                  <div *ngIf="usuarioForm.get('senha')?.errors?.['minlength'] && usuarioForm.get('senha')?.touched" class="text-xs text-red-500 mt-1">Senha deve ter pelo menos 6 caracteres</div>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Repetir senha <span class="text-red-500">*</span></label>
-                  <input type="password" formControlName="repetirSenha" autocomplete="new-password" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400" />
-                  <div *ngIf="usuarioForm.get('repetirSenha')?.errors?.['required'] && usuarioForm.get('repetirSenha')?.touched" class="text-xs text-red-500 mt-1">Repetir senha é obrigatório</div>
-                  <div *ngIf="usuarioForm.errors?.['senhasDiferentes'] && usuarioForm.get('repetirSenha')?.touched" class="text-xs text-red-500 mt-1">As senhas não coincidem</div>
-                </div>
-              </ng-container>
-              <ng-container *ngIf="editandoUsuario">
-                <div class="flex flex-col gap-2 items-stretch">
-                  <button type="button"
-                    class="w-full px-4 py-2 rounded-lg font-bold shadow-md focus:outline-none focus:ring-2 transition text-white"
-                    [ngClass]="loadingRecuperarSenha ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'"
-                    (click)="onRecuperarSenhaUsuario()"
-                    [disabled]="loadingRecuperarSenha">
-                    <span *ngIf="!loadingRecuperarSenha">Recuperar senha</span>
-                    <span *ngIf="loadingRecuperarSenha">Enviando E-mail...</span>
-                  </button>
-                  <div class="text-xs text-gray-500 mt-1 text-center">O usuário receberá um e-mail para redefinir a senha.</div>
-                </div>
-              </ng-container>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nível de acesso <span class="text-red-500">*</span></label>
-                <select formControlName="nivel" autocomplete="off" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900">
-                  <option *ngFor="let n of niveis" [value]="n.value">{{ n.label }}</option>
-                </select>
-              </div>
-            </div>
-            <!-- Módulos abaixo dos campos principais, ocupando toda a largura -->
-            <div class="mt-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Módulos</label>
-              <div class="flex flex-wrap gap-x-6 gap-y-2">
-                <label *ngFor="let m of modulosDisponiveis" class="inline-flex items-center min-w-[120px]">
-                  <input type="checkbox"
-                    [value]="m.value"
-                    (change)="onModuloCheckboxChange($event)"
-                    [checked]="usuarioForm.get('modulos')?.value?.includes(m.value)"
-                    [disabled]="isVisualizador"
-                    class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                  <span class="ml-2">{{ m.label }}</span>
-                </label>
-              </div>
-              <div class="text-xs text-gray-500 mt-1">Selecione os módulos de acesso do usuário.</div>
-            </div>
-          </div>
-          <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center" [disabled]="!podeSalvarUsuario || (loading && !editandoUsuario)" [class.opacity-50]="isVisualizador" [class.cursor-not-allowed]="isVisualizador">
-              <span *ngIf="!loading && !editandoUsuario">Cadastrar usuário</span>
-              <span *ngIf="!loading && editandoUsuario">Salvar Alteração</span>
-              <span *ngIf="loading && !editandoUsuario">Cadastrando...</span>
-            </button>
-            <button *ngIf="editandoUsuario" type="button" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition" (click)="cancelarEdicao()">Cancelar</button>
-          </div>
-          <div *ngIf="isVisualizador" class="text-red-600 mt-2">Usuário não autorizado para editar ou cadastrar um usuário.</div>
-          <div *ngIf="success" class="text-green-600 mt-2">{{ success }}</div>
-          <!-- Mensagem de erro global removida, agora exibida em modal -->
-        </form>
-        <div *ngIf="loading && !usuarios.length" class="text-center text-blue-600 font-semibold">Carregando...</div>
+<!-- Container principal com gradiente sutil -->
+<main class="min-h-screen bg-gradient-to-br from-blue-50/50 to-indigo-100/50 p-4 sm:p-6">
+  <!-- Seção do cabeçalho com identidade visual -->
+  <header class="mb-8 text-center sm:text-left">
+    <div class="inline-flex items-center gap-2 mb-2">
+      <div class="w-7 h-7 rounded-lg bg-gradient-to-r from-blue-100 to-indigo-200 flex items-center justify-center">
+        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
       </div>
-      <!-- Tabela à direita -->
-      <div class="w-full sm:flex-1">
-        <div *ngIf="paginatedUsuarios.length" class="bg-white rounded-xl shadow p-3 sm:p-6 w-full sm:flex-1 mr-2 altura-tabela-usuarios flex flex-col" style="position:relative;">
-          <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3 sm:mb-4 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-            Lista de Usuários
-          </h3>
-          <div class="overflow-x-auto" style="flex: 1 1 auto; overflow-y: auto;" [ngStyle]="{ 'max-height': userCurrentPage === 0 ? 'calc(612px - 56px)' : 'none' }">
-            <table class="w-full text-xs sm:text-sm text-left border border-gray-200 rounded-lg overflow-hidden" style="min-height: 100%;">
-              <thead style="background: linear-gradient(90deg, #f5faff 0%, #e3f0ff 100%); border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem;">
-                <tr>
-                  <th class="px-2 py-2 font-semibold text-gray-700 min-w-[3.5rem] max-w-[4.5rem] text-center">Ações</th>
-                  <th class="px-6 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">Nome</th>
-                  <th class="px-4 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">Email</th>
-                  <th class="px-4 py-2 font-semibold text-gray-700 min-w-[2.5rem] max-w-[3.5rem] ">Nível</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let u of paginatedUsuarios" class="border-b hover:bg-gray-50" style="height:48px;min-height:48px;">
-                  <td class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center">
-                    <div class="flex gap-2 justify-center items-center w-full">
-                      <button (click)="onEditUser(u)" [disabled]="loading || isVisualizador" class="text-blue-700 hover:text-blue-900 transition" title="Editar usuário">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" />
-                        </svg>
-                      </button>
-                      <button (click)="onDeleteUser(u)" [disabled]="loading || isVisualizador" class="text-red-700 hover:text-red-900 transition" title="Remover usuário">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                  <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">{{ u.nome }}</td>
-                  <td class="px-4 py-2 text-gray-700">{{ u.email }}</td>
-                  <td class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]">{{ u.nivel }}</td>
-                </tr>
-                <!-- Linhas vazias para manter altura padrão apenas na primeira página -->
-                <tr *ngFor="let _ of emptyRows" style="height:48px;min-height:48px;">
-                  <td class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center">&nbsp;</td>
-                  <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">&nbsp;</td>
-                  <td class="px-4 py-2 text-gray-700">&nbsp;</td>
-                  <td class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]">&nbsp;</td>
-                </tr>
-              </tbody>
-            </table>
+      <h1 class="text-base font-normal text-blue-600">Gestão de Usuários</h1>
+    </div>
+    <p class="text-gray-600 max-w-2xl">Gerencie os acessos e permissões da equipe médica e administrativa do sistema de prontuários</p>
+  </header>
+
+  <!-- Container flexível responsivo -->
+  <div class="flex flex-col xl:flex-row gap-6">
+
+    <!-- Seção do formulário - Card moderno -->
+    <section class="xl:w-96 xl:flex-shrink-0 flex flex-col h-full">
+      <article class="bg-white rounded-xl shadow-sm border border-gray-200/70 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col h-full">
+
+        <!-- Formulário com espaçamento aprimorado -->
+        <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()" class="p-5 space-y-5">
+
+          <!-- Campo Nome com validação visual -->
+          <div class="form-group">
+            <label for="nome" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              Nome Completo
+              <span class="text-red-500 ml-1" aria-hidden="true">*</span>
+            </label>
+            <div class="relative">
+              <input
+                id="nome"
+                type="text"
+                formControlName="nome"
+                autocomplete="name"
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder-gray-400"
+                placeholder="Dr. João da Silva"
+                [class.border-red-400]="usuarioForm.get('nome')?.invalid && usuarioForm.get('nome')?.touched"
+                [class.border-green-400]="usuarioForm.get('nome')?.valid && usuarioForm.get('nome')?.touched">
+
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                   *ngIf="usuarioForm.get('nome')?.valid && usuarioForm.get('nome')?.touched">
+                <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Mensagens de erro animadas -->
+            <div class="mt-1.5 space-y-1" *ngIf="usuarioForm.get('nome')?.invalid && usuarioForm.get('nome')?.touched">
+              <p class="text-xs text-red-600 flex items-start gap-1.5">
+                <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ usuarioForm.get('nome')?.errors?.['required'] ? 'Nome é obrigatório' : 'Nome deve ter pelo menos 2 caracteres' }}</span>
+              </p>
+            </div>
           </div>
-          <!-- Rodapé customizado fixo -->
-          <div class="flex flex-col sm:flex-row justify-end items-center gap-2 text-xs sm:text-sm bg-gray-50 px-2 sm:px-4 py-2 rounded-b-lg border-t border-gray-200" style="height: 56px; min-height: 56px;">
-            <div class="flex items-center gap-4 text-gray-600">
-              <label class="flex items-center gap-1">
-                <span>Items por página:</span>
-                <select class="border rounded px-2 py-1 text-gray-700 bg-white focus:ring focus:ring-blue-500" (change)="onUserPageSizeChange($event)">
-                  <option *ngFor="let opt of userPageSizeOptions" [value]="opt" [selected]="opt === userPageSize">{{ opt }}</option>
-                </select>
+
+          <!-- Campo Email com verificação em tempo real -->
+          <div class="form-group">
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              E-mail Institucional
+              <span class="text-red-500 ml-1" aria-hidden="true">*</span>
+            </label>
+            <div class="relative">
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                autocomplete="email"
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder-gray-400"
+                placeholder="usuario@alianca.saude.gov.br"
+                [class.border-red-400]="(usuarioForm.get('email')?.invalid && usuarioForm.get('email')?.touched) || messageState().error === 'Email já está em uso'"
+                [class.border-green-400]="usuarioForm.get('email')?.valid && usuarioForm.get('email')?.touched && messageState().error !== 'Email já está em uso'">
+
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                   *ngIf="usuarioForm.get('email')?.valid && usuarioForm.get('email')?.touched && messageState().error !== 'Email já está em uso'">
+                <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="mt-1.5 space-y-1" *ngIf="(usuarioForm.get('email')?.invalid && usuarioForm.get('email')?.touched) || messageState().error === 'Email já está em uso'">
+              <p class="text-xs text-red-600 flex items-start gap-1.5" *ngIf="usuarioForm.get('email')?.errors?.['required']">
+                <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>E-mail é obrigatório</span>
+              </p>
+              <p class="text-xs text-red-600 flex items-start gap-1.5" *ngIf="usuarioForm.get('email')?.errors?.['emailInvalido']">
+                <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>Formato de e-mail inválido</span>
+              </p>
+              <p class="text-xs text-red-600 flex items-start gap-1.5" *ngIf="messageState().error === 'Email já está em uso'">
+                <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>Este e-mail já está cadastrado</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Seção de Senha (condicional) -->
+          <div class="space-y-5" *ngIf="!editandoUsuario()">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Campo Senha -->
+              <div class="form-group">
+                <label for="senha" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                  Senha
+                  <span class="text-red-500 ml-1" aria-hidden="true">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    id="senha"
+                    type="password"
+                    formControlName="senha"
+                    autocomplete="new-password"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder-gray-400"
+                    placeholder="••••••••"
+                    [class.border-red-400]="usuarioForm.get('senha')?.invalid && usuarioForm.get('senha')?.touched"
+                    [class.border-green-400]="usuarioForm.get('senha')?.valid && usuarioForm.get('senha')?.touched">
+
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                       *ngIf="usuarioForm.get('senha')?.valid && usuarioForm.get('senha')?.touched">
+                    <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="mt-1.5 space-y-1" *ngIf="usuarioForm.get('senha')?.invalid && usuarioForm.get('senha')?.touched">
+                  <p class="text-xs text-red-600 flex items-start gap-1.5">
+                    <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>{{ usuarioForm.get('senha')?.errors?.['required'] ? 'Senha é obrigatória' : 'Mínimo 6 caracteres' }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Campo Confirmar Senha -->
+              <div class="form-group">
+                <label for="repetirSenha" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                  Confirmar Senha
+                  <span class="text-red-500 ml-1" aria-hidden="true">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    id="repetirSenha"
+                    type="password"
+                    formControlName="repetirSenha"
+                    autocomplete="new-password"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder-gray-400"
+                    placeholder="••••••••"
+                    [class.border-red-400]="(usuarioForm.get('repetirSenha')?.invalid && usuarioForm.get('repetirSenha')?.touched) || (usuarioForm.errors?.['senhasDiferentes'] && usuarioForm.get('repetirSenha')?.touched)"
+                    [class.border-green-400]="usuarioForm.get('repetirSenha')?.valid && usuarioForm.get('repetirSenha')?.touched && !usuarioForm.errors?.['senhasDiferentes']">
+
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                       *ngIf="usuarioForm.get('repetirSenha')?.valid && usuarioForm.get('repetirSenha')?.touched && !usuarioForm.errors?.['senhasDiferentes']">
+                    <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="mt-1.5 space-y-1" *ngIf="(usuarioForm.get('repetirSenha')?.invalid && usuarioForm.get('repetirSenha')?.touched) || (usuarioForm.errors?.['senhasDiferentes'] && usuarioForm.get('repetirSenha')?.touched)">
+                  <p class="text-xs text-red-600 flex items-start gap-1.5" *ngIf="usuarioForm.get('repetirSenha')?.errors?.['required']">
+                    <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Confirme sua senha</span>
+                  </p>
+                  <p class="text-xs text-red-600 flex items-start gap-1.5" *ngIf="usuarioForm.errors?.['senhasDiferentes']">
+                    <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>As senhas não coincidem</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção de Recuperação de Senha (condicional) -->
+          <div class="bg-blue-50/50 rounded-lg p-4 border border-blue-100" *ngIf="editandoUsuario()">
+            <h3 class="text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              Redefinir Senha
+            </h3>
+            <p class="text-xs text-blue-600 mb-3">O usuário receberá um link seguro para criar uma nova senha.</p>
+            <button
+              type="button"
+              (click)="recuperarSenha()"
+              [disabled]="loadingState().loadingRecuperarSenha"
+              class="w-full px-4 py-2 bg-blue-600/90 text-white rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2">
+
+              <svg class="w-3.5 h-3.5 animate-spin" *ngIf="loadingState().loadingRecuperarSenha" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+
+              <svg class="w-3.5 h-3.5" *ngIf="!loadingState().loadingRecuperarSenha" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+
+              {{ loadingState().loadingRecuperarSenha ? 'Enviando...' : 'Enviar Link de Redefinição' }}
+            </button>
+          </div>
+
+          <!-- Nível de Acesso -->
+          <div class="form-group">
+            <label for="nivel" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              Nível de Acesso
+              <span class="text-red-500 ml-1" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="nivel"
+              formControlName="nivel"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-700">
+              <option *ngFor="let nivel of niveisAcesso" [value]="nivel.value" class="text-gray-700">
+                {{ nivel.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Módulos de Acesso -->
+          <fieldset class="form-group">
+            <legend class="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+              Módulos de Acesso
+              <span class="text-red-500 ml-1" aria-hidden="true">*</span>
+            </legend>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label
+                *ngFor="let modulo of modulosDisponiveis"
+                class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50/50 cursor-pointer transition-all duration-200"
+                [class.bg-blue-50]="usuarioForm.get('modulos')?.value?.includes(modulo.value)"
+                [class.border-blue-300]="usuarioForm.get('modulos')?.value?.includes(modulo.value)"
+                [class.opacity-50]="isVisualizador()">
+
+                <input
+                  type="checkbox"
+                  [value]="modulo.value"
+                  (change)="onModuloCheckboxChange($event)"
+                  [checked]="usuarioForm.get('modulos')?.value?.includes(modulo.value)"
+                  [disabled]="isVisualizador()"
+                  class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+
+                <span class="ml-3 text-sm font-medium text-gray-700">{{ modulo.label }}</span>
               </label>
-              <span>{{ paginatedUsuarios.length > 0 ? (userCurrentPage * userPageSize + 1) : 0 }} – {{ userCurrentPage * userPageSize + paginatedUsuarios.length }} de {{ filteredUsuarios.length }}</span>
             </div>
-            <div class="flex items-center gap-2">
-              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Primeira página" (click)="goToUserFirstPage()" [disabled]="userCurrentPage === 0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Página anterior" (click)="goToUserPreviousPage()" [disabled]="userCurrentPage === 0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Próxima página" (click)="goToUserNextPage()" [disabled]="userCurrentPage >= userTotalPages - 1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-              </button>
-              <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Última página" (click)="goToUserLastPage()" [disabled]="userCurrentPage >= userTotalPages - 1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-              </button>
+
+            <p class="text-xs text-gray-500 mt-2">Selecione os módulos que o usuário terá permissão para acessar.</p>
+
+            <div class="mt-1.5" *ngIf="messageState().error && messageState().error!.includes('módulo')">
+              <p class="text-xs text-red-600 flex items-start gap-1.5">
+                <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ messageState().error }}</span>
+              </p>
+            </div>
+          </fieldset>
+
+          <!-- Mensagem de erro geral -->
+          <div class="bg-red-50 border border-red-100 rounded-lg p-3" *ngIf="messageState().error && !messageState().error!.includes('Email') && !messageState().error!.includes('módulo')">
+            <p class="text-xs text-red-600 flex items-start gap-2">
+              <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <span>{{ messageState().error }}</span>
+            </p>
+          </div>
+
+          <!-- Botões de Ação -->
+          <div class="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="submit"
+              [disabled]="!podeSalvarUsuario() || isVisualizador()"
+              class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm">
+
+              <svg class="w-4 h-4 animate-spin" *ngIf="loadingState().loading" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+
+              <svg class="w-4 h-4" *ngIf="!loadingState().loading && !editandoUsuario()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+
+              <svg class="w-4 h-4" *ngIf="!loadingState().loading && editandoUsuario()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+
+              {{ loadingState().loading ? 'Salvando...' : (editandoUsuario() ? 'Atualizar Usuário' : 'Cadastrar Usuário') }}
+            </button>
+
+            <button
+              type="button"
+              *ngIf="editandoUsuario()"
+              (click)="cancelarEdicao()"
+              class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2 text-sm">
+
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Cancelar
+            </button>
+          </div>
+
+          <!-- Aviso para visualizadores -->
+          <div class="bg-yellow-50 border border-yellow-100 rounded-lg p-3 mt-4" *ngIf="isVisualizador()">
+            <p class="text-xs text-yellow-800 flex items-start gap-2">
+              <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <span>Seu nível de acesso não permite editar ou cadastrar usuários.</span>
+            </p>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <!-- Seção da tabela - Card moderno -->
+    <section class="flex-1 flex flex-col h-full">
+      <article class="bg-white rounded-xl shadow-sm border border-gray-200/70 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col h-full">
+        <!-- Cabeçalho da tabela com ações -->
+        <header class="bg-gradient-to-r from-gray-50 to-gray-100 p-5 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              Usuários Cadastrados
+            </h2>
+          </div>
+
+          <div class="flex justify-center w-full">
+            <div class="relative w-full max-w-xl">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+              <input
+                type="text"
+                [(ngModel)]="tableConfig().searchTerm"
+                (input)="filterUsuarios()"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm transition-all duration-200"
+                placeholder="Pesquisar usuários...">
             </div>
           </div>
-              <!-- Rodapé duplicado removido -->
+        </header>
+
+        <!-- Estados de carregamento e vazio -->
+        <div class="flex items-center justify-center py-12" *ngIf="loadingState().loading && !usuarios().length">
+          <div class="text-center">
+            <svg class="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-gray-600 text-sm font-medium">Carregando usuários...</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center py-12 px-4" *ngIf="!loadingState().loading && filteredUsuarios().length === 0">
+          <svg class="w-16 h-16 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <h3 class="text-base font-medium text-gray-700 mb-1">Nenhum usuário encontrado</h3>
+          <p class="text-sm text-gray-500 text-center">Não há usuários cadastrados ou a pesquisa não retornou resultados.</p>
+          <button
+            *ngIf="!editandoUsuario()"
+            (click)="resetForm()"
+            class="mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 inline-flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Cadastrar Novo Usuário
+          </button>
+        </div>
+
+        <!-- Tabela de usuários -->
+        <div class="overflow-x-auto" *ngIf="!loadingState().loading && paginatedUsuarios().length > 0">
+          <table class="min-w-[600px] w-full text-xs sm:text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
+            <thead style="background: linear-gradient(90deg, #f5faff 0%, #e3f0ff 100%); border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem;">
+              <tr>
+                <th class="px-2 py-2 font-semibold text-gray-700 min-w-[3.5rem] max-w-[4.5rem] text-center">Ações</th>
+                <th class="px-6 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">Usuário</th>
+                <th class="px-4 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]">E-mail</th>
+                <th class="px-4 py-2 font-semibold text-gray-700 min-w-[3.5rem] max-w-[5rem]">Nível</th>
+                <th class="px-4 py-2 font-semibold text-gray-700">Módulos</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let usuario of paginatedUsuarios(); trackBy: trackByUserId" class="border-b hover:bg-gray-50">
+                <td class="px-2 py-2 min-w-[3.5rem] max-w-[5rem] text-center">
+                  <div class="flex gap-2 justify-center items-center w-full">
+                    <button
+                      type="button"
+                      (click)="onEditUser(usuario)"
+                      [disabled]="loadingState().loading || isVisualizador()"
+                      class="text-blue-700 hover:text-blue-900 transition"
+                      title="Editar usuário">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="onDeleteUser(usuario)"
+                      [disabled]="loadingState().loading || isVisualizador()"
+                      class="text-red-700 hover:text-red-900 transition"
+                      title="Excluir usuário">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+
+                <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">
+                  <div class="text-sm font-medium text-gray-900">{{ usuario.nome }}</div>
+                  <div class="text-xs text-gray-500" *ngIf="usuario.ultimoAcesso">Acesso: {{ formatDate(usuario.ultimoAcesso) }}</div>
+                </td>
+
+                <td class="px-4 py-2 text-gray-700">
+                  <div class="text-sm text-gray-900">{{ usuario.email }}</div>
+                  <div class="text-xs text-gray-500" *ngIf="usuario.criadoEm">Cadastrado em: {{ formatDate(usuario.criadoEm) }}</div>
+                </td>
+
+                <td class="px-4 py-2 text-gray-700">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                        [ngClass]="{
+                          'bg-green-100 text-green-800': usuario.nivel === 'admin',
+                          'bg-blue-100 text-blue-800': usuario.nivel === 'editor',
+                          'bg-gray-100 text-gray-800': usuario.nivel === 'visualizador'
+                        }">
+                    {{ getNivelLabel(usuario.nivel) }}
+                  </span>
+                </td>
+
+                <td class="px-4 py-2 text-gray-700">
+                  <div class="flex flex-wrap gap-1 max-w-xs">
+                    <span *ngFor="let modulo of usuario.modulos"
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                      {{ getModuloLabel(modulo) }}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Linhas vazias para manter altura consistente -->
+              <tr *ngFor="let _ of emptyRows()" class="bg-white">
+                <td colspan="5" class="px-5 py-4">&nbsp;</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Rodapé padronizado -->
+          <div class="table-footer">
+            <div class="table-footer-info">
+              <div class="table-footer-page-size">
+                <span>Itens por página:</span>
+                <select (change)="onPageSizeChange($event)">
+                  <option *ngFor="let size of tableConfig().pageSizeOptions"
+                          [value]="size"
+                          [selected]="size === tableConfig().pageSize">
+                    {{ size }}
+                  </option>
+                </select>
+              </div>
+              <span class="table-footer-range">{{ getDisplayRange() }} de {{ filteredUsuarios().length }}</span>
             </div>
-            <!-- Empty state -->
-            <div *ngIf="filteredUsuarios.length === 0" class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6" /></svg>
-              <p class="text-lg">Nenhum usuário encontrado</p>
+            <div class="table-footer-pagination">
+              <button class="table-footer-btn" title="Primeira página" (click)="goToFirstPage()" [disabled]="tableConfig().currentPage === 0">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                </svg>
+              </button>
+              <button class="table-footer-btn" title="Página anterior" (click)="goToPreviousPage()" [disabled]="tableConfig().currentPage === 0">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+              </button>
+              <div class="table-footer-page-info">
+                <span>Página {{ tableConfig().currentPage + 1 }} de {{ tableConfig().totalPages }}</span>
+              </div>
+              <button class="table-footer-btn" title="Próxima página" (click)="goToNextPage()" [disabled]="tableConfig().currentPage >= tableConfig().totalPages - 1">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </button>
+              <button class="table-footer-btn" title="Última página" (click)="goToLastPage()" [disabled]="tableConfig().currentPage >= tableConfig().totalPages - 1">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
+      </article>
+    </section>
+  </div>
+</main>
+
+<!-- Modal de Confirmação de Edição -->
+<div *ngIf="modalState().showConfirmModal"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     aria-labelledby="modal-title"
+     role="dialog"
+     aria-modal="true">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay com blur -->
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+
+    <!-- Modal panel -->
+    <div class="inline-block align-bottom bg-white rounded-xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+      <div class="bg-white px-6 py-5 rounded-t-xl">
+        <div class="sm:flex sm:items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              Confirmar alterações
+            </h3>
+            <div class="mt-2">
+              <p class="text-sm text-gray-500">
+                Você está prestes a atualizar as informações deste usuário. Deseja continuar?
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-6 py-4 rounded-b-xl sm:flex sm:flex-row-reverse">
+        <button
+          type="button"
+          (click)="confirmEdit()"
+          class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+          Confirmar
+        </button>
+        <button
+          type="button"
+          (click)="cancelEdit()"
+          class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+          Cancelar
+        </button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div *ngIf="modalState().showDeleteModal"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     aria-labelledby="modal-title"
+     role="dialog"
+     aria-modal="true">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay com blur -->
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+
+    <!-- Modal panel -->
+    <div class="inline-block align-bottom bg-white rounded-xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+      <div class="bg-white px-6 py-5 rounded-t-xl">
+        <div class="sm:flex sm:items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.5 0L5.268 15.5c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              Confirmar exclusão
+            </h3>
+            <div class="mt-2">
+              <p class="text-sm text-gray-500">
+                Esta ação removerá permanentemente o usuário do sistema. Tem certeza que deseja continuar?
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-6 py-4 rounded-b-xl sm:flex sm:flex-row-reverse">
+        <button
+          type="button"
+          (click)="confirmDelete()"
+          class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+          Excluir
+        </button>
+        <button
+          type="button"
+          (click)="cancelDelete()"
+          class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

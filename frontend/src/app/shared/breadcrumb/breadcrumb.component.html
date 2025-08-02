@@ -1,0 +1,73 @@
+<nav
+  *ngIf="breadcrumbs.length > 0"
+  class="breadcrumb-nav"
+  role="navigation"
+  aria-label="Localização atual no sistema"
+>
+  <ol class="breadcrumb-list">
+    <li
+      *ngFor="let breadcrumb of breadcrumbs; let last = last"
+      class="breadcrumb-item"
+      [class.active]="breadcrumb.isActive"
+      [class.text-blue-600]="breadcrumb.isActive"
+      [class.font-medium]="breadcrumb.isActive"
+    >
+      <!-- Breadcrumb não ativo (clicável) -->
+      <a
+        *ngIf="!breadcrumb.isActive"
+        class="breadcrumb-link"
+        [routerLink]="breadcrumb.url"
+        [title]="breadcrumb.title || breadcrumb.label"
+        [attr.aria-label]="'Ir para ' + breadcrumb.label"
+        (click)="onBreadcrumbClick(breadcrumb)"
+      >
+        <span class="breadcrumb-content">
+          <mat-icon
+            *ngIf="breadcrumb.icon"
+            class="breadcrumb-icon"
+            aria-hidden="true"
+          >
+            {{ breadcrumb.icon }}
+          </mat-icon>
+          <span class="breadcrumb-label">{{ breadcrumb.label }}</span>
+        </span>
+      </a>
+
+      <!-- Breadcrumb ativo (não clicável) -->
+      <span
+        *ngIf="breadcrumb.isActive"
+        class="breadcrumb-current"
+        [title]="breadcrumb.title || breadcrumb.label"
+        aria-current="page"
+      >
+        <span class="breadcrumb-content">
+          <mat-icon
+            *ngIf="breadcrumb.icon"
+            class="breadcrumb-icon"
+            aria-hidden="true"
+          >
+            {{ breadcrumb.icon }}
+          </mat-icon>
+          <span class="breadcrumb-label">{{ breadcrumb.label }}</span>
+        </span>
+      </span>
+
+      <!-- Separador -->
+      <span
+        *ngIf="!last"
+        class="breadcrumb-separator"
+        aria-hidden="true"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </span>
+    </li>
+  </ol>
+</nav>
