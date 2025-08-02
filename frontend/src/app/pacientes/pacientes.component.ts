@@ -33,7 +33,7 @@ export interface Paciente {
 @Component({
     selector: 'app-pacientes',
     templateUrl: './pacientes.component.html',
-    styleUrls: ['./pacientes.component.scss'],
+    styleUrls: ['./pacientes.component.scss', '../shared/styles/table-footer.css'],
     standalone: false
 })
 export class PacientesComponent implements OnInit, AfterViewInit {

@@ -82,29 +82,32 @@
             </tr>
           </tbody>
         </table>
-    <!-- Rodapé customizado -->
-    <div class="flex flex-col sm:flex-row justify-end items-center mt-3 sm:mt-4 gap-2 text-xs sm:text-sm bg-gray-50 px-2 sm:px-4 py-2 rounded-b-lg border-t border-gray-200">
-      <div class="flex items-center gap-4 text-gray-600">
-        <label class="flex items-center gap-1">
+    <!-- Rodapé padronizado -->
+    <div class="table-footer">
+      <div class="table-footer-info">
+        <div class="table-footer-page-size">
           <span>Items por página:</span>
-          <select class="border rounded px-2 py-1 text-gray-700 bg-white focus:ring focus:ring-blue-500" (change)="onPageSizeChange($event)">
+          <select (change)="onPageSizeChange($event)">
             <option *ngFor="let opt of pageSizeOptions" [value]="opt" [selected]="opt === pageSize">{{ opt }}</option>
           </select>
-        </label>
-        <span>{{ paginatedPacientes.length > 0 ? (currentPage * pageSize + 1) : 0 }} – {{ currentPage * pageSize + paginatedPacientes.length }} de {{ filteredPacientes.length }}</span>
+        </div>
+        <span class="table-footer-range">{{ paginatedPacientes.length > 0 ? (currentPage * pageSize + 1) : 0 }} – {{ currentPage * pageSize + paginatedPacientes.length }} de {{ filteredPacientes.length }}</span>
       </div>
-      <div class="flex items-center gap-2">
-        <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Primeira página" (click)="goToFirstPage()" [disabled]="currentPage === 0">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+      <div class="table-footer-pagination">
+        <button class="table-footer-btn" title="Primeira página" (click)="goToFirstPage()" [disabled]="currentPage === 0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Página anterior" (click)="goToPreviousPage()" [disabled]="currentPage === 0">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        <button class="table-footer-btn" title="Página anterior" (click)="goToPreviousPage()" [disabled]="currentPage === 0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Próxima página" (click)="goToNextPage()" [disabled]="currentPage >= totalPages - 1">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        <div class="table-footer-page-info">
+          <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+        </div>
+        <button class="table-footer-btn" title="Próxima página" (click)="goToNextPage()" [disabled]="currentPage >= totalPages - 1">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
         </button>
-        <button class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Última página" (click)="goToLastPage()" [disabled]="currentPage >= totalPages - 1">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        <button class="table-footer-btn" title="Última página" (click)="goToLastPage()" [disabled]="currentPage >= totalPages - 1">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
     </div>

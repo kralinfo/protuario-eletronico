@@ -20,7 +20,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './relatorio-atendimentos.component.html',
-  styleUrls: ['./relatorio-atendimentos.component.scss']
+  styleUrls: ['./relatorio-atendimentos.component.scss', '../shared/styles/table-footer.css']
 })
 export class RelatorioAtendimentosComponent implements OnInit {
   filtrosForm: FormGroup;

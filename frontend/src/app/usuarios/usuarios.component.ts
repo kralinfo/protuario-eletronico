@@ -25,7 +25,7 @@ import {
 @Component({
   selector: 'app-usuarios',
   templateUrl: './usuarios.component.html',
-  styleUrls: ['./usuarios.component.scss'],
+  styleUrls: ['./usuarios.component.scss', '../shared/styles/table-footer.css'],
   standalone: false
 })
 export class UsuariosComponent implements OnInit, OnDestroy {

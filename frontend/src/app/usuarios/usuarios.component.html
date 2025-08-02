@@ -478,78 +478,47 @@
             </table>
           </div>
 
-          <!-- Paginação melhorada -->
-          <nav class="bg-white px-5 py-3 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-center text-sm text-gray-500">
-              <label for="pageSize" class="mr-2 text-xs sm:text-sm">Itens por página:</label>
-              <select
-                id="pageSize"
-                (change)="onPageSizeChange($event)"
-                class="border-gray-300 rounded-md text-xs sm:text-sm focus:ring-blue-500 focus:border-blue-500 py-1">
-                <option *ngFor="let size of tableConfig().pageSizeOptions"
-                        [value]="size"
-                        [selected]="size === tableConfig().pageSize">
-                  {{ size }}
-                </option>
-              </select>
-
-              <span class="ml-3 text-xs sm:text-sm">
-                Exibindo {{ getDisplayRange() }} de {{ filteredUsuarios().length }}
-              </span>
+          <!-- Rodapé padronizado -->
+          <div class="table-footer">
+            <div class="table-footer-info">
+              <div class="table-footer-page-size">
+                <span>Itens por página:</span>
+                <select (change)="onPageSizeChange($event)">
+                  <option *ngFor="let size of tableConfig().pageSizeOptions"
+                          [value]="size"
+                          [selected]="size === tableConfig().pageSize">
+                    {{ size }}
+                  </option>
+                </select>
+              </div>
+              <span class="table-footer-range">{{ getDisplayRange() }} de {{ filteredUsuarios().length }}</span>
             </div>
-
-            <div class="flex items-center space-x-1">
-              <button
-                type="button"
-                (click)="goToFirstPage()"
-                [disabled]="tableConfig().currentPage === 0"
-                class="relative inline-flex items-center p-1.5 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
-                title="Primeira página">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="table-footer-pagination">
+              <button class="table-footer-btn" title="Primeira página" (click)="goToFirstPage()" [disabled]="tableConfig().currentPage === 0">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
                 </svg>
               </button>
-
-              <button
-                type="button"
-                (click)="goToPreviousPage()"
-                [disabled]="tableConfig().currentPage === 0"
-                class="relative inline-flex items-center p-1.5 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
-                title="Página anterior">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button class="table-footer-btn" title="Página anterior" (click)="goToPreviousPage()" [disabled]="tableConfig().currentPage === 0">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
               </button>
-
-              <div class="flex items-center gap-1 px-2">
-                <span class="text-xs sm:text-sm text-gray-700">
-                  Página {{ tableConfig().currentPage + 1 }} de {{ tableConfig().totalPages }}
-                </span>
+              <div class="table-footer-page-info">
+                <span>Página {{ tableConfig().currentPage + 1 }} de {{ tableConfig().totalPages }}</span>
               </div>
-
-              <button
-                type="button"
-                (click)="goToNextPage()"
-                [disabled]="tableConfig().currentPage >= tableConfig().totalPages - 1"
-                class="relative inline-flex items-center p-1.5 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
-                title="Próxima página">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button class="table-footer-btn" title="Próxima página" (click)="goToNextPage()" [disabled]="tableConfig().currentPage >= tableConfig().totalPages - 1">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
               </button>
-
-              <button
-                type="button"
-                (click)="goToLastPage()"
-                [disabled]="tableConfig().currentPage >= tableConfig().totalPages - 1"
-                class="relative inline-flex items-center p-1.5 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
-                title="Última página">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button class="table-footer-btn" title="Última página" (click)="goToLastPage()" [disabled]="tableConfig().currentPage >= tableConfig().totalPages - 1">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
                 </svg>
               </button>
             </div>
-          </nav>
+          </div>
         </div>
       </article>
     </section>

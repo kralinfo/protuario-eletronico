@@ -12,6 +12,7 @@ import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-atendimentos-dia',
   templateUrl: './atendimentos-dia.component.html',
+  styleUrls: ['../shared/styles/table-footer.css'],
   standalone: false,
   providers: [DatePipe]
 })
