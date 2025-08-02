@@ -116,7 +116,7 @@ export class PacientesFormComponent
       profissao: [''],
       escolaridade: [''],
       telefone: [''], // Adicionado
-      sus: [''],      // Adicionado
+      sus: ['', [], [this.validarSUSDuplicado.bind(this)]],  // Adicionado
       raca: [''],
       endereco: ['', [Validators.required]],
       bairro: ['', [Validators.required]],
@@ -574,6 +574,29 @@ export class PacientesFormComponent
   logout() {
     this.authService.logout();
   }
+
+  // Evita duplicidade do SUS
+  validarSUSDuplicado(control: AbstractControl): Observable<ValidationErrors | null> {
+  const numeroSUS = control.value?.trim();
+  if (!numeroSUS) return of(null);
+
+  // Não verifica duplicidade se estiver editando o mesmo paciente
+  if (this.pacienteEditando?.sus === numeroSUS) return of(null);
+
+  return this.http
+    .get<Paciente[]>(`${this.apiUrl}?sus=${encodeURIComponent(numeroSUS)}`)
+    .pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((result) => {
+        const duplicado = result.find(p =>
+          p.sus === numeroSUS && (!this.pacienteEditando || p.id !== this.pacienteEditando.id)
+        );
+        return of(duplicado ? { susDuplicado: true } : null);
+      })
+    );
+}
+
 }
 
 /* Mask de número do SUS */
