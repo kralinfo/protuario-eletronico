@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!-- Container principal com gradiente sutil -->
 <main class="min-h-screen bg-gradient-to-br from-blue-50/50 to-indigo-100/50 p-4 sm:p-6">
   <!-- Seção do cabeçalho com identidade visual -->
@@ -506,6 +507,708 @@
               </button>
             </div>
           </div>
+=======
+<div class="w-full p-2 sm:p-4">
+  <h2 class="text-2xl font-bold mb-6 text-blue-700">Usuários</h2>
+  <div class="flex flex-row w-full items-start gap-4 sm:gap-8 align-top-fix">
+    <div class="flex flex-row w-full items-start gap-4 sm:gap-8 align-top-fix">
+      <!-- Modal e Formulário à esquerda -->
+      <div class="w-full sm:w-[420px] self-start flex-shrink-0">
+        <!-- Modal de confirmação de edição -->
+        <style>
+          .altura-tabela-usuarios {
+            height: 612px;
+            max-height: 612px;
+            min-height: 612px;
+            display: flex;
+            flex-direction: column;
+          }
+        </style>
+        <!-- Modal de sucesso removido, agora é feito via MatDialog -->
+        <div
+          *ngIf="showConfirmModal"
+          class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+        >
+          <div
+            class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center"
+          >
+            <h3 class="text-xl font-bold mb-4 text-blue-700">
+              Confirmar edição
+            </h3>
+            <p class="mb-6 text-gray-700">
+              Tem certeza que deseja salvar as alterações deste usuário?
+            </p>
+            <div class="flex justify-center gap-4">
+              <button
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+                (click)="confirmEdit()"
+              >
+                Confirmar
+              </button>
+              <button
+                class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition"
+                (click)="cancelEdit()"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Modal de confirmação de exclusão -->
+        <div
+          *ngIf="showDeleteModal"
+          class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+        >
+          <div
+            class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center"
+          >
+            <h3 class="text-xl font-bold mb-4 text-red-700">
+              Confirmar exclusão
+            </h3>
+            <p class="mb-6 text-gray-700">
+              Deseja realmente excluir este usuário?
+            </p>
+            <div class="flex justify-center gap-4">
+              <button
+                class="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold shadow hover:bg-red-700 transition"
+                (click)="confirmDelete()"
+              >
+                Excluir
+              </button>
+              <button
+                class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition"
+                (click)="cancelDelete()"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+        <form
+          [formGroup]="usuarioForm"
+          (ngSubmit)="onSubmit()"
+          class="mb-6 sm:mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-4 sm:p-8 flex flex-col gap-4 sm:gap-6"
+        >
+          <div class="flex flex-col gap-6">
+            <!-- Nome em uma linha -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Nome <span class="text-red-500">*</span></label
+              >
+              <input
+                formControlName="nome"
+                autocomplete="off"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+              />
+              <div
+                *ngIf="
+                  usuarioForm.get('nome')?.invalid &&
+                  usuarioForm.get('nome')?.touched
+                "
+                class="text-xs text-red-500 mt-1"
+              >
+                Nome é obrigatório
+              </div>
+            </div>
+            <!-- Email em outra linha -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Email <span class="text-red-500">*</span></label
+              >
+              <input
+                formControlName="email"
+                autocomplete="new-email"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+                (blur)="verificarEmailEmUso(usuarioForm.get('email')?.value)"
+              />
+              <div
+                *ngIf="
+                  error === 'Email já está em uso' &&
+                  usuarioForm.get('email')?.touched
+                "
+                class="text-xs text-red-500 mt-1"
+              >
+                {{ error }}
+              </div>
+              <div
+                *ngIf="
+                  usuarioForm.get('email')?.invalid &&
+                  usuarioForm.get('email')?.touched
+                "
+                class="text-xs text-red-500 mt-1"
+              >
+                Email válido é obrigatório
+              </div>
+            </div>
+            <!-- Senha e nível de acesso lado a lado -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ng-container *ngIf="!editandoUsuario">
+                <div class="relative">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Senha <span class="text-red-500">*</span>
+                  </label>
+
+                  <!-- Container fixo para input + botão -->
+                  <div class="relative">
+                    <input
+                      [type]="hidePassword ? 'password' : 'text'"
+                      formControlName="senha"
+                      autocomplete="new-password"
+                      class="w-full h-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+                    />
+
+                    <button
+                      type="button"
+                      class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center"
+                      (click)="hidePassword = !hidePassword"
+                      tabindex="-1"
+                    >
+                      <svg
+                        class="h-5 w-5 text-gray-400"
+                        [ngClass]="{ hidden: !hidePassword }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7
+          -1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                      <svg
+                        class="h-5 w-5 text-gray-400"
+                        [ngClass]="{ hidden: hidePassword }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7
+          a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9.878 9.878l4.242 4.242M9.878 9.878L6.5 6.5m3.378 3.378a3 3 0
+          004.243-4.242M6.5 6.5L4.222 4.222m2.278 2.278L9.878 9.878m-3.378-3.378
+          L3.172 3.172m3.328 3.328L9.878 9.878"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <!-- Fora do container fixo -->
+                  <div
+                    *ngIf="usuarioForm.get('senha')?.errors?.['required'] && usuarioForm.get('senha')?.touched"
+                    class="text-xs text-red-500 mt-1"
+                  >
+                    Senha é obrigatória
+                  </div>
+                  <div
+                    *ngIf="usuarioForm.get('senha')?.errors?.['minlength'] && usuarioForm.get('senha')?.touched"
+                    class="text-xs text-red-500 mt-1"
+                  >
+                    Senha deve ter pelo menos 6 caracteres
+                  </div>
+                </div>
+
+                <div class="relative">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Repetir senha <span class="text-red-500">*</span>
+                  </label>
+
+                  <!-- Container fixo para input + botão -->
+                  <div class="relative">
+                    <input
+                      [type]="hideRepeatedPassword ? 'password' : 'text'"
+                      formControlName="repetirSenha"
+                      autocomplete="new-password"
+                      class="w-full h-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 placeholder-gray-400"
+                    />
+
+                    <button
+                      type="button"
+                      class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center"
+                      (click)="hideRepeatedPassword = !hideRepeatedPassword"
+                      tabindex="-1"
+                    >
+                      <svg
+                        class="h-5 w-5 text-gray-400"
+                        [ngClass]="{ hidden: !hideRepeatedPassword }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7
+          -1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                      <svg
+                        class="h-5 w-5 text-gray-400"
+                        [ngClass]="{ hidden: hideRepeatedPassword }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7
+          a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9.878 9.878l4.242 4.242M9.878 9.878L6.5 6.5m3.378 3.378a3 3 0
+          004.243-4.242M6.5 6.5L4.222 4.222m2.278 2.278L9.878 9.878m-3.378-3.378
+          L3.172 3.172m3.328 3.328L9.878 9.878"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <!-- Mensagens de erro fora do container fixo -->
+                  <div
+                    *ngIf="usuarioForm.get('repetirSenha')?.errors?.['required'] && usuarioForm.get('repetirSenha')?.touched"
+                    class="text-xs text-red-500 mt-1"
+                  >
+                    Repetir senha é obrigatório
+                  </div>
+                  <div
+                    *ngIf="usuarioForm.errors?.['senhasDiferentes'] && usuarioForm.get('repetirSenha')?.touched"
+                    class="text-xs text-red-500 mt-1"
+                  >
+                    As senhas não coincidem
+                  </div>
+                </div>
+              </ng-container>
+              <ng-container *ngIf="editandoUsuario">
+                <div class="flex flex-col gap-2 items-stretch">
+                  <button
+                    type="button"
+                    class="w-full px-4 py-2 rounded-lg font-bold shadow-md focus:outline-none focus:ring-2 transition text-white"
+                    [ngClass]="
+                      loadingRecuperarSenha
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                    "
+                    (click)="onRecuperarSenhaUsuario()"
+                    [disabled]="loadingRecuperarSenha"
+                  >
+                    <span *ngIf="!loadingRecuperarSenha">Recuperar senha</span>
+                    <span *ngIf="loadingRecuperarSenha"
+                      >Enviando E-mail...</span
+                    >
+                  </button>
+                  <div class="text-xs text-gray-500 mt-1 text-center">
+                    O usuário receberá um e-mail para redefinir a senha.
+                  </div>
+                </div>
+              </ng-container>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                  >Nível de acesso <span class="text-red-500">*</span></label
+                >
+                <select
+                  formControlName="nivel"
+                  autocomplete="off"
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-900"
+                >
+                  <option *ngFor="let n of niveis" [value]="n.value">
+                    {{ n.label }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <!-- Módulos abaixo dos campos principais, ocupando toda a largura -->
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Módulos</label
+              >
+              <div class="flex flex-wrap gap-x-6 gap-y-2">
+                <label
+                  *ngFor="let m of modulosDisponiveis"
+                  class="inline-flex items-center min-w-[120px]"
+                >
+                  <input
+                    type="checkbox"
+                    [value]="m.value"
+                    (change)="onModuloCheckboxChange($event)"
+                    [checked]="
+                      usuarioForm.get('modulos')?.value?.includes(m.value)
+                    "
+                    [disabled]="isVisualizador"
+                    class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span class="ml-2">{{ m.label }}</span>
+                </label>
+              </div>
+              <div class="text-xs text-gray-500 mt-1">
+                Selecione os módulos de acesso do usuário.
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <button
+              type="submit"
+              class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center"
+              [disabled]="!podeSalvarUsuario || (loading && !editandoUsuario)"
+              [class.opacity-50]="isVisualizador"
+              [class.cursor-not-allowed]="isVisualizador"
+            >
+              <span *ngIf="!loading && !editandoUsuario"
+                >Cadastrar usuário</span
+              >
+              <span *ngIf="!loading && editandoUsuario">Salvar Alteração</span>
+              <span *ngIf="loading && !editandoUsuario">Cadastrando...</span>
+            </button>
+            <button
+              *ngIf="editandoUsuario"
+              type="button"
+              class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold shadow hover:bg-gray-300 transition"
+              (click)="cancelarEdicao()"
+            >
+              Cancelar
+            </button>
+          </div>
+          <div *ngIf="isVisualizador" class="text-red-600 mt-2">
+            Usuário não autorizado para editar ou cadastrar um usuário.
+          </div>
+          <div *ngIf="success" class="text-green-600 mt-2">{{ success }}</div>
+          <!-- Mensagem de erro global removida, agora exibida em modal -->
+        </form>
+        <div
+          *ngIf="loading && !usuarios.length"
+          class="text-center text-blue-600 font-semibold"
+        >
+          Carregando...
+        </div>
+      </div>
+      <!-- Tabela à direita -->
+      <div class="w-full sm:flex-1">
+        <div
+          *ngIf="paginatedUsuarios.length"
+          class="bg-white rounded-xl shadow p-3 sm:p-6 w-full sm:flex-1 mr-2 altura-tabela-usuarios flex flex-col"
+          style="position: relative"
+        >
+          <h3
+            class="text-lg sm:text-xl font-bold text-blue-700 mb-3 sm:mb-4 flex items-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-blue-700"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 10h16M4 14h16M4 18h16"
+              />
+            </svg>
+            Lista de Usuários
+          </h3>
+          <div
+            class="overflow-x-auto"
+            style="flex: 1 1 auto; overflow-y: auto"
+            [ngStyle]="{
+              'max-height':
+                userCurrentPage === 0 ? 'calc(612px - 56px)' : 'none'
+            }"
+          >
+            <table
+              class="w-full text-xs sm:text-sm text-left border border-gray-200 rounded-lg overflow-hidden"
+              style="min-height: 100%"
+            >
+              <thead
+                style="
+                  background: linear-gradient(90deg, #f5faff 0%, #e3f0ff 100%);
+                  border-top-left-radius: 0.75rem;
+                  border-top-right-radius: 0.75rem;
+                "
+              >
+                <tr>
+                  <th
+                    class="px-2 py-2 font-semibold text-gray-700 min-w-[3.5rem] max-w-[4.5rem] text-center"
+                  >
+                    Ações
+                  </th>
+                  <th
+                    class="px-6 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]"
+                  >
+                    Nome
+                  </th>
+                  <th
+                    class="px-4 py-2 font-semibold text-gray-700 min-w-[12rem] max-w-[24rem]"
+                  >
+                    Email
+                  </th>
+                  <th
+                    class="px-4 py-2 font-semibold text-gray-700 min-w-[2.5rem] max-w-[3.5rem]"
+                  >
+                    Nível
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let u of paginatedUsuarios"
+                  class="border-b hover:bg-gray-50"
+                  style="height: 48px; min-height: 48px"
+                >
+                  <td
+                    class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center"
+                  >
+                    <div class="flex gap-2 justify-center items-center w-full">
+                      <button
+                        (click)="onEditUser(u)"
+                        [disabled]="loading || isVisualizador"
+                        class="text-blue-700 hover:text-blue-900 transition"
+                        title="Editar usuário"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        (click)="onDeleteUser(u)"
+                        [disabled]="loading || isVisualizador"
+                        class="text-red-700 hover:text-red-900 transition"
+                        title="Remover usuário"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                  <td
+                    class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]"
+                  >
+                    {{ u.nome }}
+                  </td>
+                  <td class="px-4 py-2 text-gray-700">{{ u.email }}</td>
+                  <td
+                    class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]"
+                  >
+                    {{ u.nivel }}
+                  </td>
+                </tr>
+                <!-- Linhas vazias para manter altura padrão apenas na primeira página -->
+                <tr
+                  *ngFor="let _ of emptyRows"
+                  style="height: 48px; min-height: 48px"
+                >
+                  <td
+                    class="px-2 py-2 min-w-[3.5rem] max-w-[4.5rem] text-center"
+                  >
+                    &nbsp;
+                  </td>
+                  <td
+                    class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]"
+                  >
+                    &nbsp;
+                  </td>
+                  <td class="px-4 py-2 text-gray-700">&nbsp;</td>
+                  <td
+                    class="px-4 py-2 text-gray-700 min-w-[2.5rem] max-w-[3.5rem]"
+                  >
+                    &nbsp;
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Rodapé customizado fixo -->
+          <div
+            class="flex flex-col sm:flex-row justify-end items-center gap-2 text-xs sm:text-sm bg-gray-50 px-2 sm:px-4 py-2 rounded-b-lg border-t border-gray-200"
+            style="height: 56px; min-height: 56px"
+          >
+            <div class="flex items-center gap-4 text-gray-600">
+              <label class="flex items-center gap-1">
+                <span>Items por página:</span>
+                <select
+                  class="border rounded px-2 py-1 text-gray-700 bg-white focus:ring focus:ring-blue-500"
+                  (change)="onUserPageSizeChange($event)"
+                >
+                  <option
+                    *ngFor="let opt of userPageSizeOptions"
+                    [value]="opt"
+                    [selected]="opt === userPageSize"
+                  >
+                    {{ opt }}
+                  </option>
+                </select>
+              </label>
+              <span
+                >{{
+                  paginatedUsuarios.length > 0
+                    ? userCurrentPage * userPageSize + 1
+                    : 0
+                }}
+                –
+                {{ userCurrentPage * userPageSize + paginatedUsuarios.length }}
+                de {{ filteredUsuarios.length }}</span
+              >
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                title="Primeira página"
+                (click)="goToUserFirstPage()"
+                [disabled]="userCurrentPage === 0"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <button
+                class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                title="Página anterior"
+                (click)="goToUserPreviousPage()"
+                [disabled]="userCurrentPage === 0"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <button
+                class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                title="Próxima página"
+                (click)="goToUserNextPage()"
+                [disabled]="userCurrentPage >= userTotalPages - 1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+              <button
+                class="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                title="Última página"
+                (click)="goToUserLastPage()"
+                [disabled]="userCurrentPage >= userTotalPages - 1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <!-- Rodapé duplicado removido -->
+        </div>
+        <!-- Empty state -->
+        <div
+          *ngIf="filteredUsuarios.length === 0"
+          class="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-400"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-12 w-12 mb-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6"
+            />
+          </svg>
+          <p class="text-lg">Nenhum usuário encontrado</p>
+>>>>>>> c4889584cec8d5746845658945230c3792fe5378
         </div>
       </article>
     </section>
@@ -560,6 +1263,7 @@
     </div>
   </div>
 </div>
+<<<<<<< HEAD
 
 <!-- Modal de Confirmação de Exclusão -->
 <div *ngIf="modalState().showDeleteModal"
@@ -609,3 +1313,5 @@
     </div>
   </div>
 </div>
+=======
+>>>>>>> c4889584cec8d5746845658945230c3792fe5378

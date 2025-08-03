@@ -28,6 +28,7 @@ import {
   styleUrls: ['./usuarios.component.scss', '../shared/styles/table-footer.css'],
   standalone: false
 })
+<<<<<<< HEAD
 export class UsuariosComponent implements OnInit, OnDestroy {
   // Injeção de dependências usando inject()
   private readonly fb = inject(FormBuilder);
@@ -90,6 +91,21 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       return !!nome && !!email && !!nivel &&
              Array.isArray(modulos) && modulos.length > 0 &&
              !isLoading && !isVisualizador && !!form.get('email')?.valid;
+=======
+export class UsuariosComponent implements OnInit {
+
+  hidePassword = true;
+  hideRepeatedPassword = true;
+
+  get podeSalvarUsuario(): boolean {
+    const nome = this.usuarioForm.get('nome')?.value?.trim();
+    const email = this.usuarioForm.get('email')?.value?.trim();
+    const nivel = this.usuarioForm.get('nivel')?.value;
+    const modulos = this.usuarioForm.get('modulos')?.value;
+    if (this.editandoUsuario) {
+      // Para edição, só exige nome, email, nível e ao menos um módulo
+      return !!nome && !!email && !!nivel && Array.isArray(modulos) && modulos.length > 0 && !this.loading && !this.isVisualizador && !!this.usuarioForm.get('email')?.valid;
+>>>>>>> c4889584cec8d5746845658945230c3792fe5378
     }
 
     return form.valid && Array.isArray(modulos) && modulos.length > 0 &&
