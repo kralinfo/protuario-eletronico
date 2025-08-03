@@ -276,6 +276,32 @@ class Paciente {
   }
 
   /**
+   * Verificar se SUS já está em uso
+   */
+  static async findBySus(sus, excludeId = null) {
+    try {
+      // Não verifica se SUS estiver vazio ou null
+      if (!sus || sus.trim() === '') {
+        return [];
+      }
+
+      let query = 'SELECT * FROM pacientes WHERE sus = $1';
+      const params = [sus.trim()];
+
+      // Se fornecido excludeId, exclui esse paciente da busca (útil para updates)
+      if (excludeId) {
+        query += ' AND id != $2';
+        params.push(excludeId);
+      }
+
+      const result = await database.query(query, params);
+      return result.rows.map(row => new Paciente(row));
+    } catch (error) {
+      throw new Error(`Erro ao verificar SUS: ${error.message}`);
+    }
+  }
+
+  /**
    * Estatísticas dos pacientes
    */
   static async getStatistics(filters = {}) {

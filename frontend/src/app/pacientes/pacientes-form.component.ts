@@ -34,6 +34,8 @@ import * as jsPDF from 'jspdf';
 import { formatTelefoneValue } from '../utils/telefone-util';
 import { formatCepValue } from '../utils/cep-util';
 import { CepService } from '../services/cep.service';
+import { PacienteService } from '../services/paciente.service';
+import { SusValidators } from '../validators/sus.validators';
 import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
 
 @Component({
@@ -95,7 +97,6 @@ export class PacientesFormComponent
     { sigla: 'TO', nome: 'Tocantins' },
   ];
 
-  pacienteService: any;
   erroCepUf = false;
   bloqueioAnoInvalido: any;
 
@@ -104,7 +105,8 @@ export class PacientesFormComponent
     private fb: FormBuilder,
     private authService: AuthService,
     private dialog: MatDialog,
-    private cepService: CepService
+    private cepService: CepService,
+    private pacienteService: PacienteService
   ) {
     this.form = this.fb.group({
       nome: ['', [Validators.required]],
@@ -118,7 +120,7 @@ export class PacientesFormComponent
       profissao: [''],
       escolaridade: [''],
       telefone: [''], // Adicionado
-      sus: [''],      // Adicionado
+      sus: [''], // Apenas campo simples, sem validações complexas
       raca: [''],
       endereco: ['', [Validators.required]],
       bairro: ['', [Validators.required]],
@@ -402,6 +404,26 @@ export class PacientesFormComponent
     const telefoneControl = this.form?.get('telefone');
     if (telefoneControl) {
       telefoneControl.setValue(value, { emitEvent: false });
+    }
+  }
+
+  formatSus(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Remove tudo que não é número
+    let value = input.value.replace(/\D/g, '');
+    
+    // Limita a 15 dígitos
+    if (value.length > 15) {
+      value = value.substring(0, 15);
+    }
+    
+    // Atualiza o input
+    input.value = value;
+    
+    // Atualiza o FormControl
+    const susControl = this.form?.get('sus');
+    if (susControl) {
+      susControl.setValue(value, { emitEvent: false });
     }
   }
 
