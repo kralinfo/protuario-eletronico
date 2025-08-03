@@ -10,7 +10,7 @@ export class AtendimentoService {
     if (filtros.dataInicial) params.append('dataInicial', filtros.dataInicial);
     if (filtros.dataFinal) params.append('dataFinal', filtros.dataFinal);
     // Adicione outros filtros conforme necessário
-    return this.http.get<any[]>(`http://localhost:3001/api/atendimentos/reports?${params.toString()}`);
+    return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/reports?${params.toString()}`);
   }
   constructor(private http: HttpClient) {}
 
@@ -27,6 +27,6 @@ export class AtendimentoService {
   }
 
   listarTodosAtendimentos() {
-    return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/todos_atendimentos`);
+    return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/todos`);
   }
 }
