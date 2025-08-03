@@ -34,8 +34,6 @@ import * as jsPDF from 'jspdf';
 import { formatTelefoneValue } from '../utils/telefone-util';
 import { formatCepValue } from '../utils/cep-util';
 import { CepService } from '../services/cep.service';
-import { PacienteService } from '../services/paciente.service';
-import { SusValidators } from '../validators/sus.validators';
 import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
 
 @Component({
@@ -105,8 +103,7 @@ export class PacientesFormComponent
     private fb: FormBuilder,
     private authService: AuthService,
     private dialog: MatDialog,
-    private cepService: CepService,
-    private pacienteService: PacienteService
+    private cepService: CepService
   ) {
     this.form = this.fb.group({
       nome: ['', [Validators.required]],
