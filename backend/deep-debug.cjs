@@ -4,7 +4,7 @@
  */
 
 const knex = require('knex');
-const knexConfig = require('./knexfile.js');
+const knexConfig = require('./knexfile.cjs');
 require('dotenv').config();
 const { readdir, readFile } = require('fs').promises;
 const path = require('path');

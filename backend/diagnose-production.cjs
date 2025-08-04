@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const knex = require('knex');
-const knexConfig = require('./knexfile.js');
+const knexConfig = require('./knexfile.cjs');
 require('dotenv').config();
 
 async function diagnoseProduction() {
