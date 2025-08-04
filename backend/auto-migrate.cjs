@@ -5,6 +5,9 @@
  * Usado a cada deploy para garantir que o banco esteja atualizado
  */
 
+console.log('🚨🚨🚨 AUTO-MIGRATE INICIADO! 🚨🚨🚨');
+console.log('=====================================');
+
 const knex = require('knex');
 const knexConfig = require('./knexfile.cjs');
 require('dotenv').config();

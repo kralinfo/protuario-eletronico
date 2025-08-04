@@ -1,4 +1,5 @@
 // Debug: log DATABASE_URL para garantir leitura correta do .env
+console.log('🚨 SERVER.JS INICIADO - VERSÃO COM AUTO-MIGRATE 🚨');
 console.log('DATABASE_URL em uso:', process.env.DATABASE_URL);
 import App from './app.js';
 
