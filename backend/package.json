@@ -5,7 +5,9 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node ensure-abandono.cjs && node src/server.js",
+    "start": "npm run migrate:prod && node src/server.js",
+    "start:simple": "node src/server.js",
+    "start:ensure": "node ensure-abandono.cjs && node src/server.js",
     "start:legacy": "npm run migrate:smart && node src/server.js",
     "start:robust": "node robust-startup.cjs && node src/server.js",
     "start:dev": "node src/server.js",
@@ -31,6 +33,7 @@
     "deep-debug": "node deep-debug.cjs",
     "create-abandono-sql": "node create-abandono-sql.cjs",
     "ensure-abandono": "node ensure-abandono.cjs",
+    "diagnose-migrations": "node diagnose-migrations.cjs",
     "db:migrate": "npx knex migrate:latest",
     "db:rollback": "npx knex migrate:rollback",
     "db:status": "npx knex migrate:status",
