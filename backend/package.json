@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "echo '🚨 EXECUTANDO START SCRIPT' && node emergency-fix.cjs && node src/server.js",
+    "start": "echo '🚨 EXECUTANDO START SCRIPT' && node fix-all-columns.cjs && node src/server.js",
     "start:simple": "node src/server.js",
     "start:migrate": "npm run migrate:prod && node src/server.js",
     "start:ensure": "node ensure-abandono.cjs && node src/server.js",
@@ -37,6 +37,7 @@
     "diagnose-migrations": "node diagnose-migrations.cjs",
     "auto-migrate": "node auto-migrate.cjs",
     "fix-now": "node fix-now.cjs",
+    "fix-all": "node fix-all-columns.cjs",
     "db:migrate": "npx knex migrate:latest",
     "db:rollback": "npx knex migrate:rollback",
     "db:status": "npx knex migrate:status",
