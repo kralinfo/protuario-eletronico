@@ -25,6 +25,8 @@ Build Command: npm install
 Start Command: npm start
 ```
 
+**IMPORTANTE:** O comando `npm start` agora executa as migrations automaticamente antes de iniciar o servidor!
+
 ### **4. Variáveis de Ambiente:**
 Adicione TODAS essas variáveis:
 
@@ -50,6 +52,54 @@ EMAIL_FROM=e-Prontuario Alianca-PE <noreply@alianca.com>
 Após o deploy, use:
 ```bash
 curl https://SUA-URL.onrender.com/api/health
+```
+
+## 🗄️ **Gerenciamento de Migrations**
+
+### **Execução Automática (Configurada):**
+- ✅ Migrations executam automaticamente a cada deploy
+- ✅ Logs mostram quais migrations foram aplicadas
+- ✅ Falhas na migration impedem o início do servidor
+
+### **Execução Manual (Se Necessário):**
+
+**Opção 1 - Via Render Shell:**
+1. No dashboard do Render, vá para seu serviço
+2. Clique em "Shell" (se disponível no seu plano)
+3. Execute: `npm run migrate:prod`
+
+**Opção 2 - Forçar Redeploy:**
+1. Vá para "Settings" do seu serviço
+2. Clique em "Manual Deploy"
+3. Selecione "Deploy latest commit"
+
+**Opção 3 - Scripts Disponíveis:**
+```bash
+# Executar migrations
+npm run migrate:prod
+
+# Verificar status das migrations
+npm run db:status
+
+# Rollback (cuidado em produção!)
+npm run db:rollback
+```
+
+### **Logs de Migration:**
+Nos logs do deploy, você verá:
+```
+🚀 Iniciando execução das migrations...
+📍 Ambiente: production
+🔗 Conectando: postgresql://user:***@host:5432/db
+✅ Conexão estabelecida
+📋 2 migration(s) pendente(s):
+  - 20250804_add_new_table.js
+  - 20250804_update_schema.js
+⚡ Executando migrations...
+✅ 2 migration(s) executada(s) com sucesso (batch 3):
+  ✓ 20250804_add_new_table.js
+  ✓ 20250804_update_schema.js
+🎉 Migrations concluídas com sucesso!
 ```
 
 ## 🚨 Checklist Pós-Deploy
