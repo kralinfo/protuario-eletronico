@@ -1,6 +1,6 @@
 <div class="min-h-screen bg-gray-50 flex flex-col items-center py-10">
   <h2 class="text-2xl font-bold text-blue-700 mb-6">Atendimentos - {{ formatarPeriodo() }}</h2>
-  <div class="w-full max-w-4xl bg-white rounded-lg shadow p-6 mb-8">
+  <div class="w-full max-w-6xl bg-white rounded-lg shadow p-6 mb-8">
     <div class="flex flex-col gap-4">
       <!-- Linha superior com pesquisa e novo atendimento -->
       <div class="flex justify-between items-center">
@@ -121,7 +121,7 @@
             <thead class="bg-gray-100">
               <tr>
                 <th
-                  class="px-2 py-2 font-semibold text-gray-700 min-w-[5.5rem] max-w-[7rem] text-center"
+                  class="px-4 py-2 font-semibold text-gray-700 min-w-[9rem] max-w-[12rem] text-center"
                 >
                   Ações
                 </th>
@@ -149,8 +149,8 @@
                 *ngFor="let atendimento of atendimentosFiltrados"
                 class="border-b hover:bg-gray-50"
               >
-                <td class="px-2 py-2 min-w-[3.5rem] max-w-[5rem] text-center">
-                  <div class="flex gap-2 justify-center items-center w-full">
+                <td class="px-4 py-2 min-w-[9rem] max-w-[12rem] text-center">
+                  <div class="flex flex-wrap gap-2 justify-center items-center w-full min-w-[9rem]">
                     <button
                       (click)="editarAtendimento(atendimento)"
                       class="text-blue-700 hover:text-blue-900 transition"
@@ -236,7 +236,7 @@
                       (click)="finalizarAtendimento(atendimento)"
                       class="text-green-700 hover:text-green-900 transition"
                       title="Dar baixa no atendimento"
-                      *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido'"
+                      *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido' && podeFinalizarAtendimento"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

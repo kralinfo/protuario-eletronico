@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 import { AbandonoDialogComponent } from '../shared/abandono-dialog.component';
+import { AuthService } from '../auth/auth.service';
 // import { EditarAtendimentoDialogComponent } from '../shared/editar-atendimento-dialog.component';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
@@ -33,7 +34,12 @@ export class AtendimentosDiaComponent implements OnInit {
   dataFinal: string = '';
   mostrarFiltroData = false;
 
-  constructor(private atendimentoService: AtendimentoService, private dialog: MatDialog, private router: Router) {}
+  // Verificar se o usuário pode dar baixa no atendimento (não é módulo recepção)
+  get podeFinalizarAtendimento(): boolean {
+    return this.authService.getSelectedModule() !== 'recepcao';
+  }
+
+  constructor(private atendimentoService: AtendimentoService, private dialog: MatDialog, private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
     // Inicializar com a data atual
