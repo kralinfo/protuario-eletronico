@@ -28,7 +28,7 @@ export class AtendimentosDiaComponent implements OnInit {
   totalPaginas = 1;
   pageSizeOptions = [5, 10, 20, 50];
   loading = false;
-  
+
   // Filtros de data
   dataInicial: string = '';
   dataFinal: string = '';
@@ -51,9 +51,9 @@ export class AtendimentosDiaComponent implements OnInit {
 
   carregarAtendimentos() {
     this.loading = true;
-    this.atendimentoService.buscarRelatorioAtendimentos({ 
-      dataInicial: this.dataInicial, 
-      dataFinal: this.dataFinal 
+    this.atendimentoService.buscarRelatorioAtendimentos({
+      dataInicial: this.dataInicial,
+      dataFinal: this.dataFinal
     }).subscribe((res: any) => {
       this.atendimentos = res.data || [];
       this.totalPaginas = Math.max(1, Math.ceil(this.atendimentosFiltradosSemPaginacao.length / this.itensPorPagina));
@@ -114,7 +114,7 @@ export class AtendimentosDiaComponent implements OnInit {
       });
       return;
     }
-    
+
     // Navegar para o formulário de edição
     this.router.navigate(['/atendimentos/editar', atendimento.id]);
   }
@@ -144,11 +144,11 @@ export class AtendimentosDiaComponent implements OnInit {
           .title { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
           .info { margin-bottom: 10px; }
           .label { font-weight: bold; }
-          .status { 
-            display: inline-block; 
-            padding: 4px 8px; 
-            border-radius: 12px; 
-            font-size: 12px; 
+          .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
             font-weight: bold;
           }
           .status.abandonado { background-color: #fee2e2; color: #dc2626; }
@@ -165,35 +165,35 @@ export class AtendimentosDiaComponent implements OnInit {
         <div class="header">
           <div class="title">FICHA DE ATENDIMENTO</div>
         </div>
-        
+
         <div class="info">
           <span class="label">Paciente:</span> ${atendimento.paciente_nome}
         </div>
-        
+
         <div class="info">
           <span class="label">Motivo:</span> ${atendimento.motivo}
         </div>
-        
+
         ${atendimento.observacoes ? `<div class="info"><span class="label">Observações:</span> ${atendimento.observacoes}</div>` : ''}
-        
+
         ${atendimento.acompanhante ? `<div class="info"><span class="label">Acompanhante:</span> ${atendimento.acompanhante}</div>` : ''}
-        
+
         ${atendimento.procedencia ? `<div class="info"><span class="label">Procedência:</span> ${atendimento.procedencia}</div>` : ''}
-        
+
         <div class="info">
           <span class="label">Data/Hora:</span> ${new Date(atendimento.data_hora_atendimento).toLocaleString('pt-BR')}
         </div>
-        
+
         <div class="info">
-          <span class="label">Status:</span> 
+          <span class="label">Status:</span>
           <span class="status ${atendimento.abandonado ? 'abandonado' : atendimento.status}">
             ${atendimento.abandonado ? 'ABANDONADO' : atendimento.status?.toUpperCase()}
           </span>
         </div>
-        
-        ${atendimento.abandonado && atendimento.motivo_abandono ? 
+
+        ${atendimento.abandonado && atendimento.motivo_abandono ?
           `<div class="info"><span class="label">Motivo do Abandono:</span> ${atendimento.motivo_abandono}</div>` : ''}
-        
+
         <script>
           window.onload = function() {
             window.print();
@@ -214,7 +214,7 @@ export class AtendimentosDiaComponent implements OnInit {
     try {
       // Importar jsPDF dinamicamente
       let jsPDF;
-      
+
       // Tentar importar jsPDF
       try {
         const jsPDFModule = await import('jspdf');
@@ -242,42 +242,42 @@ export class AtendimentosDiaComponent implements OnInit {
 
       // Gerar PDF do atendimento
       const doc = new jsPDF();
-      
+
       // Configurar fonte e título
       doc.setFontSize(16);
       doc.text('FICHA DE ATENDIMENTO', 20, 20);
-      
+
       doc.setFontSize(12);
       let yPosition = 40;
-      
+
       // Dados do paciente
       doc.text(`Paciente: ${atendimento.paciente_nome}`, 20, yPosition);
       yPosition += 10;
-      
+
       doc.text(`Motivo: ${atendimento.motivo}`, 20, yPosition);
       yPosition += 10;
-      
+
       if (atendimento.observacoes) {
         doc.text(`Observações: ${atendimento.observacoes}`, 20, yPosition);
         yPosition += 10;
       }
-      
+
       if (atendimento.acompanhante) {
         doc.text(`Acompanhante: ${atendimento.acompanhante}`, 20, yPosition);
         yPosition += 10;
       }
-      
+
       if (atendimento.procedencia) {
         doc.text(`Procedência: ${atendimento.procedencia}`, 20, yPosition);
         yPosition += 10;
       }
-      
+
       doc.text(`Data/Hora: ${new Date(atendimento.data_hora_atendimento).toLocaleString('pt-BR')}`, 20, yPosition);
       yPosition += 10;
-      
+
       doc.text(`Status: ${atendimento.status?.toUpperCase()}`, 20, yPosition);
       yPosition += 10;
-      
+
       if (atendimento.abandonado) {
         doc.text(`ATENDIMENTO ABANDONADO`, 20, yPosition);
         if (atendimento.motivo_abandono) {
@@ -285,10 +285,10 @@ export class AtendimentosDiaComponent implements OnInit {
           doc.text(`Motivo do Abandono: ${atendimento.motivo_abandono}`, 20, yPosition);
         }
       }
-      
+
       // Salvar o PDF
       doc.save(`atendimento_${atendimento.paciente_nome}_${atendimento.id}.pdf`);
-      
+
       // Mostrar feedback de sucesso
       const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
         data: {
@@ -298,7 +298,7 @@ export class AtendimentosDiaComponent implements OnInit {
         }
       });
       setTimeout(() => feedbackRef.close(), 2000);
-      
+
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
       const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
@@ -406,7 +406,7 @@ export class AtendimentosDiaComponent implements OnInit {
           procedencia: atendimento.procedencia,
           acompanhante: atendimento.acompanhante
         };
-        
+
         this.atendimentoService.atualizarAtendimento(atendimento.id, dadosAtualizacao).subscribe({
           next: () => {
             this.dialog.open(FeedbackDialogComponent, {
