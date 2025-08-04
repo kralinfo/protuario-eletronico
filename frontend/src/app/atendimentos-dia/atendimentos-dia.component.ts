@@ -3,6 +3,7 @@ import { AtendimentoService } from '../services/atendimento.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
+import { AbandonoDialogComponent } from '../shared/abandono-dialog.component';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
 
@@ -96,6 +97,45 @@ export class AtendimentosDiaComponent implements OnInit {
     const doc = new (window as any).jsPDF();
     doc.text(`Ficha de Atendimento\n\nPaciente: ${atendimento.paciente_nome}\nMotivo: ${atendimento.motivo}\nData: ${atendimento.data_hora_atendimento}\nStatus: ${atendimento.status}`, 10, 10);
     doc.save(`atendimento_${atendimento.id}.pdf`);
+  }
+
+  registrarAbandono(atendimento: any) {
+    // Criar dialog customizado para abandono
+    const dialogRef = this.dialog.open(AbandonoDialogComponent, {
+      data: {
+        atendimento: atendimento
+      },
+      width: '500px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.atendimentoService.registrarAbandono(atendimento.id, result).subscribe({
+          next: () => {
+            this.carregarAtendimentos();
+            const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+              data: {
+                title: 'Abandono Registrado',
+                message: 'Atendimento marcado como abandonado com sucesso!',
+                type: 'success'
+              }
+            });
+            setTimeout(() => feedbackRef.close(), 2000);
+          },
+          error: (error: any) => {
+            console.error('Erro ao registrar abandono:', error);
+            const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+              data: {
+                title: 'Erro',
+                message: 'Falha ao registrar abandono. Tente novamente.',
+                type: 'error'
+              }
+            });
+            setTimeout(() => feedbackRef.close(), 2500);
+          }
+        });
+      }
+    });
   }
 
   removerAtendimento(id: number) {

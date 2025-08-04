@@ -9,6 +9,7 @@ router.get('/reports', controller.reports); // Rota de relatórios ANTES da rota
 router.get('/todos', controller.listarTodos); // Novo endpoint para todos os atendimentos
 router.get('/:pacienteId', controller.listarPorPaciente);
 router.patch('/:id/status', controller.atualizarStatus);
+router.patch('/:id/abandono', controller.registrarAbandono);
 router.delete('/:id', controller.remover);
 
 export default router;

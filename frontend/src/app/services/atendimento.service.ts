@@ -26,6 +26,10 @@ export class AtendimentoService {
     return this.http.delete(`${environment.apiUrl}/atendimentos/${id}`);
   }
 
+  registrarAbandono(id: number, dados: { motivo_abandono: string; etapa_abandono: string; usuario_id?: number }) {
+    return this.http.patch(`${environment.apiUrl}/atendimentos/${id}/abandono`, dados);
+  }
+
   listarTodosAtendimentos() {
     return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/todos`);
   }

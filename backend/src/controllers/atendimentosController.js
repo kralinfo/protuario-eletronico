@@ -131,6 +131,85 @@ const atualizarStatus = async (req, res) => {
   }
 };
 
+// Registrar abandono de atendimento
+const registrarAbandono = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { motivo_abandono, etapa_abandono, usuario_id } = req.body;
+    
+    // Validar se o ID é um número válido
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ 
+        error: 'ID do atendimento inválido. Deve ser um número inteiro positivo.' 
+      });
+    }
+    
+    if (!etapa_abandono) {
+      return res.status(400).json({ 
+        error: 'Etapa do abandono é obrigatória (ex: recepcao, triagem, sala_medica, ambulatorio).' 
+      });
+    }
+    
+    // Verificar se o atendimento existe e não foi abandonado ainda
+    const atendimentoExistente = await db.query(
+      'SELECT id, status, abandonado FROM atendimentos WHERE id = $1',
+      [id]
+    );
+    
+    if (atendimentoExistente.rowCount === 0) {
+      return res.status(404).json({ error: 'Atendimento não encontrado.' });
+    }
+    
+    if (atendimentoExistente.rows[0].abandonado) {
+      return res.status(400).json({ 
+        error: 'Este atendimento já foi marcado como abandonado.' 
+      });
+    }
+    
+    if (atendimentoExistente.rows[0].status === 'concluido') {
+      return res.status(400).json({ 
+        error: 'Não é possível abandonar um atendimento já concluído.' 
+      });
+    }
+    
+    // Atualizar o atendimento com informações de abandono
+    const updateQuery = `
+      UPDATE atendimentos 
+      SET 
+        abandonado = true,
+        data_abandono = CURRENT_TIMESTAMP,
+        motivo_abandono = $1,
+        etapa_abandono = $2,
+        usuario_abandono_id = $3,
+        status = 'abandonado',
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4
+      RETURNING *
+    `;
+    
+    const result = await db.query(updateQuery, [
+      motivo_abandono || 'Não informado',
+      etapa_abandono,
+      usuario_id || null,
+      id
+    ]);
+    
+    const atendimentoAtualizado = result.rows[0];
+    
+    res.json({
+      status: 'SUCCESS',
+      message: 'Atendimento marcado como abandonado com sucesso.',
+      data: atendimentoAtualizado
+    });
+    
+  } catch (error) {
+    console.error('Erro ao registrar abandono do atendimento:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao registrar abandono do atendimento.' 
+    });
+  }
+};
+
 const listarPorPaciente = async (req, res) => {
   try {
     const pacienteId = parseInt(req.params.pacienteId);
@@ -248,4 +327,4 @@ const remover = async (req, res) => {
   }
 };
 
-export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, remover, reports };
+export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, registrarAbandono, remover, reports };
