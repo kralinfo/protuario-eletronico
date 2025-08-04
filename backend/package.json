@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "npm run migrate:smart && node src/server.js",
+    "start": "node robust-startup.js && node src/server.js",
+    "start:legacy": "npm run migrate:smart && node src/server.js",
     "start:dev": "node src/server.js",
     "start:force-migrate": "npm run migrate:prod && node src/server.js",
     "dev": "nodemon src/server.js",
@@ -24,6 +25,8 @@
     "migrate:manual": "node migrate-production.js",
     "diagnose": "node diagnose-production.js",
     "force-abandono": "node force-abandono-migration.js",
+    "robust-startup": "node robust-startup.js",
+    "fix-production": "npm run robust-startup",
     "db:migrate": "npx knex migrate:latest",
     "db:rollback": "npx knex migrate:rollback",
     "db:status": "npx knex migrate:status",
