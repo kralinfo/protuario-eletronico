@@ -9,3 +9,19 @@
 .relatorio-atendimentos-table tr {
   border-bottom: 1px solid #e5e7eb;
 }
+
+.filtros-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filtros-form .space-y-0 {
+  flex: 1;
+  min-width: 150px;
+}
+
+.filtros-form .flex {
+  justify-content: flex-end;
+}

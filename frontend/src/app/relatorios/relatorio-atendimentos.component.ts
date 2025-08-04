@@ -55,7 +55,8 @@ export class RelatorioAtendimentosComponent implements OnInit {
     this.filtrosForm = this.fb.group({
       dataInicial: ['', [dataMaxHojeValidator]],
       dataFinal: ['', [dataMaxHojeValidator]],
-      status: ['']
+      status: [''],
+      nomePaciente: ['']
     }, { validators: datasInicioFimValidator });
   }
 
@@ -106,7 +107,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
     this.relatorio.forEach((r, index) => {
       const status = r.status || '';
       console.log(`Atendimento ${index + 1}: Status original: "${status}", Paciente: ${r.paciente_nome}`);
-      
+
       // Mapeia os status conforme aparecem no banco
       let statusKey = '';
       if (status.toLowerCase() === 'recepcao') {
@@ -122,7 +123,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
       } else if (status.toLowerCase() === 'interrompido') {
         statusKey = 'interrompido';
       }
-      
+
       if (statusKey) {
         statusMap[statusKey] = (statusMap[statusKey] || 0) + 1;
         console.log(`Status mapeado: ${statusKey}, Total atual: ${statusMap[statusKey]}`);
@@ -153,6 +154,10 @@ export class RelatorioAtendimentosComponent implements OnInit {
         }
         if (filtros.status) {
           filtrados = filtrados.filter((a: any) => (a.status || 'Sem status') === filtros.status);
+        }
+        if (filtros.nomePaciente) {
+          const nomePacienteLower = filtros.nomePaciente.toLowerCase();
+          filtrados = filtrados.filter((a: any) => (a.paciente_nome || '').toLowerCase().includes(nomePacienteLower));
         }
         this.relatorio = filtrados.map((a: any) => ({
           data: a.created_at ? new Date(a.created_at) : new Date(),
