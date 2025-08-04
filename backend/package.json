@@ -23,6 +23,7 @@
     "migrate:rollback": "npx knex migrate:rollback --env production",
     "migrate:manual": "node migrate-production.js",
     "diagnose": "node diagnose-production.js",
+    "force-abandono": "node force-abandono-migration.js",
     "db:migrate": "npx knex migrate:latest",
     "db:rollback": "npx knex migrate:rollback",
     "db:status": "npx knex migrate:status",
