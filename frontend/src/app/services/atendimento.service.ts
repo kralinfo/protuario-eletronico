@@ -30,6 +30,14 @@ export class AtendimentoService {
     return this.http.patch(`${environment.apiUrl}/atendimentos/${id}/abandono`, dados);
   }
 
+  atualizarAtendimento(id: number, dados: { motivo: string; observacoes?: string; status?: string; procedencia?: string; acompanhante?: string }) {
+    return this.http.put(`${environment.apiUrl}/atendimentos/${id}`, dados);
+  }
+
+  buscarAtendimentoPorId(id: number) {
+    return this.http.get(`${environment.apiUrl}/atendimentos/atendimento/${id}`);
+  }
+
   listarTodosAtendimentos() {
     return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/todos`);
   }

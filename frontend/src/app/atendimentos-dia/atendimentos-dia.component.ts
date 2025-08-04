@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AtendimentoService } from '../services/atendimento.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 import { AbandonoDialogComponent } from '../shared/abandono-dialog.component';
+// import { EditarAtendimentoDialogComponent } from '../shared/editar-atendimento-dialog.component';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
 
@@ -26,7 +28,7 @@ export class AtendimentosDiaComponent implements OnInit {
   pageSizeOptions = [5, 10, 20, 50];
   loading = false;
 
-  constructor(private atendimentoService: AtendimentoService, private dialog: MatDialog) {}
+  constructor(private atendimentoService: AtendimentoService, private dialog: MatDialog, private router: Router) {}
 
   ngOnInit() {
     this.carregarAtendimentos();
@@ -87,9 +89,20 @@ export class AtendimentosDiaComponent implements OnInit {
   }
 
   editarAtendimento(atendimento: any) {
-    // Exemplo: navegar para tela de edição ou abrir modal
-    // this.router.navigate(['/atendimentos/editar', atendimento.id]);
-    alert('Função de edição de atendimento ainda não implementada.');
+    // Verificar se o atendimento foi abandonado
+    if (atendimento.abandonado) {
+      this.dialog.open(FeedbackDialogComponent, {
+        data: {
+          title: 'Edição não permitida',
+          message: 'Não é possível editar um atendimento que foi abandonado.',
+          type: 'warning'
+        }
+      });
+      return;
+    }
+    
+    // Navegar para o formulário de edição
+    this.router.navigate(['/atendimentos/editar', atendimento.id]);
   }
 
   imprimirAtendimentoPDF(atendimento: any) {
@@ -168,6 +181,52 @@ export class AtendimentosDiaComponent implements OnInit {
               }
             });
             setTimeout(() => dialogRef.close(), 2200);
+          }
+        });
+      }
+    });
+  }
+
+  finalizarAtendimento(atendimento: any) {
+    // Confirmar finalização
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Finalizar Atendimento',
+        message: `Confirma a finalização do atendimento do paciente ${atendimento.paciente_nome}?`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Atualizar status para 'concluido', mantendo outros dados
+        const dadosAtualizacao = {
+          motivo: atendimento.motivo,
+          observacoes: atendimento.observacoes,
+          status: 'concluido',
+          procedencia: atendimento.procedencia,
+          acompanhante: atendimento.acompanhante
+        };
+        
+        this.atendimentoService.atualizarAtendimento(atendimento.id, dadosAtualizacao).subscribe({
+          next: () => {
+            this.dialog.open(FeedbackDialogComponent, {
+              data: {
+                title: 'Sucesso',
+                message: 'Atendimento finalizado com sucesso!',
+                type: 'success'
+              }
+            });
+            // Recarregar lista
+            this.carregarAtendimentos();
+          },
+          error: (err) => {
+            this.dialog.open(FeedbackDialogComponent, {
+              data: {
+                title: 'Erro',
+                message: err?.error?.message || 'Erro ao finalizar atendimento.',
+                type: 'error'
+              }
+            });
           }
         });
       }

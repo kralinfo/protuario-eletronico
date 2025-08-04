@@ -172,6 +172,27 @@
                       </svg>
                     </button>
                     <button
+                      (click)="finalizarAtendimento(atendimento)"
+                      class="text-green-700 hover:text-green-900 transition"
+                      title="Dar baixa no atendimento"
+                      *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido'"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </button>
+                    <button
                       (click)="removerAtendimento(atendimento.id)"
                       class="text-red-700 hover:text-red-900 transition"
                       title="Remover atendimento"

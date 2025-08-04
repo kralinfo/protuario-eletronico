@@ -114,6 +114,18 @@ const routes: Routes = [
       parent: 'atendimentos'
     }
   },
+  {
+    path: 'atendimentos/editar/:id',
+    component: NovoAtendimentoComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'atendimentos',
+      breadcrumb: 'Editar Atendimento',
+      icon: 'edit',
+      title: 'Editar Atendimento',
+      parent: 'atendimentos'
+    }
+  },
   // Rotas para redefinição de senha via token
   {
     path: 'redefinir-senha',

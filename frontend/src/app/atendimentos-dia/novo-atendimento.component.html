@@ -8,7 +8,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
       </svg>
     </button> -->
-    <h2 class="text-2xl font-bold text-blue-700 text-center">Novo Atendimento</h2>
+    <h2 class="text-2xl font-bold text-blue-700 text-center">{{ isEdicao ? 'Editar Atendimento' : 'Novo Atendimento' }}</h2>
   </div>
   <div class="w-full max-w-4xl bg-white rounded-lg shadow p-8">
     <form (ngSubmit)="registrar()" class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -83,7 +83,7 @@
         }
       </style>
       <div class="md:col-span-4 flex justify-center items-center gap-6 mt-6">
-        <button type="submit" class="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow hover:bg-blue-700 transition w-1/2" [disabled]="!pacienteSelecionado">Registrar Atendimento</button>
+        <button type="submit" class="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow hover:bg-blue-700 transition w-1/2" [disabled]="!pacienteSelecionado">{{ isEdicao ? 'Atualizar Atendimento' : 'Registrar Atendimento' }}</button>
         <button type="button"
           class="py-2 px-8 font-semibold rounded-md shadow transition"
           [ngClass]="(!pacienteSelecionado || !motivo || !acompanhante || !procedencia || !horario || (status === 'interrompido' && !motivo_interrupcao))

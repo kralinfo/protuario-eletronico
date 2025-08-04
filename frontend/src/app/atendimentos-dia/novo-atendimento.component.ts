@@ -5,10 +5,11 @@ import { environment } from '../../environments/environment';
 import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import * as jsPDF from 'jspdf';
+import { AtendimentoService } from '../services/atendimento.service';
 // Import necessário para o modal
 // import { PacientesFormComponent } from '../pacientes/pacientes-form.component';
 
@@ -48,11 +49,23 @@ export class NovoAtendimentoComponent {
   motivo_interrupcao: string = '';
   exibirCadastroPaciente: boolean = false;
   horario: string = '';
+  
+  // Propriedades para edição
+  isEdicao: boolean = false;
+  atendimentoId: number | null = null;
+  atendimentoOriginal: any = null;
+  
   apiUrl = environment.apiUrl + '/pacientes';
   private filtroSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
-  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router) {
+  constructor(
+    private http: HttpClient, 
+    private dialog: MatDialog, 
+    private router: Router,
+    private route: ActivatedRoute,
+    private atendimentoService: AtendimentoService
+  ) {
     this.filtroSubject.pipe(
       debounceTime(400),
       takeUntil(this.destroy$)
@@ -64,10 +77,59 @@ export class NovoAtendimentoComponent {
   ngOnInit() {
     // Inicializa lista vazia
     this.pacientesFiltrados = [];
-    // Inicializa o horário atual no formato HH:mm para input type="time"
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    this.horario = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    
+    // Verifica se é edição baseado nos parâmetros da rota
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEdicao = true;
+        this.atendimentoId = parseInt(params['id']);
+        this.carregarAtendimento();
+      } else {
+        // Modo criação - inicializa o horário atual
+        const now = new Date();
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        this.horario = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      }
+    });
+  }
+
+  carregarAtendimento() {
+    if (this.atendimentoId) {
+      // Buscar dados do atendimento pela API
+      this.atendimentoService.buscarAtendimentoPorId(this.atendimentoId).subscribe({
+        next: (atendimento: any) => {
+          this.atendimentoOriginal = atendimento;
+          this.preencherFormulario(atendimento);
+        },
+        error: (error) => {
+          console.error('Erro ao carregar atendimento:', error);
+          this.mensagem = 'Erro ao carregar dados do atendimento.';
+        }
+      });
+    }
+  }
+
+  preencherFormulario(atendimento: any) {
+    this.motivo = atendimento.motivo || '';
+    this.observacoes = atendimento.observacao || atendimento.observacoes || '';
+    this.acompanhante = atendimento.acompanhante || '';
+    this.procedencia = atendimento.procedimento || atendimento.procedencia || '';
+    this.status = atendimento.status || 'recepcao';
+    this.motivo_interrupcao = atendimento.motivo_interrupcao || '';
+    
+    // Para edição, precisamos simular a seleção do paciente
+    this.pacienteSelecionado = {
+      id: atendimento.paciente_id,
+      nome: atendimento.paciente_nome
+    };
+    this.filtroPaciente = atendimento.paciente_nome || '';
+    
+    // Converter data/hora do atendimento para o formato do input
+    if (atendimento.data_hora_atendimento) {
+      const data = new Date(atendimento.data_hora_atendimento);
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      this.horario = `${pad(data.getHours())}:${pad(data.getMinutes())}`;
+    }
   }
 
   abrirCadastroPaciente() {
@@ -160,16 +222,26 @@ export class NovoAtendimentoComponent {
       status: this.status,
       motivo_interrupcao: this.status === 'interrompido' ? this.motivo_interrupcao : undefined
     };
-    // Exibe dialog de confirmação antes de registrar
+    
+    // Determinar a mensagem e ação baseada no modo
+    const isEdit = this.isEdicao;
+    const confirmMessage = isEdit ? 'Atualizar dados do atendimento?' : 'Registrar atendimento para este paciente?';
+    const confirmTitle = isEdit ? 'Confirmar Atualização' : 'Confirmação';
+    
+    // Exibe dialog de confirmação antes de registrar/atualizar
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Confirmação',
-        message: 'Registrar atendimento para este paciente?'
+        title: confirmTitle,
+        message: confirmMessage
       }
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.criarAtendimento(atendimento);
+        if (isEdit) {
+          this.atualizarAtendimento(atendimento);
+        } else {
+          this.criarAtendimento(atendimento);
+        }
       }
       // Se não, apenas fecha o dialog
     });
@@ -212,6 +284,37 @@ export class NovoAtendimentoComponent {
         }
       });
   }
+  
+  atualizarAtendimento(atendimento: any) {
+    this.atendimentoService.atualizarAtendimento(this.atendimentoId!, atendimento)
+      .subscribe({
+        next: () => {
+          this.mensagem = '';
+          const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+            data: {
+              title: 'Sucesso',
+              message: 'Atendimento atualizado com sucesso!',
+              type: 'success'
+            }
+          });
+          setTimeout(() => {
+            dialogRef.close();
+            this.router.navigate(['/atendimentos']);
+          }, 2500);
+        },
+        error: (err) => {
+          this.mensagem = '';
+          this.dialog.open(FeedbackDialogComponent, {
+            data: {
+              title: 'Erro',
+              message: err?.error?.message || 'Erro ao atualizar atendimento.',
+              type: 'error'
+            }
+          });
+        }
+      });
+  }
+  
   // Atualizar lista de pacientes filtrados ao digitar
   onFiltroPacienteChange() {
     this.pacienteSelecionado = null;
