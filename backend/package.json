@@ -11,6 +11,8 @@
     "build": "echo 'Build completed'",
     "test": "echo 'No tests specified' && exit 0",
     "lint": "echo 'No linting configured'",
+    "check-env": "node check-env.js",
+    "test-db": "node test-db-connection.js",
     "migrate": "node migrate.js",
     "db:migrate": "npx knex migrate:latest",
     "db:rollback": "npx knex migrate:rollback",
