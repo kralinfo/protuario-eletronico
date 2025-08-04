@@ -113,11 +113,197 @@ export class AtendimentosDiaComponent implements OnInit {
     this.router.navigate(['/atendimentos/editar', atendimento.id]);
   }
 
-  imprimirAtendimentoPDF(atendimento: any) {
-    // Exemplo: gerar PDF simples
-    const doc = new (window as any).jsPDF();
-    doc.text(`Ficha de Atendimento\n\nPaciente: ${atendimento.paciente_nome}\nMotivo: ${atendimento.motivo}\nData: ${atendimento.data_hora_atendimento}\nStatus: ${atendimento.status}`, 10, 10);
-    doc.save(`atendimento_${atendimento.id}.pdf`);
+  imprimirAtendimento(atendimento: any) {
+    // Criar uma nova janela para impressão
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      this.dialog.open(FeedbackDialogComponent, {
+        data: {
+          title: 'Erro',
+          message: 'Não foi possível abrir a janela de impressão. Verifique se pop-ups estão bloqueados.',
+          type: 'error'
+        }
+      });
+      return;
+    }
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Ficha de Atendimento - ${atendimento.paciente_nome}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .title { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
+          .info { margin-bottom: 10px; }
+          .label { font-weight: bold; }
+          .status { 
+            display: inline-block; 
+            padding: 4px 8px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            font-weight: bold;
+          }
+          .status.abandonado { background-color: #fee2e2; color: #dc2626; }
+          .status.concluido { background-color: #dcfce7; color: #16a34a; }
+          .status.recepcao { background-color: #fef3c7; color: #d97706; }
+          .status.triagem { background-color: #dbeafe; color: #2563eb; }
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">FICHA DE ATENDIMENTO</div>
+        </div>
+        
+        <div class="info">
+          <span class="label">Paciente:</span> ${atendimento.paciente_nome}
+        </div>
+        
+        <div class="info">
+          <span class="label">Motivo:</span> ${atendimento.motivo}
+        </div>
+        
+        ${atendimento.observacoes ? `<div class="info"><span class="label">Observações:</span> ${atendimento.observacoes}</div>` : ''}
+        
+        ${atendimento.acompanhante ? `<div class="info"><span class="label">Acompanhante:</span> ${atendimento.acompanhante}</div>` : ''}
+        
+        ${atendimento.procedencia ? `<div class="info"><span class="label">Procedência:</span> ${atendimento.procedencia}</div>` : ''}
+        
+        <div class="info">
+          <span class="label">Data/Hora:</span> ${new Date(atendimento.data_hora_atendimento).toLocaleString('pt-BR')}
+        </div>
+        
+        <div class="info">
+          <span class="label">Status:</span> 
+          <span class="status ${atendimento.abandonado ? 'abandonado' : atendimento.status}">
+            ${atendimento.abandonado ? 'ABANDONADO' : atendimento.status?.toUpperCase()}
+          </span>
+        </div>
+        
+        ${atendimento.abandonado && atendimento.motivo_abandono ? 
+          `<div class="info"><span class="label">Motivo do Abandono:</span> ${atendimento.motivo_abandono}</div>` : ''}
+        
+        <script>
+          window.onload = function() {
+            window.print();
+            window.onafterprint = function() {
+              window.close();
+            };
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+  }
+
+  async gerarAtendimentoPDF(atendimento: any) {
+    try {
+      // Importar jsPDF dinamicamente
+      let jsPDF;
+      
+      // Tentar importar jsPDF
+      try {
+        const jsPDFModule = await import('jspdf');
+        jsPDF = jsPDFModule.default;
+      } catch (importError) {
+        // Fallback para window.jsPDF se a importação falhar
+        if ((window as any).jsPDF) {
+          jsPDF = (window as any).jsPDF;
+        } else {
+          throw new Error('jsPDF não encontrado');
+        }
+      }
+
+      if (!jsPDF) {
+        const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+          data: {
+            title: 'Erro',
+            message: 'Biblioteca de geração de PDF não encontrada. Verifique se o jsPDF está instalado.',
+            type: 'error'
+          }
+        });
+        setTimeout(() => feedbackRef.close(), 3000);
+        return;
+      }
+
+      // Gerar PDF do atendimento
+      const doc = new jsPDF();
+      
+      // Configurar fonte e título
+      doc.setFontSize(16);
+      doc.text('FICHA DE ATENDIMENTO', 20, 20);
+      
+      doc.setFontSize(12);
+      let yPosition = 40;
+      
+      // Dados do paciente
+      doc.text(`Paciente: ${atendimento.paciente_nome}`, 20, yPosition);
+      yPosition += 10;
+      
+      doc.text(`Motivo: ${atendimento.motivo}`, 20, yPosition);
+      yPosition += 10;
+      
+      if (atendimento.observacoes) {
+        doc.text(`Observações: ${atendimento.observacoes}`, 20, yPosition);
+        yPosition += 10;
+      }
+      
+      if (atendimento.acompanhante) {
+        doc.text(`Acompanhante: ${atendimento.acompanhante}`, 20, yPosition);
+        yPosition += 10;
+      }
+      
+      if (atendimento.procedencia) {
+        doc.text(`Procedência: ${atendimento.procedencia}`, 20, yPosition);
+        yPosition += 10;
+      }
+      
+      doc.text(`Data/Hora: ${new Date(atendimento.data_hora_atendimento).toLocaleString('pt-BR')}`, 20, yPosition);
+      yPosition += 10;
+      
+      doc.text(`Status: ${atendimento.status?.toUpperCase()}`, 20, yPosition);
+      yPosition += 10;
+      
+      if (atendimento.abandonado) {
+        doc.text(`ATENDIMENTO ABANDONADO`, 20, yPosition);
+        if (atendimento.motivo_abandono) {
+          yPosition += 10;
+          doc.text(`Motivo do Abandono: ${atendimento.motivo_abandono}`, 20, yPosition);
+        }
+      }
+      
+      // Salvar o PDF
+      doc.save(`atendimento_${atendimento.paciente_nome}_${atendimento.id}.pdf`);
+      
+      // Mostrar feedback de sucesso
+      const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+        data: {
+          title: 'Sucesso',
+          message: 'PDF gerado com sucesso!',
+          type: 'success'
+        }
+      });
+      setTimeout(() => feedbackRef.close(), 2000);
+      
+    } catch (error: any) {
+      console.error('Erro ao gerar PDF:', error);
+      const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+        data: {
+          title: 'Erro',
+          message: `Erro ao gerar PDF: ${error?.message || 'Erro desconhecido'}`,
+          type: 'error'
+        }
+      });
+      setTimeout(() => feedbackRef.close(), 3000);
+    }
   }
 
   registrarAbandono(atendimento: any) {

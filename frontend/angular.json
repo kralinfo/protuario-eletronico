@@ -34,7 +34,9 @@
               "@angular/material/prebuilt-themes/deeppurple-amber.css",
               "src/styles.scss"
             ],
-            "scripts": [],
+            "scripts": [
+              "node_modules/jspdf/dist/jspdf.umd.min.js"
+            ],
             "browser": "src/main.ts"
           },
           "configurations": {
