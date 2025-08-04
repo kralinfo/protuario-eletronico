@@ -67,6 +67,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
     this.loading = true;
     this.atendimentoService.listarTodosAtendimentos().subscribe({
       next: (atendimentos: any[]) => {
+        console.log('Total de atendimentos retornados pela API:', atendimentos.length);
         this.relatorio = atendimentos.map((a: any) => ({
           data: a.created_at ? new Date(a.created_at) : new Date(),
           paciente_nome: a.paciente_nome || '',
@@ -75,6 +76,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
           observacoes: a.observacoes || '',
           status: a.status || ''
         }));
+        console.log('Total de atendimentos processados:', this.relatorio.length);
         this.loading = false;
       },
       error: (error: any) => {
@@ -99,12 +101,38 @@ export class RelatorioAtendimentosComponent implements OnInit {
       { key: 'interrompido', label: 'Interrompido' }
     ];
     const statusMap: { [key: string]: number } = {};
-    for (const r of this.relatorio) {
-      const status = r.status as string;
-      if (statusPossiveis.some(s => s.key === status)) {
-        statusMap[status] = (statusMap[status] || 0) + 1;
+
+    // Processa cada atendimento individualmente
+    this.relatorio.forEach((r, index) => {
+      const status = r.status || '';
+      console.log(`Atendimento ${index + 1}: Status original: "${status}", Paciente: ${r.paciente_nome}`);
+      
+      // Mapeia os status conforme aparecem no banco
+      let statusKey = '';
+      if (status.toLowerCase() === 'recepcao') {
+        statusKey = 'recepcao';
+      } else if (status.toLowerCase() === 'triagem') {
+        statusKey = 'triagem';
+      } else if (status.toLowerCase() === 'sala_medica') {
+        statusKey = 'sala_medica';
+      } else if (status.toLowerCase() === 'ambulatorio') {
+        statusKey = 'ambulatorio';
+      } else if (status.toLowerCase() === 'finalizado') {
+        statusKey = 'finalizado';
+      } else if (status.toLowerCase() === 'interrompido') {
+        statusKey = 'interrompido';
       }
-    }
+      
+      if (statusKey) {
+        statusMap[statusKey] = (statusMap[statusKey] || 0) + 1;
+        console.log(`Status mapeado: ${statusKey}, Total atual: ${statusMap[statusKey]}`);
+      } else {
+        console.warn(`Status não reconhecido: "${status}"`);
+      }
+    });
+
+    console.log('Mapa de status final:', statusMap);
+    console.log('Total de atendimentos processados:', this.relatorio.length);
     return statusPossiveis.map(s => ({ status: s.label, total: statusMap[s.key] || 0 }));
   }
 
