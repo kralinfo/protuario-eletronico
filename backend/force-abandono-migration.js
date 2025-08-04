@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-import knex from 'knex';
-import knexConfig from './knexfile.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
+const knex = require('knex');
+const knexConfig = require('./knexfile.js');
+require('dotenv').config();
 
 async function forceAbandonoMigration() {
   const environment = process.env.NODE_ENV || 'production';

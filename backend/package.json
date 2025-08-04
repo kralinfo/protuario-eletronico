@@ -27,6 +27,8 @@
     "force-abandono": "node force-abandono-migration.js",
     "robust-startup": "node robust-startup.js",
     "fix-production": "npm run robust-startup",
+    "deep-debug": "node deep-debug.js",
+    "create-abandono-sql": "node create-abandono-sql.js",
     "db:migrate": "npx knex migrate:latest",
     "db:rollback": "npx knex migrate:rollback",
     "db:status": "npx knex migrate:status",

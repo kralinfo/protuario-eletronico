@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-import knex from 'knex';
-import knexConfig from './knexfile.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
+const knex = require('knex');
+const knexConfig = require('./knexfile.js');
+require('dotenv').config();
 
 async function smartMigrate() {
   const environment = process.env.NODE_ENV || 'development';
@@ -38,4 +36,7 @@ async function smartMigrate() {
 
 smartMigrate().then(success => {
   process.exit(success ? 0 : 1);
+}).catch(error => {
+  console.error('❌ Erro fatal:', error);
+  process.exit(1);
 });

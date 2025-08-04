@@ -4,11 +4,9 @@
  * Garante que todas as migrations críticas sejam executadas
  */
 
-import knex from 'knex';
-import knexConfig from './knexfile.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
+const knex = require('knex');
+const knexConfig = require('./knexfile.js');
+require('dotenv').config();
 
 async function robustStartup() {
   const environment = process.env.NODE_ENV || 'production';
@@ -147,7 +145,7 @@ async function getNextBatch(db) {
 }
 
 // Executar apenas se chamado diretamente
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   robustStartup().then(success => {
     process.exit(success ? 0 : 1);
   }).catch(error => {
@@ -156,4 +154,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { robustStartup };
+module.exports = { robustStartup };
