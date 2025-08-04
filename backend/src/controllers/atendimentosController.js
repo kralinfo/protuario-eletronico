@@ -2,7 +2,7 @@
 const reports = async (req, res) => {
   try {
     const { dataInicial, dataFinal } = req.query;
-    let query = `SELECT a.id, a.created_at as data, p.nome as paciente_nome, a.data_hora_atendimento as hora, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
+    let query = `SELECT a.id, a.created_at as data_criacao, p.nome as paciente_nome, a.data_hora_atendimento, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, a.abandonado, a.data_abandono, a.etapa_abandono, a.motivo_abandono, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
       FROM atendimentos a
       JOIN pacientes p ON p.id = a.paciente_id
       WHERE 1=1`;
@@ -131,6 +131,85 @@ const atualizarStatus = async (req, res) => {
   }
 };
 
+// Registrar abandono de atendimento
+const registrarAbandono = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { motivo_abandono, etapa_abandono, usuario_id } = req.body;
+    
+    // Validar se o ID é um número válido
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ 
+        error: 'ID do atendimento inválido. Deve ser um número inteiro positivo.' 
+      });
+    }
+    
+    if (!etapa_abandono) {
+      return res.status(400).json({ 
+        error: 'Etapa do abandono é obrigatória (ex: recepcao, triagem, sala_medica, ambulatorio).' 
+      });
+    }
+    
+    // Verificar se o atendimento existe e não foi abandonado ainda
+    const atendimentoExistente = await db.query(
+      'SELECT id, status, abandonado FROM atendimentos WHERE id = $1',
+      [id]
+    );
+    
+    if (atendimentoExistente.rowCount === 0) {
+      return res.status(404).json({ error: 'Atendimento não encontrado.' });
+    }
+    
+    if (atendimentoExistente.rows[0].abandonado) {
+      return res.status(400).json({ 
+        error: 'Este atendimento já foi marcado como abandonado.' 
+      });
+    }
+    
+    if (atendimentoExistente.rows[0].status === 'concluido') {
+      return res.status(400).json({ 
+        error: 'Não é possível abandonar um atendimento já concluído.' 
+      });
+    }
+    
+    // Atualizar o atendimento com informações de abandono
+    const updateQuery = `
+      UPDATE atendimentos 
+      SET 
+        abandonado = true,
+        data_abandono = CURRENT_TIMESTAMP,
+        motivo_abandono = $1,
+        etapa_abandono = $2,
+        usuario_abandono_id = $3,
+        status = 'abandonado',
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4
+      RETURNING *
+    `;
+    
+    const result = await db.query(updateQuery, [
+      motivo_abandono || 'Não informado',
+      etapa_abandono,
+      usuario_id || null,
+      id
+    ]);
+    
+    const atendimentoAtualizado = result.rows[0];
+    
+    res.json({
+      status: 'SUCCESS',
+      message: 'Atendimento marcado como abandonado com sucesso.',
+      data: atendimentoAtualizado
+    });
+    
+  } catch (error) {
+    console.error('Erro ao registrar abandono do atendimento:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao registrar abandono do atendimento.' 
+    });
+  }
+};
+
 const listarPorPaciente = async (req, res) => {
   try {
     const pacienteId = parseInt(req.params.pacienteId);
@@ -224,6 +303,78 @@ const listarTodos = async (req, res) => {
   }
 };
 
+// Atualizar atendimento completo
+const atualizar = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { motivo, observacoes, status, procedencia, acompanhante } = req.body;
+    
+    // Validar se o ID é um número válido
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ 
+        error: 'ID do atendimento inválido. Deve ser um número inteiro positivo.' 
+      });
+    }
+    
+    if (!motivo || !motivo.trim()) {
+      return res.status(400).json({ error: 'Motivo é obrigatório.' });
+    }
+    
+    // Verificar se o atendimento existe
+    const atendimentoExistente = await db.query(
+      'SELECT id, abandonado FROM atendimentos WHERE id = $1',
+      [id]
+    );
+    
+    if (atendimentoExistente.rowCount === 0) {
+      return res.status(404).json({ error: 'Atendimento não encontrado.' });
+    }
+    
+    if (atendimentoExistente.rows[0].abandonado) {
+      return res.status(400).json({ 
+        error: 'Não é possível editar um atendimento abandonado.' 
+      });
+    }
+    
+    // Atualizar o atendimento
+    const updateQuery = `
+      UPDATE atendimentos 
+      SET 
+        motivo = $1,
+        observacoes = $2,
+        status = $3,
+        procedencia = $4,
+        acompanhante = $5,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $6
+      RETURNING *
+    `;
+    
+    const result = await db.query(updateQuery, [
+      motivo.trim(),
+      observacoes ? observacoes.trim() : null,
+      status || 'recepcao',
+      procedencia ? procedencia.trim() : null,
+      acompanhante ? acompanhante.trim() : null,
+      id
+    ]);
+    
+    const atendimentoAtualizado = result.rows[0];
+    
+    res.json({
+      status: 'SUCCESS',
+      message: 'Atendimento atualizado com sucesso.',
+      data: atendimentoAtualizado
+    });
+    
+  } catch (error) {
+    console.error('Erro ao atualizar atendimento:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao atualizar atendimento.' 
+    });
+  }
+};
+
 const remover = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -248,4 +399,36 @@ const remover = async (req, res) => {
   }
 };
 
-export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, remover, reports };
+// Buscar atendimento por ID
+const buscarPorId = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    // Validar se o ID é um número válido
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ 
+        error: 'ID do atendimento inválido. Deve ser um número inteiro positivo.' 
+      });
+    }
+    
+    const result = await db.query(`
+      SELECT a.*, p.nome as paciente_nome, p.id as paciente_id
+      FROM atendimentos a
+      JOIN pacientes p ON p.id = a.paciente_id
+      WHERE a.id = $1
+    `, [id]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Atendimento não encontrado.' });
+    }
+    
+    return res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Erro ao buscar atendimento:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor ao buscar atendimento.' 
+    });
+  }
+};
+
+export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, registrarAbandono, atualizar, remover, reports, buscarPorId };
