@@ -27,20 +27,28 @@ export class AtendimentosDiaComponent implements OnInit {
   totalPaginas = 1;
   pageSizeOptions = [5, 10, 20, 50];
   loading = false;
+  
+  // Filtros de data
+  dataInicial: string = '';
+  dataFinal: string = '';
+  mostrarFiltroData = false;
 
   constructor(private atendimentoService: AtendimentoService, private dialog: MatDialog, private router: Router) {}
 
   ngOnInit() {
+    // Inicializar com a data atual
+    const hoje = new Date();
+    this.dataInicial = hoje.toISOString().slice(0, 10);
+    this.dataFinal = hoje.toISOString().slice(0, 10);
     this.carregarAtendimentos();
   }
 
   carregarAtendimentos() {
     this.loading = true;
-    // Exemplo de filtro: data do dia atual
-    const hoje = new Date();
-    const dataInicial = hoje.toISOString().slice(0, 10);
-    const dataFinal = dataInicial;
-    this.atendimentoService.buscarRelatorioAtendimentos({ dataInicial, dataFinal }).subscribe((res: any) => {
+    this.atendimentoService.buscarRelatorioAtendimentos({ 
+      dataInicial: this.dataInicial, 
+      dataFinal: this.dataFinal 
+    }).subscribe((res: any) => {
       this.atendimentos = res.data || [];
       this.totalPaginas = Math.max(1, Math.ceil(this.atendimentosFiltradosSemPaginacao.length / this.itensPorPagina));
       this.paginaAtual = 1;
@@ -231,5 +239,42 @@ export class AtendimentosDiaComponent implements OnInit {
         });
       }
     });
+  }
+
+  toggleFiltroData() {
+    this.mostrarFiltroData = !this.mostrarFiltroData;
+  }
+
+  aplicarFiltroData() {
+    if (this.dataInicial && this.dataFinal) {
+      if (this.dataInicial > this.dataFinal) {
+        this.dialog.open(FeedbackDialogComponent, {
+          data: {
+            title: 'Data inválida',
+            message: 'A data inicial não pode ser maior que a data final.',
+            type: 'warning'
+          }
+        });
+        return;
+      }
+      this.carregarAtendimentos();
+    }
+  }
+
+  limparFiltroData() {
+    const hoje = new Date();
+    this.dataInicial = hoje.toISOString().slice(0, 10);
+    this.dataFinal = hoje.toISOString().slice(0, 10);
+    this.carregarAtendimentos();
+  }
+
+  formatarPeriodo(): string {
+    if (this.dataInicial === this.dataFinal) {
+      return new Date(this.dataInicial + 'T00:00:00').toLocaleDateString('pt-BR');
+    } else {
+      const inicio = new Date(this.dataInicial + 'T00:00:00').toLocaleDateString('pt-BR');
+      const fim = new Date(this.dataFinal + 'T00:00:00').toLocaleDateString('pt-BR');
+      return `${inicio} até ${fim}`;
+    }
   }
 }
