@@ -1,4 +1,3 @@
-
 import * as jsPDF from 'jspdf';
 
 export function imprimirFichaAtendimentoEmBranco() {
@@ -80,14 +79,21 @@ export function imprimirFichaAtendimentoEmBranco() {
     doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
     y += gapY + fieldH;
 
-    // Linha 3: Acompanhante (quadro grande)
+    // Linha 3: Cartão do SUS (quadro médio)
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cartão do SUS:', labelX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.rect(fieldX, y - fieldH + 3, fieldW / 2, fieldH, 'S');
+    y += gapY + fieldH;
+
+    // Linha 4: Acompanhante (quadro grande)
     doc.setFont('helvetica', 'bold');
     doc.text('Acompanhante:', labelX, y);
     doc.setFont('helvetica', 'normal');
     doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
     y += gapY + fieldH;
 
-    // Linha 4: Procedência (quadro médio)
+    // Linha 5: Procedência (quadro médio)
     doc.setFont('helvetica', 'bold');
     doc.text('Procedência:', labelX, y);
     doc.setFont('helvetica', 'normal');
@@ -96,26 +102,30 @@ export function imprimirFichaAtendimentoEmBranco() {
 
     // (Linha divisória removida para visual mais limpo)
 
-    // Linha 5: Motivo (quadro grande)
+    // Linha 6: Motivo (quadro grande)
     doc.setFont('helvetica', 'bold');
     doc.text('Motivo:', labelX, y);
     doc.setFont('helvetica', 'normal');
     doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
     y += gapY + fieldH;
 
-    // Linha 6: Observações (caixa maior)
+    // Linha 7: Observações (caixa maior)
     doc.setFont('helvetica', 'bold');
     doc.text('Observações:', labelX, y);
     doc.setFont('helvetica', 'normal');
     doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH * 3, 'S');
     y += fieldH * 3 + gapY;
 
-    // Linha 7: Motivo da Interrupção
+    // Linha 8: Motivo da Interrupção
     doc.setFont('helvetica', 'bold');
     doc.text('Motivo da Interrupção:', labelX, y);
     doc.setFont('helvetica', 'normal');
     doc.rect(fieldX, y - fieldH + 3, fieldW, fieldH, 'S');
     y += gapY + fieldH;
+
+    // Ajustando campo Cartão do SUS ao lado de Dados do Atendimento
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cartão do SUS:', marginX + quadroW - 70, 52);
 
     // Linha horizontal antes do rodapé removida para deixar o rodapé limpo
     const rodapeYTopo = 235 + (quadroH - 200); // posição do início do rodapé
@@ -134,6 +144,6 @@ export function imprimirFichaAtendimentoEmBranco() {
     doc.setDrawColor(100);
     doc.line(assinaturaLinhaX1, assinaturaY + 1, assinaturaLinhaX2, assinaturaY + 1);
 
-    doc.save('ficha-atendimento-em-branco.pdf');
+    doc.save('ficha-atendimento-em-branco-v2.pdf');
   };
 }

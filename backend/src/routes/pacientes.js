@@ -51,6 +51,13 @@ router.get('/statistics', PacientesController.statistics);
 router.get('/validate-field', PacientesController.validateField);
 
 /**
+ * @route GET /api/pacientes/check-sus
+ * @desc Verificar se número SUS está disponível
+ * @access Private
+ */
+router.get('/check-sus', PacientesController.checkSusAvailability);
+
+/**
  * @route GET /api/pacientes/:id
  * @desc Buscar paciente por ID
  * @access Private

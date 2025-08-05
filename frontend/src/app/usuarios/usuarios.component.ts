@@ -81,24 +81,45 @@ export class UsuariosComponent implements OnInit, OnDestroy {
 
   readonly podeSalvarUsuario = computed(() => {
     const form = this.usuarioForm;
-    if (!form) return false;
-
-    const nome = form.get('nome')?.value?.trim();
-    const email = form.get('email')?.value?.trim();
-    const nivel = form.get('nivel')?.value;
-    const modulos = form.get('modulos')?.value;
-    const isLoading = this.loadingState().loading;
-    const isVisualizador = this.isVisualizador();
-
-    if (this.editandoUsuario()) {
-      return !!nome && !!email && !!nivel &&
-             Array.isArray(modulos) && modulos.length > 0 &&
-             !isLoading && !isVisualizador && !!form.get('email')?.valid;
+    if (!form) {
+      return false;
     }
 
-    return form.valid && Array.isArray(modulos) && modulos.length > 0 &&
-           !isLoading && !isVisualizador;
+    try {
+      const nome = form.get('nome')?.value?.trim();
+      const email = form.get('email')?.value?.trim();
+      const nivel = form.get('nivel')?.value;
+      const modulos = form.get('modulos')?.value;
+      const isLoading = this.loadingState().loading;
+      const isVisualizador = this.isVisualizador();
+
+      if (this.editandoUsuario()) {
+        return !!nome && !!email && !!nivel &&
+               Array.isArray(modulos) && modulos.length > 0 &&
+               !isLoading && !isVisualizador && !!form.get('email')?.valid;
+      }
+
+      return form.valid && Array.isArray(modulos) && modulos.length > 0 &&
+             !isLoading && !isVisualizador;
+    } catch (error) {
+      console.error('Erro no computed podeSalvarUsuario:', error);
+      return false;
+    }
   });
+
+  // Método simples para verificar se pode salvar
+  canSave(): boolean {
+    if (!this.usuarioForm) return false;
+    
+    const form = this.usuarioForm;
+    const modulos = form.get('modulos')?.value;
+    const isLoading = this.loadingState().loading;
+    
+    return form.valid && 
+           Array.isArray(modulos) && 
+           modulos.length > 0 && 
+           !isLoading;
+  }
 
   // Constantes públicas para template
   readonly niveisAcesso = NIVEIS_ACESSO;
@@ -132,9 +153,10 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     // Usar effect em vez de subscribe para signals
     this.updateFormValidators(false);
   }
-  filterUsuarios() {
-
-}
+  filterUsuarios(): void {
+    // Implementação de filtro se necessário
+    this.updateFilteredUsuarios();
+  }
 
   private updateFormValidators(isEditing: boolean): void {
     const senhaControl = this.usuarioForm.get('senha');
@@ -152,6 +174,7 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       this.usuarioForm.setValidators([UsuarioValidators.senhasIguais()]);
     }
 
+    // IMPORTANTE: Atualizar validity após mudança de validadores
     senhaControl?.updateValueAndValidity();
     repetirSenhaControl?.updateValueAndValidity();
     this.usuarioForm.updateValueAndValidity();
@@ -468,6 +491,9 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       this.setError('Selecione pelo menos um módulo.');
       return;
     }
+
+    // Se chegou aqui, mostrar erro genérico
+    this.setError('Preencha todos os campos obrigatórios corretamente.');
   }
 
   private handleError(error: any, defaultMessage: string): void {

@@ -1,23 +1,70 @@
 <div class="min-h-screen bg-gray-50 flex flex-col items-center py-10">
-  <h2 class="text-2xl font-bold text-blue-700 mb-6">Atendimentos do Dia</h2>
-  <div class="w-full max-w-4xl bg-white rounded-lg shadow p-6 mb-8">
-    <div class="flex justify-between items-center mb-4">
-      <input
-        type="text"
-        [(ngModel)]="filtro"
-        placeholder="Pesquisar atendimento..."
-        class="border rounded px-3 py-2 w-1/2"
-      />
-<a
-  routerLink="/atendimentos/novo"
-  class="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2"
->
-  <mat-icon class="!text-white !text-base">add</mat-icon>
-  NOVO ATENDIMENTO
-</a>
+  <h2 class="text-2xl font-bold text-blue-700 mb-6">Atendimentos - {{ formatarPeriodo() }}</h2>
+  <div class="w-full max-w-6xl bg-white rounded-lg shadow p-6 mb-8">
+    <div class="flex flex-col gap-4">
+      <!-- Linha superior com pesquisa e novo atendimento -->
+      <div class="flex justify-between items-center">
+        <input
+          type="text"
+          [(ngModel)]="filtro"
+          placeholder="Pesquisar atendimento..."
+          class="border rounded px-3 py-2 w-1/2"
+        />
+        <a
+          routerLink="/atendimentos/novo"
+          class="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2"
+        >
+          <mat-icon class="!text-white !text-base">add</mat-icon>
+          NOVO ATENDIMENTO
+        </a>
+      </div>
+
+      <!-- Filtro de data -->
+      <div class="flex items-center gap-4">
+        <button
+          (click)="toggleFiltroData()"
+          class="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 transition flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {{ mostrarFiltroData ? 'Ocultar Filtro' : 'Filtrar por Período' }}
+        </button>
+
+        <div *ngIf="mostrarFiltroData" class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">De:</label>
+            <input
+              type="date"
+              [(ngModel)]="dataInicial"
+              class="border rounded px-3 py-2 text-sm"
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">Até:</label>
+            <input
+              type="date"
+              [(ngModel)]="dataFinal"
+              class="border rounded px-3 py-2 text-sm"
+            />
+          </div>
+          <button
+            (click)="aplicarFiltroData()"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition text-sm"
+          >
+            Aplicar
+          </button>
+          <button
+            (click)="limparFiltroData()"
+            class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition text-sm"
+          >
+            Hoje
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow p-3 sm:p-6">
+    <div class="bg-white rounded-xl shadow p-3 sm:p-6 mt-4">
       <h3
         class="text-lg sm:text-xl font-bold text-blue-700 mb-3 sm:mb-4 flex items-center gap-2"
       >
@@ -74,7 +121,7 @@
             <thead class="bg-gray-100">
               <tr>
                 <th
-                  class="px-2 py-2 font-semibold text-gray-700 min-w-[5.5rem] max-w-[7rem] text-center"
+                  class="px-4 py-2 font-semibold text-gray-700 min-w-[9rem] max-w-[12rem] text-center"
                 >
                   Ações
                 </th>
@@ -102,8 +149,8 @@
                 *ngFor="let atendimento of atendimentosFiltrados"
                 class="border-b hover:bg-gray-50"
               >
-                <td class="px-2 py-2 min-w-[3.5rem] max-w-[5rem] text-center">
-                  <div class="flex gap-2 justify-center items-center w-full">
+                <td class="px-4 py-2 min-w-[9rem] max-w-[12rem] text-center">
+                  <div class="flex flex-wrap gap-2 justify-center items-center w-full min-w-[9rem]">
                     <button
                       (click)="editarAtendimento(atendimento)"
                       class="text-blue-700 hover:text-blue-900 transition"
@@ -125,7 +172,27 @@
                       </svg>
                     </button>
                     <button
-                      (click)="imprimirAtendimentoPDF(atendimento)"
+                      (click)="imprimirAtendimento(atendimento)"
+                      class="text-gray-700 hover:text-gray-900 transition"
+                      title="Imprimir atendimento"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      (click)="gerarAtendimentoPDF(atendimento)"
                       class="text-purple-700 hover:text-purple-900 transition"
                       title="Gerar PDF"
                     >
@@ -140,13 +207,49 @@
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           stroke-width="2"
-                          d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6z"
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
+                      </svg>
+                    </button>
+                    <button
+                      (click)="registrarAbandono(atendimento)"
+                      class="text-orange-700 hover:text-orange-900 transition"
+                      title="Registrar abandono"
+                      *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido'"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
                         <path
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           stroke-width="2"
-                          d="M14 2v6h6"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      (click)="finalizarAtendimento(atendimento)"
+                      class="text-green-700 hover:text-green-900 transition"
+                      title="Dar baixa no atendimento"
+                      *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido' && podeFinalizarAtendimento"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
                     </button>
@@ -187,7 +290,16 @@
                   {{ atendimento.data_hora_atendimento | date : "HH:mm:ss" }}
                 </td>
                 <td class="px-4 py-2 text-gray-700">
-                  {{ atendimento.status }}
+                  <span
+                    [ngClass]="{
+                      'bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.abandonado,
+                      'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.status === 'concluido',
+                      'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.status === 'recepcao',
+                      'bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.status === 'triagem'
+                    }"
+                  >
+                    {{ atendimento.abandonado ? 'ABANDONADO' : atendimento.status?.toUpperCase() }}
+                  </span>
                 </td>
               </tr>
             </tbody>

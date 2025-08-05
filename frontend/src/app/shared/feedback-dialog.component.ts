@@ -22,6 +22,10 @@ import { CommonModule } from '@angular/common';
       background: #ffebee;
       color: #d32f2f;
     }
+    .warning {
+      background: #fff8e1;
+      color: #f57c00;
+    }
     div {
       padding: 24px 16px;
       text-align: center;
@@ -32,6 +36,6 @@ import { CommonModule } from '@angular/common';
 export class FeedbackDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<FeedbackDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { title: string; message: string; type: 'success' | 'error' }
+    @Inject(MAT_DIALOG_DATA) public data: { title: string; message: string; type: 'success' | 'error' | 'warning' }
   ) {}
 }

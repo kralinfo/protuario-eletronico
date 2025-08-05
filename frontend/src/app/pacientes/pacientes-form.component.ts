@@ -3,6 +3,8 @@ import {
   Component,
   OnInit,
   OnDestroy,
+  OnChanges,
+  SimpleChanges,
   Output,
   EventEmitter,
   Input,
@@ -41,8 +43,8 @@ import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validat
   standalone: false,
 })
 export class PacientesFormComponent
-  implements OnInit, OnDestroy {
-    idade: number | null = null;
+  implements OnInit, OnDestroy, OnChanges {
+    idade: { anos: number; meses: number; dias: number; texto: string } | null = null;
   // ...existing code...
   @Output() fechar = new EventEmitter<any>();
   @Input() pacienteEditando: Paciente | null = null;
@@ -93,7 +95,6 @@ export class PacientesFormComponent
     { sigla: 'TO', nome: 'Tocantins' },
   ];
 
-  pacienteService: any;
   erroCepUf = false;
   bloqueioAnoInvalido: any;
 
@@ -116,6 +117,7 @@ export class PacientesFormComponent
       profissao: [''],
       escolaridade: [''],
       telefone: [''], // Adicionado
+
       sus: ['', [], [this.validarSUSDuplicado.bind(this)]],  // Adicionado
       raca: [''],
       endereco: ['', [Validators.required]],
@@ -128,18 +130,70 @@ export class PacientesFormComponent
     // Patch será feito no ngOnInit para garantir que o input já foi recebido
   }
 
+  /**
+   * Calcula a idade detalhada em anos, meses e dias
+   */
+  private calcularIdadeDetalhada(dataNascimento: string): { anos: number; meses: number; dias: number; texto: string } | null {
+    if (!dataNascimento) return null;
+
+    const hoje = new Date();
+    const nascimento = new Date(dataNascimento);
+
+    // Verificar se a data é válida e não é futura
+    if (nascimento > hoje) return null;
+
+    let anos = hoje.getFullYear() - nascimento.getFullYear();
+    let meses = hoje.getMonth() - nascimento.getMonth();
+    let dias = hoje.getDate() - nascimento.getDate();
+
+    // Ajustar dias negativos
+    if (dias < 0) {
+      meses--;
+      // Obter o último dia do mês anterior
+      const ultimoDiaMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth(), 0).getDate();
+      dias += ultimoDiaMesAnterior;
+    }
+
+    // Ajustar meses negativos
+    if (meses < 0) {
+      anos--;
+      meses += 12;
+    }
+
+    // Criar texto formatado
+    let texto = '';
+    if (anos > 0) {
+      texto += `${anos} ano${anos !== 1 ? 's' : ''}`;
+    }
+    if (meses > 0) {
+      if (texto) texto += ', ';
+      texto += `${meses} mês${meses !== 1 ? 'es' : ''}`;
+    }
+    if (dias > 0) {
+      if (texto) texto += ' e ';
+      texto += `${dias} dia${dias !== 1 ? 's' : ''}`;
+    }
+
+    // Se for recém-nascido (0 anos, 0 meses, 0 dias)
+    if (!texto) {
+      texto = 'Recém-nascido';
+    }
+
+    return { anos, meses, dias, texto };
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Quando o pacienteEditando muda e tem data de nascimento, recalcular idade
+    if (changes['pacienteEditando'] && this.pacienteEditando?.nascimento) {
+      this.idade = this.calcularIdadeDetalhada(this.pacienteEditando.nascimento);
+    }
+  }
+
   ngOnInit() {
     // Atualiza idade ao alterar nascimento
     this.form.get('nascimento')?.valueChanges.subscribe((valor: string) => {
       if (valor) {
-        const hoje = new Date();
-        const nasc = new Date(valor);
-        let idade = hoje.getFullYear() - nasc.getFullYear();
-        const m = hoje.getMonth() - nasc.getMonth();
-        if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
-          idade--;
-        }
-        this.idade = idade >= 0 ? idade : null;
+        this.idade = this.calcularIdadeDetalhada(valor);
       } else {
         this.idade = null;
       }
@@ -351,6 +405,26 @@ export class PacientesFormComponent
     }
   }
 
+  formatSus(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Remove tudo que não é número
+    let value = input.value.replace(/\D/g, '');
+    
+    // Limita a 15 dígitos
+    if (value.length > 15) {
+      value = value.substring(0, 15);
+    }
+    
+    // Atualiza o input
+    input.value = value;
+    
+    // Atualiza o FormControl
+    const susControl = this.form?.get('sus');
+    if (susControl) {
+      susControl.setValue(value, { emitEvent: false });
+    }
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -524,7 +598,7 @@ export class PacientesFormComponent
             <span class="label">Nome:</span> ${paciente.nome || ''}<br />
             <span class="label">Nome da Mãe:</span> ${paciente.mae || ''}<br />
             <span class="label">Data de Nascimento:</span> ${paciente.nascimento ? new Date(paciente.nascimento).toLocaleDateString('pt-BR') : ''}<br />
-            <span class="label">Idade:</span> ${this.idade !== null ? this.idade + ' anos' : ''}<br />
+            <span class="label">Idade:</span> ${this.idade !== null ? this.idade.texto : ''}<br />
             <span class="label">Sexo:</span> ${this.formatarSexo(paciente.sexo) || ''}<br />
             <span class="label">Telefone:</span> ${paciente.telefone || ''}<br />
             <span class="label">Cartão SUS:</span> ${paciente.sus || ''}<br />

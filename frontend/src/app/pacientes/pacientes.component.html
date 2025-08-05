@@ -13,7 +13,7 @@
             placeholder="Pesquisar pacientes"
             [(ngModel)]="filtroNome"
             (input)="aplicarFiltro()"
-            style="min-width:220px; max-width:100%; font-size:1.1em;"
+            style="min-width:180px; max-width:180px; font-size:1.1em;"
           />
         </div>
         <button
@@ -61,10 +61,14 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" />
                     </svg>
                   </button>
-                  <button (click)="imprimirPacientePDF(paciente)" [disabled]="loading" class="text-purple-700 hover:text-purple-900 transition" title="Gerar PDF">
+                  <button (click)="imprimirPaciente(paciente)" [disabled]="loading" class="text-gray-700 hover:text-gray-900 transition" title="Imprimir paciente">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2v6h6" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                  </button>
+                  <button (click)="gerarPacientePDF(paciente)" [disabled]="loading" class="text-purple-700 hover:text-purple-900 transition" title="Gerar PDF">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </button>
                   <button (click)="paciente.id !== undefined && removerPaciente(paciente.id)" [disabled]="paciente.id === undefined || loading" class="text-red-700 hover:text-red-900 transition" title="Remover paciente">

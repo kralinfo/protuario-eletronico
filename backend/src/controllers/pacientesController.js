@@ -133,6 +133,14 @@ class PacientesController {
         throw new AppError('Nome é obrigatório', 400, 'MISSING_NAME');
       }
 
+      // Validar SUS único (se fornecido)
+      if (pacienteData.sus && pacienteData.sus.trim() !== '') {
+        const existingSus = await Paciente.findBySus(pacienteData.sus);
+        if (existingSus.length > 0) {
+          throw new AppError('Número do SUS já está cadastrado para outro paciente', 409, 'DUPLICATE_SUS');
+        }
+      }
+
       // Criar paciente
       const novoPaciente = await Paciente.create(pacienteData);
 
@@ -155,7 +163,17 @@ class PacientesController {
         });
       }
 
-      // Verificar se é erro de duplicação
+      // Verificar se é erro de duplicação de SUS no banco
+      if (error.message.includes('unique_sus') || 
+          (error.code === '23505' && error.constraint === 'unique_sus')) {
+        return res.status(409).json({
+          status: 'ERROR',
+          message: 'Número do SUS já está cadastrado',
+          code: 'DUPLICATE_SUS'
+        });
+      }
+
+      // Verificar se é erro de duplicação geral
       if (error.message.includes('duplicate') || error.code === '23505') {
         return res.status(409).json({
           status: 'ERROR',
@@ -186,6 +204,14 @@ class PacientesController {
         throw new AppError('Paciente não encontrado', 404, 'PATIENT_NOT_FOUND');
       }
 
+      // Validar SUS único (se fornecido e diferente do atual)
+      if (updateData.sus && updateData.sus.trim() !== '') {
+        const existingSus = await Paciente.findBySus(updateData.sus, id);
+        if (existingSus.length > 0) {
+          throw new AppError('Número do SUS já está cadastrado para outro paciente', 409, 'DUPLICATE_SUS');
+        }
+      }
+
       // Atualizar paciente
       const pacienteAtualizado = await Paciente.update(id, updateData);
 
@@ -209,6 +235,16 @@ class PacientesController {
           status: 'ERROR',
           message: error.message,
           code: error.code
+        });
+      }
+
+      // Verificar se é erro de duplicação de SUS no banco
+      if (error.message.includes('unique_sus') || 
+          (error.code === '23505' && error.constraint === 'unique_sus')) {
+        return res.status(409).json({
+          status: 'ERROR',
+          message: 'Número do SUS já está cadastrado',
+          code: 'DUPLICATE_SUS'
         });
       }
 
@@ -451,6 +487,42 @@ class PacientesController {
         status: 'ERROR',
         message: 'Erro ao gerar relatório',
         code: 'REPORT_ERROR'
+      });
+    }
+  }
+
+  /**
+   * Verificar se SUS está disponível
+   */
+  static async checkSusAvailability(req, res) {
+    try {
+      const { sus, excludeId = null } = req.query;
+
+      if (!sus || sus.trim() === '') {
+        return res.json({
+          status: 'SUCCESS',
+          available: true,
+          message: 'SUS vazio é permitido'
+        });
+      }
+
+      const existingSus = await Paciente.findBySus(sus, excludeId);
+      const isAvailable = existingSus.length === 0;
+
+      res.json({
+        status: 'SUCCESS',
+        available: isAvailable,
+        message: isAvailable ? 'SUS disponível' : 'SUS já está em uso',
+        sus: sus.trim()
+      });
+
+    } catch (error) {
+      console.error('❌ [PACIENTES] Erro ao verificar SUS:', error);
+      
+      res.status(500).json({
+        status: 'ERROR',
+        message: 'Erro ao verificar disponibilidade do SUS',
+        code: 'SUS_CHECK_ERROR'
       });
     }
   }

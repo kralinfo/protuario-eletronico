@@ -11,8 +11,13 @@
     "build": "echo 'Build completed'",
     "test": "echo 'No tests specified' && exit 0",
     "lint": "echo 'No linting configured'",
-    "db:migrate": "echo 'Migration system not implemented'",
-    "db:seed": "echo 'Seeding system not implemented'"
+    "migrate": "node migrate.js",
+    "db:migrate": "npx knex migrate:latest",
+    "db:rollback": "npx knex migrate:rollback",
+    "db:status": "npx knex migrate:status",
+    "db:make": "npx knex migrate:make",
+    "db:seed": "npx knex seed:run",
+    "db:reset": "npx knex migrate:rollback --all && npx knex migrate:latest"
   },
   "keywords": [
     "prontuario",
@@ -34,6 +39,7 @@
     "express-validator": "^7.2.1",
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
     "nodemailer": "^7.0.5",
     "pg": "^8.11.3"
   },
