@@ -7,7 +7,7 @@
  * atendimentos, garantindo autenticidade e rastreabilidade.
  */
 
-export async function up(knex) {
+exports.up = async function(knex) {
   await knex.schema.alterTable('atendimentos', function(table) {
     table.text('assinatura_digital').nullable().comment('Hash da assinatura digital do profissional');
     table.timestamp('data_assinatura').nullable().comment('Data e hora da assinatura digital');
@@ -15,9 +15,9 @@ export async function up(knex) {
   });
   
   console.log('✅ Campos de assinatura digital adicionados à tabela atendimentos');
-}
+};
 
-export async function down(knex) {
+exports.down = async function(knex) {
   await knex.schema.alterTable('atendimentos', function(table) {
     table.dropColumn('assinatura_digital');
     table.dropColumn('data_assinatura');
@@ -25,4 +25,4 @@ export async function down(knex) {
   });
   
   console.log('⚠️  Campos de assinatura digital removidos da tabela atendimentos');
-}
+};
