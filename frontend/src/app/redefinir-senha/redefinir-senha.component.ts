@@ -57,11 +57,9 @@ export class RedefinirSenhaComponent implements OnInit {
         this.loading = false;
       },
       error: err => {
-        // Se o erro for de link já utilizado, mostra mensagem de expirado
-        const msg = 'Este link de redefinição de senha já foi utilizado ou expirou. Solicite um novo link para redefinir sua senha.';
         this.loading = false;
-        // Desloga sem exibir dialog de sessão expirada, apenas redireciona para login com mensagem
-        this.authService.logout(); // apenas limpa sessão
+        const msg = 'Este link de redefinição de senha já foi utilizado ou expirou. Solicite um novo link para redefinir sua senha.';
+        this.authService.clearSession();
         setTimeout(() => {
           this.router.navigate(['/login'], { queryParams: { error: msg } });
         }, 0);
@@ -74,6 +72,7 @@ export class RedefinirSenhaComponent implements OnInit {
       this.error = 'Token inválido ou expirado.';
       return;
     }
+
     if (this.redefinirForm.invalid) {
       if (this.redefinirForm.errors?.['senhasDiferentes']) {
         this.error = 'As senhas não coincidem.';
