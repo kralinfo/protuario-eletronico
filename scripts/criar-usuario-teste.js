@@ -3,7 +3,7 @@ const bcrypt = require('../backend/node_modules/bcrypt');
 
 // Configuração do banco (mesmo do backend)
 const pool = new Pool({
-  connectionString: 'postgresql://mydb_l01f_user:9SMTVGi0Sb1QgSesdVxAmGZuCXnMEtKJ@dpg-d1jjelemcj7s739u1vjg-a/mydb_l01f',
+  connectionString: 'postgresql://mydb_l01f_user:9SMTVGi0Sb1QgSesdVxAmGZuCXnMEtKJ@dpg-d1jjelemcj7s739u1vjg-a.oregon-postgres.render.com:5432/mydb_l01f',
   ssl: {
     rejectUnauthorized: false
   }

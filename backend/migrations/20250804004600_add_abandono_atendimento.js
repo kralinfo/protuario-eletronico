@@ -7,7 +7,7 @@
  * o fluxo de atendimento (recepção → triagem → sala médica → ambulatório)
  */
 
-export async function up(knex) {
+exports.up = async function(knex) {
   await knex.schema.alterTable('atendimentos', function(table) {
     // Campo para indicar se o atendimento foi abandonado
     table.boolean('abandonado').defaultTo(false).comment('Indica se o paciente abandonou o atendimento');
@@ -26,9 +26,9 @@ export async function up(knex) {
   });
   
   console.log('✅ Campos de abandono de atendimento adicionados à tabela atendimentos');
-}
+};
 
-export async function down(knex) {
+exports.down = async function(knex) {
   await knex.schema.alterTable('atendimentos', function(table) {
     table.dropColumn('abandonado');
     table.dropColumn('data_abandono');
@@ -38,4 +38,4 @@ export async function down(knex) {
   });
   
   console.log('⚠️  Campos de abandono de atendimento removidos da tabela atendimentos');
-}
+};
