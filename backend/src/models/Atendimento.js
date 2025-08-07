@@ -61,7 +61,7 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.status = 'encaminhado para triagem'
+       WHERE a.status IN ('encaminhado_para_triagem', '1 - Encaminhado para triagem', 'encaminhado para triagem')
          AND DATE(a.data_hora_atendimento) = CURRENT_DATE
        ORDER BY 
          a.prioridade ASC NULLS LAST,
