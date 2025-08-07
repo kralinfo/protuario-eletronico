@@ -47,9 +47,15 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.status IN ('triagem', 'em_triagem')
+       WHERE a.status IN ('recepcao', 'triagem', 'em_triagem')
+         AND a.status NOT IN ('finalizado', 'abandonado', 'triagem_finalizada')
        ORDER BY 
-         CASE WHEN a.status = 'triagem' THEN 1 ELSE 2 END,
+         CASE 
+           WHEN a.status = 'em_triagem' THEN 1 
+           WHEN a.status = 'triagem' THEN 2 
+           WHEN a.status = 'recepcao' THEN 3 
+           ELSE 4 
+         END,
          a.prioridade ASC NULLS LAST,
          a.created_at ASC`
     );
@@ -98,7 +104,7 @@ class Atendimento {
   static async finalizarTriagem(id) {
     const result = await db.query(
       `UPDATE atendimentos 
-       SET status = 'aguardando_medico',
+       SET status = 'triagem_finalizada',
            data_fim_triagem = CURRENT_TIMESTAMP,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 AND status = 'em_triagem'

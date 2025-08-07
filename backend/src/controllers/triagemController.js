@@ -163,7 +163,7 @@ class TriagemController {
       }
 
       res.json({
-        message: 'Triagem finalizada com sucesso. Paciente encaminhado para fila médica.',
+        message: 'Triagem finalizada com sucesso. Paciente agora está com status triagem_finalizada.',
         atendimento
       });
     } catch (error) {
@@ -245,12 +245,16 @@ class TriagemController {
       console.log('Status dos pacientes:', filaTriagem.map(p => ({ id: p.id, status: p.status, nome: p.paciente_nome })));
       
       // Estatísticas básicas
-      // Todos os pacientes na fila estão "aguardando" algum tipo de atendimento
-      const pacientesAguardando = filaTriagem.filter(p => p.status === 'triagem').length;
+      // Pacientes aguardando = recepcao + triagem (não incluir em_triagem)
+      const pacientesAguardando = filaTriagem.filter(p => 
+        p.status === 'recepcao' || p.status === 'triagem'
+      ).length;
+      
+      // Pacientes em triagem = apenas os que estão sendo atendidos
       const pacientesEmTriagem = filaTriagem.filter(p => p.status === 'em_triagem').length;
       
-      // Total de pacientes aguardando qualquer tipo de atendimento
-      const totalAguardando = filaTriagem.length;
+      // Total de pacientes na fila (todos os status relevantes)
+      const totalAguardando = pacientesAguardando;
       
       // Triagens concluídas hoje
       const triagensConcluidas = await Atendimento.listarTriagensRealizadas(null, hoje, hoje);
