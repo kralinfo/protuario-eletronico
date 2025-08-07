@@ -390,18 +390,26 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
-      'recepcao': '#2196F3',
-      'aguardando_triagem': '#FF9800',
-      'em_triagem': '#4CAF50'
+      'encaminhado_para_triagem': '#2196F3',
+      'em_triagem': '#4CAF50',
+      'encaminhado_para_sala_medica': '#FF9800',
+      'em_atendimento_medico': '#FF5722',
+      'encaminhado_para_ambulatorio': '#9C27B0',
+      'em_atendimento_ambulatorial': '#3F51B5',
+      'encaminhado_para_exames': '#009688'
     };
     return cores[status] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
     const descricoes: Record<string, string> = {
-      'recepcao': 'Recepção',
-      'aguardando_triagem': 'Aguardando',
-      'em_triagem': 'Em Triagem'
+      'encaminhado_para_triagem': 'Encaminhado para Triagem',
+      'em_triagem': 'Em Triagem',
+      'encaminhado_para_sala_medica': 'Encaminhado para Sala Médica',
+      'em_atendimento_medico': 'Em Atendimento Médico',
+      'encaminhado_para_ambulatorio': 'Encaminhado para Ambulatório',
+      'em_atendimento_ambulatorial': 'Em Atendimento Ambulatorial',
+      'encaminhado_para_exames': 'Encaminhado para Exames'
     };
     return descricoes[status] || status;
   }

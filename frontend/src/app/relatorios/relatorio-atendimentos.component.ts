@@ -94,12 +94,13 @@ export class RelatorioAtendimentosComponent implements OnInit {
   getStatusList(): { status: string, total: number }[] {
     // Status possíveis conforme cadastro
     const statusPossiveis = [
-      { key: 'recepcao', label: 'Recepção' },
-      { key: 'triagem', label: 'Triagem' },
-      { key: 'sala_medica', label: 'Sala Médica' },
-      { key: 'ambulatorio', label: 'Ambulatório' },
-      { key: 'finalizado', label: 'Finalizado' },
-      { key: 'interrompido', label: 'Interrompido' }
+      { key: 'encaminhado_para_triagem', label: 'Encaminhado para Triagem' },
+      { key: 'em_triagem', label: 'Em Triagem' },
+      { key: 'encaminhado_para_sala_medica', label: 'Encaminhado para Sala Médica' },
+      { key: 'em_atendimento_medico', label: 'Em Atendimento Médico' },
+      { key: 'encaminhado_para_ambulatorio', label: 'Encaminhado para Ambulatório' },
+      { key: 'em_atendimento_ambulatorial', label: 'Em Atendimento Ambulatorial' },
+      { key: 'encaminhado_para_exames', label: 'Encaminhado para Exames' }
     ];
     const statusMap: { [key: string]: number } = {};
 

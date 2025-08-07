@@ -48,13 +48,14 @@
       </div>
       <div class="md:col-span-1">
         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status do atendimento</label>
-        <select id="status" [(ngModel)]="status" name="status" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado">
-          <option value="recepcao">Recepção</option>
-          <option value="triagem">Triagem</option>
-          <option value="sala_medica">Sala Médica</option>
-          <option value="ambulatorio">Ambulatório</option>
-          <option value="finalizado">Finalizado</option>
-          <option value="interrompido">Interrompido</option>
+        <select id="status" [(ngModel)]="status" name="status" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" [ngModel]="'encaminhado_para_triagem'">
+          <option value="encaminhado_para_triagem" selected>Encaminhado para Triagem</option>
+          <option value="em_triagem">Em Triagem</option>
+          <option value="encaminhado_para_sala_medica">Encaminhado para Sala Médica</option>
+          <option value="em_atendimento_medico">Em Atendimento Médico</option>
+          <option value="encaminhado_para_ambulatorio">Encaminhado para Ambulatório</option>
+          <option value="em_atendimento_ambulatorial">Em Atendimento Ambulatorial</option>
+          <option value="encaminhado_para_exames">Encaminhado para Exames</option>
         </select>
       </div>
       <div class="md:col-span-3">
