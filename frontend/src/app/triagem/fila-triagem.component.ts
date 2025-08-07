@@ -396,20 +396,22 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       'em_atendimento_medico': '#FF5722',
       'encaminhado_para_ambulatorio': '#9C27B0',
       'em_atendimento_ambulatorial': '#3F51B5',
-      'encaminhado_para_exames': '#009688'
+      'encaminhado_para_exames': '#009688',
+      'atendimento_concluido': '#4CAF50'
     };
     return cores[status] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
     const descricoes: Record<string, string> = {
-      'encaminhado_para_triagem': 'Encaminhado para Triagem',
-      'em_triagem': 'Em Triagem',
-      'encaminhado_para_sala_medica': 'Encaminhado para Sala Médica',
-      'em_atendimento_medico': 'Em Atendimento Médico',
-      'encaminhado_para_ambulatorio': 'Encaminhado para Ambulatório',
-      'em_atendimento_ambulatorial': 'Em Atendimento Ambulatorial',
-      'encaminhado_para_exames': 'Encaminhado para Exames'
+      'encaminhado_para_triagem': '1 - Encaminhado para Triagem',
+      'em_triagem': '2 - Em Triagem',
+      'encaminhado_para_sala_medica': '3 - Encaminhado para Sala Médica',
+      'em_atendimento_medico': '4 - Em Atendimento Médico',
+      'encaminhado_para_ambulatorio': '5 - Encaminhado para Ambulatório',
+      'em_atendimento_ambulatorial': '6 - Em Atendimento Ambulatorial',
+      'encaminhado_para_exames': '7 - Encaminhado para Exames',
+      'atendimento_concluido': '8 - Atendimento Concluído'
     };
     return descricoes[status] || status;
   }
