@@ -43,7 +43,14 @@
     "db:status": "npx knex migrate:status",
     "db:make": "npx knex migrate:make",
     "db:seed": "npx knex seed:run",
-    "db:reset": "npx knex migrate:rollback --all && npx knex migrate:latest"
+    "db:reset": "npx knex migrate:rollback --all && npx knex migrate:latest",
+    "migrate:dev": "npx knex migrate:latest --env development --knexfile knexfile.cjs",
+    "migrate:dev:status": "npx knex migrate:status --env development --knexfile knexfile.cjs",
+    "migrate:dev:rollback": "npx knex migrate:rollback --env development --knexfile knexfile.cjs",
+    "update-db": "npm run migrate:dev",
+    "check-migrations": "npm run migrate:dev:status",
+    "setup": "node setup-dev.js",
+    "test-setup": "node testar-setup.js"
   },
   "keywords": [
     "prontuario",
