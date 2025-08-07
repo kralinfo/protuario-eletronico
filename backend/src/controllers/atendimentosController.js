@@ -336,30 +336,14 @@ const atualizar = async (req, res) => {
       });
     }
     
-    // Atualizar o atendimento
-    const updateQuery = `
-      UPDATE atendimentos 
-      SET 
-        motivo = $1,
-        observacoes = $2,
-        status = $3,
-        procedencia = $4,
-        acompanhante = $5,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $6
-      RETURNING *
-    `;
-    
-    const result = await db.query(updateQuery, [
-      motivo.trim(),
-      observacoes ? observacoes.trim() : null,
-      status || 'recepcao',
-      procedencia ? procedencia.trim() : null,
-      acompanhante ? acompanhante.trim() : null,
-      id
-    ]);
-    
-    const atendimentoAtualizado = result.rows[0];
+    // Atualizar o atendimento usando o método do modelo
+    const atendimentoAtualizado = await Atendimento.update(id, {
+      motivo: motivo.trim(),
+      observacoes: observacoes ? observacoes.trim() : null,
+      status: status || 'encaminhado para triagem',
+      procedencia: procedencia ? procedencia.trim() : null,
+      acompanhante: acompanhante ? acompanhante.trim() : null
+    });
     
     res.json({
       status: 'SUCCESS',

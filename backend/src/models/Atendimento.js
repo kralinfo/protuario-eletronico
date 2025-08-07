@@ -61,15 +61,9 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.status IN ('encaminhado para triagem', 'em triagem', 'encaminhado para sala médica')
+       WHERE a.status = 'encaminhado para triagem'
          AND DATE(a.data_hora_atendimento) = CURRENT_DATE
        ORDER BY 
-         CASE 
-           WHEN a.status = 'em triagem' THEN 1 
-           WHEN a.status = 'encaminhado para triagem' THEN 2 
-           WHEN a.status = 'encaminhado para sala médica' THEN 3 
-           ELSE 4 
-         END,
          a.prioridade ASC NULLS LAST,
          a.created_at ASC`
     );
@@ -138,6 +132,20 @@ class Atendimento {
        LEFT JOIN usuarios u ON u.id = a.triagem_realizada_por
        WHERE a.id = $1`,
       [id]
+    );
+    return result.rows[0];
+  }
+
+  static async update(id, atendimentoData) {
+    const { motivo, observacoes, status, procedencia, acompanhante } = atendimentoData;
+    
+    const result = await db.query(
+      `UPDATE atendimentos 
+       SET motivo = $1, observacoes = $2, status = $3, procedencia = $4, 
+           acompanhante = $5, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $6 RETURNING *`,
+      [motivo, observacoes || null, status || 'encaminhado para triagem', 
+       procedencia || null, acompanhante || null, id]
     );
     return result.rows[0];
   }
