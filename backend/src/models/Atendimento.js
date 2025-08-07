@@ -63,7 +63,7 @@ class Atendimento {
            triagem_realizada_por = $2,
            data_inicio_triagem = CURRENT_TIMESTAMP,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1 AND status IN ('recepcao', 'aguardando_triagem')
+       WHERE id = $1 AND status = 'triagem'
        RETURNING *`,
       [id, usuarioId]
     );
