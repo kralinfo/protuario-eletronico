@@ -233,6 +233,62 @@ class TriagemController {
   static async obterClassificacaoRisco(req, res) {
     res.json(CLASSIFICACAO_RISCO);
   }
+
+  // Obter estatísticas para dashboard
+  static async obterEstatisticas(req, res) {
+    try {
+      // Buscar todos os atendimentos relevantes
+      const filaTriagem = await Atendimento.listarFilaTriagem();
+      const hoje = new Date().toISOString().split('T')[0];
+      
+      // Estatísticas básicas
+      const pacientesAguardando = filaTriagem.filter(p => p.status === 'recepcao').length;
+      const pacientesEmTriagem = filaTriagem.filter(p => p.status === 'aguardando_triagem').length;
+      
+      // Triagens concluídas hoje
+      const triagensConcluidas = await Atendimento.listarTriagensRealizadas(null, hoje, hoje);
+      
+      // Tempo médio de espera (calcular baseado na fila atual)
+      let tempoMedioEspera = 0;
+      if (filaTriagem.length > 0) {
+        const totalTempo = filaTriagem.reduce((total, paciente) => {
+          const tempoEspera = Math.floor(
+            (new Date() - new Date(paciente.data_hora_atendimento)) / (1000 * 60)
+          );
+          return total + tempoEspera;
+        }, 0);
+        tempoMedioEspera = totalTempo / filaTriagem.length;
+      }
+      
+      // Classificação de risco (contar quantos de cada tipo)
+      const classificacaoRisco = {
+        vermelho: 0,
+        laranja: 0,
+        amarelo: 0,
+        verde: 0,
+        azul: 0
+      };
+      
+      filaTriagem.forEach(paciente => {
+        if (paciente.classificacao_risco && classificacaoRisco.hasOwnProperty(paciente.classificacao_risco)) {
+          classificacaoRisco[paciente.classificacao_risco]++;
+        }
+      });
+      
+      const estatisticas = {
+        pacientesAguardando,
+        pacientesEmTriagem,
+        triagensConcluidas: triagensConcluidas.length,
+        tempoMedioEspera: Math.round(tempoMedioEspera),
+        classificacaoRisco
+      };
+      
+      res.json(estatisticas);
+    } catch (error) {
+      console.error('Erro ao obter estatísticas:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  }
 }
 
 export default TriagemController;

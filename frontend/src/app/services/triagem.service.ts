@@ -135,4 +135,9 @@ export class TriagemService {
     
     return this.http.get<any[]>(url);
   }
+
+  // Obter estatísticas para dashboard
+  obterEstatisticasTriagem(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/estatisticas`);
+  }
 }

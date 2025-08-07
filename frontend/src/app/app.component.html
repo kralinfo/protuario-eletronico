@@ -11,11 +11,20 @@
 <ng-container *ngIf="!isLoginRoute()">
   <!-- Menu hamburguer à esquerda do header principal -->
   <mat-menu #mainMenu="matMenu" class="main-menu-modern text-xs">
-    <button mat-menu-item routerLink="/pacientes" routerLinkActive="font-bold">
+    <!-- Pacientes - Disponível para recepcao e triagem -->
+    <button 
+      *ngIf="canAccessModule('pacientes')"
+      mat-menu-item 
+      routerLink="/pacientes" 
+      routerLinkActive="font-bold"
+    >
       <mat-icon>person_search</mat-icon>
       <span class="menu-label text-xs">Pacientes</span>
     </button>
+    
+    <!-- Atendimentos - Disponível para recepcao e triagem -->
     <button
+      *ngIf="canAccessModule('atendimentos')"
       mat-menu-item
       routerLink="/atendimentos"
       routerLinkActive="font-bold"
@@ -23,7 +32,10 @@
       <mat-icon>medical_services</mat-icon>
       <span class="menu-label text-xs">Atendimentos</span>
     </button>
+    
+    <!-- Triagem - Disponível apenas para triagem -->
     <button
+      *ngIf="canAccessModule('triagem')"
       mat-menu-item
       routerLink="/triagem"
       routerLinkActive="font-bold"
@@ -31,14 +43,28 @@
       <mat-icon>local_hospital</mat-icon>
       <span class="menu-label text-xs">Triagem</span>
     </button>
-    <button mat-menu-item [matMenuTriggerFor]="relatorioMenu">
+    
+    <!-- Relatórios - Disponível para recepcao e triagem -->
+    <button 
+      *ngIf="canAccessModule('relatorios')"
+      mat-menu-item 
+      [matMenuTriggerFor]="relatorioMenu"
+    >
       <mat-icon>bar_chart</mat-icon>
       <span class="menu-label text-xs">Relatórios</span>
     </button>
-    <button mat-menu-item routerLink="/usuarios" routerLinkActive="font-bold">
+    
+    <!-- Usuários - Apenas para admins -->
+    <button 
+      *ngIf="canAccessModule('usuarios')"
+      mat-menu-item 
+      routerLink="/usuarios" 
+      routerLinkActive="font-bold"
+    >
       <mat-icon>group</mat-icon>
       <span class="menu-label text-xs">Usuários</span>
     </button>
+    
     <mat-divider></mat-divider>
     <button mat-menu-item [matMenuTriggerFor]="impressaoMenu">
       <mat-icon>print</mat-icon>

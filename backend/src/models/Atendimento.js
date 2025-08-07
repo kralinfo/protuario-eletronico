@@ -111,7 +111,7 @@ class Atendimento {
   static async obterDadosTriagem(id) {
     const result = await db.query(
       `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento,
-              p.sexo as paciente_sexo, p.cpf as paciente_cpf,
+              p.sexo as paciente_sexo, p.sus as paciente_sus,
               u.nome as triagem_realizada_por_nome
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id

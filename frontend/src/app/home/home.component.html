@@ -1,4 +1,10 @@
-<section class="relative w-full min-h-screen bg-gray-50 overflow-hidden">
+<!-- Dashboard específico para Triagem -->
+<div *ngIf="isTriagemModule()">
+  <app-dashboard-triagem></app-dashboard-triagem>
+</div>
+
+<!-- Home padrão para Recepção e outros módulos -->
+<section *ngIf="!isTriagemModule()" class="relative w-full min-h-screen bg-gray-50 overflow-hidden">
   <!-- Fundo decorativo -->
   <div aria-hidden="true" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 w-[90vw] max-w-6xl pointer-events-none select-none z-0">
     <img src="assets/logo-alianca.svg" alt="" class="w-full h-auto" draggable="false" />

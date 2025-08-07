@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -6,4 +7,20 @@ import { Component } from '@angular/core';
   // styleUrls removido
   standalone: false
 })
-export class HomeComponent {}
+export class HomeComponent implements OnInit {
+  selectedModule: string | null = null;
+
+  constructor(private authService: AuthService) {}
+
+  ngOnInit() {
+    this.selectedModule = this.authService.getSelectedModule();
+  }
+
+  isTriagemModule(): boolean {
+    return this.selectedModule === 'triagem';
+  }
+
+  isRecepcaoModule(): boolean {
+    return this.selectedModule === 'recepcao';
+  }
+}

@@ -1,0 +1,216 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header de boas-vindas -->
+    <div class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">
+              {{getBoadTarde()}}, {{getNomeCurto()}}!
+            </h1>
+            <p class="text-gray-600 mt-1">
+              Módulo de Triagem - {{horaAtual | date:'EEEE, dd/MM/yyyy • HH:mm':'pt-BR'}}
+            </p>
+          </div>
+          <div class="text-right">
+            <div class="flex items-center space-x-2">
+              <mat-icon class="text-blue-500">local_hospital</mat-icon>
+              <span class="text-sm font-medium text-gray-700">Triagem Ativa</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards de estatísticas principais -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Pacientes Aguardando -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Aguardando Triagem</p>
+            <p class="text-3xl font-bold text-red-500">{{estatisticas.pacientesAguardando}}</p>
+          </div>
+          <div class="bg-red-100 p-3 rounded-full">
+            <mat-icon class="text-red-500">people_outline</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pacientes em Triagem -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Em Triagem</p>
+            <p class="text-3xl font-bold text-orange-500">{{estatisticas.pacientesEmTriagem}}</p>
+          </div>
+          <div class="bg-orange-100 p-3 rounded-full">
+            <mat-icon class="text-orange-500">assignment_ind</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Triagens Concluídas Hoje -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Concluídas Hoje</p>
+            <p class="text-3xl font-bold text-green-500">{{estatisticas.triagensConcluidas}}</p>
+          </div>
+          <div class="bg-green-100 p-3 rounded-full">
+            <mat-icon class="text-green-500">check_circle_outline</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tempo Médio de Espera -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Tempo Médio</p>
+            <p class="text-3xl font-bold text-blue-500">{{formatarTempo(estatisticas.tempoMedioEspera)}}</p>
+          </div>
+          <div class="bg-blue-100 p-3 rounded-full">
+            <mat-icon class="text-blue-500">schedule</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classificação de Risco -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Gráfico de Classificação -->
+      <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+          <mat-icon class="mr-2 text-gray-600">bar_chart</mat-icon>
+          Classificação de Risco (Protocolo de Manchester)
+        </h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div *ngFor="let cls of classificacoes" 
+               class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+            <div class="flex items-center justify-center mb-2">
+              <div class="w-4 h-4 rounded-full {{cls.bgColor}} mr-2"></div>
+              <mat-icon class="{{cls.textColor}} text-lg">{{cls.icon}}</mat-icon>
+            </div>
+            <p class="text-2xl font-bold {{cls.textColor}}">{{cls.valor}}</p>
+            <p class="text-xs text-gray-600 font-medium uppercase">{{cls.label}}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+          <mat-icon class="mr-2 text-gray-600">flash_on</mat-icon>
+          Ações Rápidas
+        </h3>
+        
+        <div class="space-y-3">
+          <button (click)="irParaFilaTriagem()" 
+                  class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center">
+            <mat-icon class="mr-2">list_alt</mat-icon>
+            Fila de Triagem
+          </button>
+          
+          <button (click)="irParaPacientes()" 
+                  class="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center">
+            <mat-icon class="mr-2">person_add</mat-icon>
+            Cadastrar Paciente
+          </button>
+          
+          <button (click)="irParaAtendimentos()" 
+                  class="w-full bg-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center">
+            <mat-icon class="mr-2">medical_services</mat-icon>
+            Atendimentos
+          </button>
+          
+          <button (click)="irParaRelatorios()" 
+                  class="w-full bg-yellow-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-yellow-700 transition-colors flex items-center justify-center">
+            <mat-icon class="mr-2">assessment</mat-icon>
+            Relatórios
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards informativos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Protocolo de Manchester -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <mat-icon class="mr-2 text-blue-600">info</mat-icon>
+          Protocolo de Manchester
+        </h3>
+        
+        <div class="space-y-3 text-sm">
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+            <span class="font-medium text-red-700">Vermelho</span>
+            <span class="ml-2 text-gray-600">- Emergência (imediato)</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+            <span class="font-medium text-orange-700">Laranja</span>
+            <span class="ml-2 text-gray-600">- Muito urgente (10 min)</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+            <span class="font-medium text-yellow-700">Amarelo</span>
+            <span class="ml-2 text-gray-600">- Urgente (60 min)</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+            <span class="font-medium text-green-700">Verde</span>
+            <span class="ml-2 text-gray-600">- Pouco urgente (120 min)</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+            <span class="font-medium text-blue-700">Azul</span>
+            <span class="ml-2 text-gray-600">- Não urgente (240 min)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicadores de Performance -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <mat-icon class="mr-2 text-green-600">trending_up</mat-icon>
+          Indicadores
+        </h3>
+        
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-sm font-medium text-gray-600">Taxa de Atendimento</span>
+              <span class="text-sm font-semibold text-green-600">98%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full" style="width: 98%"></div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-sm font-medium text-gray-600">Tempo Resposta</span>
+              <span class="text-sm font-semibold text-blue-600">85%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-blue-500 h-2 rounded-full" style="width: 85%"></div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-sm font-medium text-gray-600">Satisfação</span>
+              <span class="text-sm font-semibold text-purple-600">92%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-purple-500 h-2 rounded-full" style="width: 92%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

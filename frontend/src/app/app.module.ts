@@ -37,6 +37,9 @@ import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.co
 import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
 import { SessaoExpiradaDialog } from './sessao-expirada.dialog';
 import { BreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
+import { DashboardTriagemComponent } from './triagem/dashboard-triagem.component';
+import { FilaTriagemComponent } from './triagem/fila-triagem.component';
+import { RealizarTriagemComponent } from './triagem/realizar-triagem.component';
 
 
 @NgModule({
@@ -51,13 +54,16 @@ import { BreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
     HomeComponent,
     AtendimentosDiaComponent,
     RedefinirSenhaComponent,
-    BreadcrumbComponent
+    BreadcrumbComponent,
+    DashboardTriagemComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     RelatorioAtendimentosComponent,
+    FilaTriagemComponent,
+    RealizarTriagemComponent,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,

@@ -1,0 +1,75 @@
+// Estilos específicos para o dashboard de triagem
+.dashboard-triagem {
+  .card-hover {
+    transition: all 0.3s ease;
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .action-button {
+    transition: all 0.3s ease;
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .risk-indicator {
+    &.emergencia {
+      border-left: 4px solid #ef4444;
+    }
+    &.muito-urgente {
+      border-left: 4px solid #f97316;
+    }
+    &.urgente {
+      border-left: 4px solid #eab308;
+    }
+    &.pouco-urgente {
+      border-left: 4px solid #22c55e;
+    }
+    &.nao-urgente {
+      border-left: 4px solid #3b82f6;
+    }
+  }
+}
+
+// Animações
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+// Responsividade específica
+@media (max-width: 768px) {
+  .dashboard-triagem {
+    .grid-cols-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-triagem {
+    .grid-cols-4 {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+  }
+}

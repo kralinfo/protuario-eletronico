@@ -94,6 +94,51 @@ export class AppComponent {
     this.authService.logout();
   }
 
+  // Métodos para verificação de permissões
+  isAdmin(): boolean {
+    return this.currentUser?.nivel === 'admin';
+  }
+
+  isEditor(): boolean {
+    return this.currentUser?.nivel === 'editor' || this.isAdmin();
+  }
+
+  isVisualizador(): boolean {
+    return this.currentUser?.nivel === 'visualizador';
+  }
+
+  hasModuleAccess(modulo: string): boolean {
+    return this.currentUser?.modulos?.includes(modulo) || this.isAdmin();
+  }
+
+  canAccessModule(requiredModule: string): boolean {
+    const selectedModule = this.authService.getSelectedModule();
+    
+    // Se não há módulo selecionado, não permite acesso
+    if (!selectedModule) return false;
+    
+    // Define as permissões por módulo (mesma lógica do guard)
+    const modulePermissions: Record<string, string[]> = {
+      'recepcao': ['pacientes', 'atendimentos', 'relatorios', 'usuarios'], // Recepcao tem acesso a tudo
+      'triagem': ['triagem', 'pacientes', 'atendimentos', 'relatorios'], // Triagem precisa destes módulos
+      'medico': ['medico', 'pacientes', 'atendimentos', 'relatorios'], // Médico (futuro)
+      'admin': ['admin', 'usuarios', 'pacientes', 'atendimentos', 'triagem', 'relatorios'], // Admin tem acesso total
+    };
+    
+    // Verifica se o módulo selecionado tem permissão para acessar o módulo requerido
+    const allowedModules = modulePermissions[selectedModule] || [];
+    
+    if (allowedModules.includes(requiredModule)) {
+      // Verifica permissão especial para usuários (apenas admins)
+      if (requiredModule === 'usuarios' && !this.isAdmin()) {
+        return false;
+      }
+      return true;
+    }
+    
+    return false;
+  }
+
   alternarDarkMode() {
     // Modo escuro desabilitado
     // Esta função não faz nada pois o modo escuro está sempre desabilitado
