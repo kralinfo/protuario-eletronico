@@ -71,7 +71,7 @@ interface Estatisticas {
             <div class="stat-label">Por Classificação</div>
             <div class="priority-chips">
               <mat-chip-set>
-                <mat-chip *ngFor="let item of getClassificacaoArray()" 
+                <mat-chip *ngFor="let item of getClassificacaoArray()"
                          [style.background-color]="getCor(item.key)"
                          class="priority-chip">
                   {{item.value}}
@@ -84,16 +84,16 @@ interface Estatisticas {
 
       <!-- Lista de Pacientes -->
       <div class="patients-list" *ngIf="!carregando; else loadingTemplate">
-        <mat-card *ngFor="let paciente of pacientes" 
-                  class="patient-card" 
+        <mat-card *ngFor="let paciente of pacientes"
+                  class="patient-card"
                   [class.priority-alert]="paciente.alerta === 'tempo_excedido'">
-          
+
           <mat-card-header>
-            <div mat-card-avatar class="patient-avatar" 
+            <div mat-card-avatar class="patient-avatar"
                  [style.background-color]="getCor(paciente.classificacao_risco)">
               {{getIniciais(paciente.paciente_nome)}}
             </div>
-            
+
             <mat-card-title>{{paciente.paciente_nome}}</mat-card-title>
             <mat-card-subtitle>
               {{getIdade(paciente.paciente_nascimento)}} anos • {{paciente.paciente_sexo}}
@@ -105,7 +105,7 @@ interface Estatisticas {
               <div class="info-row">
                 <mat-icon>schedule</mat-icon>
                 <span>Espera: {{paciente.tempo_espera}} minutos</span>
-                <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'" 
+                <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'"
                          class="alert-icon">warning</mat-icon>
               </div>
 
@@ -128,7 +128,7 @@ interface Estatisticas {
           </mat-card-content>
 
           <mat-card-actions>
-            <button mat-raised-button 
+            <button mat-raised-button
                     color="primary"
                     (click)="iniciarTriagem(paciente)"
                     [disabled]="paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem'">
@@ -291,9 +291,9 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     tempo_medio_espera: 0
   };
   carregando = true;
-  
+
   private atualizacaoSubscription?: Subscription;
-  
+
   // Cores para classificação de risco
   private coresPrioridade: Record<string, string> = {
     'vermelho': '#E53E3E',
@@ -353,22 +353,20 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   async iniciarTriagem(paciente: PacienteTriagem) {
     try {
-      const usuarioId = 1; // TODO: Pegar do serviço de autenticação
-      
       console.log('Iniciando triagem para paciente ID:', paciente.id);
-      await firstValueFrom(this.triagemService.iniciarTriagem(paciente.id, usuarioId));
+      await firstValueFrom(this.triagemService.iniciarTriagem(paciente.id));
       console.log('Triagem iniciada com sucesso');
-      
+
       // Notificar que uma triagem foi iniciada
       this.triagemEventService.notificarTriagemIniciada();
-      
+
       this.snackBar.open(`Triagem iniciada para ${paciente.paciente_nome}`, 'Fechar', {
         duration: 3000
       });
-      
+
       // Pequeno delay para garantir que a mudança foi commitada no banco
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Navegar para tela de triagem
       console.log('Navegando para tela de triagem...');
       this.router.navigate(['/triagem/realizar', paciente.id]);
@@ -462,11 +460,11 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     const dataNasc = new Date(nascimento);
     let idade = hoje.getFullYear() - dataNasc.getFullYear();
     const mes = hoje.getMonth() - dataNasc.getMonth();
-    
+
     if (mes < 0 || (mes === 0 && hoje.getDate() < dataNasc.getDate())) {
       idade--;
     }
-    
+
     return idade;
   }
 

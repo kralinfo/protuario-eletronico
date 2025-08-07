@@ -24,11 +24,11 @@ export interface DadosTriagem {
   saturacao_oxigenio?: number;
   peso?: number;
   altura?: number;
-  
+
   // Classificação
   classificacao_risco?: string;
   prioridade?: number;
-  
+
   // Dados clínicos
   queixa_principal?: string;
   historia_atual?: string;
@@ -89,10 +89,8 @@ export class TriagemService {
 
   // === ATENDIMENTO ===
 
-  iniciarTriagem(atendimentoId: number, usuarioId: number): Observable<any> {
-    return this.http.post(`${this.baseUrl}/${atendimentoId}/iniciar`, {
-      usuario_id: usuarioId
-    });
+  iniciarTriagem(atendimentoId: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/${atendimentoId}/iniciar`, {});
   }
 
   obterDadosTriagem(atendimentoId: number): Observable<AtendimentoCompleto> {
@@ -121,7 +119,7 @@ export class TriagemService {
     data_fim?: string;
   }): Observable<any[]> {
     const params = new URLSearchParams();
-    
+
     if (filtros?.usuario_id) {
       params.append('usuario_id', filtros.usuario_id.toString());
     }
@@ -134,7 +132,7 @@ export class TriagemService {
 
     const queryString = params.toString();
     const url = queryString ? `${this.baseUrl}/realizadas?${queryString}` : `${this.baseUrl}/realizadas`;
-    
+
     return this.http.get<any[]>(url);
   }
 

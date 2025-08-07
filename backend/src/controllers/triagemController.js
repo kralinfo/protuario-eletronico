@@ -47,7 +47,7 @@ class TriagemController {
   static async iniciarTriagem(req, res) {
     try {
       const { id } = req.params;
-      const { usuario_id } = req.body;
+      const usuario_id = req.user?.id; // Pegar do token JWT
 
       if (!usuario_id) {
         return res.status(400).json({ error: 'ID do usuário é obrigatório' });

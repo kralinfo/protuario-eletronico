@@ -9,6 +9,7 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
+import triagemRoutes from './routes/triagem.js';
 
 dotenv.config();
 
@@ -300,7 +301,9 @@ app.post('/api/login', async (req, res) => {
       { 
         id: usuario.id, 
         email: usuario.email, 
-        nome: usuario.nome 
+        nome: usuario.nome,
+        nivel: usuario.nivel,
+        modulos: usuario.modulos
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -311,7 +314,9 @@ app.post('/api/login', async (req, res) => {
       usuario: {
         id: usuario.id,
         email: usuario.email,
-        nome: usuario.nome
+        nome: usuario.nome,
+        nivel: usuario.nivel,
+        modulos: usuario.modulos
       }
     });
 
@@ -552,6 +557,9 @@ app.put('/api/pacientes/:id', authenticateToken, async (req, res) => {
   }
   res.json(mapPacienteDbToApi(rows[0]));
 });
+
+// Registro das rotas de triagem
+app.use('/api/triagem', triagemRoutes);
 
 // ENDPOINT TEMPORÁRIO: Criar usuário de teste (REMOVER EM PRODUÇÃO)
 app.post('/api/create-test-user', async (req, res) => {
