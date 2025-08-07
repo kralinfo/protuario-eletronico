@@ -304,6 +304,38 @@ class TriagemController {
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   }
+
+  // Método para obter o status do atendimento
+  static obterStatusAtendimento(status) {
+    switch (status) {
+      case 'aguardando_triagem':
+        return 'Aguardando Triagem';
+      case 'em_triagem':
+        return 'Em Triagem';
+      case 'triagem_finalizada':
+        return 'Triagem Finalizada';
+      case 'atendimento_concluido':
+        return 'Atendimento Concluído';
+      case 'encaminhado_para_triagem':
+        return '1 - Encaminhado para Triagem';
+      case 'em_triagem':
+        return '2 - Em Triagem';
+      case 'encaminhado_para_sala_medica':
+        return '3 - Encaminhado para Sala Médica';
+      case 'em_atendimento_medico':
+        return '4 - Em Atendimento Médico';
+      case 'encaminhado_para_ambulatorio':
+        return '5 - Encaminhado para Ambulatório';
+      case 'em_atendimento_ambulatorial':
+        return '6 - Em Atendimento Ambulatorial';
+      case 'encaminhado_para_exames':
+        return '7 - Encaminhado para Exames';
+      case 'atendimento_concluido':
+        return '8 - Atendimento Concluído';
+      default:
+        return 'Status Desconhecido';
+    }
+  }
 }
 
 export default TriagemController;
