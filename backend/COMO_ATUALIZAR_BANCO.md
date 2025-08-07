@@ -1,4 +1,4 @@
-# 🔄 Como Atualizar o Banco de Dados Local
+np🔄 Como Atualizar o Banco de Dados Local
 
 ## 📋 Instruções para a Equipe
 

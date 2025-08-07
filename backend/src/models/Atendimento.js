@@ -49,6 +49,7 @@ class Atendimento {
        JOIN pacientes p ON p.id = a.paciente_id
        WHERE a.status IN ('recepcao', 'triagem', 'em_triagem')
          AND a.status NOT IN ('finalizado', 'abandonado', 'triagem_finalizada')
+         AND DATE(a.data_hora_atendimento) = CURRENT_DATE
        ORDER BY 
          CASE 
            WHEN a.status = 'em_triagem' THEN 1 
