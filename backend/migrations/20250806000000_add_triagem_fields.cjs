@@ -7,7 +7,7 @@
  * coletados durante a triagem dos pacientes.
  */
 
-export const up = async function(knex) {
+exports.up = async function(knex) {
   await knex.schema.alterTable('atendimentos', function(table) {
     // === SINAIS VITAIS ===
     table.string('pressao_arterial', 20).nullable().comment('Pressão arterial - formato: 120/80');
@@ -45,7 +45,7 @@ export const up = async function(knex) {
   console.log('✅ Campos de triagem adicionados à tabela atendimentos');
 };
 
-export const down = async function(knex) {
+exports.down = async function(knex) {
   await knex.schema.alterTable('atendimentos', function(table) {
     // Remover campos de sinais vitais
     table.dropColumn('pressao_arterial');
