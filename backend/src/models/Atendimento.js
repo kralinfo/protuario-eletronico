@@ -30,6 +30,20 @@ class Atendimento {
   }
 
   static async atualizarStatus(id, status, motivo_interrupcao = 'N/A') {
+    const validStatuses = [
+      'encaminhado para triagem',
+      'em triagem',
+      'encaminhado para sala médica',
+      'em atendimento médico',
+      'encaminhado para ambulatório',
+      'em atendimento ambulatorial',
+      'encaminhado para exames'
+    ];
+
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Status inválido: ${status}`);
+    }
+
     const result = await db.query(
       `UPDATE atendimentos SET status = $1, motivo_interrupcao = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *`,
       [status, motivo_interrupcao, id]
@@ -47,14 +61,13 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.status IN ('recepcao', 'triagem', 'em_triagem')
-         AND a.status NOT IN ('finalizado', 'abandonado', 'triagem_finalizada')
+       WHERE a.status IN ('encaminhado para triagem', 'em triagem', 'encaminhado para sala médica')
          AND DATE(a.data_hora_atendimento) = CURRENT_DATE
        ORDER BY 
          CASE 
-           WHEN a.status = 'em_triagem' THEN 1 
-           WHEN a.status = 'triagem' THEN 2 
-           WHEN a.status = 'recepcao' THEN 3 
+           WHEN a.status = 'em triagem' THEN 1 
+           WHEN a.status = 'encaminhado para triagem' THEN 2 
+           WHEN a.status = 'encaminhado para sala médica' THEN 3 
            ELSE 4 
          END,
          a.prioridade ASC NULLS LAST,
@@ -66,11 +79,11 @@ class Atendimento {
   static async iniciarTriagem(id, usuarioId) {
     const result = await db.query(
       `UPDATE atendimentos 
-       SET status = 'em_triagem', 
+       SET status = 'em triagem', 
            triagem_realizada_por = $2,
            data_inicio_triagem = CURRENT_TIMESTAMP,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1 AND status = 'triagem'
+       WHERE id = $1 AND status = 'encaminhado para triagem'
        RETURNING *`,
       [id, usuarioId]
     );

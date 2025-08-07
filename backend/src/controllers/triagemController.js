@@ -14,13 +14,13 @@ class TriagemController {
   static async listarFilaTriagem(req, res) {
     try {
       const pacientes = await Atendimento.listarFilaTriagem();
-      
+
       // Calcular tempo de espera e adicionar alertas
       const pacientesComTempo = pacientes.map(paciente => {
         const tempoEspera = Math.floor(
           (new Date() - new Date(paciente.data_hora_atendimento)) / (1000 * 60)
         );
-        
+
         let alerta = null;
         if (paciente.classificacao_risco && CLASSIFICACAO_RISCO[paciente.classificacao_risco]) {
           const tempoMax = CLASSIFICACAO_RISCO[paciente.classificacao_risco].tempo_max;
@@ -28,14 +28,14 @@ class TriagemController {
             alerta = 'tempo_excedido';
           }
         }
-        
+
         return {
           ...paciente,
           tempo_espera: tempoEspera,
           alerta
         };
       });
-      
+
       res.json(pacientesComTempo);
     } catch (error) {
       console.error('Erro ao listar fila de triagem:', error);
@@ -54,10 +54,10 @@ class TriagemController {
       }
 
       const atendimento = await Atendimento.iniciarTriagem(id, usuario_id);
-      
+
       if (!atendimento) {
         return res.status(404).json({ 
-          error: 'Atendimento não encontrado ou não está disponível para triagem' 
+          error: 'Atendimento não encontrado ou não está no status "encaminhado para triagem"' 
         });
       }
 
@@ -247,7 +247,7 @@ class TriagemController {
       // Estatísticas básicas
       // Pacientes aguardando = recepcao + triagem (não incluir em_triagem)
       const pacientesAguardando = filaTriagem.filter(p => 
-        p.status === 'recepcao' || p.status === 'triagem'
+        p.status === 'encaminhado_para_triagem' || p.status === 'em_triagem'
       ).length;
       
       // Pacientes em triagem = apenas os que estão sendo atendidos
