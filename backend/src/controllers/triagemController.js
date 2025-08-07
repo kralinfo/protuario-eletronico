@@ -276,11 +276,11 @@ class TriagemController {
       });
       
       const estatisticas = {
-        pacientesAguardando,
-        pacientesEmTriagem,
-        triagensConcluidas: triagensConcluidas.length,
-        tempoMedioEspera: Math.round(tempoMedioEspera),
-        classificacaoRisco
+        pacientes_aguardando: pacientesAguardando,
+        pacientes_em_triagem: pacientesEmTriagem,
+        triagens_concluidas: triagensConcluidas.length,
+        tempo_medio_espera: Math.round(tempoMedioEspera),
+        por_classificacao: classificacaoRisco
       };
       
       res.json(estatisticas);

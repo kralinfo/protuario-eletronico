@@ -8,8 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { interval, Subscription } from 'rxjs';
-
+import { interval, Subscription, firstValueFrom } from 'rxjs';
 import { TriagemService } from '../services/triagem.service';
 
 interface PacienteTriagem {
@@ -333,12 +332,12 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       }
 
       const [pacientes, estatisticas] = await Promise.all([
-        this.triagemService.listarFilaTriagem().toPromise(),
-        this.triagemService.obterEstatisticas().toPromise()
+        firstValueFrom(this.triagemService.listarFilaTriagem()),
+        firstValueFrom(this.triagemService.obterEstatisticas())
       ]);
 
-      this.pacientes = pacientes || [];
-      this.estatisticas = estatisticas || this.estatisticas;
+      this.pacientes = (pacientes as PacienteTriagem[]) || [];
+      this.estatisticas = (estatisticas as Estatisticas) || this.estatisticas;
     } catch (error) {
       console.error('Erro ao carregar dados da triagem:', error);
       this.snackBar.open('Erro ao carregar dados da triagem', 'Fechar', {
@@ -353,7 +352,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     try {
       const usuarioId = 1; // TODO: Pegar do serviço de autenticação
       
-      await this.triagemService.iniciarTriagem(paciente.id, usuarioId).toPromise();
+      await firstValueFrom(this.triagemService.iniciarTriagem(paciente.id, usuarioId));
       
       this.snackBar.open(`Triagem iniciada para ${paciente.paciente_nome}`, 'Fechar', {
         duration: 3000

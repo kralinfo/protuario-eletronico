@@ -1,27 +1,5 @@
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
   <div class="container mx-auto px-4 py-8">
-    <!-- Header de boas-vindas -->
-    <div class="mb-8">
-      <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-800">
-              {{getBoadTarde()}}, {{getNomeCurto()}}!
-            </h1>
-            <p class="text-gray-600 mt-1">
-              Módulo de Triagem - {{horaAtual | date:'EEEE, dd/MM/yyyy • HH:mm':'pt-BR'}}
-            </p>
-          </div>
-          <div class="text-right">
-            <div class="flex items-center space-x-2">
-              <mat-icon class="text-blue-500">local_hospital</mat-icon>
-              <span class="text-sm font-medium text-gray-700">Triagem Ativa</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Cards de estatísticas principais -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- Pacientes Aguardando -->
@@ -29,7 +7,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Aguardando Triagem</p>
-            <p class="text-3xl font-bold text-red-500">{{estatisticas.pacientesAguardando}}</p>
+            <p class="text-3xl font-bold text-red-500">{{estatisticas.pacientes_aguardando}}</p>
           </div>
           <div class="bg-red-100 p-3 rounded-full">
             <mat-icon class="text-red-500">people_outline</mat-icon>
@@ -42,7 +20,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Em Triagem</p>
-            <p class="text-3xl font-bold text-orange-500">{{estatisticas.pacientesEmTriagem}}</p>
+            <p class="text-3xl font-bold text-orange-500">{{estatisticas.pacientes_em_triagem}}</p>
           </div>
           <div class="bg-orange-100 p-3 rounded-full">
             <mat-icon class="text-orange-500">assignment_ind</mat-icon>
@@ -55,7 +33,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Concluídas Hoje</p>
-            <p class="text-3xl font-bold text-green-500">{{estatisticas.triagensConcluidas}}</p>
+            <p class="text-3xl font-bold text-green-500">{{estatisticas.triagens_concluidas}}</p>
           </div>
           <div class="bg-green-100 p-3 rounded-full">
             <mat-icon class="text-green-500">check_circle_outline</mat-icon>
@@ -68,7 +46,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Tempo Médio</p>
-            <p class="text-3xl font-bold text-blue-500">{{formatarTempo(estatisticas.tempoMedioEspera)}}</p>
+            <p class="text-3xl font-bold text-blue-500">{{formatarTempo(estatisticas.tempo_medio_espera)}}</p>
           </div>
           <div class="bg-blue-100 p-3 rounded-full">
             <mat-icon class="text-blue-500">schedule</mat-icon>

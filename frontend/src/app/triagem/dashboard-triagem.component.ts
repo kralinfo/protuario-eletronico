@@ -5,11 +5,11 @@ import { AuthService } from '../auth/auth.service';
 import { Subject, interval, takeUntil } from 'rxjs';
 
 interface EstatisticasTriagem {
-  pacientesAguardando: number;
-  pacientesEmTriagem: number;
-  triagensConcluidas: number;
-  tempoMedioEspera: number;
-  classificacaoRisco: {
+  pacientes_aguardando: number;
+  pacientes_em_triagem: number;
+  triagens_concluidas: number;
+  tempo_medio_espera: number;
+  por_classificacao: {
     vermelho: number;
     laranja: number;
     amarelo: number;
@@ -26,11 +26,11 @@ interface EstatisticasTriagem {
 })
 export class DashboardTriagemComponent implements OnInit, OnDestroy {
   estatisticas: EstatisticasTriagem = {
-    pacientesAguardando: 0,
-    pacientesEmTriagem: 0,
-    triagensConcluidas: 0,
-    tempoMedioEspera: 0,
-    classificacaoRisco: {
+    pacientes_aguardando: 0,
+    pacientes_em_triagem: 0,
+    triagens_concluidas: 0,
+    tempo_medio_espera: 0,
+    por_classificacao: {
       vermelho: 0,
       laranja: 0,
       amarelo: 0,
@@ -92,7 +92,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
 
   atualizarClassificacoes() {
     this.classificacoes.forEach(cls => {
-      cls.valor = this.estatisticas.classificacaoRisco[cls.cor as keyof typeof this.estatisticas.classificacaoRisco] || 0;
+      cls.valor = this.estatisticas.por_classificacao[cls.cor as keyof typeof this.estatisticas.por_classificacao] || 0;
     });
   }
 

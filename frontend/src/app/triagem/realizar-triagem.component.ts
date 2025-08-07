@@ -14,6 +14,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { TriagemService, AtendimentoCompleto, ClassificacaoRisco } from '../services/triagem.service';
+import { firstValueFrom, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-realizar-triagem',
@@ -482,10 +483,14 @@ export class RealizarTriagemComponent implements OnInit {
 
   async carregarDados() {
     try {
-      const [paciente, classificacao] = await Promise.all([
-        this.triagemService.obterDadosTriagem(this.atendimentoId).toPromise(),
-        this.triagemService.obterClassificacaoRisco().toPromise()
-      ]);
+      this.carregando = true;
+      
+      const dados$ = forkJoin({
+        paciente: this.triagemService.obterDadosTriagem(this.atendimentoId),
+        classificacao: this.triagemService.obterClassificacaoRisco()
+      });
+
+      const { paciente, classificacao } = await firstValueFrom(dados$);
 
       this.paciente = paciente;
       this.classificacaoRisco = classificacao || {};
@@ -524,7 +529,7 @@ export class RealizarTriagemComponent implements OnInit {
       this.salvando = true;
       const dados = this.triagemForm.value;
       
-      await this.triagemService.salvarTriagem(this.atendimentoId, dados).toPromise();
+      await firstValueFrom(this.triagemService.salvarTriagem(this.atendimentoId, dados));
       
       this.snackBar.open('Rascunho salvo com sucesso', 'Fechar', {
         duration: 3000
@@ -552,10 +557,10 @@ export class RealizarTriagemComponent implements OnInit {
       const dados = this.triagemForm.value;
       
       // Salvar dados primeiro
-      await this.triagemService.salvarTriagem(this.atendimentoId, dados).toPromise();
+      await firstValueFrom(this.triagemService.salvarTriagem(this.atendimentoId, dados));
       
       // Finalizar triagem
-      await this.triagemService.finalizarTriagem(this.atendimentoId).toPromise();
+      await firstValueFrom(this.triagemService.finalizarTriagem(this.atendimentoId));
       
       this.snackBar.open('Triagem finalizada com sucesso!', 'Fechar', {
         duration: 3000

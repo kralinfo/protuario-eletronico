@@ -55,8 +55,10 @@ export interface AtendimentoCompleto extends DadosTriagem {
 
 export interface Estatisticas {
   pacientes_aguardando: number;
-  por_classificacao: Record<string, number>;
+  pacientes_em_triagem: number;
+  triagens_concluidas: number;
   tempo_medio_espera: number;
+  por_classificacao: Record<string, number>;
 }
 
 export interface ClassificacaoRisco {
