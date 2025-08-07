@@ -131,9 +131,9 @@ interface Estatisticas {
             <button mat-raised-button 
                     color="primary"
                     (click)="iniciarTriagem(paciente)"
-                    [disabled]="paciente.status === 'em_triagem'">
+                    [disabled]="paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem'">
               <mat-icon>play_arrow</mat-icon>
-              {{paciente.status === 'em_triagem' ? 'Em Triagem' : 'Iniciar Triagem'}}
+              {{(paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem') ? 'Em Triagem' : 'Iniciar Triagem'}}
             </button>
 
             <button mat-button (click)="verDetalhes(paciente)">
@@ -338,6 +338,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
         firstValueFrom(this.triagemService.obterEstatisticas())
       ]);
 
+      // O backend já filtra apenas pacientes com status "1 - Encaminhado para triagem"
       this.pacientes = (pacientes as PacienteTriagem[]) || [];
       this.estatisticas = (estatisticas as Estatisticas) || this.estatisticas;
     } catch (error) {
@@ -390,28 +391,60 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
+      '1 - Encaminhado para triagem': '#2196F3',
       'encaminhado_para_triagem': '#2196F3',
+      'encaminhado para triagem': '#2196F3',
+      '2 - Em triagem': '#4CAF50',
       'em_triagem': '#4CAF50',
+      'em triagem': '#4CAF50',
+      '3 - Encaminhado para sala médica': '#FF9800',
       'encaminhado_para_sala_medica': '#FF9800',
+      'encaminhado para sala médica': '#FF9800',
+      '4 - Em atendimento médico': '#FF5722',
       'em_atendimento_medico': '#FF5722',
+      'em atendimento médico': '#FF5722',
+      '5 - Encaminhado para ambulatório': '#9C27B0',
       'encaminhado_para_ambulatorio': '#9C27B0',
+      'encaminhado para ambulatório': '#9C27B0',
+      '6 - Em atendimento ambulatorial': '#3F51B5',
       'em_atendimento_ambulatorial': '#3F51B5',
+      'em atendimento ambulatorial': '#3F51B5',
+      '7 - Encaminhado para exames': '#009688',
       'encaminhado_para_exames': '#009688',
-      'atendimento_concluido': '#4CAF50'
+      'encaminhado para exames': '#009688',
+      '8 - Atendimento concluído': '#4CAF50',
+      'atendimento_concluido': '#4CAF50',
+      'atendimento concluído': '#4CAF50'
     };
     return cores[status] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
     const descricoes: Record<string, string> = {
+      '1 - Encaminhado para triagem': '1 - Encaminhado para Triagem',
       'encaminhado_para_triagem': '1 - Encaminhado para Triagem',
+      'encaminhado para triagem': '1 - Encaminhado para Triagem',
+      '2 - Em triagem': '2 - Em Triagem',
       'em_triagem': '2 - Em Triagem',
+      'em triagem': '2 - Em Triagem',
+      '3 - Encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
       'encaminhado_para_sala_medica': '3 - Encaminhado para Sala Médica',
+      'encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
+      '4 - Em atendimento médico': '4 - Em Atendimento Médico',
       'em_atendimento_medico': '4 - Em Atendimento Médico',
+      'em atendimento médico': '4 - Em Atendimento Médico',
+      '5 - Encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
       'encaminhado_para_ambulatorio': '5 - Encaminhado para Ambulatório',
+      'encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
+      '6 - Em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial',
       'em_atendimento_ambulatorial': '6 - Em Atendimento Ambulatorial',
+      'em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial',
+      '7 - Encaminhado para exames': '7 - Encaminhado para Exames',
       'encaminhado_para_exames': '7 - Encaminhado para Exames',
-      'atendimento_concluido': '8 - Atendimento Concluído'
+      'encaminhado para exames': '7 - Encaminhado para Exames',
+      '8 - Atendimento concluído': '8 - Atendimento Concluído',
+      'atendimento_concluido': '8 - Atendimento Concluído',
+      'atendimento concluído': '8 - Atendimento Concluído'
     };
     return descricoes[status] || status;
   }
