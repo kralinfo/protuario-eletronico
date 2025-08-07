@@ -352,13 +352,19 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     try {
       const usuarioId = 1; // TODO: Pegar do serviço de autenticação
       
+      console.log('Iniciando triagem para paciente ID:', paciente.id);
       await firstValueFrom(this.triagemService.iniciarTriagem(paciente.id, usuarioId));
+      console.log('Triagem iniciada com sucesso');
       
       this.snackBar.open(`Triagem iniciada para ${paciente.paciente_nome}`, 'Fechar', {
         duration: 3000
       });
       
+      // Pequeno delay para garantir que a mudança foi commitada no banco
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Navegar para tela de triagem
+      console.log('Navegando para tela de triagem...');
       this.router.navigate(['/triagem/realizar', paciente.id]);
     } catch (error) {
       console.error('Erro ao iniciar triagem:', error);

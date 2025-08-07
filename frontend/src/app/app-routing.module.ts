@@ -13,7 +13,7 @@ import { HomeComponent } from './home/home.component';
 import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.component';
 import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 import { FilaTriagemComponent } from './triagem/fila-triagem.component';
-import { RealizarTriagemComponent } from './triagem/realizar-triagem.component';
+import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.component';
 
 const routes: Routes = [
   {
