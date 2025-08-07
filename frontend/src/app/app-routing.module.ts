@@ -12,6 +12,8 @@ import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.co
 import { HomeComponent } from './home/home.component';
 import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.component';
 import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
+import { FilaTriagemComponent } from './triagem/fila-triagem.component';
+import { RealizarTriagemComponent } from './triagem/realizar-triagem.component';
 
 const routes: Routes = [
   {
@@ -124,6 +126,29 @@ const routes: Routes = [
       icon: 'edit',
       title: 'Editar Atendimento',
       parent: 'atendimentos'
+    }
+  },
+  {
+    path: 'triagem',
+    component: FilaTriagemComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'triagem',
+      breadcrumb: 'Triagem',
+      icon: 'medical_services',
+      title: 'Fila de Triagem'
+    }
+  },
+  {
+    path: 'triagem/realizar/:id',
+    component: RealizarTriagemComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'triagem',
+      breadcrumb: 'Realizar Triagem',
+      icon: 'assignment',
+      title: 'Realizar Triagem',
+      parent: 'triagem'
     }
   },
   // Rotas para redefinição de senha via token

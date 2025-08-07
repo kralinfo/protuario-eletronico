@@ -36,6 +36,130 @@ class Atendimento {
     );
     return result.rows[0];
   }
+
+  // === MÉTODOS ESPECÍFICOS PARA TRIAGEM ===
+
+  static async listarFilaTriagem() {
+    const result = await db.query(
+      `SELECT a.id, a.created_at, a.data_hora_atendimento, a.status, a.prioridade,
+              a.classificacao_risco, a.queixa_principal,
+              p.nome as paciente_nome, p.nascimento as paciente_nascimento,
+              p.sexo as paciente_sexo
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       WHERE a.status IN ('recepcao', 'aguardando_triagem')
+       ORDER BY 
+         CASE WHEN a.status = 'recepcao' THEN 1 ELSE 2 END,
+         a.prioridade ASC NULLS LAST,
+         a.created_at ASC`
+    );
+    return result.rows;
+  }
+
+  static async iniciarTriagem(id, usuarioId) {
+    const result = await db.query(
+      `UPDATE atendimentos 
+       SET status = 'em_triagem', 
+           triagem_realizada_por = $2,
+           data_inicio_triagem = CURRENT_TIMESTAMP,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND status IN ('recepcao', 'aguardando_triagem')
+       RETURNING *`,
+      [id, usuarioId]
+    );
+    return result.rows[0];
+  }
+
+  static async salvarTriagem(id, dadosTriagem) {
+    const {
+      pressao_arterial, temperatura, frequencia_cardiaca, frequencia_respiratoria,
+      saturacao_oxigenio, peso, altura, classificacao_risco, prioridade,
+      queixa_principal, historia_atual, alergias, medicamentos_uso, observacoes_triagem
+    } = dadosTriagem;
+
+    const result = await db.query(
+      `UPDATE atendimentos 
+       SET pressao_arterial = $2, temperatura = $3, frequencia_cardiaca = $4,
+           frequencia_respiratoria = $5, saturacao_oxigenio = $6, peso = $7, altura = $8,
+           classificacao_risco = $9, prioridade = $10, queixa_principal = $11,
+           historia_atual = $12, alergias = $13, medicamentos_uso = $14,
+           observacoes_triagem = $15, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND status = 'em_triagem'
+       RETURNING *`,
+      [
+        id, pressao_arterial, temperatura, frequencia_cardiaca, frequencia_respiratoria,
+        saturacao_oxigenio, peso, altura, classificacao_risco, prioridade,
+        queixa_principal, historia_atual, alergias, medicamentos_uso, observacoes_triagem
+      ]
+    );
+    return result.rows[0];
+  }
+
+  static async finalizarTriagem(id) {
+    const result = await db.query(
+      `UPDATE atendimentos 
+       SET status = 'aguardando_medico',
+           data_fim_triagem = CURRENT_TIMESTAMP,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND status = 'em_triagem'
+       RETURNING *`,
+      [id]
+    );
+    return result.rows[0];
+  }
+
+  static async obterDadosTriagem(id) {
+    const result = await db.query(
+      `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento,
+              p.sexo as paciente_sexo, p.cpf as paciente_cpf,
+              u.nome as triagem_realizada_por_nome
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       LEFT JOIN usuarios u ON u.id = a.triagem_realizada_por
+       WHERE a.id = $1`,
+      [id]
+    );
+    return result.rows[0];
+  }
+
+  static async listarTriagensRealizadas(usuarioId = null, dataInicio = null, dataFim = null) {
+    let query = `
+      SELECT a.id, a.created_at, a.data_inicio_triagem, a.data_fim_triagem,
+             a.classificacao_risco, a.prioridade, a.status,
+             p.nome as paciente_nome,
+             u.nome as triagem_realizada_por_nome
+      FROM atendimentos a
+      JOIN pacientes p ON p.id = a.paciente_id
+      LEFT JOIN usuarios u ON u.id = a.triagem_realizada_por
+      WHERE a.data_inicio_triagem IS NOT NULL
+    `;
+    
+    const params = [];
+    let paramIndex = 1;
+
+    if (usuarioId) {
+      query += ` AND a.triagem_realizada_por = $${paramIndex}`;
+      params.push(usuarioId);
+      paramIndex++;
+    }
+
+    if (dataInicio) {
+      query += ` AND DATE(a.data_inicio_triagem) >= $${paramIndex}`;
+      params.push(dataInicio);
+      paramIndex++;
+    }
+
+    if (dataFim) {
+      query += ` AND DATE(a.data_inicio_triagem) <= $${paramIndex}`;
+      params.push(dataFim);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY a.data_inicio_triagem DESC`;
+
+    const result = await db.query(query, params);
+    return result.rows;
+  }
 }
 
 export default Atendimento;
