@@ -10,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { interval, Subscription, firstValueFrom } from 'rxjs';
 import { TriagemService } from '../services/triagem.service';
+import { TriagemEventService } from '../services/triagem-event.service';
 
 interface PacienteTriagem {
   id: number;
@@ -304,6 +305,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   constructor(
     private triagemService: TriagemService,
+    private triagemEventService: TriagemEventService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private router: Router
@@ -355,6 +357,9 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       console.log('Iniciando triagem para paciente ID:', paciente.id);
       await firstValueFrom(this.triagemService.iniciarTriagem(paciente.id, usuarioId));
       console.log('Triagem iniciada com sucesso');
+      
+      // Notificar que uma triagem foi iniciada
+      this.triagemEventService.notificarTriagemIniciada();
       
       this.snackBar.open(`Triagem iniciada para ${paciente.paciente_nome}`, 'Fechar', {
         duration: 3000

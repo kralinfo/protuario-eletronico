@@ -47,9 +47,9 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.status IN ('recepcao', 'aguardando_triagem')
+       WHERE a.status IN ('triagem', 'em_triagem')
        ORDER BY 
-         CASE WHEN a.status = 'recepcao' THEN 1 ELSE 2 END,
+         CASE WHEN a.status = 'triagem' THEN 1 ELSE 2 END,
          a.prioridade ASC NULLS LAST,
          a.created_at ASC`
     );

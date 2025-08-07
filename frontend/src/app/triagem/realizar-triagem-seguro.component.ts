@@ -14,6 +14,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { TriagemService, AtendimentoCompleto, ClassificacaoRisco } from '../services/triagem.service';
+import { TriagemEventService } from '../services/triagem-event.service';
 
 @Component({
   selector: 'app-realizar-triagem',
@@ -220,7 +221,8 @@ export class RealizarTriagemComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private triagemEventService: TriagemEventService
   ) {
     console.log('Constructor - Inicializando componente SEGURO');
     this.atendimentoId = +this.route.snapshot.params['id'];
@@ -264,6 +266,9 @@ export class RealizarTriagemComponent implements OnInit {
       
       // Simular salvamento por enquanto
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Notificar que a triagem foi finalizada
+      this.triagemEventService.notificarTriagemFinalizada();
       
       this.snackBar.open('Triagem finalizada com sucesso!', 'Fechar', {
         duration: 3000

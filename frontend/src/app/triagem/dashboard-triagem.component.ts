@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { TriagemService } from '../services/triagem.service';
+import { TriagemEventService } from '../services/triagem-event.service';
 import { AuthService } from '../auth/auth.service';
 import { Subject, interval, takeUntil } from 'rxjs';
 
@@ -53,6 +54,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
 
   constructor(
     private triagemService: TriagemService,
+    private triagemEventService: TriagemEventService,
     private authService: AuthService,
     private router: Router
   ) {
@@ -61,6 +63,14 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.carregarEstatisticas();
+    
+    // Escutar notificações de atualização
+    this.triagemEventService.atualizarDashboard$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('Dashboard: Recebida notificação para atualizar');
+        this.carregarEstatisticas();
+      });
     
     // Atualiza as estatísticas a cada 30 segundos
     interval(30000)
@@ -79,13 +89,15 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   carregarEstatisticas() {
+    console.log('Dashboard: Carregando estatísticas...');
     this.triagemService.obterEstatisticasTriagem().subscribe({
       next: (stats: any) => {
+        console.log('Dashboard: Estatísticas recebidas:', stats);
         this.estatisticas = stats;
         this.atualizarClassificacoes();
       },
       error: (error: any) => {
-        console.error('Erro ao carregar estatísticas:', error);
+        console.error('Dashboard: Erro ao carregar estatísticas:', error);
       }
     });
   }

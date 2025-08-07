@@ -241,12 +241,21 @@ class TriagemController {
       const filaTriagem = await Atendimento.listarFilaTriagem();
       const hoje = new Date().toISOString().split('T')[0];
       
+      console.log('Estatísticas - Fila de triagem:', filaTriagem.length, 'pacientes');
+      console.log('Status dos pacientes:', filaTriagem.map(p => ({ id: p.id, status: p.status, nome: p.paciente_nome })));
+      
       // Estatísticas básicas
-      const pacientesAguardando = filaTriagem.filter(p => p.status === 'recepcao').length;
-      const pacientesEmTriagem = filaTriagem.filter(p => p.status === 'aguardando_triagem').length;
+      // Todos os pacientes na fila estão "aguardando" algum tipo de atendimento
+      const pacientesAguardando = filaTriagem.filter(p => p.status === 'triagem').length;
+      const pacientesEmTriagem = filaTriagem.filter(p => p.status === 'em_triagem').length;
+      
+      // Total de pacientes aguardando qualquer tipo de atendimento
+      const totalAguardando = filaTriagem.length;
       
       // Triagens concluídas hoje
       const triagensConcluidas = await Atendimento.listarTriagensRealizadas(null, hoje, hoje);
+      
+      console.log('Triagens concluídas hoje:', triagensConcluidas?.length || 0);
       
       // Tempo médio de espera (calcular baseado na fila atual)
       let tempoMedioEspera = 0;
@@ -276,12 +285,14 @@ class TriagemController {
       });
       
       const estatisticas = {
-        pacientes_aguardando: pacientesAguardando,
-        pacientes_em_triagem: pacientesEmTriagem,
-        triagens_concluidas: triagensConcluidas.length,
+        pacientes_aguardando: totalAguardando, // Total na fila (recepcao + aguardando_triagem)
+        pacientes_em_triagem: pacientesEmTriagem, // Apenas os que estão sendo atendidos
+        triagens_concluidas: triagensConcluidas?.length || 0,
         tempo_medio_espera: Math.round(tempoMedioEspera),
         por_classificacao: classificacaoRisco
       };
+      
+      console.log('Estatísticas calculadas:', estatisticas);
       
       res.json(estatisticas);
     } catch (error) {
