@@ -44,14 +44,6 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   horaAtual = new Date();
   private destroy$ = new Subject<void>();
 
-  classificacoes = [
-    { cor: 'vermelho', label: 'Emergência', valor: 0, icon: 'emergency', bgColor: 'bg-red-500', textColor: 'text-red-500' },
-    { cor: 'laranja', label: 'Muito Urgente', valor: 0, icon: 'priority_high', bgColor: 'bg-orange-500', textColor: 'text-orange-500' },
-    { cor: 'amarelo', label: 'Urgente', valor: 0, icon: 'warning', bgColor: 'bg-yellow-500', textColor: 'text-yellow-600' },
-    { cor: 'verde', label: 'Pouco Urgente', valor: 0, icon: 'schedule', bgColor: 'bg-green-500', textColor: 'text-green-500' },
-    { cor: 'azul', label: 'Não Urgente', valor: 0, icon: 'info', bgColor: 'bg-blue-500', textColor: 'text-blue-500' }
-  ];
-
   constructor(
     private triagemService: TriagemService,
     private triagemEventService: TriagemEventService,
@@ -94,17 +86,10 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
       next: (stats: any) => {
         console.log('Dashboard: Estatísticas recebidas:', stats);
         this.estatisticas = stats;
-        this.atualizarClassificacoes();
       },
       error: (error: any) => {
         console.error('Dashboard: Erro ao carregar estatísticas:', error);
       }
-    });
-  }
-
-  atualizarClassificacoes() {
-    this.classificacoes.forEach(cls => {
-      cls.valor = this.estatisticas.por_classificacao[cls.cor as keyof typeof this.estatisticas.por_classificacao] || 0;
     });
   }
 
@@ -122,6 +107,20 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
 
   irParaRelatorios() {
     this.router.navigate(['/relatorios']);
+  }
+
+  abrirProtocoloManchester() {
+    // Por enquanto, vamos criar um alerta com as informações
+    // Futuramente pode ser um modal ou uma página dedicada
+    alert(`Protocolo de Manchester - Classificação de Risco:
+
+🔴 VERMELHO - Emergência (atendimento imediato)
+🟠 LARANJA - Muito urgente (até 10 minutos)  
+🟡 AMARELO - Urgente (até 60 minutos)
+🟢 VERDE - Pouco urgente (até 120 minutos)
+🔵 AZUL - Não urgente (até 240 minutos)
+
+Este protocolo é usado para priorizar o atendimento com base na gravidade clínica do paciente.`);
   }
 
   formatarTempo(minutos: number): string {
