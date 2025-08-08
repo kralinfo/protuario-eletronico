@@ -128,12 +128,31 @@ interface Estatisticas {
           </mat-card-content>
 
           <mat-card-actions>
-            <button mat-raised-button
+            <!-- Iniciar Triagem - apenas para status "encaminhado para triagem" -->
+            <button *ngIf="paciente.status === 'encaminhado para triagem' || paciente.status === '1 - Aguardando triagem'"
+                    mat-raised-button
                     color="primary"
-                    (click)="iniciarTriagem(paciente)"
-                    [disabled]="paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem'">
+                    (click)="iniciarTriagem(paciente)">
               <mat-icon>play_arrow</mat-icon>
-              {{(paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem') ? 'Em Triagem' : 'Iniciar Triagem'}}
+              Iniciar Triagem
+            </button>
+
+            <!-- Em Triagem - mostrar botão para continuar/editar -->
+            <button *ngIf="paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem'"
+                    mat-raised-button
+                    color="accent"
+                    (click)="continuarTriagem(paciente)">
+              <mat-icon>edit</mat-icon>
+              Continuar Triagem
+            </button>
+
+            <!-- Continuar Triagem - para status de triagem concluída -->
+            <button *ngIf="paciente.status === 'encaminhado para sala médica' || paciente.status === 'encaminhado para ambulatório' || paciente.status === 'encaminhado para exames' || paciente.status === '3 - Triagem concluída'"
+                    mat-raised-button
+                    color="warn"
+                    (click)="continuarTriagem(paciente)">
+              <mat-icon>edit</mat-icon>
+              Continuar Triagem
             </button>
 
             <button mat-button (click)="verDetalhes(paciente)">
@@ -334,11 +353,11 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       }
 
       const [pacientes, estatisticas] = await Promise.all([
-        firstValueFrom(this.triagemService.listarFilaTriagem()),
+        firstValueFrom(this.triagemService.listarTodosAtendimentosDia()),
         firstValueFrom(this.triagemService.obterEstatisticas())
       ]);
 
-      // O backend já filtra apenas pacientes com status "1 - Encaminhado para triagem"
+      // Agora recebemos todos os atendimentos do dia, independente do status
       this.pacientes = (pacientes as PacienteTriagem[]) || [];
       this.estatisticas = (estatisticas as Estatisticas) || this.estatisticas;
     } catch (error) {
@@ -373,6 +392,25 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Erro ao iniciar triagem:', error);
       this.snackBar.open('Erro ao iniciar triagem', 'Fechar', {
+        duration: 5000
+      });
+    }
+  }
+
+  async continuarTriagem(paciente: PacienteTriagem) {
+    try {
+      console.log('Continuando triagem para paciente ID:', paciente.id);
+
+      // Navegar diretamente para tela de triagem para edição
+      this.snackBar.open(`Continuando triagem de ${paciente.paciente_nome}`, 'Fechar', {
+        duration: 3000
+      });
+
+      console.log('Navegando para tela de triagem para continuação...');
+      this.router.navigate(['/triagem/realizar', paciente.id]);
+    } catch (error) {
+      console.error('Erro ao continuar triagem:', error);
+      this.snackBar.open('Erro ao continuar triagem', 'Fechar', {
         duration: 5000
       });
     }
@@ -480,24 +518,24 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   // Métodos para contar pacientes por status
   contarPacientesAguardando(): number {
-    return this.pacientes.filter(p => 
-      p.status === 'encaminhado para triagem' || 
+    return this.pacientes.filter(p =>
+      p.status === 'encaminhado para triagem' ||
       p.status === '1 - Encaminhado para triagem'
     ).length;
   }
 
   contarPacientesEmTriagem(): number {
-    return this.pacientes.filter(p => 
-      p.status === 'em_triagem' || 
-      p.status === 'em triagem' || 
+    return this.pacientes.filter(p =>
+      p.status === 'em_triagem' ||
+      p.status === 'em triagem' ||
       p.status === '2 - Em triagem'
     ).length;
   }
 
   contarTriagensConcluidas(): number {
-    return this.pacientes.filter(p => 
-      p.status === 'encaminhado para sala médica' || 
-      p.status === 'encaminhado para ambulatório' || 
+    return this.pacientes.filter(p =>
+      p.status === 'encaminhado para sala médica' ||
+      p.status === 'encaminhado para ambulatório' ||
       p.status === 'encaminhado para exames' ||
       p.status === '3 - Encaminhado para sala médica' ||
       p.status === '5 - Encaminhado para ambulatório' ||

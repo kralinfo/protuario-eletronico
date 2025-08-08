@@ -11,6 +11,7 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TriagemService } from '../services/triagem.service';
 
 @Component({
   selector: 'app-realizar-triagem-ultra-seguro',
@@ -37,7 +38,7 @@ import { ActivatedRoute, Router } from '@angular/router';
         </button>
         <h1>
           <mat-icon>medical_services</mat-icon>
-          Realizar Triagem - Ultra Seguro
+          Triagem - {{nomePaciente}}
         </h1>
       </div>
 
@@ -46,7 +47,18 @@ import { ActivatedRoute, Router } from '@angular/router';
         <mat-card-content>
           <h3>Status: {{statusSistema}}</h3>
           <p>Atendimento ID: {{atendimentoId}}</p>
+          <p>Paciente: {{nomePaciente}}</p>
           <p>Componente carregado: {{componenteCarregado ? 'SIM' : 'NÃO'}}</p>
+
+          <button mat-button color="primary" (click)="carregarNomePaciente()" [disabled]="carregandoPaciente">
+            <mat-icon>refresh</mat-icon>
+            {{carregandoPaciente ? 'Carregando...' : 'Carregar Nome do Paciente'}}
+          </button>
+
+          <button mat-button color="accent" (click)="carregarDadosTriagemExistente()">
+            <mat-icon>edit</mat-icon>
+            Carregar Dados Existentes
+          </button>
         </mat-card-content>
       </mat-card>
 
@@ -129,7 +141,7 @@ import { ActivatedRoute, Router } from '@angular/router';
               <mat-icon>save</mat-icon>
               {{salvando ? 'Salvando...' : 'Salvar Triagem'}}
             </button>
-            
+
             <button mat-button type="button" (click)="voltar()">
               <mat-icon>cancel</mat-icon>
               Cancelar
@@ -193,12 +205,15 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
   salvando = false;
   statusSistema = 'Inicializando...';
   componenteCarregado = false;
+  nomePaciente = 'Carregando...';
+  carregandoPaciente = false;
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private triagemService: TriagemService
   ) {
     console.log('=== CONSTRUCTOR ULTRA SEGURO ===');
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
@@ -240,10 +255,10 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
 
     this.salvando = true;
     this.statusSistema = 'Salvando dados...';
-    
+
     console.log('=== SALVANDO TRIAGEM ===');
     console.log('Dados do formulário:', this.triagemForm.value);
-    
+
     // Simular salvamento sem chamada de API real por enquanto
     setTimeout(() => {
       this.snackBar.open('Triagem salva com sucesso! (modo ultra seguro)', 'Fechar', {
@@ -251,7 +266,7 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
       });
       this.salvando = false;
       this.statusSistema = 'Triagem salva com sucesso';
-      
+
       setTimeout(() => {
         this.router.navigate(['/triagem']);
       }, 1000);
@@ -261,5 +276,87 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
   voltar() {
     console.log('Voltando para lista de triagem...');
     this.router.navigate(['/triagem']);
+  }
+
+  async carregarNomePaciente() {
+    if (this.carregandoPaciente) return;
+
+    try {
+      this.carregandoPaciente = true;
+      this.statusSistema = 'Carregando nome do paciente...';
+
+      console.log('=== CARREGANDO NOME DO PACIENTE ===');
+      console.log('Atendimento ID:', this.atendimentoId);
+
+      const dadosTriagem = await this.triagemService.obterDadosTriagem(this.atendimentoId).toPromise();
+
+      if (dadosTriagem && dadosTriagem.paciente_nome) {
+        this.nomePaciente = dadosTriagem.paciente_nome;
+        this.statusSistema = 'Nome do paciente carregado com sucesso';
+        console.log('Nome do paciente:', this.nomePaciente);
+      } else {
+        this.nomePaciente = 'Nome não encontrado';
+        this.statusSistema = 'Erro: Nome do paciente não encontrado';
+      }
+
+    } catch (error) {
+      console.error('Erro ao carregar nome do paciente:', error);
+      this.nomePaciente = 'Erro ao carregar';
+      this.statusSistema = 'Erro ao carregar nome do paciente';
+      this.snackBar.open('Erro ao carregar nome do paciente', 'Fechar', { duration: 5000 });
+    } finally {
+      this.carregandoPaciente = false;
+    }
+  }
+
+  async carregarDadosTriagemExistente() {
+    try {
+      this.statusSistema = 'Carregando dados de triagem existentes...';
+
+      console.log('=== CARREGANDO DADOS DE TRIAGEM EXISTENTES ===');
+      console.log('Atendimento ID:', this.atendimentoId);
+
+      const dadosTriagem = await this.triagemService.obterDadosTriagem(this.atendimentoId).toPromise();
+
+      if (dadosTriagem) {
+        console.log('Dados de triagem encontrados:', dadosTriagem);
+
+        // Carregar nome do paciente
+        this.nomePaciente = dadosTriagem.paciente_nome || 'Nome não encontrado';
+
+        // Carregar dados do formulário de triagem
+        this.triagemForm.patchValue({
+          // Sinais vitais
+          pressao_arterial: dadosTriagem.pressao_arterial || '',
+          temperatura: dadosTriagem.temperatura || null,
+          frequencia_cardiaca: dadosTriagem.frequencia_cardiaca || null,
+          frequencia_respiratoria: dadosTriagem.frequencia_respiratoria || null,
+          saturacao_oxigenio: dadosTriagem.saturacao_oxigenio || null,
+          peso: dadosTriagem.peso || null,
+          altura: dadosTriagem.altura || null,
+
+          // Classificação
+          classificacao_risco: dadosTriagem.classificacao_risco || '',
+
+          // Dados clínicos
+          queixa_principal: dadosTriagem.queixa_principal || '',
+          historia_atual: dadosTriagem.historia_atual || '',
+          alergias: dadosTriagem.alergias || '',
+          medicamentos_uso: dadosTriagem.medicamentos_uso || '',
+          observacoes_triagem: dadosTriagem.observacoes_triagem || ''
+        });
+
+        this.statusSistema = 'Dados de triagem carregados com sucesso - MODO EDIÇÃO';
+        this.snackBar.open('Dados de triagem carregados para edição', 'Fechar', { duration: 3000 });
+      } else {
+        this.statusSistema = 'Nenhum dado de triagem encontrado - MODO NOVO';
+        this.snackBar.open('Nenhum dado anterior encontrado. Iniciando nova triagem.', 'Fechar', { duration: 3000 });
+      }
+
+    } catch (error) {
+      console.error('Erro ao carregar dados de triagem:', error);
+      this.statusSistema = 'Erro ao carregar dados de triagem existentes';
+      this.snackBar.open('Erro ao carregar dados. Iniciando triagem vazia.', 'Fechar', { duration: 5000 });
+    }
   }
 }

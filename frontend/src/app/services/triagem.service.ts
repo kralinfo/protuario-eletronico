@@ -87,6 +87,10 @@ export class TriagemService {
     return this.http.get<PacienteTriagem[]>(`${this.baseUrl}/fila`);
   }
 
+  listarTodosAtendimentosDia(): Observable<PacienteTriagem[]> {
+    return this.http.get<PacienteTriagem[]>(`${this.baseUrl}/todos-atendimentos-dia`);
+  }
+
   obterEstatisticas(): Observable<Estatisticas> {
     return this.http.get<Estatisticas>(`${this.baseUrl}/estatisticas`);
   }

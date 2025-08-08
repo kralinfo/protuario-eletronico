@@ -44,6 +44,39 @@ class TriagemController {
     }
   }
 
+  // Listar todos os atendimentos do dia (todos os status)
+  static async listarTodosAtendimentosDia(req, res) {
+    try {
+      const pacientes = await Atendimento.listarTodosAtendimentosDia();
+
+      // Calcular tempo de espera e adicionar alertas
+      const pacientesComTempo = pacientes.map(paciente => {
+        const tempoEspera = Math.floor(
+          (new Date() - new Date(paciente.data_hora_atendimento)) / (1000 * 60)
+        );
+
+        let alerta = null;
+        if (paciente.classificacao_risco && CLASSIFICACAO_RISCO[paciente.classificacao_risco]) {
+          const tempoMax = CLASSIFICACAO_RISCO[paciente.classificacao_risco].tempo_max;
+          if (tempoEspera > tempoMax) {
+            alerta = 'tempo_excedido';
+          }
+        }
+
+        return {
+          ...paciente,
+          tempo_espera: tempoEspera,
+          alerta
+        };
+      });
+
+      res.json(pacientesComTempo);
+    } catch (error) {
+      console.error('Erro ao listar todos atendimentos do dia:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
   // Iniciar triagem de um paciente
   static async iniciarTriagem(req, res) {
     try {

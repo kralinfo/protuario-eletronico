@@ -73,6 +73,40 @@ class Atendimento {
     return result.rows;
   }
 
+  static async listarTodosAtendimentosDia() {
+    const result = await db.query(
+      `SELECT a.id, a.created_at, a.data_hora_atendimento, a.status, a.prioridade,
+              a.classificacao_risco, a.queixa_principal,
+              p.nome as paciente_nome, p.nascimento as paciente_nascimento,
+              p.sexo as paciente_sexo
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       WHERE DATE(a.data_hora_atendimento) = CURRENT_DATE
+         AND a.status IN (
+           'encaminhado para triagem',
+           'em_triagem', 
+           'encaminhado para sala médica',
+           'encaminhado para ambulatório',
+           'encaminhado para exames',
+           'em atendimento médico',
+           'aguardando exames',
+           'exames concluídos',
+           'alta médica',
+           'transferido',
+           'óbito'
+         )
+       ORDER BY 
+         CASE 
+           WHEN a.status = 'encaminhado para triagem' THEN 1
+           WHEN a.status = 'em_triagem' THEN 2
+           ELSE 3
+         END,
+         a.prioridade ASC NULLS LAST,
+         a.created_at ASC`
+    );
+    return result.rows;
+  }
+
   static async iniciarTriagem(id, usuarioId) {
     const result = await db.query(
       `UPDATE atendimentos 
