@@ -101,50 +101,67 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private fetchModules(email: string): void {
-    if (!email || this.loginForm.get('user_email')?.invalid) {
-      this.availableModules = [];
-      this.selectedModule = '';
-      this.modulesLoaded = false;
-      this.loginForm.get('modulo')?.setValue('');
-      this.loginForm.get('modulo')?.disable();
-      return;
-    }
-    this.loading = true;
-    this.http.get<{modulos: string[]}>(`${environment.apiUrl}/public/user-modules?email=${encodeURIComponent(email)}`)
-      .subscribe({
-        next: (resp) => {
-          this.availableModules = resp.modulos || [];
-          this.modulesLoaded = true;
-          const senhaValida = this.loginForm.get('user_senha')?.valid;
-          const moduloControl = this.loginForm.get('modulo');
-          if (senhaValida) {
-            if (this.availableModules.length === 1) {
-              moduloControl?.setValue(this.availableModules[0]);
-              moduloControl?.enable();
-            } else if (this.availableModules.length > 1) {
-              moduloControl?.setValue('');
-              moduloControl?.enable();
-            } else {
-              moduloControl?.setValue('');
-              moduloControl?.disable();
-            }
+  if (!email || this.loginForm.get('user_email')?.invalid) {
+    this.availableModules = [];
+    this.selectedModule = '';
+    this.modulesLoaded = false;
+    this.loginForm.get('modulo')?.setValue('');
+    this.loginForm.get('modulo')?.disable();
+    return;
+  }
+
+  this.loading = true;
+  this.errorMessage = ''; // limpa mensagens anteriores
+
+  this.http.get<{modulos: string[]}>(`${environment.apiUrl}/public/user-modules?email=${encodeURIComponent(email)}`)
+    .subscribe({
+      next: (resp) => {
+        this.availableModules = resp.modulos || [];
+        this.modulesLoaded = true;
+
+        if (this.availableModules.length === 0) {
+          // força mensagem quando não há módulos (email não cadastrado)
+          this.errorMessage = 'E-mail não encontrado na base de dados.';
+        }
+
+        const senhaValida = this.loginForm.get('user_senha')?.valid;
+        const moduloControl = this.loginForm.get('modulo');
+        if (senhaValida) {
+          if (this.availableModules.length === 1) {
+            moduloControl?.setValue(this.availableModules[0]);
+            moduloControl?.enable();
+          } else if (this.availableModules.length > 1) {
+            moduloControl?.setValue('');
+            moduloControl?.enable();
           } else {
             moduloControl?.setValue('');
             moduloControl?.disable();
           }
-          this.selectedModule = '';
-          this.loading = false;
-        },
-        error: () => {
-          this.availableModules = [];
-          this.selectedModule = '';
-          this.modulesLoaded = false;
-          this.loginForm.get('modulo')?.setValue('');
-          this.loginForm.get('modulo')?.disable();
-          this.loading = false;
+        } else {
+          moduloControl?.setValue('');
+          moduloControl?.disable();
         }
-      });
-  }
+
+        this.selectedModule = '';
+        this.loading = false;
+      },
+      error: (error) => {
+        this.availableModules = [];
+        this.selectedModule = '';
+        this.modulesLoaded = false;
+        this.loginForm.get('modulo')?.setValue('');
+        this.loginForm.get('modulo')?.disable();
+        this.loading = false;
+
+        if (error.status === 404 && error.error?.code === 'EMAIL_NOT_FOUND') {
+          this.errorMessage = 'E-mail não encontrado na base de dados.';
+        } else {
+          this.errorMessage = 'Erro ao buscar módulos. Tente novamente.';
+        }
+      }
+    });
+}
+
 
 
   ngOnInit(): void {
