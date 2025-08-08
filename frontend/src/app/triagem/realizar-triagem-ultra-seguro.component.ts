@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TriagemService } from '../services/triagem.service';
+import { TriagemEventService } from '../services/triagem-event.service';
 
 @Component({
   selector: 'app-realizar-triagem-ultra-seguro',
@@ -125,7 +126,7 @@ import { TriagemService } from '../services/triagem.service';
           <mat-card-actions>
             <button mat-raised-button color="primary" type="submit" [disabled]="!triagemForm.valid || salvando">
               <mat-icon>save</mat-icon>
-              {{salvando ? 'Salvando...' : 'Salvar Triagem'}}
+              {{salvando ? 'Finalizando...' : 'Finalizar Triagem'}}
             </button>
 
             <button mat-button type="button" (click)="voltar()">
@@ -199,7 +200,8 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
-    private triagemService: TriagemService
+    private triagemService: TriagemService,
+    private triagemEventService: TriagemEventService
   ) {
     console.log('=== CONSTRUCTOR ULTRA SEGURO ===');
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
@@ -248,11 +250,25 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
     this.statusSistema = 'Salvando dados...';
 
     try {
-      await this.triagemService.salvarTriagem(this.atendimentoId, this.triagemForm.value).toPromise();
-      this.snackBar.open('Triagem salva com sucesso!', 'Fechar', {
+      const dados = this.triagemForm.value;
+      const statusDestino = dados.status_destino;
+      
+      console.log('Salvando triagem:', dados);
+      console.log('Status de destino:', statusDestino);
+      
+      // Primeiro salvar os dados da triagem
+      await this.triagemService.salvarTriagem(this.atendimentoId, dados).toPromise();
+      
+      // Depois finalizar a triagem com o status de destino
+      await this.triagemService.finalizarTriagem(this.atendimentoId, statusDestino).toPromise();
+      
+      // Notificar que a triagem foi finalizada
+      this.triagemEventService.notificarTriagemFinalizada();
+      
+      this.snackBar.open('Triagem finalizada com sucesso!', 'Fechar', {
         duration: 3000
       });
-      this.statusSistema = 'Triagem salva com sucesso';
+      this.statusSistema = 'Triagem finalizada com sucesso';
       this.router.navigate(['/triagem']);
     } catch (error) {
       console.error('Erro ao salvar triagem:', error);
@@ -329,6 +345,7 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
 
           // Classificação
           classificacao_risco: dadosTriagem.classificacao_risco || '',
+          status_destino: dadosTriagem.status_destino || 'encaminhado para sala médica',
 
           // Dados clínicos
           queixa_principal: dadosTriagem.queixa_principal || '',

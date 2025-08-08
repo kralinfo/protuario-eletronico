@@ -28,6 +28,7 @@ export interface DadosTriagem {
   // Classificação
   classificacao_risco?: string;
   prioridade?: number;
+  status_destino?: string;
 
   // Dados clínicos
   queixa_principal?: string;

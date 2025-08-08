@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,9 +12,6 @@ import { Router } from '@angular/router';
 import { interval, Subscription, firstValueFrom } from 'rxjs';
 import { TriagemService } from '../services/triagem.service';
 import { TriagemEventService } from '../services/triagem-event.service';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
 
 interface PacienteTriagem {
   id: number;
@@ -39,15 +37,13 @@ interface Estatisticas {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatOptionModule
+    MatSnackBarModule
   ],
   template: `
     <div class="triagem-container">
@@ -89,24 +85,25 @@ interface Estatisticas {
       </div>
 
       <!-- Filtro de Status -->
-      <div class="status-filter">
-        <mat-form-field appearance="fill">
-          <mat-label>Filtrar por Status</mat-label>
-          <mat-select [(value)]="filtroStatus" (selectionChange)="carregarDados()">
-            <mat-option value="">Todos os Status</mat-option>
-            <mat-option value="encaminhado para triagem">Aguardando Triagem</mat-option>
-            <mat-option value="em_triagem">Em Triagem</mat-option>
-            <mat-option value="encaminhado para sala médica">Encaminhado para Sala Médica</mat-option>
-            <mat-option value="em atendimento médico">Em Atendimento Médico</mat-option>
-            <mat-option value="encaminhado para ambulatório">Encaminhado para Ambulatório</mat-option>
-            <mat-option value="encaminhado para exames">Encaminhado para Exames</mat-option>
-            <mat-option value="aguardando exames">Aguardando Exames</mat-option>
-            <mat-option value="exames concluídos">Exames Concluídos</mat-option>
-            <mat-option value="alta médica">Alta Médica</mat-option>
-            <mat-option value="transferido">Transferido</mat-option>
-            <mat-option value="óbito">Óbito</mat-option>
-          </mat-select>
-        </mat-form-field>
+      <div class="status-filter mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
+        <select
+          [(ngModel)]="filtroStatus"
+          (change)="carregarDados()"
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          <option value="">Todos os Status</option>
+          <option value="encaminhado para triagem">Aguardando Triagem</option>
+          <option value="em_triagem">Em Triagem</option>
+          <option value="encaminhado para sala médica">Encaminhado para Sala Médica</option>
+          <option value="em atendimento médico">Em Atendimento Médico</option>
+          <option value="encaminhado para ambulatório">Encaminhado para Ambulatório</option>
+          <option value="encaminhado para exames">Encaminhado para Exames</option>
+          <option value="aguardando exames">Aguardando Exames</option>
+          <option value="exames concluídos">Exames Concluídos</option>
+          <option value="alta médica">Alta Médica</option>
+          <option value="transferido">Transferido</option>
+          <option value="óbito">Óbito</option>
+        </select>
       </div>
 
       <!-- Lista de Pacientes -->
@@ -156,7 +153,7 @@ interface Estatisticas {
 
           <mat-card-actions>
             <!-- Iniciar Triagem - apenas para status "encaminhado para triagem" -->
-            <button *ngIf="paciente.status === 'encaminhado para triagem' || paciente.status === '1 - Aguardando triagem'"
+            <button *ngIf="paciente.status === 'encaminhado para triagem'"
                     mat-raised-button
                     color="primary"
                     (click)="iniciarTriagem(paciente)">
@@ -165,18 +162,9 @@ interface Estatisticas {
             </button>
 
             <!-- Em Triagem - mostrar botão para continuar/editar -->
-            <button *ngIf="paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem'"
+            <button *ngIf="paciente.status === 'em_triagem' || paciente.status === 'em triagem'"
                     mat-raised-button
                     color="accent"
-                    (click)="continuarTriagem(paciente)">
-              <mat-icon>edit</mat-icon>
-              Continuar Triagem
-            </button>
-
-            <!-- Continuar Triagem - para status de triagem concluída -->
-            <button *ngIf="paciente.status === 'encaminhado para sala médica' || paciente.status === 'encaminhado para ambulatório' || paciente.status === 'encaminhado para exames' || paciente.status === '3 - Triagem concluída'"
-                    mat-raised-button
-                    color="warn"
                     (click)="continuarTriagem(paciente)">
               <mat-icon>edit</mat-icon>
               Continuar Triagem
