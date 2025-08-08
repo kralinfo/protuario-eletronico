@@ -407,7 +407,9 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       });
 
       console.log('Navegando para tela de triagem para continuação...');
-      this.router.navigate(['/triagem/realizar', paciente.id]);
+      this.router.navigate(['/triagem/realizar', paciente.id], {
+        state: { modoEdicao: true }
+      });
     } catch (error) {
       console.error('Erro ao continuar triagem:', error);
       this.snackBar.open('Erro ao continuar triagem', 'Fechar', {

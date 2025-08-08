@@ -215,6 +215,9 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
     // Carregar automaticamente o nome do paciente para o título
     this.carregarNomePaciente();
 
+    // Sempre carregar os dados da triagem existente com base no atendimentoId
+    this.carregarDadosTriagemExistente();
+
     console.log('Componente pronto - Carregando nome do paciente automaticamente');
   }
 
