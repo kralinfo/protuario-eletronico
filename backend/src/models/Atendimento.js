@@ -34,11 +34,13 @@ class Atendimento {
       'recepcao',
       'encaminhado para triagem',
       'em_triagem',
+      'triagem_finalizada',
       'encaminhado para sala médica',
       'em atendimento médico',
       'encaminhado para ambulatório',
       'em atendimento ambulatorial',
-      'encaminhado para exames'
+      'encaminhado para exames',
+      'atendimento_concluido'
     ];
 
     if (!validStatuses.includes(status)) {
@@ -110,15 +112,15 @@ class Atendimento {
     return result.rows[0];
   }
 
-  static async finalizarTriagem(id) {
+  static async finalizarTriagem(id, statusDestino = 'encaminhado para sala médica') {
     const result = await db.query(
       `UPDATE atendimentos 
-       SET status = 'triagem_finalizada',
+       SET status = $2,
            data_fim_triagem = CURRENT_TIMESTAMP,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 AND status = 'em_triagem'
        RETURNING *`,
-      [id]
+      [id, statusDestino]
     );
     return result.rows[0];
   }

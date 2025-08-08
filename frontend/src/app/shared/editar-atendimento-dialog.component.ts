@@ -149,7 +149,7 @@ export class EditarAtendimentoDialogComponent {
     // Preencher campos com dados atuais
     this.motivo = data.atendimento.motivo || '';
     this.observacoes = data.atendimento.observacao || '';
-    this.status = data.atendimento.status || 'recepcao';
+    this.status = data.atendimento.status || 'encaminhado para triagem';
     this.procedencia = data.atendimento.procedimento || '';
     this.acompanhante = data.atendimento.acompanhante || '';
   }

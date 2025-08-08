@@ -87,7 +87,7 @@ const registrar = async (req, res) => {
       observacoes, 
       acompanhante, 
       procedencia, 
-      status, 
+      status: status || 'encaminhado para triagem', // Garante status correto
       motivo_interrupcao 
     });
     return res.status(201).json(atendimento);

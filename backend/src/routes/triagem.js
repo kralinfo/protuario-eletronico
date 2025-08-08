@@ -15,6 +15,9 @@ router.get('/estatisticas', triagemAuth, TriagemController.obterEstatisticas);
 // Obter configurações de classificação de risco
 router.get('/classificacao-risco', triagemAuth, TriagemController.obterClassificacaoRisco);
 
+// Obter opções de status de destino
+router.get('/status-destino', triagemAuth, TriagemController.obterStatusDestino);
+
 // === ROTAS DE ATENDIMENTO ===
 
 // Iniciar triagem de um paciente

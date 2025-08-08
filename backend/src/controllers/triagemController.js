@@ -159,7 +159,9 @@ class TriagemController {
         });
       }
 
-      const atendimento = await Atendimento.finalizarTriagem(id);
+      const { status_destino = 'encaminhado para sala médica' } = req.body;
+
+      const atendimento = await Atendimento.finalizarTriagem(id, status_destino);
       
       if (!atendimento) {
         return res.status(404).json({ 
@@ -168,7 +170,7 @@ class TriagemController {
       }
 
       res.json({
-        message: 'Triagem finalizada com sucesso. Paciente agora está com status triagem_finalizada.',
+        message: `Triagem finalizada com sucesso. Paciente encaminhado para: ${status_destino}`,
         atendimento
       });
     } catch (error) {
@@ -198,6 +200,18 @@ class TriagemController {
     res.json(CLASSIFICACAO_RISCO);
   }
 
+  // Obter opções de status de destino após triagem
+  static async obterStatusDestino(req, res) {
+    const statusDestino = {
+      'encaminhado para sala médica': 'Encaminhado para Sala Médica',
+      'encaminhado para ambulatório': 'Encaminhado para Ambulatório', 
+      'encaminhado para exames': 'Encaminhado para Exames',
+      'atendimento_concluido': 'Atendimento Concluído (Alta)'
+    };
+    
+    res.json(statusDestino);
+  }
+
   // Obter estatísticas para dashboard
   static async obterEstatisticas(req, res) {
     try {
@@ -218,10 +232,10 @@ class TriagemController {
       );
       const pacientesEmTriagem = parseInt(emTriagemQuery.rows[0].total) || 0;
       
-      // 3. Triagens concluídas hoje
+      // 3. Triagens concluídas hoje (baseado na data_fim_triagem)
       const concluidasQuery = await db.query(
         `SELECT COUNT(*) as total FROM atendimentos 
-         WHERE status = 'triagem_finalizada' 
+         WHERE data_fim_triagem IS NOT NULL 
          AND DATE(data_fim_triagem) = CURRENT_DATE`
       );
       const triagensConcluidasHoje = parseInt(concluidasQuery.rows[0].total) || 0;

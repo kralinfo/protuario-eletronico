@@ -69,6 +69,10 @@ export interface ClassificacaoRisco {
   };
 }
 
+export interface StatusDestino {
+  [key: string]: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -101,14 +105,19 @@ export class TriagemService {
     return this.http.put(`${this.baseUrl}/${atendimentoId}/salvar`, dados);
   }
 
-  finalizarTriagem(atendimentoId: number): Observable<any> {
-    return this.http.post(`${this.baseUrl}/${atendimentoId}/finalizar`, {});
+  finalizarTriagem(atendimentoId: number, statusDestino?: string): Observable<any> {
+    const body = statusDestino ? { status_destino: statusDestino } : {};
+    return this.http.post(`${this.baseUrl}/${atendimentoId}/finalizar`, body);
   }
 
   // === CONFIGURAÇÕES ===
 
   obterClassificacaoRisco(): Observable<ClassificacaoRisco> {
     return this.http.get<ClassificacaoRisco>(`${this.baseUrl}/classificacao-risco`);
+  }
+
+  obterStatusDestino(): Observable<StatusDestino> {
+    return this.http.get<StatusDestino>(`${this.baseUrl}/status-destino`);
   }
 
   // === RELATÓRIOS ===
