@@ -14,6 +14,7 @@ import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.co
 import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 import { FilaTriagemComponent } from './triagem/fila-triagem.component';
 import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.component';
+import { RealizarTriagemUltraSeguroComponent } from './triagem/realizar-triagem-ultra-seguro.component';
 
 const routes: Routes = [
   {
@@ -141,13 +142,13 @@ const routes: Routes = [
   },
   {
     path: 'triagem/realizar/:id',
-    component: RealizarTriagemComponent,
+    component: RealizarTriagemUltraSeguroComponent,
     canActivate: [AuthGuard, ModuloGuard],
     data: {
       modulo: 'triagem',
       breadcrumb: 'Realizar Triagem',
       icon: 'assignment',
-      title: 'Realizar Triagem',
+      title: 'Realizar Triagem (Ultra Seguro)',
       parent: 'triagem'
     }
   },

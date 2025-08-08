@@ -54,7 +54,7 @@ interface Estatisticas {
       <div class="stats-cards">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-number">{{estatisticas.pacientes_aguardando}}</div>
+            <div class="stat-number">{{contarPacientesAguardando()}}</div>
             <div class="stat-label">Aguardando Triagem</div>
           </mat-card-content>
         </mat-card>
@@ -476,6 +476,33 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  // Métodos para contar pacientes por status
+  contarPacientesAguardando(): number {
+    return this.pacientes.filter(p => 
+      p.status === 'encaminhado para triagem' || 
+      p.status === '1 - Encaminhado para triagem'
+    ).length;
+  }
+
+  contarPacientesEmTriagem(): number {
+    return this.pacientes.filter(p => 
+      p.status === 'em_triagem' || 
+      p.status === 'em triagem' || 
+      p.status === '2 - Em triagem'
+    ).length;
+  }
+
+  contarTriagensConcluidas(): number {
+    return this.pacientes.filter(p => 
+      p.status === 'encaminhado para sala médica' || 
+      p.status === 'encaminhado para ambulatório' || 
+      p.status === 'encaminhado para exames' ||
+      p.status === '3 - Encaminhado para sala médica' ||
+      p.status === '5 - Encaminhado para ambulatório' ||
+      p.status === '7 - Encaminhado para exames'
+    ).length;
   }
 
   getClassificacaoArray(): Array<{key: string, value: number}> {
