@@ -23,6 +23,7 @@ interface PacienteTriagem {
   classificacao_risco?: string;
   queixa_principal?: string;
   tempo_espera: number;
+  tempo_espera_formatado?: string;
   alerta?: string;
 }
 
@@ -63,7 +64,7 @@ interface Estatisticas {
 
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-number">{{estatisticas.tempo_medio_espera}}min</div>
+            <div class="stat-number">{{formatarTempo(estatisticas.tempo_medio_espera)}}</div>
             <div class="stat-label">Tempo Médio Espera</div>
           </mat-card-content>
         </mat-card>
@@ -128,7 +129,7 @@ interface Estatisticas {
             <div class="patient-info">
               <div class="info-row">
                 <mat-icon>schedule</mat-icon>
-                <span>Espera: {{paciente.tempo_espera}} minutos</span>
+                <span>Tempo em espera desde o atendimento: {{formatarTempo(paciente.tempo_espera)}}</span>
                 <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'"
                          class="alert-icon">warning</mat-icon>
               </div>
@@ -178,7 +179,7 @@ interface Estatisticas {
         </mat-card>
 
         <!-- Mensagem quando não há pacientes -->
-        <div *ngIf="pacientes.length === 0" class="no-patients">
+  <div *ngIf="pacientes.length === 0" class="no-patients">
           <mat-icon>check_circle</mat-icon>
           <h3>Nenhum paciente aguardando triagem</h3>
           <p>Todos os pacientes foram atendidos ou não há novos atendimentos.</p>
@@ -194,6 +195,9 @@ interface Estatisticas {
     </div>
   `,
   styles: [`
+    :host {
+      --card-col-min: 420px; /* largura mínima das colunas/cards e do filtro */
+    }
     .triagem-container {
       padding: 20px;
       max-width: 1200px;
@@ -250,7 +254,7 @@ interface Estatisticas {
 
     .patients-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(var(--card-col-min), 1fr));
       gap: 15px;
     }
 
@@ -301,14 +305,14 @@ interface Estatisticas {
       font-weight: bold;
     }
 
-    .no-pacientes {
+  .no-patients {
       text-align: center;
       padding: 40px;
       color: #666;
       grid-column: 1 / -1;
     }
 
-    .no-pacientes mat-icon {
+  .no-patients mat-icon {
       font-size: 48px;
       color: #48bb78;
       margin-bottom: 10px;
@@ -573,5 +577,18 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
   getClassificacaoArray(): Array<{key: string, value: number}> {
     return Object.entries(this.estatisticas.por_classificacao)
       .map(([key, value]) => ({key, value}));
+  }
+
+  // Formata minutos em "Xh Ymin" sempre que possível; garante saída consistente mesmo sem back-end formatado
+  formatarTempo(minutos?: number | null): string {
+    if (minutos === null || minutos === undefined || isNaN(minutos as any)) {
+      return '-';
+    }
+    const total = Math.max(0, Math.round(minutos));
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    if (h > 0 && m > 0) return `${h}h ${m}min`;
+    if (h > 0) return `${h}h`;
+    return `${m} min`;
   }
 }

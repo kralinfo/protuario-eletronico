@@ -10,6 +10,20 @@ const CLASSIFICACAO_RISCO = {
   'azul': { prioridade: 5, tempo_max: 240, descricao: 'Não urgente' }
 };
 
+// Função para formatar tempo em horas e minutos
+function formatarTempoEspera(minutosTotais) {
+  const horas = Math.floor(minutosTotais / 60);
+  const minutos = minutosTotais % 60;
+  
+  if (horas === 0) {
+    return `${minutos} min`;
+  } else if (minutos === 0) {
+    return `${horas}h`;
+  } else {
+    return `${horas}h ${minutos}min`;
+  }
+}
+
 class TriagemController {
   // Listar pacientes na fila de triagem
   static async listarFilaTriagem(req, res) {
@@ -18,21 +32,22 @@ class TriagemController {
 
       // Calcular tempo de espera e adicionar alertas
       const pacientesComTempo = pacientes.map(paciente => {
-        const tempoEspera = Math.floor(
+        const tempoEsperaMinutos = Math.floor(
           (new Date() - new Date(paciente.data_hora_atendimento)) / (1000 * 60)
         );
 
         let alerta = null;
         if (paciente.classificacao_risco && CLASSIFICACAO_RISCO[paciente.classificacao_risco]) {
           const tempoMax = CLASSIFICACAO_RISCO[paciente.classificacao_risco].tempo_max;
-          if (tempoEspera > tempoMax) {
+          if (tempoEsperaMinutos > tempoMax) {
             alerta = 'tempo_excedido';
           }
         }
 
         return {
           ...paciente,
-          tempo_espera: tempoEspera,
+          tempo_espera: tempoEsperaMinutos,
+          tempo_espera_formatado: formatarTempoEspera(tempoEsperaMinutos),
           alerta
         };
       });
@@ -51,21 +66,22 @@ class TriagemController {
 
       // Calcular tempo de espera e adicionar alertas
       const pacientesComTempo = pacientes.map(paciente => {
-        const tempoEspera = Math.floor(
+        const tempoEsperaMinutos = Math.floor(
           (new Date() - new Date(paciente.data_hora_atendimento)) / (1000 * 60)
         );
 
         let alerta = null;
         if (paciente.classificacao_risco && CLASSIFICACAO_RISCO[paciente.classificacao_risco]) {
           const tempoMax = CLASSIFICACAO_RISCO[paciente.classificacao_risco].tempo_max;
-          if (tempoEspera > tempoMax) {
+          if (tempoEsperaMinutos > tempoMax) {
             alerta = 'tempo_excedido';
           }
         }
 
         return {
           ...paciente,
-          tempo_espera: tempoEspera,
+          tempo_espera: tempoEsperaMinutos,
+          tempo_espera_formatado: formatarTempoEspera(tempoEsperaMinutos),
           alerta
         };
       });

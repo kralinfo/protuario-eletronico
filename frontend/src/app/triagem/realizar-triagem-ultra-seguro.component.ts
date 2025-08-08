@@ -252,19 +252,19 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
     try {
       const dados = this.triagemForm.value;
       const statusDestino = dados.status_destino;
-      
+
       console.log('Salvando triagem:', dados);
       console.log('Status de destino:', statusDestino);
-      
+
       // Primeiro salvar os dados da triagem
       await this.triagemService.salvarTriagem(this.atendimentoId, dados).toPromise();
-      
+
       // Depois finalizar a triagem com o status de destino
       await this.triagemService.finalizarTriagem(this.atendimentoId, statusDestino).toPromise();
-      
+
       // Notificar que a triagem foi finalizada
       this.triagemEventService.notificarTriagemFinalizada();
-      
+
       this.snackBar.open('Triagem finalizada com sucesso!', 'Fechar', {
         duration: 3000
       });

@@ -12,6 +12,7 @@ export interface PacienteTriagem {
   classificacao_risco?: string;
   queixa_principal?: string;
   tempo_espera: number;
+  tempo_espera_formatado?: string;
   alerta?: string;
 }
 
