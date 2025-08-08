@@ -11,6 +11,9 @@ import { Router } from '@angular/router';
 import { interval, Subscription, firstValueFrom } from 'rxjs';
 import { TriagemService } from '../services/triagem.service';
 import { TriagemEventService } from '../services/triagem-event.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 
 interface PacienteTriagem {
   id: number;
@@ -41,7 +44,10 @@ interface Estatisticas {
     MatIconModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatOptionModule
   ],
   template: `
     <div class="triagem-container">
@@ -80,6 +86,27 @@ interface Estatisticas {
             </div>
           </mat-card-content>
         </mat-card>
+      </div>
+
+      <!-- Filtro de Status -->
+      <div class="status-filter">
+        <mat-form-field appearance="fill">
+          <mat-label>Filtrar por Status</mat-label>
+          <mat-select [(value)]="filtroStatus" (selectionChange)="carregarDados()">
+            <mat-option value="">Todos os Status</mat-option>
+            <mat-option value="encaminhado para triagem">Aguardando Triagem</mat-option>
+            <mat-option value="em_triagem">Em Triagem</mat-option>
+            <mat-option value="encaminhado para sala médica">Encaminhado para Sala Médica</mat-option>
+            <mat-option value="em atendimento médico">Em Atendimento Médico</mat-option>
+            <mat-option value="encaminhado para ambulatório">Encaminhado para Ambulatório</mat-option>
+            <mat-option value="encaminhado para exames">Encaminhado para Exames</mat-option>
+            <mat-option value="aguardando exames">Aguardando Exames</mat-option>
+            <mat-option value="exames concluídos">Exames Concluídos</mat-option>
+            <mat-option value="alta médica">Alta Médica</mat-option>
+            <mat-option value="transferido">Transferido</mat-option>
+            <mat-option value="óbito">Óbito</mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
 
       <!-- Lista de Pacientes -->
@@ -229,6 +256,10 @@ interface Estatisticas {
       font-weight: bold;
     }
 
+    .status-filter {
+      margin-bottom: 20px;
+    }
+
     .patients-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -282,14 +313,14 @@ interface Estatisticas {
       font-weight: bold;
     }
 
-    .no-patients {
+    .no-pacientes {
       text-align: center;
       padding: 40px;
       color: #666;
       grid-column: 1 / -1;
     }
 
-    .no-patients mat-icon {
+    .no-pacientes mat-icon {
       font-size: 48px;
       color: #48bb78;
       margin-bottom: 10px;
@@ -310,6 +341,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     tempo_medio_espera: 0
   };
   carregando = true;
+  filtroStatus: string = 'encaminhado para triagem'; // Ajustado para corresponder ao valor retornado pela API
 
   private atualizacaoSubscription?: Subscription;
 
@@ -357,8 +389,13 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
         firstValueFrom(this.triagemService.obterEstatisticas())
       ]);
 
-      // Agora recebemos todos os atendimentos do dia, independente do status
-      this.pacientes = (pacientes as PacienteTriagem[]) || [];
+      console.log('Pacientes retornados pela API:', pacientes);
+
+      // Filtrar os pacientes com base no filtroStatus
+      this.pacientes = (pacientes as PacienteTriagem[]).filter(paciente =>
+        this.filtroStatus === '' || paciente.status === this.filtroStatus
+      ) || [];
+
       this.estatisticas = (estatisticas as Estatisticas) || this.estatisticas;
     } catch (error) {
       console.error('Erro ao carregar dados da triagem:', error);
