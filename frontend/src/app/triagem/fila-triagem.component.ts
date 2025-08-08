@@ -250,6 +250,13 @@ interface Estatisticas {
 
     .status-filter {
       margin-bottom: 20px;
+      width: 49.5%;
+    }
+
+    @media (max-width: 600px) {
+      .status-filter {
+        width: 100%;
+      }
     }
 
     .patients-list {
