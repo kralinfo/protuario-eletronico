@@ -43,30 +43,16 @@ import { TriagemService } from '../services/triagem.service';
       </div>
 
       <!-- Status do Sistema -->
-      <mat-card class="status-card">
-        <mat-card-content>
-          <h3>Status: {{statusSistema}}</h3>
-          <p>Atendimento ID: {{atendimentoId}}</p>
-          <p>Paciente: {{nomePaciente}}</p>
-          <p>Componente carregado: {{componenteCarregado ? 'SIM' : 'NÃO'}}</p>
-
-          <button mat-button color="primary" (click)="carregarNomePaciente()" [disabled]="carregandoPaciente">
-            <mat-icon>refresh</mat-icon>
-            {{carregandoPaciente ? 'Carregando...' : 'Carregar Nome do Paciente'}}
-          </button>
-
-          <button mat-button color="accent" (click)="carregarDadosTriagemExistente()">
-            <mat-icon>edit</mat-icon>
-            Carregar Dados Existentes
-          </button>
-        </mat-card-content>
-      </mat-card>
+      <!-- Card removido - carregamento automático implementado -->
 
       <!-- Formulário Ultra Simples -->
       <form [formGroup]="triagemForm" (ngSubmit)="salvarTriagem()">
         <mat-card class="form-card">
           <mat-card-header>
             <mat-card-title>Dados da Triagem</mat-card-title>
+            <mat-card-subtitle>
+              <!-- Removed button with edit icon -->
+            </mat-card-subtitle>
           </mat-card-header>
 
           <mat-card-content>
@@ -224,10 +210,12 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
 
   ngOnInit() {
     console.log('=== NgOnInit ULTRA SEGURO ===');
-    // NÃO fazer NENHUMA chamada de API automaticamente
-    this.statusSistema = 'Componente carregado com sucesso';
     this.componenteCarregado = true;
-    console.log('Componente pronto - SEM chamadas automáticas de API');
+
+    // Carregar automaticamente o nome do paciente para o título
+    this.carregarNomePaciente();
+
+    console.log('Componente pronto - Carregando nome do paciente automaticamente');
   }
 
   private criarFormulario(): FormGroup {
@@ -245,7 +233,7 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
     });
   }
 
-  salvarTriagem() {
+  async salvarTriagem() {
     if (!this.triagemForm.valid) {
       this.snackBar.open('Por favor, preencha todos os campos obrigatórios', 'Fechar', {
         duration: 5000
@@ -256,21 +244,22 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
     this.salvando = true;
     this.statusSistema = 'Salvando dados...';
 
-    console.log('=== SALVANDO TRIAGEM ===');
-    console.log('Dados do formulário:', this.triagemForm.value);
-
-    // Simular salvamento sem chamada de API real por enquanto
-    setTimeout(() => {
-      this.snackBar.open('Triagem salva com sucesso! (modo ultra seguro)', 'Fechar', {
+    try {
+      await this.triagemService.salvarTriagem(this.atendimentoId, this.triagemForm.value).toPromise();
+      this.snackBar.open('Triagem salva com sucesso!', 'Fechar', {
         duration: 3000
       });
-      this.salvando = false;
       this.statusSistema = 'Triagem salva com sucesso';
-
-      setTimeout(() => {
-        this.router.navigate(['/triagem']);
-      }, 1000);
-    }, 2000);
+      this.router.navigate(['/triagem']);
+    } catch (error) {
+      console.error('Erro ao salvar triagem:', error);
+      this.snackBar.open('Erro ao salvar triagem. Tente novamente.', 'Fechar', {
+        duration: 5000
+      });
+      this.statusSistema = 'Erro ao salvar triagem';
+    } finally {
+      this.salvando = false;
+    }
   }
 
   voltar() {
