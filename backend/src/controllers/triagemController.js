@@ -1,4 +1,5 @@
 import Atendimento from '../models/Atendimento.js';
+import db from '../config/database.js';
 
 // Classificação de risco baseada no Protocolo Manchester
 const CLASSIFICACAO_RISCO = {
@@ -49,6 +50,10 @@ class TriagemController {
       const { id } = req.params;
       const usuario_id = req.user?.id; // Pegar do token JWT
 
+      // Debug logs
+      console.log('[INICIAR TRIAGEM DEBUG] req.user:', req.user);
+      console.log('[INICIAR TRIAGEM DEBUG] usuario_id:', usuario_id);
+
       if (!usuario_id) {
         return res.status(400).json({ error: 'ID do usuário é obrigatório' });
       }
@@ -57,7 +62,7 @@ class TriagemController {
 
       if (!atendimento) {
         return res.status(404).json({ 
-          error: 'Atendimento não encontrado ou não está no status "encaminhado para triagem"' 
+          error: 'Atendimento não encontrado ou não está disponível para triagem' 
         });
       }
 
@@ -188,47 +193,6 @@ class TriagemController {
     }
   }
 
-  // Obter estatísticas da triagem
-  static async obterEstatisticas(req, res) {
-    try {
-      const { data_inicio, data_fim } = req.query;
-      
-      // Aqui você pode implementar queries específicas para estatísticas
-      // Por enquanto, vou retornar dados básicos da fila
-      const filaTriagem = await Atendimento.listarFilaTriagem();
-      
-      const estatisticas = {
-        pacientes_aguardando: filaTriagem.length,
-        por_classificacao: {},
-        tempo_medio_espera: 0
-      };
-
-      // Contar por classificação de risco
-      filaTriagem.forEach(paciente => {
-        const classificacao = paciente.classificacao_risco || 'sem_classificacao';
-        estatisticas.por_classificacao[classificacao] = 
-          (estatisticas.por_classificacao[classificacao] || 0) + 1;
-      });
-
-      // Calcular tempo médio de espera
-      if (filaTriagem.length > 0) {
-        const tempoTotal = filaTriagem.reduce((acc, paciente) => {
-          const tempoEspera = Math.floor(
-            (new Date() - new Date(paciente.data_hora_atendimento)) / (1000 * 60)
-          );
-          return acc + tempoEspera;
-        }, 0);
-        
-        estatisticas.tempo_medio_espera = Math.round(tempoTotal / filaTriagem.length);
-      }
-
-      res.json(estatisticas);
-    } catch (error) {
-      console.error('Erro ao obter estatísticas:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  }
-
   // Obter configurações de classificação de risco
   static async obterClassificacaoRisco(req, res) {
     res.json(CLASSIFICACAO_RISCO);
@@ -237,43 +201,51 @@ class TriagemController {
   // Obter estatísticas para dashboard
   static async obterEstatisticas(req, res) {
     try {
-      // Buscar todos os atendimentos relevantes
-      const filaTriagem = await Atendimento.listarFilaTriagem();
-      const hoje = new Date().toISOString().split('T')[0];
+      console.log('🔍 Iniciando cálculo de estatísticas...');
       
-      console.log('Estatísticas - Fila de triagem:', filaTriagem.length, 'pacientes');
-      console.log('Status dos pacientes:', filaTriagem.map(p => ({ id: p.id, status: p.status, nome: p.paciente_nome })));
+      // 1. Pacientes aguardando triagem (hoje)
+      const aguardandoQuery = await db.query(
+        `SELECT COUNT(*) as total FROM atendimentos 
+         WHERE status = 'encaminhado para triagem' 
+         AND DATE(data_hora_atendimento) = CURRENT_DATE`
+      );
+      const pacientesAguardando = parseInt(aguardandoQuery.rows[0].total) || 0;
       
-      // Estatísticas básicas
-      // Pacientes aguardando = recepcao + triagem (não incluir em_triagem)
-      const pacientesAguardando = filaTriagem.filter(p => 
-        p.status === 'encaminhado_para_triagem' || p.status === 'em_triagem'
-      ).length;
+      // 2. Pacientes em triagem (qualquer data, ainda não finalizados)
+      const emTriagemQuery = await db.query(
+        `SELECT COUNT(*) as total FROM atendimentos 
+         WHERE status = 'em_triagem'`
+      );
+      const pacientesEmTriagem = parseInt(emTriagemQuery.rows[0].total) || 0;
       
-      // Pacientes em triagem = apenas os que estão sendo atendidos
-      const pacientesEmTriagem = filaTriagem.filter(p => p.status === 'em_triagem').length;
+      // 3. Triagens concluídas hoje
+      const concluidasQuery = await db.query(
+        `SELECT COUNT(*) as total FROM atendimentos 
+         WHERE status = 'triagem_finalizada' 
+         AND DATE(data_fim_triagem) = CURRENT_DATE`
+      );
+      const triagensConcluidasHoje = parseInt(concluidasQuery.rows[0].total) || 0;
       
-      // Total de pacientes na fila (todos os status relevantes)
-      const totalAguardando = pacientesAguardando;
-      
-      // Triagens concluídas hoje
-      const triagensConcluidas = await Atendimento.listarTriagensRealizadas(null, hoje, hoje);
-      
-      console.log('Triagens concluídas hoje:', triagensConcluidas?.length || 0);
-      
-      // Tempo médio de espera (calcular baseado na fila atual)
+      // 4. Tempo médio de espera (apenas pacientes aguardando hoje)
       let tempoMedioEspera = 0;
-      if (filaTriagem.length > 0) {
-        const totalTempo = filaTriagem.reduce((total, paciente) => {
-          const tempoEspera = Math.floor(
-            (new Date() - new Date(paciente.data_hora_atendimento)) / (1000 * 60)
-          );
-          return total + tempoEspera;
-        }, 0);
-        tempoMedioEspera = totalTempo / filaTriagem.length;
+      if (pacientesAguardando > 0) {
+        const tempoQuery = await db.query(
+          `SELECT AVG(EXTRACT(EPOCH FROM (NOW() - data_hora_atendimento))/60) as tempo_medio
+           FROM atendimentos 
+           WHERE status = 'encaminhado para triagem' 
+           AND DATE(data_hora_atendimento) = CURRENT_DATE`
+        );
+        tempoMedioEspera = Math.round(parseFloat(tempoQuery.rows[0].tempo_medio) || 0);
       }
       
-      // Classificação de risco (contar quantos de cada tipo)
+      // 5. Por classificação de risco (todos em fila + em triagem)
+      const classificacaoQuery = await db.query(
+        `SELECT classificacao_risco, COUNT(*) as total
+         FROM atendimentos 
+         WHERE status IN ('encaminhado para triagem', 'em_triagem')
+         GROUP BY classificacao_risco`
+      );
+      
       const classificacaoRisco = {
         vermelho: 0,
         laranja: 0,
@@ -282,25 +254,25 @@ class TriagemController {
         azul: 0
       };
       
-      filaTriagem.forEach(paciente => {
-        if (paciente.classificacao_risco && classificacaoRisco.hasOwnProperty(paciente.classificacao_risco)) {
-          classificacaoRisco[paciente.classificacao_risco]++;
+      classificacaoQuery.rows.forEach(row => {
+        if (row.classificacao_risco && classificacaoRisco.hasOwnProperty(row.classificacao_risco)) {
+          classificacaoRisco[row.classificacao_risco] = parseInt(row.total);
         }
       });
       
       const estatisticas = {
-        pacientes_aguardando: totalAguardando, // Total na fila (recepcao + aguardando_triagem)
-        pacientes_em_triagem: pacientesEmTriagem, // Apenas os que estão sendo atendidos
-        triagens_concluidas: triagensConcluidas?.length || 0,
-        tempo_medio_espera: Math.round(tempoMedioEspera),
+        pacientes_aguardando: pacientesAguardando,
+        pacientes_em_triagem: pacientesEmTriagem,
+        triagens_concluidas: triagensConcluidasHoje,
+        tempo_medio_espera: tempoMedioEspera,
         por_classificacao: classificacaoRisco
       };
       
-      console.log('Estatísticas calculadas:', estatisticas);
+      console.log('📊 Estatísticas calculadas:', estatisticas);
       
       res.json(estatisticas);
     } catch (error) {
-      console.error('Erro ao obter estatísticas:', error);
+      console.error('❌ Erro ao obter estatísticas:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   }

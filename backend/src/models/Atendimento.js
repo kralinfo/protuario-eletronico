@@ -2,7 +2,7 @@ import db from '../config/database.js';
 
 
 class Atendimento {
-  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'recepcao', motivo_interrupcao = 'N/A' }) {
+  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'encaminhado para triagem', motivo_interrupcao = 'N/A' }) {
     const result = await db.query(
       `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia, data_hora_atendimento)
        VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) RETURNING *`,
@@ -31,8 +31,9 @@ class Atendimento {
 
   static async atualizarStatus(id, status, motivo_interrupcao = 'N/A') {
     const validStatuses = [
+      'recepcao',
       'encaminhado para triagem',
-      'em triagem',
+      'em_triagem',
       'encaminhado para sala médica',
       'em atendimento médico',
       'encaminhado para ambulatório',
@@ -61,7 +62,7 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.status IN ('encaminhado_para_triagem', '1 - Encaminhado para triagem', 'encaminhado para triagem')
+       WHERE a.status = 'encaminhado para triagem'
          AND DATE(a.data_hora_atendimento) = CURRENT_DATE
        ORDER BY 
          a.prioridade ASC NULLS LAST,
@@ -73,7 +74,7 @@ class Atendimento {
   static async iniciarTriagem(id, usuarioId) {
     const result = await db.query(
       `UPDATE atendimentos 
-       SET status = 'em triagem', 
+       SET status = 'em_triagem', 
            triagem_realizada_por = $2,
            data_inicio_triagem = CURRENT_TIMESTAMP,
            updated_at = CURRENT_TIMESTAMP
