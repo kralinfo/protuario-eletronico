@@ -66,7 +66,7 @@
           </h3>
           <p class="text-blue-100 text-sm">Gerencie a fila de pacientes</p>
         </div>
-        
+
         <div class="flex justify-between mb-4">
           <div class="text-center">
             <p class="text-2xl font-bold">{{estatisticas.pacientes_aguardando}}</p>
@@ -77,34 +77,88 @@
             <p class="text-xs text-blue-100">Em Triagem</p>
           </div>
         </div>
-        
-        <button (click)="irParaFilaTriagem()" 
+
+        <button (click)="irParaFilaTriagem()"
                 class="w-full bg-white text-blue-600 px-4 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center">
           <mat-icon class="mr-2">arrow_forward</mat-icon>
           Acessar Fila
         </button>
+
+        <!-- Preview compacto da fila (Disponíveis para iniciar) -->
+        <div class="mt-4 bg-white/10 rounded p-3" *ngIf="filaDisponiveisPreview && filaDisponiveisPreview.length">
+          <div class="text-sm text-blue-100 mb-2 flex items-center">
+            <mat-icon class="mr-2">visibility</mat-icon>
+            Disponíveis para iniciar (top {{filaDisponiveisPreview.length}})
+          </div>
+          <ul class="space-y-2">
+            <li *ngFor="let p of filaDisponiveisPreview"
+                (click)="abrirItemFila(p)"
+                class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+              <div class="truncate mr-3">
+                <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
+                <div class="text-xs text-blue-100 truncate">{{getDescricaoStatus(p.status)}}</div>
+              </div>
+              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
+                {{formatarTempo(p.tempo_espera)}}
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
 
-      <!-- Segunda coluna - Cadastros -->
-      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
-          <mat-icon class="mr-2 text-gray-600">person_add</mat-icon>
-          Cadastros
-        </h3>
-        
-        <div class="space-y-3">
-          <button (click)="irParaPacientes()" 
-                  class="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center">
-            <mat-icon class="mr-2">person_add</mat-icon>
-            Cadastrar Paciente
-          </button>
-          
-          <button (click)="abrirProtocoloManchester()" 
-                  class="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center">
-            <mat-icon class="mr-2">info_outline</mat-icon>
-            Protocolo de Manchester
-          </button>
+      <!-- Segunda coluna - Pós-triagem -->
+      <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg shadow-lg p-6 text-white">
+        <div class="mb-4">
+          <h3 class="text-lg font-bold mb-2 flex items-center">
+            <mat-icon class="mr-2">assignment</mat-icon>
+            Pós-triagem
+          </h3>
+          <p class="text-purple-100 text-sm">Acompanhe pacientes encaminhados e em triagem</p>
         </div>
+
+        <div class="flex justify-between mb-4">
+          <div class="text-center">
+            <p class="text-2xl font-bold">{{posEncaminhados}}</p>
+            <p class="text-xs text-purple-100">Encaminhados</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold">{{posEmAtendimento}}</p>
+            <p class="text-xs text-purple-100">Em Atendimento</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold">{{(posEncaminhados + posEmAtendimento)}}</p>
+            <p class="text-xs text-purple-100">Total Pós-triagem</p>
+          </div>
+        </div>
+
+        <button (click)="irParaPosTriagem()"
+    class="w-full bg-white text-purple-600 px-4 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center justify-center">
+    <mat-icon class="mr-2">arrow_forward</mat-icon>
+    Acessar Pós-triagem
+  </button>
+
+  <div class="mt-4 bg-white/10 rounded p-3" *ngIf="posTriagemPreview && posTriagemPreview.length; else semPosTriagem">
+          <div class="text-sm text-purple-100 mb-2 flex items-center">
+            <mat-icon class="mr-2">visibility</mat-icon>
+            Itens pós-triagem (top {{posTriagemPreview.length}})
+          </div>
+          <ul class="space-y-2">
+            <li *ngFor="let p of posTriagemPreview"
+                (click)="abrirItemFila(p)"
+                class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+              <div class="truncate mr-3">
+                <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
+                <div class="text-xs text-purple-100 truncate">{{getDescricaoStatus(p.status)}}</div>
+              </div>
+              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
+                {{formatarTempo(p.tempo_espera)}}
+              </div>
+            </li>
+          </ul>
+        </div>
+        <ng-template #semPosTriagem>
+          <p class="text-sm text-purple-100">Nenhum atendimento pós-triagem a exibir.</p>
+        </ng-template>
       </div>
 
       <!-- Terceira coluna - Atendimentos -->
@@ -113,20 +167,8 @@
           <mat-icon class="mr-2 text-gray-600">medical_services</mat-icon>
           Atendimentos
         </h3>
-        
-        <div class="space-y-3">
-          <button (click)="irParaAtendimentos()" 
-                  class="w-full bg-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center">
-            <mat-icon class="mr-2">medical_services</mat-icon>
-            Atendimentos
-          </button>
-          
-          <button (click)="irParaRelatorios()" 
-                  class="w-full bg-yellow-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-yellow-700 transition-colors flex items-center justify-center">
-            <mat-icon class="mr-2">assessment</mat-icon>
-            Relatórios
-          </button>
-        </div>
+
+
       </div>
     </div>
   </div>
