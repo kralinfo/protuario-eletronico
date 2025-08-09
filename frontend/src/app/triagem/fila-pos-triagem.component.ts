@@ -186,8 +186,7 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
     try {
       if (mostrarLoading) this.carregando = true;
       const pacientes = await firstValueFrom(this.triagemService.listarTodosAtendimentosDia());
-      const POS_TRIAGEM = new Set([
-        'em_triagem', 'em triagem', '2 - Em triagem',
+  const POS_TRIAGEM = new Set([
         'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
         'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
         'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',

@@ -96,6 +96,27 @@
                 class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
               <div class="truncate mr-3">
                 <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
+                <div class="text-xs text-blue-100 truncate" *ngIf="p.status !== 'encaminhado para triagem' && p.status !== 'encaminhado_para_triagem' && p.status !== '1 - Encaminhado para triagem'">{{getDescricaoStatus(p.status)}}</div>
+              </div>
+              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
+                {{formatarTempo(p.tempo_espera)}}
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Preview de itens em triagem -->
+        <div class="mt-4 bg-white/10 rounded p-3" *ngIf="filaEmTriagemPreview && filaEmTriagemPreview.length">
+          <div class="text-sm text-blue-100 mb-2 flex items-center">
+            <mat-icon class="mr-2">edit</mat-icon>
+            Em triagem (top {{filaEmTriagemPreview.length}})
+          </div>
+          <ul class="space-y-2">
+            <li *ngFor="let p of filaEmTriagemPreview"
+                (click)="abrirItemFila(p)"
+                class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+              <div class="truncate mr-3">
+                <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
                 <div class="text-xs text-blue-100 truncate">{{getDescricaoStatus(p.status)}}</div>
               </div>
               <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
@@ -148,7 +169,7 @@
                 class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
               <div class="truncate mr-3">
                 <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
-                <div class="text-xs text-purple-100 truncate">{{getDescricaoStatus(p.status)}}</div>
+                <div class="text-xs text-purple-100 truncate" *ngIf="p.status !== 'encaminhado para triagem' && p.status !== 'encaminhado_para_triagem' && p.status !== '1 - Encaminhado para triagem'">{{getDescricaoStatus(p.status)}}</div>
               </div>
               <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
                 {{formatarTempo(p.tempo_espera)}}

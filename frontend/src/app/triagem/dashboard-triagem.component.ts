@@ -44,6 +44,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   horaAtual = new Date();
   private destroy$ = new Subject<void>();
   filaDisponiveisPreview: PacienteTriagem[] = [];
+  filaEmTriagemPreview: PacienteTriagem[] = [];
   posTriagemPreview: PacienteTriagem[] = [];
   posEncaminhados = 0;
   posEmAtendimento = 0;
@@ -60,6 +61,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   ngOnInit() {
   this.carregarEstatisticas();
   this.carregarFilaDisponiveis();
+  this.carregarFilaEmTriagem();
   this.carregarPosTriagemPreview();
 
     // Escutar notificações de atualização
@@ -69,6 +71,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   console.log('Dashboard: Recebida notificação para atualizar');
   this.carregarEstatisticas();
   this.carregarFilaDisponiveis();
+    this.carregarFilaEmTriagem();
   this.carregarPosTriagemPreview();
       });
 
@@ -78,6 +81,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.carregarEstatisticas();
         this.carregarFilaDisponiveis();
+  this.carregarFilaEmTriagem();
         this.carregarPosTriagemPreview();
       });
 
@@ -123,8 +127,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   carregarPosTriagemPreview() {
-    const POS_TRIAGEM = new Set([
-      'em_triagem', 'em triagem', '2 - Em triagem',
+  const POS_TRIAGEM = new Set([
       'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
       'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
       'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames'
@@ -155,6 +158,19 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     });
   }
 
+  carregarFilaEmTriagem() {
+    const EM_TRIAGEM = new Set(['em_triagem', 'em triagem', '2 - Em triagem']);
+    this.triagemService.listarTodosAtendimentosDia().subscribe({
+      next: (pacientes: PacienteTriagem[]) => {
+        const lista = (pacientes || [])
+          .filter(p => p && EM_TRIAGEM.has(p.status))
+          .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
+        this.filaEmTriagemPreview = lista.slice(0, 5);
+      },
+      error: (err) => console.error('Dashboard: Erro ao carregar em triagem preview:', err)
+    });
+  }
+
   irParaFilaTriagem() {
     this.router.navigate(['/triagem']);
   }
@@ -177,7 +193,12 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
       this.triagemService.iniciarTriagem(p.id).subscribe({
         next: () => {
           // pequeno delay para garantir persistência antes da navegação
-          setTimeout(() => this.router.navigate(['/triagem/realizar', p.id]), 300);
+          setTimeout(() => this.router.navigate(['/triagem/realizar', p.id], { state: { prefill: {
+            paciente_nome: p.paciente_nome,
+            paciente_nascimento: p.paciente_nascimento,
+            paciente_sexo: p.paciente_sexo,
+            queixa_principal: p.queixa_principal
+          } } }), 300);
         },
         error: (err) => {
           console.error('Dashboard: Erro ao iniciar triagem:', err);
@@ -191,9 +212,19 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     const state: any = EM_TRIAGEM.has(p.status) ? { state: { modoEdicao: true } } : undefined;
     console.log('Dashboard: Navegando para triagem do atendimento', p.id, 'status:', p.status);
     if (state) {
-      this.router.navigate(['/triagem/realizar', p.id], state);
+      this.router.navigate(['/triagem/realizar', p.id], { ...state, state: { ...(state as any).state, prefill: {
+        paciente_nome: p.paciente_nome,
+        paciente_nascimento: p.paciente_nascimento,
+        paciente_sexo: p.paciente_sexo,
+        queixa_principal: p.queixa_principal
+      } } });
     } else {
-      this.router.navigate(['/triagem/realizar', p.id]);
+      this.router.navigate(['/triagem/realizar', p.id], { state: { prefill: {
+        paciente_nome: p.paciente_nome,
+        paciente_nascimento: p.paciente_nascimento,
+        paciente_sexo: p.paciente_sexo,
+        queixa_principal: p.queixa_principal
+      } } });
     }
   }
 

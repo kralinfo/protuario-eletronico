@@ -208,6 +208,13 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
     this.statusSistema = 'Constructor executado';
     this.triagemForm = this.criarFormulario();
     console.log('Atendimento ID:', this.atendimentoId);
+
+    // Usar prefill do state, se disponível, para melhorar percepção de carregamento
+    const nav = this.router.getCurrentNavigation();
+    const prefill = nav?.extras?.state && (nav.extras.state as any).prefill;
+    if (prefill?.paciente_nome) {
+      this.nomePaciente = prefill.paciente_nome;
+    }
   }
 
   ngOnInit() {
@@ -326,11 +333,11 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
 
       const dadosTriagem = await this.triagemService.obterDadosTriagem(this.atendimentoId).toPromise();
 
-      if (dadosTriagem) {
+  if (dadosTriagem) {
         console.log('Dados de triagem encontrados:', dadosTriagem);
 
-        // Carregar nome do paciente
-        this.nomePaciente = dadosTriagem.paciente_nome || 'Nome não encontrado';
+  // Carregar nome do paciente (sobrescreve prefill se vier do backend)
+  this.nomePaciente = dadosTriagem.paciente_nome || this.nomePaciente || 'Nome não encontrado';
 
         // Carregar dados do formulário de triagem
         this.triagemForm.patchValue({

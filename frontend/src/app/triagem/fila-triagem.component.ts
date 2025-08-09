@@ -144,7 +144,7 @@ interface Estatisticas {
                 <span>Chegada: {{formatarDataHora(paciente.data_hora_atendimento)}}</span>
               </div>
 
-              <div class="status-chip">
+              <div class="status-chip" *ngIf="!isStatusEncaminhadoParaTriagem(paciente.status)">
                 <mat-chip [style.background-color]="getCorStatus(paciente.status)">
                   {{getDescricaoStatus(paciente.status)}}
                 </mat-chip>
@@ -422,9 +422,16 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       // Pequeno delay para garantir que a mudança foi commitada no banco
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Navegar para tela de triagem
+      // Navegar para tela de triagem com dados de prefill
       console.log('Navegando para tela de triagem...');
-      this.router.navigate(['/triagem/realizar', paciente.id]);
+      this.router.navigate(['/triagem/realizar', paciente.id], {
+        state: { prefill: {
+          paciente_nome: paciente.paciente_nome,
+          paciente_nascimento: paciente.paciente_nascimento,
+          paciente_sexo: paciente.paciente_sexo,
+          queixa_principal: paciente.queixa_principal
+        }}
+      });
     } catch (error) {
       console.error('Erro ao iniciar triagem:', error);
       this.snackBar.open('Erro ao iniciar triagem', 'Fechar', {
@@ -597,5 +604,14 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     if (h > 0 && m > 0) return `${h}h ${m}min`;
     if (h > 0) return `${h}h`;
     return `${m} min`;
+  }
+
+  isStatusEncaminhadoParaTriagem(status: string): boolean {
+    const ENC: Record<string, true> = {
+      'encaminhado para triagem': true,
+      'encaminhado_para_triagem': true,
+      '1 - Encaminhado para triagem': true
+    } as const;
+    return !!ENC[status];
   }
 }
