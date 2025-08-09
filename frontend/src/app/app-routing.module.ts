@@ -15,6 +15,7 @@ import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.compo
 import { FilaTriagemComponent } from './triagem/fila-triagem.component';
 import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.component';
 import { RealizarTriagemUltraSeguroComponent } from './triagem/realizar-triagem-ultra-seguro.component';
+import { FilaPosTriagemComponent } from './triagem/fila-pos-triagem.component';
 
 const routes: Routes = [
   {
@@ -138,6 +139,17 @@ const routes: Routes = [
       breadcrumb: 'Triagem',
       icon: 'medical_services',
       title: 'Fila de Triagem'
+    }
+  },
+  {
+    path: 'pos-triagem',
+    component: FilaPosTriagemComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'triagem',
+      breadcrumb: 'Pós-triagem',
+      icon: 'assignment',
+      title: 'Fila Pós-triagem'
     }
   },
   {

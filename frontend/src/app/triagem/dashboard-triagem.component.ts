@@ -160,8 +160,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   irParaPosTriagem() {
-    // Página de Atendimentos do Dia representa a fila pós-triagem
-    this.router.navigate(['/atendimentos']);
+    this.router.navigate(['/pos-triagem']);
   }
 
   // Abre a tela de atendimento/triagem ao clicar no item do card
