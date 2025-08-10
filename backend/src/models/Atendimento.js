@@ -81,10 +81,10 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE DATE(a.data_hora_atendimento) = CURRENT_DATE
-         AND a.status IN (
+       WHERE (
+         -- Itens do dia atual
+         (DATE(a.data_hora_atendimento) = CURRENT_DATE AND a.status IN (
            'encaminhado para triagem',
-           'em_triagem', 
            'encaminhado para sala médica',
            'encaminhado para ambulatório',
            'encaminhado para exames',
@@ -94,7 +94,11 @@ class Atendimento {
            'alta médica',
            'transferido',
            'óbito'
-         )
+         ))
+         OR
+         -- Em triagem (pode ter iniciado em dia anterior, manter visível)
+         a.status = 'em_triagem'
+       )
        ORDER BY 
          CASE 
            WHEN a.status = 'encaminhado para triagem' THEN 1

@@ -274,10 +274,10 @@ class TriagemController {
       );
       const pacientesAguardando = parseInt(aguardandoQuery.rows[0].total) || 0;
       
-      // 2. Pacientes em triagem (qualquer data, ainda não finalizados)
+  // 2. Pacientes em triagem (qualquer data, ainda não finalizados)
       const emTriagemQuery = await db.query(
         `SELECT COUNT(*) as total FROM atendimentos 
-         WHERE status = 'em_triagem'`
+     WHERE status = 'em_triagem'`
       );
       const pacientesEmTriagem = parseInt(emTriagemQuery.rows[0].total) || 0;
       

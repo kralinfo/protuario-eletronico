@@ -48,6 +48,33 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   posTriagemPreview: PacienteTriagem[] = [];
   posEncaminhados = 0;
   posEmAtendimento = 0;
+  alertasCriticos: PacienteTriagem[] = [];
+  alertasAtencao: PacienteTriagem[] = [];
+
+  // Centralização dos conjuntos de status (aliases) para cada card
+  private readonly STATUS = {
+    DISPONIVEIS: new Set<string>([
+      'encaminhado para triagem',
+      'encaminhado_para_triagem',
+      '1 - Encaminhado para triagem'
+    ]),
+    EM_TRIAGEM: new Set<string>([
+      'em_triagem',
+      'em triagem',
+      '2 - Em triagem',
+      '2 - Em Triagem'
+    ]),
+    ENCAMINHADOS: new Set<string>([
+      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
+      'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
+      'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
+      'aguardando exames'
+    ]),
+    EM_ATENDIMENTO: new Set<string>([
+      'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
+      'em atendimento ambulatorial', '6 - Em atendimento ambulatorial', 'em_atendimento_ambulatorial'
+    ])
+  } as const;
 
   constructor(
     private triagemService: TriagemService,
@@ -63,6 +90,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   this.carregarFilaDisponiveis();
   this.carregarFilaEmTriagem();
   this.carregarPosTriagemPreview();
+  this.carregarAlertasTempo();
 
     // Escutar notificações de atualização
     this.triagemEventService.atualizarDashboard$
@@ -73,6 +101,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   this.carregarFilaDisponiveis();
     this.carregarFilaEmTriagem();
   this.carregarPosTriagemPreview();
+    this.carregarAlertasTempo();
       });
 
     // Atualiza as estatísticas a cada 30 segundos
@@ -83,12 +112,51 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
         this.carregarFilaDisponiveis();
   this.carregarFilaEmTriagem();
         this.carregarPosTriagemPreview();
+  this.carregarAlertasTempo();
       });
 
     // Atualiza a hora a cada minuto
     interval(60000)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.horaAtual = new Date());
+  }
+
+  carregarAlertasTempo() {
+    // Limites do Protocolo de Manchester (minutos)
+    const LIMITES: Record<string, number> = {
+      vermelho: 0,
+      laranja: 10,
+      amarelo: 60,
+      verde: 120,
+      azul: 240
+    };
+  const STATUS_ALERTAS = new Set<string>([...this.STATUS.DISPONIVEIS, ...this.STATUS.EM_TRIAGEM]);
+  this.triagemService.listarTodosAtendimentosDia().subscribe({
+      next: (pacientes: any[]) => {
+    // Somente itens relevantes para o tempo de espera de triagem
+    const lista = (pacientes || []).filter(p => !!p?.classificacao_risco && STATUS_ALERTAS.has(p.status));
+        const criticos: PacienteTriagem[] = [];
+        const atencao: PacienteTriagem[] = [];
+        for (const p of lista) {
+          const risco = (p.classificacao_risco || '').toLowerCase();
+          const limite = LIMITES[risco];
+          const espera = p.tempo_espera || 0;
+          if (limite === undefined) continue;
+          if (limite <= 0) {
+            if (espera > 0) criticos.push(p);
+            continue;
+          }
+          const perc = espera / limite;
+          if (perc >= 1) criticos.push(p);
+          else if (perc >= 0.8) atencao.push(p);
+        }
+        // Ordenar por gravidade: maior percentual de estouro/mais próximos
+        const sortByGravidade = (a: any, b: any) => (b.tempo_espera || 0) - (a.tempo_espera || 0);
+        this.alertasCriticos = criticos.sort(sortByGravidade).slice(0, 5);
+        this.alertasAtencao = atencao.sort(sortByGravidade).slice(0, 5);
+      },
+      error: (err) => console.error('Dashboard: Erro ao carregar alertas de tempo:', err)
+    });
   }
 
   ngOnDestroy() {
@@ -110,15 +178,10 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   carregarFilaDisponiveis() {
-    const DISPONIVEIS = new Set([
-      'encaminhado para triagem',
-      'encaminhado_para_triagem',
-      '1 - Encaminhado para triagem'
-    ]);
     this.triagemService.listarTodosAtendimentosDia().subscribe({
       next: (pacientes: PacienteTriagem[]) => {
         const lista = (pacientes || [])
-          .filter(p => p && DISPONIVEIS.has(p.status))
+          .filter(p => p && this.STATUS.DISPONIVEIS.has(p.status))
           .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
         this.filaDisponiveisPreview = lista.slice(0, 5);
       },
@@ -127,21 +190,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   carregarPosTriagemPreview() {
-  const POS_TRIAGEM = new Set([
-      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-      'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-      'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames'
-    ]);
-    const ENCAMINHADOS = new Set([
-      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-      'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-      'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-      'aguardando exames'
-    ]);
-    const EM_ATENDIMENTO = new Set([
-      'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-      'em atendimento ambulatorial', '6 - Em atendimento ambulatorial', 'em_atendimento_ambulatorial'
-    ]);
+    const POS_TRIAGEM = new Set<string>([...this.STATUS.ENCAMINHADOS, ...this.STATUS.EM_ATENDIMENTO]);
     this.triagemService.listarTodosAtendimentosDia().subscribe({
       next: (pacientes: PacienteTriagem[]) => {
         const lista = (pacientes || [])
@@ -151,19 +200,18 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
 
         // Contadores para o card de pós-triagem
         const all = pacientes || [];
-        this.posEncaminhados = all.filter(p => p && ENCAMINHADOS.has(p.status)).length;
-        this.posEmAtendimento = all.filter(p => p && EM_ATENDIMENTO.has(p.status)).length;
+        this.posEncaminhados = all.filter(p => p && this.STATUS.ENCAMINHADOS.has(p.status)).length;
+        this.posEmAtendimento = all.filter(p => p && this.STATUS.EM_ATENDIMENTO.has(p.status)).length;
       },
       error: (err) => console.error('Dashboard: Erro ao carregar pós-triagem preview:', err)
     });
   }
 
   carregarFilaEmTriagem() {
-    const EM_TRIAGEM = new Set(['em_triagem', 'em triagem', '2 - Em triagem']);
     this.triagemService.listarTodosAtendimentosDia().subscribe({
       next: (pacientes: PacienteTriagem[]) => {
         const lista = (pacientes || [])
-          .filter(p => p && EM_TRIAGEM.has(p.status))
+          .filter(p => p && this.STATUS.EM_TRIAGEM.has(p.status))
           .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
         this.filaEmTriagemPreview = lista.slice(0, 5);
       },
@@ -182,11 +230,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   // Abre a tela de atendimento/triagem ao clicar no item do card
   abrirItemFila(p: PacienteTriagem) {
     if (!p || !p.id) return;
-    const DISPONIVEIS = new Set([
-      'encaminhado para triagem',
-      'encaminhado_para_triagem',
-      '1 - Encaminhado para triagem'
-    ]);
+  const DISPONIVEIS = this.STATUS.DISPONIVEIS;
     // Se está disponível para iniciar, dispara a abertura (iniciar triagem) e navega
     if (DISPONIVEIS.has(p.status)) {
       console.log('Dashboard: Iniciando triagem para', p.id);
@@ -208,7 +252,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     }
 
     // Caso contrário, apenas navega para a tela de triagem (edição/consulta)
-    const EM_TRIAGEM = new Set(['em_triagem', 'em triagem', '2 - Em triagem']);
+  const EM_TRIAGEM = this.STATUS.EM_TRIAGEM;
     const state: any = EM_TRIAGEM.has(p.status) ? { state: { modoEdicao: true } } : undefined;
     console.log('Dashboard: Navegando para triagem do atendimento', p.id, 'status:', p.status);
     if (state) {
@@ -274,12 +318,18 @@ Este protocolo é usado para priorizar o atendimento com base na gravidade clín
       '3 - Encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
       'encaminhado_para_sala_medica': '3 - Encaminhado para Sala Médica',
       'encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
+  '4 - Em atendimento médico': '4 - Em Atendimento Médico',
+  'em_atendimento_medico': '4 - Em Atendimento Médico',
+  'em atendimento médico': '4 - Em Atendimento Médico',
       '5 - Encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
       'encaminhado_para_ambulatorio': '5 - Encaminhado para Ambulatório',
       'encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
       '7 - Encaminhado para exames': '7 - Encaminhado para Exames',
-      'encaminhado_para_exames': '7 - Encaminhado para Exames',
-      'encaminhado para exames': '7 - Encaminhado para Exames'
+  'encaminhado_para_exames': '7 - Encaminhado para Exames',
+  'encaminhado para exames': '7 - Encaminhado para Exames',
+  '6 - Em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial',
+  'em_atendimento_ambulatorial': '6 - Em Atendimento Ambulatorial',
+  'em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial'
     };
     return descricoes[status] || status;
   }
@@ -295,12 +345,18 @@ Este protocolo é usado para priorizar o atendimento com base na gravidade clín
       '3 - Encaminhado para sala médica': '#FF9800',
       'encaminhado_para_sala_medica': '#FF9800',
       'encaminhado para sala médica': '#FF9800',
+  '4 - Em atendimento médico': '#FF5722',
+  'em_atendimento_medico': '#FF5722',
+  'em atendimento médico': '#FF5722',
       '5 - Encaminhado para ambulatório': '#9C27B0',
       'encaminhado_para_ambulatorio': '#9C27B0',
       'encaminhado para ambulatório': '#9C27B0',
       '7 - Encaminhado para exames': '#009688',
       'encaminhado_para_exames': '#009688',
-      'encaminhado para exames': '#009688'
+  'encaminhado para exames': '#009688',
+  '6 - Em atendimento ambulatorial': '#3F51B5',
+  'em_atendimento_ambulatorial': '#3F51B5',
+  'em atendimento ambulatorial': '#3F51B5'
     };
     return cores[status] || '#757575';
   }

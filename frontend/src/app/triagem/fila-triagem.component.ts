@@ -51,6 +51,11 @@ interface Estatisticas {
       <h1 class="page-title">
         <mat-icon>medical_services</mat-icon>
         Fila de Triagem
+        <span class="flex-1"></span>
+        <button mat-stroked-button color="primary" (click)="carregarDados()">
+          <mat-icon>refresh</mat-icon>
+          Atualizar
+        </button>
       </h1>
 
       <!-- Estatísticas -->
@@ -154,7 +159,7 @@ interface Estatisticas {
 
           <mat-card-actions>
             <!-- Iniciar Triagem - apenas para status "encaminhado para triagem" -->
-            <button *ngIf="paciente.status === 'encaminhado para triagem'"
+            <button *ngIf="isStatusEncaminhadoParaTriagem(paciente.status)"
                     mat-raised-button
                     color="primary"
                     (click)="iniciarTriagem(paciente)">
@@ -163,7 +168,7 @@ interface Estatisticas {
             </button>
 
             <!-- Em Triagem - mostrar botão para continuar/editar -->
-            <button *ngIf="paciente.status === 'em_triagem' || paciente.status === 'em triagem'"
+            <button *ngIf="isStatusEmTriagem(paciente.status)"
                     mat-raised-button
                     color="accent"
                     (click)="continuarTriagem(paciente)">
@@ -383,17 +388,26 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
         this.carregando = true;
       }
 
+      // Escolhe o endpoint adequado: quando filtrando por "encaminhado para triagem", usa a fila específica
+      const usarFilaEndpoint = this.filtroStatus ? this.getStatusAliases('encaminhado para triagem').has(this.filtroStatus) : false;
       const [pacientes, estatisticas] = await Promise.all([
-        firstValueFrom(this.triagemService.listarTodosAtendimentosDia()),
+        firstValueFrom(usarFilaEndpoint
+          ? this.triagemService.listarFilaTriagem()
+          : this.triagemService.listarTodosAtendimentosDia()
+        ),
         firstValueFrom(this.triagemService.obterEstatisticas())
       ]);
 
       console.log('Pacientes retornados pela API:', pacientes);
 
-      // Filtrar os pacientes com base no filtroStatus
-      this.pacientes = (pacientes as PacienteTriagem[]).filter(paciente =>
-        this.filtroStatus === '' || paciente.status === this.filtroStatus
-      ) || [];
+      // Filtrar com base no filtroStatus, considerando aliases/sinônimos
+      const lista = (pacientes as PacienteTriagem[]) || [];
+      if (!this.filtroStatus) {
+        this.pacientes = lista;
+      } else {
+        const aliases = this.getStatusAliases(this.filtroStatus);
+        this.pacientes = lista.filter(p => aliases.has(p.status));
+      }
 
       this.estatisticas = (estatisticas as Estatisticas) || this.estatisticas;
     } catch (error) {
@@ -404,6 +418,50 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     } finally {
       this.carregando = false;
     }
+  }
+
+  private getStatusAliases(statusBase: string): Set<string> {
+    // Mapeia filtros para variações de status vindas do backend
+    const map: Record<string, string[]> = {
+      'encaminhado para triagem': [
+        'encaminhado para triagem', 'encaminhado_para_triagem', '1 - Encaminhado para triagem'
+      ],
+      'em_triagem': [
+        'em_triagem', 'em triagem', '2 - Em triagem'
+      ],
+      'encaminhado para sala médica': [
+        'encaminhado para sala médica', 'encaminhado_para_sala_medica', '3 - Encaminhado para sala médica'
+      ],
+      'em atendimento médico': [
+        'em atendimento médico', 'em_atendimento_medico', '4 - Em atendimento médico'
+      ],
+      'encaminhado para ambulatório': [
+        'encaminhado para ambulatório', 'encaminhado_para_ambulatorio', '5 - Encaminhado para ambulatório'
+      ],
+      'em atendimento ambulatorial': [
+        'em atendimento ambulatorial', 'em_atendimento_ambulatorial', '6 - Em atendimento ambulatorial'
+      ],
+      'encaminhado para exames': [
+        'encaminhado para exames', 'encaminhado_para_exames', '7 - Encaminhado para exames'
+      ],
+      'aguardando exames': [
+        'aguardando exames'
+      ],
+      'exames concluídos': [
+        'exames concluídos'
+      ],
+      'alta médica': [
+        'alta médica'
+      ],
+      'transferido': [
+        'transferido'
+      ],
+      'óbito': [
+        'óbito'
+      ]
+    };
+    const arr = map[statusBase] || [statusBase];
+    return new Set(arr);
   }
 
   async iniciarTriagem(paciente: PacienteTriagem) {
@@ -613,5 +671,15 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       '1 - Encaminhado para triagem': true
     } as const;
     return !!ENC[status];
+  }
+
+  isStatusEmTriagem(status: string): boolean {
+    const EM: Record<string, true> = {
+      'em_triagem': true,
+      'em triagem': true,
+      '2 - Em triagem': true,
+      '2 - Em Triagem': true
+    } as const;
+    return !!EM[status];
   }
 }
