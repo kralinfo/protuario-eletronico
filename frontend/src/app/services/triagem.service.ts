@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface PacienteTriagem {
   id: number;
@@ -79,7 +80,7 @@ export interface StatusDestino {
   providedIn: 'root'
 })
 export class TriagemService {
-  private baseUrl = 'http://localhost:3001/api/triagem';
+  private baseUrl = `${environment.apiUrl}/triagem`;
 
   constructor(private http: HttpClient) {}
 
