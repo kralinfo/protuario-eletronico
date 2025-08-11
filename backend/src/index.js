@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import triagemRoutes from './routes/triagem.js';
+import applyMigrations from '../apply-migrations.js';
 
 dotenv.config();
 
@@ -801,6 +802,20 @@ async function startServer() {
     
     // Inicializar conexão com banco
     await initializeDatabase();
+    
+    // Aplicar migrações
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔄 Aplicando migrações...');
+      try {
+          await applyMigrations();
+          console.log('✅ Migrações aplicadas com sucesso!');
+      } catch (error) {
+          console.error('❌ Erro ao aplicar migrações:', error);
+          process.exit(1); // Finaliza o processo em caso de erro
+      }
+    } else {
+        console.log('🚀 Ambiente de produção detectado. Migrações não serão aplicadas automaticamente.');
+    }
     
     // Iniciar servidor
     app.listen(PORT, () => {
