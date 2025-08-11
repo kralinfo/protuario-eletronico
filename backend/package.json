@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "echo '🚨 EXECUTANDO START SCRIPT COM MIGRAÇÃO ROBUSTA' && node migrate-robust.cjs && node src/server.js",
+    "start": "echo '🚨 EXECUTANDO START SCRIPT COM MIGRAÇÃO DIRETA' && npx knex migrate:latest --env production --knexfile knexfile.cjs && echo '✅ Migrações aplicadas' && node src/server.js",
     "start:simple": "node src/server.js",
     "start:migrate": "npm run migrate:prod && node src/server.js",
     "start:ensure": "node ensure-abandono.cjs && node src/server.js",

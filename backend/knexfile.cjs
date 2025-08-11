@@ -39,7 +39,7 @@ const config = {
     },
     migrations: {
       directory: './migrations',
-      extension: 'js'
+      extension: 'cjs'
     },
     seeds: {
       directory: './seeds'
