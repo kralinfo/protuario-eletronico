@@ -301,11 +301,15 @@ class TriagemController {
         tempoMedioEspera = Math.round(parseFloat(tempoQuery.rows[0].tempo_medio) || 0);
       }
       
-      // 5. Por classificação de risco (todos em fila + em triagem)
+      // 5. Por classificação de risco (incluindo triagens concluídas hoje)
       const classificacaoQuery = await db.query(
         `SELECT classificacao_risco, COUNT(*) as total
          FROM atendimentos 
-         WHERE status IN ('encaminhado para triagem', 'em_triagem')
+         WHERE (
+           status IN ('encaminhado para triagem', 'em_triagem')
+           OR (data_fim_triagem IS NOT NULL AND DATE(data_fim_triagem) = CURRENT_DATE)
+         )
+         AND classificacao_risco IS NOT NULL
          GROUP BY classificacao_risco`
       );
       

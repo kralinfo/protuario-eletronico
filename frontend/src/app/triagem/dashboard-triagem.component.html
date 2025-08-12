@@ -55,6 +55,56 @@
       </div>
     </div>
 
+    <!-- Card Por Classificação -->
+    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">Por Classificação</h3>
+        <mat-icon class="text-gray-500">assessment</mat-icon>
+      </div>
+
+      <div class="flex items-center justify-center space-x-8">
+        <!-- Vermelho -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
+            {{estatisticas.por_classificacao?.vermelho || 0}}
+          </div>
+          <p class="text-xs text-gray-600">Emergência</p>
+        </div>
+
+        <!-- Laranja -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
+            {{estatisticas.por_classificacao?.laranja || 0}}
+          </div>
+          <p class="text-xs text-gray-600">Muito Urgente</p>
+        </div>
+
+        <!-- Amarelo -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
+            {{estatisticas.por_classificacao?.amarelo || 0}}
+          </div>
+          <p class="text-xs text-gray-600">Urgente</p>
+        </div>
+
+        <!-- Verde -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
+            {{estatisticas.por_classificacao?.verde || 0}}
+          </div>
+          <p class="text-xs text-gray-600">Pouco Urgente</p>
+        </div>
+
+        <!-- Azul -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
+            {{estatisticas.por_classificacao?.azul || 0}}
+          </div>
+          <p class="text-xs text-gray-600">Não Urgente</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Ações Rápidas -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <!-- Card Principal - Fila de Triagem -->
