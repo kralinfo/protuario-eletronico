@@ -57,6 +57,19 @@ import { TriagemEventService } from '../services/triagem-event.service';
           </mat-card-header>
 
           <mat-card-content>
+            <!-- Aviso quando não pode editar -->
+            <div *ngIf="!podeEditar" class="status-warning">
+              <mat-icon>info</mat-icon>
+              <span>
+                <ng-container *ngIf="statusAtendimento !== 'em_triagem' && statusAtendimento !== 'em triagem' && statusAtendimento !== '2 - Em triagem'">
+                  Esta triagem foi finalizada e não pode ser editada. Status atual: {{statusAtendimento}}
+                </ng-container>
+                <ng-container *ngIf="statusAtendimento === 'em_triagem' || statusAtendimento === 'em triagem' || statusAtendimento === '2 - Em triagem'">
+                  Visualizando detalhes da triagem em modo somente leitura.
+                </ng-container>
+              </span>
+            </div>
+
             <!-- Sinais Vitais -->
             <h3>Sinais Vitais</h3>
             <div class="form-row">
@@ -124,14 +137,14 @@ import { TriagemEventService } from '../services/triagem-event.service';
           </mat-card-content>
 
           <mat-card-actions>
-            <button mat-raised-button color="primary" type="submit" [disabled]="!triagemForm.valid || salvando">
+            <button *ngIf="podeEditar" mat-raised-button color="primary" type="submit" [disabled]="!triagemForm.valid || salvando">
               <mat-icon>save</mat-icon>
               {{salvando ? 'Finalizando...' : 'Finalizar Triagem'}}
             </button>
 
             <button mat-button type="button" (click)="voltar()">
               <mat-icon>cancel</mat-icon>
-              Cancelar
+              {{podeEditar ? 'Cancelar' : 'Voltar'}}
             </button>
           </mat-card-actions>
         </mat-card>
@@ -184,6 +197,22 @@ import { TriagemEventService } from '../services/triagem-event.service';
     h3:first-of-type {
       margin-top: 0;
     }
+
+    .status-warning {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 12px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .status-warning mat-icon {
+      color: #856404;
+    }
   `]
 })
 export class RealizarTriagemUltraSeguroComponent implements OnInit {
@@ -194,6 +223,8 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
   componenteCarregado = false;
   nomePaciente = 'Carregando...';
   carregandoPaciente = false;
+  statusAtendimento = '';
+  podeEditar = true;
 
   constructor(
     private fb: FormBuilder,
@@ -209,11 +240,18 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
     this.triagemForm = this.criarFormulario();
     console.log('Atendimento ID:', this.atendimentoId);
 
-    // Usar prefill do state, se disponível, para melhorar percepção de carregamento
+    // Verificar se está em modo visualização
     const nav = this.router.getCurrentNavigation();
-    const prefill = nav?.extras?.state && (nav.extras.state as any).prefill;
-    if (prefill?.paciente_nome) {
-      this.nomePaciente = prefill.paciente_nome;
+    const state = nav?.extras?.state as any;
+    
+    if (state?.modoVisualizacao) {
+      this.podeEditar = false;
+      console.log('Modo visualização ativado - edição desabilitada');
+    }
+
+    // Usar prefill do state, se disponível, para melhorar percepção de carregamento
+    if (state?.paciente_nome) {
+      this.nomePaciente = state.paciente_nome;
     }
   }
 
@@ -246,6 +284,13 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
   }
 
   async salvarTriagem() {
+    if (!this.podeEditar) {
+      this.snackBar.open('Esta triagem não pode ser editada pois já foi finalizada', 'Fechar', {
+        duration: 5000
+      });
+      return;
+    }
+
     if (!this.triagemForm.valid) {
       this.snackBar.open('Por favor, preencha todos os campos obrigatórios', 'Fechar', {
         duration: 5000
@@ -335,6 +380,34 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
 
   if (dadosTriagem) {
         console.log('Dados de triagem encontrados:', dadosTriagem);
+
+        // Verificar status e definir se pode editar (só se não estiver em modo visualização)
+        this.statusAtendimento = dadosTriagem.status || '';
+        
+        // Só pode editar se não estiver em modo visualização E o status for "em_triagem"
+        const statusPermiteEdicao = this.statusAtendimento === 'em_triagem' || 
+                                   this.statusAtendimento === 'em triagem' || 
+                                   this.statusAtendimento === '2 - Em triagem';
+        
+        this.podeEditar = this.podeEditar && statusPermiteEdicao;
+
+        console.log('Status do atendimento:', this.statusAtendimento);
+        console.log('Status permite edição:', statusPermiteEdicao);
+        console.log('Pode editar (final):', this.podeEditar);
+
+        // Se não pode editar, desabilitar o formulário e mostrar mensagem apropriada
+        if (!this.podeEditar) {
+          this.triagemForm.disable();
+          
+          const nav = this.router.getCurrentNavigation();
+          const state = nav?.extras?.state as any;
+          
+          if (state?.modoVisualizacao) {
+            this.snackBar.open('Visualizando detalhes da triagem em modo somente leitura', 'Fechar', { duration: 3000 });
+          } else {
+            this.snackBar.open('Esta triagem não pode ser editada pois já foi finalizada', 'Fechar', { duration: 5000 });
+          }
+        }
 
   // Carregar nome do paciente (sobrescreve prefill se vier do backend)
   this.nomePaciente = dadosTriagem.paciente_nome || this.nomePaciente || 'Nome não encontrado';

@@ -212,7 +212,14 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
 
   abrirTriagem(paciente: PacienteTriagem) {
     if (!paciente?.id) return;
-    this.router.navigate(['/triagem/realizar', paciente.id], { state: { modoEdicao: true } });
+    
+    // Abrir em modo visualização (somente leitura) para pacientes pós-triagem
+    this.router.navigate(['/triagem/realizar', paciente.id], { 
+      state: { 
+        modoVisualizacao: true,
+        paciente_nome: paciente.paciente_nome 
+      } 
+    });
   }
 
   contarEncaminhados(): number {

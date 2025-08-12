@@ -176,7 +176,10 @@ interface Estatisticas {
               Continuar Triagem
             </button>
 
-            <button mat-button (click)="verDetalhes(paciente)">
+            <!-- Detalhes - apenas para pacientes que já foram triados (finalizados) -->
+            <button *ngIf="!isStatusEncaminhadoParaTriagem(paciente.status) && !isStatusEmTriagem(paciente.status)" 
+                    mat-button 
+                    (click)="verDetalhes(paciente)">
               <mat-icon>visibility</mat-icon>
               Detalhes
             </button>
@@ -520,8 +523,15 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
   }
 
   verDetalhes(paciente: PacienteTriagem) {
-    // TODO: Abrir modal com detalhes do paciente
-    console.log('Ver detalhes:', paciente);
+    console.log('Abrindo detalhes da triagem:', paciente);
+    
+    // Navegar para o componente de triagem em modo visualização (sem edição)
+    this.router.navigate(['/triagem/realizar', paciente.id], {
+      state: { 
+        modoVisualizacao: true,
+        paciente_nome: paciente.paciente_nome 
+      }
+    });
   }
 
   getCor(classificacao?: string): string {
