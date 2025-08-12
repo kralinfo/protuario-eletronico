@@ -1,5 +1,17 @@
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
   <div class="container mx-auto px-4 py-8">
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+        <mat-icon class="mr-3 text-blue-600">medical_services</mat-icon>
+        Triagem
+      </h1>
+      <button mat-stroked-button color="primary" (click)="carregarEstatisticas()">
+        <mat-icon>refresh</mat-icon>
+        Atualizar
+      </button>
+    </div>
+
     <!-- Cards de estatísticas principais -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- Pacientes Aguardando -->
@@ -41,66 +53,53 @@
         </div>
       </div>
 
-      <!-- Tempo Médio de Espera -->
+      <!-- Por Classificação -->
       <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mb-4">
           <div>
-            <p class="text-sm font-medium text-gray-600">Tempo Médio</p>
-            <p class="text-3xl font-bold text-blue-500">{{formatarTempo(estatisticas.tempo_medio_espera)}}</p>
+            <p class="text-sm font-medium text-gray-600">Por Classificação</p>
           </div>
-          <div class="bg-blue-100 p-3 rounded-full">
-            <mat-icon class="text-blue-500">schedule</mat-icon>
+          <div class="bg-purple-100 p-3 rounded-full">
+            <mat-icon class="text-purple-500">assessment</mat-icon>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Card Por Classificação -->
-    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow mb-8">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-800">Por Classificação</h3>
-        <mat-icon class="text-gray-500">assessment</mat-icon>
-      </div>
-
-      <div class="flex items-center justify-center space-x-8">
-        <!-- Vermelho -->
-        <div class="text-center">
-          <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
-            {{estatisticas.por_classificacao?.vermelho || 0}}
+        <div class="flex items-center justify-center space-x-2">
+          <!-- Vermelho -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao?.vermelho || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🔴</p>
           </div>
-          <p class="text-xs text-gray-600">Emergência</p>
-        </div>
-
-        <!-- Laranja -->
-        <div class="text-center">
-          <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
-            {{estatisticas.por_classificacao?.laranja || 0}}
+          <!-- Laranja -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao?.laranja || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🟠</p>
           </div>
-          <p class="text-xs text-gray-600">Muito Urgente</p>
-        </div>
-
-        <!-- Amarelo -->
-        <div class="text-center">
-          <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
-            {{estatisticas.por_classificacao?.amarelo || 0}}
+          <!-- Amarelo -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao?.amarelo || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🟡</p>
           </div>
-          <p class="text-xs text-gray-600">Urgente</p>
-        </div>
-
-        <!-- Verde -->
-        <div class="text-center">
-          <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
-            {{estatisticas.por_classificacao?.verde || 0}}
+          <!-- Verde -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao?.verde || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🟢</p>
           </div>
-          <p class="text-xs text-gray-600">Pouco Urgente</p>
-        </div>
-
-        <!-- Azul -->
-        <div class="text-center">
-          <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">
-            {{estatisticas.por_classificacao?.azul || 0}}
+          <!-- Azul -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao?.azul || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🔵</p>
           </div>
-          <p class="text-xs text-gray-600">Não Urgente</p>
         </div>
       </div>
     </div>
@@ -239,7 +238,7 @@
             <mat-icon class="mr-2">warning_amber</mat-icon>
             Alertas de Tempo
           </h3>
-          <p class="text-red-100 text-sm">Pacientes com limite estourado ou próximo</p>
+          <p class="text-red-100 text-sm">Atendimentos com limite estourado ou próximo</p>
         </div>
 
         <div *ngIf="(alertasCriticos && alertasCriticos.length) || (alertasAtencao && alertasAtencao.length); else semAlertas">
