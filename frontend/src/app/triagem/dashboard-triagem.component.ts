@@ -88,22 +88,29 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-  this.carregarEstatisticas();
-  this.carregarFilaDisponiveis();
-  this.carregarFilaEmTriagem();
-  this.carregarPosTriagemPreview();
-  this.carregarAlertasTempo();
+    this.carregarEstatisticas();
+    this.carregarFilaDisponiveis();
+    this.carregarFilaEmTriagem();
+    this.carregarPosTriagemPreview();
+    this.carregarAlertasTempo();
 
     // Escutar notificações de atualização
     this.triagemEventService.atualizarDashboard$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-  console.log('Dashboard: Recebida notificação para atualizar');
-  this.carregarEstatisticas();
-  this.carregarFilaDisponiveis();
-    this.carregarFilaEmTriagem();
-  this.carregarPosTriagemPreview();
-    this.carregarAlertasTempo();
+        console.log('Dashboard: Recebida notificação para atualizar');
+        this.carregarEstatisticas();
+        this.carregarFilaDisponiveis();
+        this.carregarFilaEmTriagem();
+        this.carregarPosTriagemPreview();
+        this.carregarAlertasTempo();
+      });
+
+    // Escutar evento global de novo atendimento
+    this.triagemEventService.novoAtendimento$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.snackBar.open('Novo atendimento registrado!', 'Fechar', { duration: 3000 });
       });
 
     // Atualiza as estatísticas a cada 30 segundos
@@ -112,9 +119,9 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.carregarEstatisticas();
         this.carregarFilaDisponiveis();
-  this.carregarFilaEmTriagem();
+        this.carregarFilaEmTriagem();
         this.carregarPosTriagemPreview();
-  this.carregarAlertasTempo();
+        this.carregarAlertasTempo();
       });
 
     // Atualiza a hora a cada minuto
