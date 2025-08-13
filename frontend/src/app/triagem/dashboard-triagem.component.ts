@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { TriagemService, PacienteTriagem } from '../services/triagem.service';
 import { TriagemEventService } from '../services/triagem-event.service';
 import { AuthService } from '../auth/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, interval, takeUntil } from 'rxjs';
 
 interface EstatisticasTriagem {
@@ -80,7 +81,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     private triagemService: TriagemService,
     private triagemEventService: TriagemEventService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {
     this.usuarioLogado = this.authService.user;
   }
@@ -230,12 +232,14 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   // Abre a tela de atendimento/triagem ao clicar no item do card
   abrirItemFila(p: PacienteTriagem) {
     if (!p || !p.id) return;
-  const DISPONIVEIS = this.STATUS.DISPONIVEIS;
+    const DISPONIVEIS = this.STATUS.DISPONIVEIS;
     // Se está disponível para iniciar, dispara a abertura (iniciar triagem) e navega
     if (DISPONIVEIS.has(p.status)) {
       console.log('Dashboard: Iniciando triagem para', p.id);
       this.triagemService.iniciarTriagem(p.id).subscribe({
         next: () => {
+          // Notificação de novo atendimento registrado
+          this.snackBar.open('Novo atendimento registrado!', 'Fechar', { duration: 3000 });
           // pequeno delay para garantir persistência antes da navegação
           setTimeout(() => this.router.navigate(['/triagem/realizar', p.id], { state: { prefill: {
             paciente_nome: p.paciente_nome,
