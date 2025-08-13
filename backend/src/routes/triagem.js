@@ -9,11 +9,17 @@ const router = express.Router();
 // Listar pacientes aguardando triagem
 router.get('/fila', triagemAuth, TriagemController.listarFilaTriagem);
 
+// Listar todos os atendimentos do dia (todos os status)
+router.get('/todos-atendimentos-dia', triagemAuth, TriagemController.listarTodosAtendimentosDia);
+
 // Obter estatísticas da triagem
 router.get('/estatisticas', triagemAuth, TriagemController.obterEstatisticas);
 
 // Obter configurações de classificação de risco
 router.get('/classificacao-risco', triagemAuth, TriagemController.obterClassificacaoRisco);
+
+// Obter opções de status de destino
+router.get('/status-destino', triagemAuth, TriagemController.obterStatusDestino);
 
 // === ROTAS DE ATENDIMENTO ===
 

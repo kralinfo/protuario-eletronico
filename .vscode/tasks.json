@@ -1,19 +1,27 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "Start Backend (Docker)",
-      "type": "shell",
-      "command": "cd backend && docker-compose up --build",
-      "problemMatcher": [],
-      "group": "build"
-    },
-    {
-      "label": "Start Frontend",
-      "type": "shell",
-      "command": "cd frontend && npm start",
-      "problemMatcher": [],
-      "group": "build"
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Backend (Docker)",
+			"type": "shell",
+			"command": "cd backend && docker-compose up --build",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start Frontend",
+			"type": "shell",
+			"command": "cd frontend && npm start",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start Frontend - Windows",
+			"type": "shell",
+			"command": "Set-Location frontend; npm start",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
 }

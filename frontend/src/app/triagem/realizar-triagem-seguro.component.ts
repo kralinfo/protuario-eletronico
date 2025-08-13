@@ -13,7 +13,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { TriagemService, AtendimentoCompleto, ClassificacaoRisco } from '../services/triagem.service';
+import { TriagemService, AtendimentoCompleto, ClassificacaoRisco, StatusDestino } from '../services/triagem.service';
 import { TriagemEventService } from '../services/triagem-event.service';
 
 @Component({
@@ -108,6 +108,16 @@ import { TriagemEventService } from '../services/triagem-event.service';
                   <mat-option value="amarelo">🟡 Amarelo - Pouco Urgente</mat-option>
                   <mat-option value="verde">🟢 Verde - Não Urgente</mat-option>
                   <mat-option value="azul">🔵 Azul - Eletivo</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Destino após Triagem -->
+              <mat-form-field>
+                <mat-label>Encaminhar para</mat-label>
+                <mat-select formControlName="status_destino">
+                  <mat-option *ngFor="let status of getStatusDestinoEntries()" [value]="status.key">
+                    {{status.value}}
+                  </mat-option>
                 </mat-select>
               </mat-form-field>
 
@@ -212,6 +222,7 @@ export class RealizarTriagemComponent implements OnInit {
   triagemForm!: FormGroup;
   paciente?: AtendimentoCompleto;
   classificacaoRisco?: ClassificacaoRisco;
+  statusDestino?: StatusDestino; // Opções de destino após triagem
   carregando = false; // Começar SEM loading para evitar travamento
   salvando = false;
 
@@ -233,7 +244,16 @@ export class RealizarTriagemComponent implements OnInit {
 
   ngOnInit() {
     console.log('NgOnInit - Componente SEGURO carregado');
-    // Não carregar dados automaticamente para evitar travamento
+    // Carregar opções de status de destino
+    this.triagemService.obterStatusDestino().subscribe({
+      next: (status) => {
+        this.statusDestino = status;
+        console.log('Status de destino carregados:', status);
+      },
+      error: (error) => {
+        console.error('Erro ao carregar status de destino:', error);
+      }
+    });
     console.log('NgOnInit - Pronto para uso manual');
   }
 
@@ -244,6 +264,7 @@ export class RealizarTriagemComponent implements OnInit {
       frequencia_cardiaca: ['', [Validators.required]],
       saturacao_oxigenio: [''],
       classificacao_risco: ['', Validators.required],
+      status_destino: ['encaminhado para sala médica', Validators.required],
       queixa_principal: ['', Validators.required],
       historia_atual: [''],
       observacoes_triagem: ['']
@@ -261,11 +282,16 @@ export class RealizarTriagemComponent implements OnInit {
     try {
       this.salvando = true;
       const dados = this.triagemForm.value;
+      const statusDestino = dados.status_destino;
       
       console.log('Salvando triagem:', dados);
+      console.log('Status de destino:', statusDestino);
       
-      // Simular salvamento por enquanto
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Primeiro salvar os dados da triagem
+      await this.triagemService.salvarTriagem(this.atendimentoId, dados).toPromise();
+      
+      // Depois finalizar a triagem com o status de destino
+      await this.triagemService.finalizarTriagem(this.atendimentoId, statusDestino).toPromise();
       
       // Notificar que a triagem foi finalizada
       this.triagemEventService.notificarTriagemFinalizada();
@@ -287,5 +313,13 @@ export class RealizarTriagemComponent implements OnInit {
 
   voltar() {
     this.router.navigate(['/triagem']);
+  }
+
+  getStatusDestinoEntries() {
+    if (!this.statusDestino) return [];
+    return Object.keys(this.statusDestino).map(key => ({
+      key,
+      value: this.statusDestino![key]
+    }));
   }
 }

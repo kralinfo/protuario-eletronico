@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,6 +23,7 @@ interface PacienteTriagem {
   classificacao_risco?: string;
   queixa_principal?: string;
   tempo_espera: number;
+  tempo_espera_formatado?: string;
   alerta?: string;
 }
 
@@ -36,6 +38,7 @@ interface Estatisticas {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -48,20 +51,25 @@ interface Estatisticas {
       <h1 class="page-title">
         <mat-icon>medical_services</mat-icon>
         Fila de Triagem
+        <span class="flex-1"></span>
+        <button mat-stroked-button color="primary" (click)="carregarDados()">
+          <mat-icon>refresh</mat-icon>
+          Atualizar
+        </button>
       </h1>
 
       <!-- Estatísticas -->
       <div class="stats-cards">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-number">{{estatisticas.pacientes_aguardando}}</div>
+            <div class="stat-number">{{contarPacientesAguardando()}}</div>
             <div class="stat-label">Aguardando Triagem</div>
           </mat-card-content>
         </mat-card>
 
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-number">{{estatisticas.tempo_medio_espera}}min</div>
+            <div class="stat-number">{{formatarTempo(estatisticas.tempo_medio_espera)}}</div>
             <div class="stat-label">Tempo Médio Espera</div>
           </mat-card-content>
         </mat-card>
@@ -80,6 +88,28 @@ interface Estatisticas {
             </div>
           </mat-card-content>
         </mat-card>
+      </div>
+
+      <!-- Filtro de Status -->
+      <div class="status-filter mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
+        <select
+          [(ngModel)]="filtroStatus"
+          (change)="carregarDados()"
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          <option value="">Todos os Status</option>
+          <option value="encaminhado para triagem">Aguardando Triagem</option>
+          <option value="em_triagem">Em Triagem</option>
+          <option value="encaminhado para sala médica">Encaminhado para Sala Médica</option>
+          <option value="em atendimento médico">Em Atendimento Médico</option>
+          <option value="encaminhado para ambulatório">Encaminhado para Ambulatório</option>
+          <option value="encaminhado para exames">Encaminhado para Exames</option>
+          <option value="aguardando exames">Aguardando Exames</option>
+          <option value="exames concluídos">Exames Concluídos</option>
+          <option value="alta médica">Alta Médica</option>
+          <option value="transferido">Transferido</option>
+          <option value="óbito">Óbito</option>
+        </select>
       </div>
 
       <!-- Lista de Pacientes -->
@@ -104,7 +134,7 @@ interface Estatisticas {
             <div class="patient-info">
               <div class="info-row">
                 <mat-icon>schedule</mat-icon>
-                <span>Espera: {{paciente.tempo_espera}} minutos</span>
+                <span>Tempo em espera desde o atendimento: {{formatarTempo(paciente.tempo_espera)}}</span>
                 <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'"
                          class="alert-icon">warning</mat-icon>
               </div>
@@ -119,7 +149,7 @@ interface Estatisticas {
                 <span>Chegada: {{formatarDataHora(paciente.data_hora_atendimento)}}</span>
               </div>
 
-              <div class="status-chip">
+              <div class="status-chip" *ngIf="!isStatusEncaminhadoParaTriagem(paciente.status)">
                 <mat-chip [style.background-color]="getCorStatus(paciente.status)">
                   {{getDescricaoStatus(paciente.status)}}
                 </mat-chip>
@@ -128,15 +158,28 @@ interface Estatisticas {
           </mat-card-content>
 
           <mat-card-actions>
-            <button mat-raised-button
+            <!-- Iniciar Triagem - apenas para status "encaminhado para triagem" -->
+            <button *ngIf="isStatusEncaminhadoParaTriagem(paciente.status)"
+                    mat-raised-button
                     color="primary"
-                    (click)="iniciarTriagem(paciente)"
-                    [disabled]="paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem'">
+                    (click)="iniciarTriagem(paciente)">
               <mat-icon>play_arrow</mat-icon>
-              {{(paciente.status === '2 - Em triagem' || paciente.status === 'em_triagem' || paciente.status === 'em triagem') ? 'Em Triagem' : 'Iniciar Triagem'}}
+              Iniciar Triagem
             </button>
 
-            <button mat-button (click)="verDetalhes(paciente)">
+            <!-- Em Triagem - mostrar botão para continuar/editar -->
+            <button *ngIf="isStatusEmTriagem(paciente.status)"
+                    mat-raised-button
+                    color="accent"
+                    (click)="continuarTriagem(paciente)">
+              <mat-icon>edit</mat-icon>
+              Continuar Triagem
+            </button>
+
+            <!-- Detalhes - apenas para pacientes que já foram triados (finalizados) -->
+            <button *ngIf="!isStatusEncaminhadoParaTriagem(paciente.status) && !isStatusEmTriagem(paciente.status)" 
+                    mat-button 
+                    (click)="verDetalhes(paciente)">
               <mat-icon>visibility</mat-icon>
               Detalhes
             </button>
@@ -144,7 +187,7 @@ interface Estatisticas {
         </mat-card>
 
         <!-- Mensagem quando não há pacientes -->
-        <div *ngIf="pacientes.length === 0" class="no-patients">
+  <div *ngIf="pacientes.length === 0" class="no-patients">
           <mat-icon>check_circle</mat-icon>
           <h3>Nenhum paciente aguardando triagem</h3>
           <p>Todos os pacientes foram atendidos ou não há novos atendimentos.</p>
@@ -160,6 +203,9 @@ interface Estatisticas {
     </div>
   `,
   styles: [`
+    :host {
+      --card-col-min: 420px; /* largura mínima das colunas/cards e do filtro */
+    }
     .triagem-container {
       padding: 20px;
       max-width: 1200px;
@@ -210,9 +256,20 @@ interface Estatisticas {
       font-weight: bold;
     }
 
+    .status-filter {
+      margin-bottom: 20px;
+      width: 49.5%;
+    }
+
+    @media (max-width: 600px) {
+      .status-filter {
+        width: 100%;
+      }
+    }
+
     .patients-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(var(--card-col-min), 1fr));
       gap: 15px;
     }
 
@@ -263,14 +320,14 @@ interface Estatisticas {
       font-weight: bold;
     }
 
-    .no-patients {
+  .no-patients {
       text-align: center;
       padding: 40px;
       color: #666;
       grid-column: 1 / -1;
     }
 
-    .no-patients mat-icon {
+  .no-patients mat-icon {
       font-size: 48px;
       color: #48bb78;
       margin-bottom: 10px;
@@ -291,6 +348,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     tempo_medio_espera: 0
   };
   carregando = true;
+  filtroStatus: string = 'encaminhado para triagem'; // Ajustado para corresponder ao valor retornado pela API
 
   private atualizacaoSubscription?: Subscription;
 
@@ -333,13 +391,27 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
         this.carregando = true;
       }
 
+      // Escolhe o endpoint adequado: quando filtrando por "encaminhado para triagem", usa a fila específica
+      const usarFilaEndpoint = this.filtroStatus ? this.getStatusAliases('encaminhado para triagem').has(this.filtroStatus) : false;
       const [pacientes, estatisticas] = await Promise.all([
-        firstValueFrom(this.triagemService.listarFilaTriagem()),
+        firstValueFrom(usarFilaEndpoint
+          ? this.triagemService.listarFilaTriagem()
+          : this.triagemService.listarTodosAtendimentosDia()
+        ),
         firstValueFrom(this.triagemService.obterEstatisticas())
       ]);
 
-      // O backend já filtra apenas pacientes com status "1 - Encaminhado para triagem"
-      this.pacientes = (pacientes as PacienteTriagem[]) || [];
+      console.log('Pacientes retornados pela API:', pacientes);
+
+      // Filtrar com base no filtroStatus, considerando aliases/sinônimos
+      const lista = (pacientes as PacienteTriagem[]) || [];
+      if (!this.filtroStatus) {
+        this.pacientes = lista;
+      } else {
+        const aliases = this.getStatusAliases(this.filtroStatus);
+        this.pacientes = lista.filter(p => aliases.has(p.status));
+      }
+
       this.estatisticas = (estatisticas as Estatisticas) || this.estatisticas;
     } catch (error) {
       console.error('Erro ao carregar dados da triagem:', error);
@@ -349,6 +421,50 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     } finally {
       this.carregando = false;
     }
+  }
+
+  private getStatusAliases(statusBase: string): Set<string> {
+    // Mapeia filtros para variações de status vindas do backend
+    const map: Record<string, string[]> = {
+      'encaminhado para triagem': [
+        'encaminhado para triagem', 'encaminhado_para_triagem', '1 - Encaminhado para triagem'
+      ],
+      'em_triagem': [
+        'em_triagem', 'em triagem', '2 - Em triagem'
+      ],
+      'encaminhado para sala médica': [
+        'encaminhado para sala médica', 'encaminhado_para_sala_medica', '3 - Encaminhado para sala médica'
+      ],
+      'em atendimento médico': [
+        'em atendimento médico', 'em_atendimento_medico', '4 - Em atendimento médico'
+      ],
+      'encaminhado para ambulatório': [
+        'encaminhado para ambulatório', 'encaminhado_para_ambulatorio', '5 - Encaminhado para ambulatório'
+      ],
+      'em atendimento ambulatorial': [
+        'em atendimento ambulatorial', 'em_atendimento_ambulatorial', '6 - Em atendimento ambulatorial'
+      ],
+      'encaminhado para exames': [
+        'encaminhado para exames', 'encaminhado_para_exames', '7 - Encaminhado para exames'
+      ],
+      'aguardando exames': [
+        'aguardando exames'
+      ],
+      'exames concluídos': [
+        'exames concluídos'
+      ],
+      'alta médica': [
+        'alta médica'
+      ],
+      'transferido': [
+        'transferido'
+      ],
+      'óbito': [
+        'óbito'
+      ]
+    };
+    const arr = map[statusBase] || [statusBase];
+    return new Set(arr);
   }
 
   async iniciarTriagem(paciente: PacienteTriagem) {
@@ -367,9 +483,16 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       // Pequeno delay para garantir que a mudança foi commitada no banco
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Navegar para tela de triagem
+      // Navegar para tela de triagem com dados de prefill
       console.log('Navegando para tela de triagem...');
-      this.router.navigate(['/triagem/realizar', paciente.id]);
+      this.router.navigate(['/triagem/realizar', paciente.id], {
+        state: { prefill: {
+          paciente_nome: paciente.paciente_nome,
+          paciente_nascimento: paciente.paciente_nascimento,
+          paciente_sexo: paciente.paciente_sexo,
+          queixa_principal: paciente.queixa_principal
+        }}
+      });
     } catch (error) {
       console.error('Erro ao iniciar triagem:', error);
       this.snackBar.open('Erro ao iniciar triagem', 'Fechar', {
@@ -378,9 +501,37 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     }
   }
 
+  async continuarTriagem(paciente: PacienteTriagem) {
+    try {
+      console.log('Continuando triagem para paciente ID:', paciente.id);
+
+      // Navegar diretamente para tela de triagem para edição
+      this.snackBar.open(`Continuando triagem de ${paciente.paciente_nome}`, 'Fechar', {
+        duration: 3000
+      });
+
+      console.log('Navegando para tela de triagem para continuação...');
+      this.router.navigate(['/triagem/realizar', paciente.id], {
+        state: { modoEdicao: true }
+      });
+    } catch (error) {
+      console.error('Erro ao continuar triagem:', error);
+      this.snackBar.open('Erro ao continuar triagem', 'Fechar', {
+        duration: 5000
+      });
+    }
+  }
+
   verDetalhes(paciente: PacienteTriagem) {
-    // TODO: Abrir modal com detalhes do paciente
-    console.log('Ver detalhes:', paciente);
+    console.log('Abrindo detalhes da triagem:', paciente);
+    
+    // Navegar para o componente de triagem em modo visualização (sem edição)
+    this.router.navigate(['/triagem/realizar', paciente.id], {
+      state: { 
+        modoVisualizacao: true,
+        paciente_nome: paciente.paciente_nome 
+      }
+    });
   }
 
   getCor(classificacao?: string): string {
@@ -478,8 +629,67 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Métodos para contar pacientes por status
+  contarPacientesAguardando(): number {
+    return this.pacientes.filter(p =>
+      p.status === 'encaminhado para triagem' ||
+      p.status === '1 - Encaminhado para triagem'
+    ).length;
+  }
+
+  contarPacientesEmTriagem(): number {
+    return this.pacientes.filter(p =>
+      p.status === 'em_triagem' ||
+      p.status === 'em triagem' ||
+      p.status === '2 - Em triagem'
+    ).length;
+  }
+
+  contarTriagensConcluidas(): number {
+    return this.pacientes.filter(p =>
+      p.status === 'encaminhado para sala médica' ||
+      p.status === 'encaminhado para ambulatório' ||
+      p.status === 'encaminhado para exames' ||
+      p.status === '3 - Encaminhado para sala médica' ||
+      p.status === '5 - Encaminhado para ambulatório' ||
+      p.status === '7 - Encaminhado para exames'
+    ).length;
+  }
+
   getClassificacaoArray(): Array<{key: string, value: number}> {
     return Object.entries(this.estatisticas.por_classificacao)
       .map(([key, value]) => ({key, value}));
+  }
+
+  // Formata minutos em "Xh Ymin" sempre que possível; garante saída consistente mesmo sem back-end formatado
+  formatarTempo(minutos?: number | null): string {
+    if (minutos === null || minutos === undefined || isNaN(minutos as any)) {
+      return '-';
+    }
+    const total = Math.max(0, Math.round(minutos));
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    if (h > 0 && m > 0) return `${h}h ${m}min`;
+    if (h > 0) return `${h}h`;
+    return `${m} min`;
+  }
+
+  isStatusEncaminhadoParaTriagem(status: string): boolean {
+    const ENC: Record<string, true> = {
+      'encaminhado para triagem': true,
+      'encaminhado_para_triagem': true,
+      '1 - Encaminhado para triagem': true
+    } as const;
+    return !!ENC[status];
+  }
+
+  isStatusEmTriagem(status: string): boolean {
+    const EM: Record<string, true> = {
+      'em_triagem': true,
+      'em triagem': true,
+      '2 - Em triagem': true,
+      '2 - Em Triagem': true
+    } as const;
+    return !!EM[status];
   }
 }

@@ -2,7 +2,7 @@ import db from '../config/database.js';
 
 
 class Atendimento {
-  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'recepcao', motivo_interrupcao = 'N/A' }) {
+  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'encaminhado para triagem', motivo_interrupcao = 'N/A' }) {
     const result = await db.query(
       `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia, data_hora_atendimento)
        VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) RETURNING *`,
@@ -31,13 +31,16 @@ class Atendimento {
 
   static async atualizarStatus(id, status, motivo_interrupcao = 'N/A') {
     const validStatuses = [
+      'recepcao',
       'encaminhado para triagem',
-      'em triagem',
+      'em_triagem',
+      'triagem_finalizada',
       'encaminhado para sala médica',
       'em atendimento médico',
       'encaminhado para ambulatório',
       'em atendimento ambulatorial',
-      'encaminhado para exames'
+      'encaminhado para exames',
+      'atendimento_concluido'
     ];
 
     if (!validStatuses.includes(status)) {
@@ -61,9 +64,47 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.status IN ('encaminhado_para_triagem', '1 - Encaminhado para triagem', 'encaminhado para triagem')
+       WHERE a.status = 'encaminhado para triagem'
          AND DATE(a.data_hora_atendimento) = CURRENT_DATE
        ORDER BY 
+         a.prioridade ASC NULLS LAST,
+         a.created_at ASC`
+    );
+    return result.rows;
+  }
+
+  static async listarTodosAtendimentosDia() {
+    const result = await db.query(
+      `SELECT a.id, a.created_at, a.data_hora_atendimento, a.status, a.prioridade,
+              a.classificacao_risco, a.queixa_principal,
+              p.nome as paciente_nome, p.nascimento as paciente_nascimento,
+              p.sexo as paciente_sexo
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       WHERE (
+         -- Itens do dia atual
+         (DATE(a.data_hora_atendimento) = CURRENT_DATE AND a.status IN (
+           'encaminhado para triagem',
+           'encaminhado para sala médica',
+           'encaminhado para ambulatório',
+           'encaminhado para exames',
+           'em atendimento médico',
+           'aguardando exames',
+           'exames concluídos',
+           'alta médica',
+           'transferido',
+           'óbito'
+         ))
+         OR
+         -- Em triagem (pode ter iniciado em dia anterior, manter visível)
+         a.status = 'em_triagem'
+       )
+       ORDER BY 
+         CASE 
+           WHEN a.status = 'encaminhado para triagem' THEN 1
+           WHEN a.status = 'em_triagem' THEN 2
+           ELSE 3
+         END,
          a.prioridade ASC NULLS LAST,
          a.created_at ASC`
     );
@@ -73,7 +114,7 @@ class Atendimento {
   static async iniciarTriagem(id, usuarioId) {
     const result = await db.query(
       `UPDATE atendimentos 
-       SET status = 'em triagem', 
+       SET status = 'em_triagem', 
            triagem_realizada_por = $2,
            data_inicio_triagem = CURRENT_TIMESTAMP,
            updated_at = CURRENT_TIMESTAMP
@@ -109,15 +150,15 @@ class Atendimento {
     return result.rows[0];
   }
 
-  static async finalizarTriagem(id) {
+  static async finalizarTriagem(id, statusDestino = 'encaminhado para sala médica') {
     const result = await db.query(
       `UPDATE atendimentos 
-       SET status = 'triagem_finalizada',
+       SET status = $2,
            data_fim_triagem = CURRENT_TIMESTAMP,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 AND status = 'em_triagem'
        RETURNING *`,
-      [id]
+      [id, statusDestino]
     );
     return result.rows[0];
   }

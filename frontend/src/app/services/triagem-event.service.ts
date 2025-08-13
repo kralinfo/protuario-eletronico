@@ -5,6 +5,9 @@ import { BehaviorSubject, Subject } from 'rxjs';
   providedIn: 'root'
 })
 export class TriagemEventService {
+  // Subject para notificar novo atendimento
+  private novoAtendimentoSource = new Subject<void>();
+  public novoAtendimento$ = this.novoAtendimentoSource.asObservable();
   // Subject para notificar quando uma triagem é finalizada
   private triagemFinalizadaSource = new Subject<void>();
   public triagemFinalizada$ = this.triagemFinalizadaSource.asObservable();
@@ -30,6 +33,14 @@ export class TriagemEventService {
   // Método chamado quando uma triagem é iniciada
   notificarTriagemIniciada() {
     console.log('TriagemEventService: Notificando triagem iniciada');
+    this.atualizarDashboardSource.next();
+    this.atualizarFilaSource.next();
+  }
+
+  // Método chamado quando um novo atendimento é criado
+  notificarNovoAtendimento() {
+    console.log('TriagemEventService: Notificando novo atendimento');
+    this.novoAtendimentoSource.next();
     this.atualizarDashboardSource.next();
     this.atualizarFilaSource.next();
   }

@@ -14,6 +14,8 @@ import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.co
 import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 import { FilaTriagemComponent } from './triagem/fila-triagem.component';
 import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.component';
+import { RealizarTriagemUltraSeguroComponent } from './triagem/realizar-triagem-ultra-seguro.component';
+import { FilaPosTriagemComponent } from './triagem/fila-pos-triagem.component';
 
 const routes: Routes = [
   {
@@ -140,14 +142,25 @@ const routes: Routes = [
     }
   },
   {
+    path: 'pos-triagem',
+    component: FilaPosTriagemComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'triagem',
+      breadcrumb: 'Pós-triagem',
+      icon: 'assignment',
+      title: 'Fila Pós-triagem'
+    }
+  },
+  {
     path: 'triagem/realizar/:id',
-    component: RealizarTriagemComponent,
+    component: RealizarTriagemUltraSeguroComponent,
     canActivate: [AuthGuard, ModuloGuard],
     data: {
       modulo: 'triagem',
       breadcrumb: 'Realizar Triagem',
       icon: 'assignment',
-      title: 'Realizar Triagem',
+      title: 'Realizar Triagem (Ultra Seguro)',
       parent: 'triagem'
     }
   },

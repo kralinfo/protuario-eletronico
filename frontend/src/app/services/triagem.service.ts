@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface PacienteTriagem {
   id: number;
@@ -12,6 +13,7 @@ export interface PacienteTriagem {
   classificacao_risco?: string;
   queixa_principal?: string;
   tempo_espera: number;
+  tempo_espera_formatado?: string;
   alerta?: string;
 }
 
@@ -28,6 +30,7 @@ export interface DadosTriagem {
   // Classificação
   classificacao_risco?: string;
   prioridade?: number;
+  status_destino?: string;
 
   // Dados clínicos
   queixa_principal?: string;
@@ -69,11 +72,15 @@ export interface ClassificacaoRisco {
   };
 }
 
+export interface StatusDestino {
+  [key: string]: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class TriagemService {
-  private baseUrl = 'http://localhost:3001/api/triagem';
+  private baseUrl = `${environment.apiUrl}/triagem`;
 
   constructor(private http: HttpClient) {}
 
@@ -81,6 +88,10 @@ export class TriagemService {
 
   listarFilaTriagem(): Observable<PacienteTriagem[]> {
     return this.http.get<PacienteTriagem[]>(`${this.baseUrl}/fila`);
+  }
+
+  listarTodosAtendimentosDia(): Observable<PacienteTriagem[]> {
+    return this.http.get<PacienteTriagem[]>(`${this.baseUrl}/todos-atendimentos-dia`);
   }
 
   obterEstatisticas(): Observable<Estatisticas> {
@@ -101,14 +112,19 @@ export class TriagemService {
     return this.http.put(`${this.baseUrl}/${atendimentoId}/salvar`, dados);
   }
 
-  finalizarTriagem(atendimentoId: number): Observable<any> {
-    return this.http.post(`${this.baseUrl}/${atendimentoId}/finalizar`, {});
+  finalizarTriagem(atendimentoId: number, statusDestino?: string): Observable<any> {
+    const body = statusDestino ? { status_destino: statusDestino } : {};
+    return this.http.post(`${this.baseUrl}/${atendimentoId}/finalizar`, body);
   }
 
   // === CONFIGURAÇÕES ===
 
   obterClassificacaoRisco(): Observable<ClassificacaoRisco> {
     return this.http.get<ClassificacaoRisco>(`${this.baseUrl}/classificacao-risco`);
+  }
+
+  obterStatusDestino(): Observable<StatusDestino> {
+    return this.http.get<StatusDestino>(`${this.baseUrl}/status-destino`);
   }
 
   // === RELATÓRIOS ===
