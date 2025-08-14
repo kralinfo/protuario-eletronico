@@ -46,8 +46,8 @@ class App {
     this.app.use(cors(corsOptions));
     this.app.options('*', cors(corsOptions));
     
-    // Rate limiting global
-    this.app.use(rateLimit(15 * 60 * 1000, 100)); // 100 req por 15 min
+  // Rate limiting global
+  this.app.use(rateLimit(15 * 60 * 1000, 300)); // 300 req por 15 min
     
     // Headers de segurança
     this.app.use(securityHeaders);
