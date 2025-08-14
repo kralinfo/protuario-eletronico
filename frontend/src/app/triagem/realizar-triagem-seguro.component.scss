@@ -1,0 +1,57 @@
+.triagem-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #2c5282;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 40px;
+}
+
+.patient-info-card {
+  margin-bottom: 20px;
+}
+
+.form-card {
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+h3 {
+  color: #2c5282;
+  margin: 20px 0 15px 0;
+}
+
+h3:first-of-type {
+  margin-top: 0;
+}
+
+mat-divider {
+  margin: 20px 0;
+}
