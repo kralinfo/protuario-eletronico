@@ -7,31 +7,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-feedback-dialog',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div [ngClass]="data.type">
-      <h2 mat-dialog-title>{{ data.title }}</h2>
-      <div mat-dialog-content>{{ data.message }}</div>
-    </div>
-  `,
-  styles: [`
-    .success {
-      background: #e8f5e9;
-      color: #388e3c;
-    }
-    .error {
-      background: #ffebee;
-      color: #d32f2f;
-    }
-    .warning {
-      background: #fff8e1;
-      color: #f57c00;
-    }
-    div {
-      padding: 24px 16px;
-      text-align: center;
-      font-size: 1.1em;
-    }
-  `]
+  templateUrl: './feedback-dialog.component.html',
+  styleUrls: ['./feedback-dialog.component.scss']
 })
 export class FeedbackDialogComponent {
   constructor(
