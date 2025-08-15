@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -24,144 +24,16 @@ import { TriagemService, PacienteTriagem } from '../services/triagem.service';
     MatProgressSpinnerModule,
     MatSnackBarModule
   ],
-  template: `
-    <div class="triagem-container">
-      <h1 class="page-title">
-        <mat-icon>assignment</mat-icon>
-        Fila Pós-triagem
-      </h1>
-
-      <!-- Estatísticas -->
-      <div class="stats-cards">
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-number">{{contarEncaminhados()}}</div>
-            <div class="stat-label">Encaminhados</div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-number">{{contarEmAtendimento()}}</div>
-            <div class="stat-label">Em Atendimento</div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-number">{{formatarTempo(tempoMedioEspera)}}</div>
-            <div class="stat-label">Tempo Médio Espera</div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Filtro de Status -->
-      <div class="status-filter mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
-        <select
-          [(ngModel)]="filtroStatus"
-          (change)="carregarDados()"
-          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-600 focus:border-purple-600 sm:text-sm">
-          <option value="">Todos (pós-triagem)</option>
-          <option value="em_triagem">Em Triagem</option>
-          <option value="em triagem">Em Triagem (legado)</option>
-          <option value="encaminhado para sala médica">Encaminhado para Sala Médica</option>
-          <option value="em atendimento médico">Em Atendimento Médico</option>
-          <option value="encaminhado para ambulatório">Encaminhado para Ambulatório</option>
-          <option value="em atendimento ambulatorial">Em Atendimento Ambulatorial</option>
-          <option value="encaminhado para exames">Encaminhado para Exames</option>
-          <option value="aguardando exames">Aguardando Exames</option>
-          <option value="exames concluídos">Exames Concluídos</option>
-          <option value="alta médica">Alta Médica</option>
-          <option value="transferido">Transferido</option>
-          <option value="óbito">Óbito</option>
-        </select>
-      </div>
-
-      <!-- Lista de Atendimentos Pós-triagem -->
-      <div class="patients-list" *ngIf="!carregando; else loadingTemplate">
-        <mat-card *ngFor="let paciente of pacientes" class="patient-card">
-          <mat-card-header>
-            <div mat-card-avatar class="patient-avatar" [style.background-color]="getCorStatus(paciente.status)">
-              {{getIniciais(paciente.paciente_nome)}}
-            </div>
-            <mat-card-title>{{paciente.paciente_nome}}</mat-card-title>
-            <mat-card-subtitle>
-              {{getIdade(paciente.paciente_nascimento)}} anos • {{paciente.paciente_sexo}}
-            </mat-card-subtitle>
-          </mat-card-header>
-
-          <mat-card-content>
-            <div class="patient-info">
-              <div class="info-row">
-                <mat-icon>schedule</mat-icon>
-                <span>Tempo em espera desde o atendimento: {{formatarTempo(paciente.tempo_espera)}}</span>
-              </div>
-              <div class="info-row">
-                <mat-icon>event</mat-icon>
-                <span>Chegada: {{formatarDataHora(paciente.data_hora_atendimento)}}</span>
-              </div>
-              <div class="status-chip">
-                <mat-chip [style.background-color]="getCorStatus(paciente.status)">
-                  {{getDescricaoStatus(paciente.status)}}
-                </mat-chip>
-              </div>
-            </div>
-          </mat-card-content>
-
-          <mat-card-actions>
-            <button mat-button (click)="abrirTriagem(paciente)">
-              <mat-icon>visibility</mat-icon>
-              Abrir Triagem
-            </button>
-          </mat-card-actions>
-        </mat-card>
-
-        <div *ngIf="pacientes.length === 0" class="no-patients">
-          <mat-icon>check_circle</mat-icon>
-          <h3>Nenhum atendimento em pós-triagem</h3>
-          <p>Não há atendimentos em pós-triagem neste momento.</p>
-        </div>
-      </div>
-
-      <ng-template #loadingTemplate>
-        <div class="loading-container">
-          <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-          <p>Carregando pós-triagem...</p>
-        </div>
-      </ng-template>
-    </div>
-  `,
-  styles: [`
-    :host { --card-col-min: 420px; }
-    .triagem-container { padding: 20px; max-width: 1200px; margin: 0 auto; }
-    .page-title { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #553C9A; }
-    .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .stat-card { text-align: center; }
-    .stat-number { font-size: 2em; font-weight: bold; color: #553C9A; }
-    .stat-label { color: #666; margin-top: 5px; }
-    .status-filter { margin-bottom: 20px; width: 49.5%; }
-    @media (max-width: 600px) { .status-filter { width: 100%; } }
-    .patients-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-col-min), 1fr)); gap: 15px; }
-    .patient-card { transition: all 0.3s ease; }
-    .patient-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    .patient-avatar { color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-    .patient-info { margin: 10px 0; }
-    .info-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; color: #666; }
-    .status-chip { margin-top: 10px; }
-    .status-chip mat-chip { color: white; font-weight: bold; }
-    .no-patients { text-align: center; padding: 40px; color: #666; grid-column: 1 / -1; }
-    .no-patients mat-icon { font-size: 48px; color: #48bb78; margin-bottom: 10px; }
-    .loading-container { text-align: center; padding: 40px; grid-column: 1 / -1; }
-  `]
+  templateUrl: './fila-pos-triagem.component.html',
+  styleUrls: ['./fila-pos-triagem.component.scss']
 })
+
 export class FilaPosTriagemComponent implements OnInit, OnDestroy {
   pacientes: PacienteTriagem[] = [];
-  carregando = true;
+  tempoMedioEspera: number = 0;
+  carregando: boolean = false;
   filtroStatus: string = '';
-  tempoMedioEspera = 0;
-
-  private atualizacaoSubscription?: Subscription;
+  atualizacaoSubscription?: Subscription;
 
   constructor(
     private triagemService: TriagemService,
@@ -169,12 +41,12 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.carregarDados();
     this.iniciarAtualizacaoAutomatica();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.atualizacaoSubscription?.unsubscribe();
   }
 
@@ -186,7 +58,7 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
     try {
       if (mostrarLoading) this.carregando = true;
       const pacientes = await firstValueFrom(this.triagemService.listarTodosAtendimentosDia());
-  const POS_TRIAGEM = new Set([
+      const POS_TRIAGEM = new Set([
         'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
         'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
         'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
@@ -212,7 +84,6 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
 
   abrirTriagem(paciente: PacienteTriagem) {
     if (!paciente?.id) return;
-    
     // Abrir em modo visualização (somente leitura) para pacientes pós-triagem
     this.router.navigate(['/triagem/realizar', paciente.id], { 
       state: { 
@@ -333,4 +204,5 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
     };
     return descricoes[status] || status;
   }
+
 }
