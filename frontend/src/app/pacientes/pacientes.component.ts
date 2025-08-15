@@ -1,5 +1,3 @@
-// Removed duplicate misplaced methods outside the class
-// Removed all misplaced pagination methods from the top of the file
 import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';

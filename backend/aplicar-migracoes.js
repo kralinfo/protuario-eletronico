@@ -6,13 +6,11 @@
  */
 
 import pkg from 'pg';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const { Pool } = pkg;
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Configuração do banco
 const pool = new Pool({

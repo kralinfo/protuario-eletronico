@@ -2,14 +2,6 @@ import * as jsPDF from 'jspdf';
 import { Component, OnInit } from '@angular/core';
 import { AtendimentoService } from '../services/atendimento.service';
 
-interface Atendimento {
-  created_at: string;
-  paciente_id: string;
-  usuario_id: string;
-  procedencia: string;
-  observacoes: string;
-  status?: string;
-}
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validators-util';
 import { CommonModule } from '@angular/common';

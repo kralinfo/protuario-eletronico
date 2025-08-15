@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { MatDialog } from '@angular/material/dialog';
@@ -8,10 +8,7 @@ import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
-import * as jsPDF from 'jspdf';
 import { AtendimentoService } from '../services/atendimento.service';
-// Import necessário para o modal
-// import { PacientesFormComponent } from '../pacientes/pacientes-form.component';
 
 @Component({
   selector: 'app-novo-atendimento',

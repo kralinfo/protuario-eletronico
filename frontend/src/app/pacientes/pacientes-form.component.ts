@@ -30,7 +30,6 @@ import {
 } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
-import * as jsPDF from 'jspdf';
 import { formatTelefoneValue } from '../utils/telefone-util';
 import { formatCepValue } from '../utils/cep-util';
 import { CepService } from '../services/cep.service';

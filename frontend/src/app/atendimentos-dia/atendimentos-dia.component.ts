@@ -6,11 +6,6 @@ import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.
 import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
 import { AbandonoDialogComponent } from '../shared/abandono-dialog/abandono-dialog.component';
 import { AuthService } from '../auth/auth.service';
-// import { EditarAtendimentoDialogComponent } from '../shared/editar-atendimento-dialog.component';
-// import { CommonModule } from '@angular/common';
-// import { FormsModule } from '@angular/forms';
-
-import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 
 @Component({
