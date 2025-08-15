@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from './auth/auth.service';
 import { Router } from '@angular/router';
 import { MatMenu } from '@angular/material/menu';
-import { FeedbackDialogComponent } from './shared/feedback-dialog.component';
+import { FeedbackDialogComponent } from './shared/feedback-dialog/feedback-dialog.component';
 
 @Component({
   selector: 'app-root',

@@ -7,8 +7,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-feedback-dialog',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './feedback-dialog/feedback-dialog.component.html',
-  styleUrls: ['./feedback-dialog/feedback-dialog.component.scss']
+  templateUrl: './feedback-dialog.component.html',
+  styleUrls: ['./feedback-dialog.component.scss']
 })
 export class FeedbackDialogComponent {
   constructor(

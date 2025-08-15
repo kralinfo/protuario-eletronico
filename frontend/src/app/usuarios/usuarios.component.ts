@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap, EMPTY, catchError, of } from 'rxjs';
 
-import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
+import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
 import { AuthService } from '../auth/auth.service';
 import { UsuarioService } from './services/usuario.service';
 import { UsuarioValidators } from './validators/usuario.validators';

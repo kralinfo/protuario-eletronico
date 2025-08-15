@@ -7,7 +7,7 @@ import { AuthService } from '../auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { MatDialog } from '@angular/material/dialog';
-import { FeedbackDialogComponent } from '../../shared/feedback-dialog.component';
+import { FeedbackDialogComponent } from '../../shared/feedback-dialog/feedback-dialog.component';
 
 @Component({
     selector: 'app-login',

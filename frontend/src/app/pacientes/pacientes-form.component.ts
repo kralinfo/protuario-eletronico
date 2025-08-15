@@ -10,8 +10,8 @@ import {
   Input,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
-import { ConfirmDialogComponent } from '../shared/confirm-dialog.component';
+import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
+import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
 import { Paciente } from './pacientes.component';
 import { HttpClient } from '@angular/common/http';
 import {

@@ -8,7 +8,7 @@ import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
 import { MatDialog } from '@angular/material/dialog';
 import { RegistrarAtendimentoComponent } from '../atendimento/registrar-atendimento.component';
-import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
+import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
 
 export interface Paciente {
   id?: number;

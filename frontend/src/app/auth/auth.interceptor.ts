@@ -5,7 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
+import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
