@@ -6,7 +6,11 @@
         <mat-icon class="mr-3 text-blue-600">medical_services</mat-icon>
         Triagem
       </h1>
-      <button mat-stroked-button color="primary" (click)="carregarEstatisticas()">
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="carregarEstatisticas()"
+      >
         <mat-icon>refresh</mat-icon>
         Atualizar
       </button>
@@ -15,11 +19,15 @@
     <!-- Cards de estatísticas principais -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- Pacientes Aguardando -->
-      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+      <div
+        class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow"
+      >
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Aguardando Triagem</p>
-            <p class="text-3xl font-bold text-red-500">{{estatisticas.pacientes_aguardando}}</p>
+            <p class="text-3xl font-bold text-red-500">
+              {{ estatisticas.pacientes_aguardando }}
+            </p>
           </div>
           <div class="bg-red-100 p-3 rounded-full">
             <mat-icon class="text-red-500">people_outline</mat-icon>
@@ -28,11 +36,15 @@
       </div>
 
       <!-- Pacientes em Triagem -->
-      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+      <div
+        class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow"
+      >
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Em Triagem</p>
-            <p class="text-3xl font-bold text-orange-500">{{estatisticas.pacientes_em_triagem}}</p>
+            <p class="text-3xl font-bold text-orange-500">
+              {{ estatisticas.pacientes_em_triagem }}
+            </p>
           </div>
           <div class="bg-orange-100 p-3 rounded-full">
             <mat-icon class="text-orange-500">assignment_ind</mat-icon>
@@ -41,11 +53,15 @@
       </div>
 
       <!-- Triagens Concluídas Hoje -->
-      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+      <div
+        class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow"
+      >
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Concluídas Hoje</p>
-            <p class="text-3xl font-bold text-green-500">{{estatisticas.triagens_concluidas}}</p>
+            <p class="text-3xl font-bold text-green-500">
+              {{ estatisticas.triagens_concluidas }}
+            </p>
           </div>
           <div class="bg-green-100 p-3 rounded-full">
             <mat-icon class="text-green-500">check_circle_outline</mat-icon>
@@ -54,49 +70,71 @@
       </div>
 
       <!-- Por Classificação -->
-      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+      <div
+        class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow"
+      >
         <div class="flex items-center justify-between mb-4">
-          <div>
+          <div class="flex items-center space-x-2">
             <p class="text-sm font-medium text-gray-600">Por Classificação</p>
           </div>
-          <div class="bg-purple-100 p-3 rounded-full">
-            <mat-icon class="text-purple-500">assessment</mat-icon>
+          <div class="bg-purple-100 rounded-full flex items-center justify-center">
+            <button 
+              mat-icon-button 
+              (click)="abrirDialogClassificacao()" 
+              aria-label="Informações" 
+              matTooltip="Ver detalhes da classificação"
+              matTooltipPosition="above"
+              class="w-full h-full flex items-center justify-center"
+            >
+              <mat-icon class="text-purple-500">assessment</mat-icon>
+
+            </button>
           </div>
         </div>
 
         <div class="flex items-center justify-center space-x-2">
           <!-- Vermelho -->
           <div class="text-center">
-            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
-              {{estatisticas.por_classificacao?.vermelho || 0}}
+            <div
+              class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1"
+            >
+              {{ estatisticas.por_classificacao?.vermelho || 0 }}
             </div>
             <p class="text-xs text-gray-600">🔴</p>
           </div>
           <!-- Laranja -->
           <div class="text-center">
-            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
-              {{estatisticas.por_classificacao?.laranja || 0}}
+            <div
+              class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1"
+            >
+              {{ estatisticas.por_classificacao?.laranja || 0 }}
             </div>
             <p class="text-xs text-gray-600">🟠</p>
           </div>
           <!-- Amarelo -->
           <div class="text-center">
-            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
-              {{estatisticas.por_classificacao?.amarelo || 0}}
+            <div
+              class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1"
+            >
+              {{ estatisticas.por_classificacao?.amarelo || 0 }}
             </div>
             <p class="text-xs text-gray-600">🟡</p>
           </div>
           <!-- Verde -->
           <div class="text-center">
-            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
-              {{estatisticas.por_classificacao?.verde || 0}}
+            <div
+              class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1"
+            >
+              {{ estatisticas.por_classificacao?.verde || 0 }}
             </div>
             <p class="text-xs text-gray-600">🟢</p>
           </div>
           <!-- Azul -->
           <div class="text-center">
-            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
-              {{estatisticas.por_classificacao?.azul || 0}}
+            <div
+              class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1"
+            >
+              {{ estatisticas.por_classificacao?.azul || 0 }}
             </div>
             <p class="text-xs text-gray-600">🔵</p>
           </div>
@@ -105,9 +143,11 @@
     </div>
 
     <!-- Ações Rápidas -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <!-- Card Principal - Fila de Triagem -->
-      <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white">
+      <div
+        class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white"
+      >
         <div class="mb-4">
           <h3 class="text-lg font-bold mb-2 flex items-center">
             <mat-icon class="mr-2">list_alt</mat-icon>
@@ -118,58 +158,97 @@
 
         <div class="flex justify-between mb-4">
           <div class="text-center">
-            <p class="text-2xl font-bold">{{estatisticas.pacientes_aguardando}}</p>
+            <p class="text-2xl font-bold">
+              {{ estatisticas.pacientes_aguardando }}
+            </p>
             <p class="text-xs text-blue-100">Aguardando</p>
           </div>
           <div class="text-center">
-            <p class="text-2xl font-bold">{{estatisticas.pacientes_em_triagem}}</p>
+            <p class="text-2xl font-bold">
+              {{ estatisticas.pacientes_em_triagem }}
+            </p>
             <p class="text-xs text-blue-100">Em Triagem</p>
           </div>
         </div>
 
-        <button (click)="irParaFilaTriagem()"
-                class="w-full bg-white text-blue-600 px-4 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center">
+        <button
+          (click)="irParaFilaTriagem()"
+          class="w-full bg-white text-blue-600 px-4 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center"
+        >
           <mat-icon class="mr-2">arrow_forward</mat-icon>
           Acessar Fila
         </button>
 
         <!-- Preview compacto da fila (Disponíveis para iniciar) -->
-        <div class="mt-4 bg-white/10 rounded p-3" *ngIf="filaDisponiveisPreview && filaDisponiveisPreview.length">
+        <div
+          class="mt-4 bg-white/10 rounded p-3"
+          *ngIf="filaDisponiveisPreview && filaDisponiveisPreview.length"
+        >
           <div class="text-sm text-blue-100 mb-2 flex items-center">
             <mat-icon class="mr-2">visibility</mat-icon>
-            Disponíveis para iniciar (top {{filaDisponiveisPreview.length}})
+            Disponíveis para iniciar (top {{ filaDisponiveisPreview.length }})
           </div>
           <ul class="space-y-2">
-            <li *ngFor="let p of filaDisponiveisPreview"
-                (click)="abrirItemFila(p)"
-                class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+            <li
+              *ngFor="let p of filaDisponiveisPreview"
+              (click)="abrirItemFila(p)"
+              class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors"
+            >
               <div class="truncate mr-3">
-                <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
-                <div class="text-xs text-blue-100 truncate" *ngIf="p.status !== 'encaminhado para triagem' && p.status !== 'encaminhado_para_triagem' && p.status !== '1 - Encaminhado para triagem'">{{getDescricaoStatus(p.status)}}</div>
+                <div class="text-sm font-semibold truncate">
+                  {{ p.paciente_nome }}
+                </div>
+                <div
+                  class="text-xs text-blue-100 truncate"
+                  *ngIf="
+                    p.status !== 'encaminhado para triagem' &&
+                    p.status !== 'encaminhado_para_triagem' &&
+                    p.status !== '1 - Encaminhado para triagem'
+                  "
+                >
+                  {{ getDescricaoStatus(p.status) }}
+                </div>
               </div>
-              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
-                {{formatarTempo(p.tempo_espera)}}
+              <div
+                class="text-xs font-semibold px-2 py-1 rounded"
+                [style.background-color]="getCorStatus(p.status)"
+                style="color: white"
+              >
+                {{ formatarTempo(p.tempo_espera) }}
               </div>
             </li>
           </ul>
         </div>
 
         <!-- Preview de itens em triagem -->
-        <div class="mt-4 bg-white/10 rounded p-3" *ngIf="filaEmTriagemPreview && filaEmTriagemPreview.length">
+        <div
+          class="mt-4 bg-white/10 rounded p-3"
+          *ngIf="filaEmTriagemPreview && filaEmTriagemPreview.length"
+        >
           <div class="text-sm text-blue-100 mb-2 flex items-center">
             <mat-icon class="mr-2">edit</mat-icon>
-            Em triagem (top {{filaEmTriagemPreview.length}})
+            Em triagem (top {{ filaEmTriagemPreview.length }})
           </div>
           <ul class="space-y-2">
-            <li *ngFor="let p of filaEmTriagemPreview"
-                (click)="abrirItemFila(p)"
-                class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+            <li
+              *ngFor="let p of filaEmTriagemPreview"
+              (click)="abrirItemFila(p)"
+              class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors"
+            >
               <div class="truncate mr-3">
-                <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
-                <div class="text-xs text-blue-100 truncate">{{getDescricaoStatus(p.status)}}</div>
+                <div class="text-sm font-semibold truncate">
+                  {{ p.paciente_nome }}
+                </div>
+                <div class="text-xs text-blue-100 truncate">
+                  {{ getDescricaoStatus(p.status) }}
+                </div>
               </div>
-              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
-                {{formatarTempo(p.tempo_espera)}}
+              <div
+                class="text-xs font-semibold px-2 py-1 rounded"
+                [style.background-color]="getCorStatus(p.status)"
+                style="color: white"
+              >
+                {{ formatarTempo(p.tempo_espera) }}
               </div>
             </li>
           </ul>
@@ -177,104 +256,183 @@
       </div>
 
       <!-- Segunda coluna - Pós-triagem -->
-      <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg shadow-lg p-6 text-white">
+      <div
+        class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg shadow-lg p-6 text-white"
+      >
         <div class="mb-4">
           <h3 class="text-lg font-bold mb-2 flex items-center">
             <mat-icon class="mr-2">assignment</mat-icon>
             Pós-triagem
           </h3>
-          <p class="text-purple-100 text-sm">Acompanhe pacientes encaminhados e em triagem</p>
+          <p class="text-purple-100 text-sm">
+            Acompanhe pacientes encaminhados e em triagem
+          </p>
         </div>
 
         <div class="flex justify-between mb-4">
           <div class="text-center">
-            <p class="text-2xl font-bold">{{posEncaminhados}}</p>
+            <p class="text-2xl font-bold">{{ posEncaminhados }}</p>
             <p class="text-xs text-purple-100">Encaminhados</p>
           </div>
           <div class="text-center">
-            <p class="text-2xl font-bold">{{posEmAtendimento}}</p>
+            <p class="text-2xl font-bold">{{ posEmAtendimento }}</p>
             <p class="text-xs text-purple-100">Em Atendimento</p>
           </div>
           <div class="text-center">
-            <p class="text-2xl font-bold">{{(posEncaminhados + posEmAtendimento)}}</p>
+            <p class="text-2xl font-bold">
+              {{ posEncaminhados + posEmAtendimento }}
+            </p>
             <p class="text-xs text-purple-100">Total Pós-triagem</p>
           </div>
         </div>
 
-        <button (click)="irParaPosTriagem()"
-    class="w-full bg-white text-purple-600 px-4 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center justify-center">
-    <mat-icon class="mr-2">arrow_forward</mat-icon>
-    Acessar Pós-triagem
-  </button>
+        <button
+          (click)="irParaPosTriagem()"
+          class="w-full bg-white text-purple-600 px-4 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center justify-center"
+        >
+          <mat-icon class="mr-2">arrow_forward</mat-icon>
+          Acessar Pós-triagem
+        </button>
 
-  <div class="mt-4 bg-white/10 rounded p-3" *ngIf="posTriagemPreview && posTriagemPreview.length; else semPosTriagem">
+        <div
+          class="mt-4 bg-white/10 rounded p-3"
+          *ngIf="
+            posTriagemPreview && posTriagemPreview.length;
+            else semPosTriagem
+          "
+        >
           <div class="text-sm text-purple-100 mb-2 flex items-center">
             <mat-icon class="mr-2">visibility</mat-icon>
-            Itens pós-triagem (top {{posTriagemPreview.length}})
+            Itens pós-triagem (top {{ posTriagemPreview.length }})
           </div>
           <ul class="space-y-2">
-            <li *ngFor="let p of posTriagemPreview"
-                (click)="abrirItemFila(p)"
-                class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+            <li
+              *ngFor="let p of posTriagemPreview"
+              (click)="abrirItemFila(p)"
+              class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors"
+            >
               <div class="truncate mr-3">
-                <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
-                <div class="text-xs text-purple-100 truncate" *ngIf="p.status !== 'encaminhado para triagem' && p.status !== 'encaminhado_para_triagem' && p.status !== '1 - Encaminhado para triagem'">{{getDescricaoStatus(p.status)}}</div>
+                <div class="text-sm font-semibold truncate">
+                  {{ p.paciente_nome }}
+                </div>
+                <div
+                  class="text-xs text-purple-100 truncate"
+                  *ngIf="
+                    p.status !== 'encaminhado para triagem' &&
+                    p.status !== 'encaminhado_para_triagem' &&
+                    p.status !== '1 - Encaminhado para triagem'
+                  "
+                >
+                  {{ getDescricaoStatus(p.status) }}
+                </div>
               </div>
-              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
-                {{formatarTempo(p.tempo_espera)}}
+              <div
+                class="text-xs font-semibold px-2 py-1 rounded"
+                [style.background-color]="getCorStatus(p.status)"
+                style="color: white"
+              >
+                {{ formatarTempo(p.tempo_espera) }}
               </div>
             </li>
           </ul>
         </div>
         <ng-template #semPosTriagem>
-          <p class="text-sm text-purple-100">Nenhum atendimento pós-triagem a exibir.</p>
+          <p class="text-sm text-purple-100">
+            Nenhum atendimento pós-triagem a exibir.
+          </p>
         </ng-template>
       </div>
 
       <!-- Terceira coluna - Alertas de Tempo -->
-      <div class="bg-gradient-to-r from-red-600 to-red-700 rounded-lg shadow-lg p-6 text-white">
+      <div
+        class="bg-gradient-to-r from-red-600 to-red-700 rounded-lg shadow-lg p-6 text-white"
+      >
         <div class="mb-4">
           <h3 class="text-lg font-bold mb-2 flex items-center">
             <mat-icon class="mr-2">warning_amber</mat-icon>
             Alertas de Tempo
           </h3>
-          <p class="text-red-100 text-sm">Atendimentos com limite estourado ou próximo</p>
+          <p class="text-red-100 text-sm">
+            Atendimentos com limite estourado ou próximo
+          </p>
         </div>
 
-        <div *ngIf="(alertasCriticos && alertasCriticos.length) || (alertasAtencao && alertasAtencao.length); else semAlertas">
+        <div
+          *ngIf="
+            (alertasCriticos && alertasCriticos.length) ||
+              (alertasAtencao && alertasAtencao.length);
+            else semAlertas
+          "
+        >
           <!-- Críticos -->
-          <div *ngIf="alertasCriticos && alertasCriticos.length" class="mb-4 bg-white/10 rounded p-3">
-            <div class="text-sm font-semibold text-red-100 mb-2 flex items-center">
+          <div
+            *ngIf="alertasCriticos && alertasCriticos.length"
+            class="mb-4 bg-white/10 rounded p-3"
+          >
+            <div
+              class="text-sm font-semibold text-red-100 mb-2 flex items-center"
+            >
               <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
               Críticos (estourado)
             </div>
             <ul class="space-y-2">
-              <li *ngFor="let p of alertasCriticos" (click)="abrirItemFila(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+              <li
+                *ngFor="let p of alertasCriticos"
+                (click)="abrirItemFila(p)"
+                class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors"
+              >
                 <div class="truncate mr-3">
-                  <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
-                  <div class="text-xs text-red-100 truncate">{{getDescricaoStatus(p.status)}} • {{p.classificacao_risco | titlecase}}</div>
+                  <div class="text-sm font-semibold truncate">
+                    {{ p.paciente_nome }}
+                  </div>
+                  <div class="text-xs text-red-100 truncate">
+                    {{ getDescricaoStatus(p.status) }} •
+                    {{ p.classificacao_risco | titlecase }}
+                  </div>
                 </div>
-                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
-                  {{formatarTempo(p.tempo_espera)}}
+                <div
+                  class="text-xs font-semibold px-2 py-1 rounded"
+                  [style.background-color]="getCorStatus(p.status)"
+                  style="color: white"
+                >
+                  {{ formatarTempo(p.tempo_espera) }}
                 </div>
               </li>
             </ul>
           </div>
 
           <!-- Atenção -->
-          <div *ngIf="alertasAtencao && alertasAtencao.length" class="bg-white/10 rounded p-3">
-            <div class="text-sm font-semibold text-orange-100 mb-2 flex items-center">
+          <div
+            *ngIf="alertasAtencao && alertasAtencao.length"
+            class="bg-white/10 rounded p-3"
+          >
+            <div
+              class="text-sm font-semibold text-orange-100 mb-2 flex items-center"
+            >
               <span class="w-2 h-2 bg-white rounded-full mr-2"></span>
               Atenção (≥ 80% do limite)
             </div>
             <ul class="space-y-2">
-              <li *ngFor="let p of alertasAtencao" (click)="abrirItemFila(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+              <li
+                *ngFor="let p of alertasAtencao"
+                (click)="abrirItemFila(p)"
+                class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors"
+              >
                 <div class="truncate mr-3">
-                  <div class="text-sm font-semibold truncate">{{p.paciente_nome}}</div>
-                  <div class="text-xs text-orange-100 truncate">{{getDescricaoStatus(p.status)}} • {{p.classificacao_risco | titlecase}}</div>
+                  <div class="text-sm font-semibold truncate">
+                    {{ p.paciente_nome }}
+                  </div>
+                  <div class="text-xs text-orange-100 truncate">
+                    {{ getDescricaoStatus(p.status) }} •
+                    {{ p.classificacao_risco | titlecase }}
+                  </div>
                 </div>
-                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color:white">
-                  {{formatarTempo(p.tempo_espera)}}
+                <div
+                  class="text-xs font-semibold px-2 py-1 rounded"
+                  [style.background-color]="getCorStatus(p.status)"
+                  style="color: white"
+                >
+                  {{ formatarTempo(p.tempo_espera) }}
                 </div>
               </li>
             </ul>

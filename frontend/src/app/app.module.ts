@@ -31,7 +31,10 @@ import { FeedbackDialogComponent } from './shared/feedback-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './auth/auth.interceptor';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
 import { HomeComponent } from './home/home.component';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
@@ -40,6 +43,7 @@ import { BreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { DashboardTriagemComponent } from './triagem/dashboard-triagem.component';
 import { FilaTriagemComponent } from './triagem/fila-triagem.component';
 import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.component';
+import { ClassificacaoDialogComponent } from './classificacao-dialog/classificacao-dialog.component';
 
 @NgModule({
   declarations: [
@@ -54,7 +58,8 @@ import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.comp
     AtendimentosDiaComponent,
     RedefinirSenhaComponent,
     BreadcrumbComponent,
-    DashboardTriagemComponent
+    DashboardTriagemComponent,
+    ClassificacaoDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -81,6 +86,10 @@ import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.comp
     MatMenuModule,
     MatCardModule,
     MatTooltipModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatIconModule,
+
     // Remover diretivas e componentes dos imports, manter apenas módulos
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
   ],
@@ -88,10 +97,10 @@ import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.comp
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
-      multi: true
+      multi: true,
     },
     provideHttpClient(withInterceptorsFromDi()),
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

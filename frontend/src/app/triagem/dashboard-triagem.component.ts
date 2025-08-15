@@ -5,6 +5,8 @@ import { TriagemEventService } from '../services/triagem-event.service';
 import { AuthService } from '../auth/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, interval, takeUntil } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { ClassificacaoDialogComponent } from '../classificacao-dialog/classificacao-dialog.component';
 
 interface EstatisticasTriagem {
   pacientes_aguardando: number;
@@ -82,9 +84,16 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     private triagemEventService: TriagemEventService,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.usuarioLogado = this.authService.user;
+  }
+
+  abrirDialogClassificacao() {
+    this.dialog.open(ClassificacaoDialogComponent, {
+      panelClass: ['p-0', 'max-w-3xl', 'w-full']
+    });
   }
 
   ngOnInit() {
