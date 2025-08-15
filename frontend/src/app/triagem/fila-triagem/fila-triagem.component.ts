@@ -10,8 +10,8 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { interval, Subscription, firstValueFrom } from 'rxjs';
-import { TriagemService } from '../services/triagem.service';
-import { TriagemEventService } from '../services/triagem-event.service';
+import { TriagemService } from '../../services/triagem.service';
+import { TriagemEventService } from '../../services/triagem-event.service';
 
 interface PacienteTriagem {
   id: number;

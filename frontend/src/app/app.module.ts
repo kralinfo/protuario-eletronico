@@ -36,8 +36,8 @@ import { HomeComponent } from './home/home.component';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
 import { BreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
-import { DashboardTriagemComponent } from './triagem/dashboard-triagem.component';
-import { FilaTriagemComponent } from './triagem/fila-triagem.component';
+import { DashboardTriagemComponent } from './triagem/dashboard/dashboard-triagem.component';
+import { FilaTriagemComponent } from './triagem/fila-triagem/fila-triagem.component';
 
 @NgModule({
   declarations: [

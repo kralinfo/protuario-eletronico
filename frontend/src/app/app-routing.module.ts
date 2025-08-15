@@ -12,9 +12,9 @@ import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.co
 import { HomeComponent } from './home/home.component';
 import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.component';
 import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
-import { FilaTriagemComponent } from './triagem/fila-triagem.component';
-import { RealizarTriagemUltraSeguroComponent } from './triagem/realizar-triagem-ultra-seguro.component';
-import { FilaPosTriagemComponent } from './triagem/fila-pos-triagem.component';
+import { FilaTriagemComponent } from './triagem/fila-triagem/fila-triagem.component';
+import { RealizarTriagemUltraSeguroComponent } from './triagem/triagem/realizar-triagem-ultra-seguro.component';
+import { FilaPosTriagemComponent } from './triagem/fila-pos-triagem/fila-pos-triagem.component';
 
 const routes: Routes = [
   {

@@ -9,7 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { interval, Subscription, firstValueFrom } from 'rxjs';
-import { TriagemService, PacienteTriagem } from '../services/triagem.service';
+import { TriagemService, PacienteTriagem } from '../../services/triagem.service';
 
 @Component({
   selector: 'app-fila-pos-triagem',

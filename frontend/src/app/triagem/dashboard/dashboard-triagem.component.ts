@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { TriagemService, PacienteTriagem } from '../services/triagem.service';
-import { TriagemEventService } from '../services/triagem-event.service';
-import { AuthService } from '../auth/auth.service';
+import { TriagemService, PacienteTriagem } from '../../services/triagem.service';
+import { TriagemEventService } from '../../services/triagem-event.service';
+import { AuthService } from '../../auth/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, interval, takeUntil } from 'rxjs';
 

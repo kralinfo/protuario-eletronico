@@ -11,8 +11,8 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TriagemService } from '../services/triagem.service';
-import { TriagemEventService } from '../services/triagem-event.service';
+import { TriagemService } from '../../services/triagem.service';
+import { TriagemEventService } from '../../services/triagem-event.service';
 
 @Component({
   selector: 'app-realizar-triagem-ultra-seguro',
@@ -32,69 +32,7 @@ import { TriagemEventService } from '../services/triagem-event.service';
     MatDividerModule
   ],
   templateUrl: './realizar-triagem-ultra-seguro.component.html',
-  styles: [`
-    .triagem-container {
-      padding: 20px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .header h1 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0;
-      color: #2c5282;
-    }
-
-    .status-card, .form-card {
-      margin-bottom: 20px;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-
-    mat-form-field {
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
-    h3 {
-      color: #2c5282;
-      margin: 20px 0 15px 0;
-    }
-
-    h3:first-of-type {
-      margin-top: 0;
-    }
-
-    .status-warning {
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
-      padding: 12px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .status-warning mat-icon {
-      color: #856404;
-    }
-  `]
+  styleUrls: ['./realizar-triagem-ultra-seguro.component.scss']
 })
 export class RealizarTriagemUltraSeguroComponent implements OnInit {
   atendimentoId: number;
