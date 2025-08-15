@@ -1,0 +1,118 @@
+<div class="triagem-container">
+  <div class="header">
+    <button mat-icon-button (click)="voltar()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>
+      <mat-icon>medical_services</mat-icon>
+      Triagem - {{nomePaciente}}
+    </h1>
+  </div>
+
+  <!-- Status do Sistema -->
+  <!-- Card removido - carregamento automático implementado -->
+
+  <!-- Formulário Ultra Simples -->
+  <form [formGroup]="triagemForm" (ngSubmit)="salvarTriagem()">
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>Dados da Triagem</mat-card-title>
+        <mat-card-subtitle>
+          <!-- Removed button with edit icon -->
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Aviso quando não pode editar -->
+        <div *ngIf="!podeEditar" class="status-warning">
+          <mat-icon>info</mat-icon>
+          <span>
+            <ng-container *ngIf="statusAtendimento !== 'em_triagem' && statusAtendimento !== 'em triagem' && statusAtendimento !== '2 - Em triagem'">
+              Esta triagem foi finalizada e não pode ser editada. Status atual: {{statusAtendimento}}
+            </ng-container>
+            <ng-container *ngIf="statusAtendimento === 'em_triagem' || statusAtendimento === 'em triagem' || statusAtendimento === '2 - Em triagem'">
+              Visualizando detalhes da triagem em modo somente leitura.
+            </ng-container>
+          </span>
+        </div>
+
+        <!-- Sinais Vitais -->
+        <h3>Sinais Vitais</h3>
+        <div class="form-row">
+          <mat-form-field>
+            <mat-label>Pressão Arterial</mat-label>
+            <input matInput formControlName="pressao_arterial" placeholder="120/80">
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Temperatura (°C)</mat-label>
+            <input matInput type="number" formControlName="temperatura" step="0.1">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field>
+            <mat-label>Frequência Cardíaca</mat-label>
+            <input matInput type="number" formControlName="frequencia_cardiaca">
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Saturação O2 (%)</mat-label>
+            <input matInput type="number" formControlName="saturacao_oxigenio" min="70" max="100">
+          </mat-form-field>
+        </div>
+
+        <!-- Classificação de Risco -->
+        <h3>Classificação de Risco</h3>
+        <mat-form-field>
+          <mat-label>Classificação de Risco</mat-label>
+          <mat-select formControlName="classificacao_risco">
+            <mat-option value="vermelho">🔴 Vermelho - Emergência</mat-option>
+            <mat-option value="laranja">🟠 Laranja - Urgente</mat-option>
+            <mat-option value="amarelo">🟡 Amarelo - Pouco Urgente</mat-option>
+            <mat-option value="verde">🟢 Verde - Não Urgente</mat-option>
+            <mat-option value="azul">🔵 Azul - Eletivo</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Encaminhar para</mat-label>
+          <mat-select formControlName="status_destino">
+            <mat-option value="encaminhado para sala médica">Sala Médica</mat-option>
+            <mat-option value="encaminhado para ambulatório">Ambulatório</mat-option>
+            <mat-option value="encaminhado para exames">Exames</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Dados Clínicos -->
+        <h3>Dados Clínicos</h3>
+        <mat-form-field>
+          <mat-label>Queixa Principal</mat-label>
+          <textarea matInput formControlName="queixa_principal" rows="3"></textarea>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>História Atual</mat-label>
+          <textarea matInput formControlName="historia_atual" rows="3"></textarea>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Observações</mat-label>
+          <textarea matInput formControlName="observacoes_triagem" rows="2"></textarea>
+        </mat-form-field>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button *ngIf="podeEditar" mat-raised-button color="primary" type="submit" [disabled]="!triagemForm.valid || salvando">
+          <mat-icon>save</mat-icon>
+          {{salvando ? 'Finalizando...' : 'Finalizar Triagem'}}
+        </button>
+
+        <button mat-button type="button" (click)="voltar()">
+          <mat-icon>cancel</mat-icon>
+          {{podeEditar ? 'Cancelar' : 'Voltar'}}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </form>
+</div>

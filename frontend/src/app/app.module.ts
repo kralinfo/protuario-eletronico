@@ -35,11 +35,9 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { HomeComponent } from './home/home.component';
 import { AtendimentosDiaComponent } from './atendimentos-dia/atendimentos-dia.component';
 import { RelatorioAtendimentosComponent } from './relatorios/relatorio-atendimentos.component';
-import { SessaoExpiradaDialog } from './sessao-expirada.dialog';
 import { BreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { DashboardTriagemComponent } from './triagem/dashboard-triagem.component';
 import { FilaTriagemComponent } from './triagem/fila-triagem.component';
-import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +60,6 @@ import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.comp
     BrowserAnimationsModule,
     RelatorioAtendimentosComponent,
     FilaTriagemComponent,
-    RealizarTriagemComponent,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
