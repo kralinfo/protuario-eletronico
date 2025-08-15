@@ -1,0 +1,100 @@
+<div class="triagem-container">
+  <h2 class="page-title">
+    <mat-icon>assignment_ind</mat-icon>
+    Pós-triagem de Pacientes
+  </h2>
+
+  <div class="stats-cards">
+    <mat-card class="stat-card">
+      <div class="stat-number">{{pacientes.length}}</div>
+      <div class="stat-label">Total em pós-triagem</div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-number">{{contarEncaminhados()}}</div>
+      <div class="stat-label">Encaminhados</div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-number">{{contarEmAtendimento()}}</div>
+      <div class="stat-label">Em Atendimento</div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-number">{{tempoMedioEspera}} min</div>
+      <div class="stat-label">Tempo médio de espera</div>
+    </mat-card>
+  </div>
+
+  <div class="status-filter">
+    <label for="status">Filtrar por status:</label>
+    <select
+      [(ngModel)]="filtroStatus"
+      (change)="carregarDados()"
+      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-600 focus:border-purple-600 sm:text-sm">
+      <option value="">Todos (pós-triagem)</option>
+      <option value="em_triagem">Em Triagem</option>
+      <option value="em triagem">Em Triagem (legado)</option>
+      <option value="encaminhado para sala médica">Encaminhado para Sala Médica</option>
+      <option value="em atendimento médico">Em Atendimento Médico</option>
+      <option value="encaminhado para ambulatório">Encaminhado para Ambulatório</option>
+      <option value="em atendimento ambulatorial">Em Atendimento Ambulatorial</option>
+      <option value="encaminhado para exames">Encaminhado para Exames</option>
+      <option value="aguardando exames">Aguardando Exames</option>
+      <option value="exames concluídos">Exames Concluídos</option>
+      <option value="alta médica">Alta Médica</option>
+      <option value="transferido">Transferido</option>
+      <option value="óbito">Óbito</option>
+    </select>
+  </div>
+
+  <!-- Lista de Atendimentos Pós-triagem -->
+  <div class="patients-list" *ngIf="!carregando; else loadingTemplate">
+    <mat-card *ngFor="let paciente of pacientes" class="patient-card">
+      <mat-card-header>
+        <div mat-card-avatar class="patient-avatar" [style.background-color]="getCorStatus(paciente.status)">
+          {{getIniciais(paciente.paciente_nome)}}
+        </div>
+        <mat-card-title>{{paciente.paciente_nome}}</mat-card-title>
+        <mat-card-subtitle>
+          {{getIdade(paciente.paciente_nascimento)}} anos • {{paciente.paciente_sexo}}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="patient-info">
+          <div class="info-row">
+            <mat-icon>schedule</mat-icon>
+            <span>Tempo em espera desde o atendimento: {{formatarTempo(paciente.tempo_espera)}}</span>
+          </div>
+          <div class="info-row">
+            <mat-icon>event</mat-icon>
+            <span>Chegada: {{formatarDataHora(paciente.data_hora_atendimento)}}</span>
+          </div>
+          <div class="status-chip">
+            <mat-chip [style.background-color]="getCorStatus(paciente.status)">
+              {{getDescricaoStatus(paciente.status)}}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-button (click)="abrirTriagem(paciente)">
+          <mat-icon>visibility</mat-icon>
+          Abrir Triagem
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <div *ngIf="pacientes.length === 0" class="no-patients">
+      <mat-icon>check_circle</mat-icon>
+      <h3>Nenhum atendimento em pós-triagem</h3>
+      <p>Não há atendimentos em pós-triagem neste momento.</p>
+    </div>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+      <p>Carregando pós-triagem...</p>
+    </div>
+  </ng-template>
+</div>
