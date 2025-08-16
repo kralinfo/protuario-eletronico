@@ -85,7 +85,14 @@
         }
       </style>
       <div class="md:col-span-4 flex justify-center items-center gap-6 mt-6">
-        <button type="submit" class="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow hover:bg-blue-700 transition w-1/2" [disabled]="!pacienteSelecionado">{{ isEdicao ? 'Atualizar Atendimento' : 'Registrar Atendimento' }}</button>
+        <button type="submit" class="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow hover:bg-blue-700 transition w-1/2"  
+            [ngClass]="(!pacienteSelecionado || !motivo || !acompanhante || !procedencia || !horario || (status === 'interrompido' && !motivo_interrupcao))
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'"
+            [disabled]="!pacienteSelecionado || !motivo || !acompanhante || !procedencia || !horario || (status === 'interrompido' && !motivo_interrupcao)" 
+          >
+          {{ isEdicao ? 'Atualizar Atendimento' : 'Registrar Atendimento' }}
+        </button>
         <button type="button"
           class="py-2 px-8 font-semibold rounded-md shadow transition"
           [ngClass]="(!pacienteSelecionado || !motivo || !acompanhante || !procedencia || !horario || (status === 'interrompido' && !motivo_interrupcao))
