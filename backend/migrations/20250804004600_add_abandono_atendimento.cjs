@@ -8,24 +8,30 @@
  */
 
 exports.up = async function(knex) {
+  // Adiciona coluna apenas se não existir
+  const columns = await knex('information_schema.columns')
+    .select('column_name')
+    .where('table_name', 'atendimentos');
+  const colNames = columns.map(c => c.column_name);
+
   await knex.schema.alterTable('atendimentos', function(table) {
-    // Campo para indicar se o atendimento foi abandonado
-    table.boolean('abandonado').defaultTo(false).comment('Indica se o paciente abandonou o atendimento');
-    
-    // Data e hora do abandono
-    table.timestamp('data_abandono').nullable().comment('Data e hora em que o paciente abandonou');
-    
-    // Motivo do abandono
-    table.string('motivo_abandono', 500).nullable().comment('Motivo pelo qual o paciente abandonou (opcional)');
-    
-    // Usuário que registrou o abandono
-    table.integer('usuario_abandono_id').nullable().comment('ID do usuário que registrou o abandono');
-    
-    // Etapa em que estava quando abandonou
-    table.string('etapa_abandono', 50).nullable().comment('Etapa do atendimento quando abandonou (recepcao, triagem, etc)');
+    if (!colNames.includes('abandonado')) {
+      table.boolean('abandonado').defaultTo(false).comment('Indica se o paciente abandonou o atendimento');
+    }
+    if (!colNames.includes('data_abandono')) {
+      table.timestamp('data_abandono').nullable().comment('Data e hora em que o paciente abandonou');
+    }
+    if (!colNames.includes('motivo_abandono')) {
+      table.string('motivo_abandono', 500).nullable().comment('Motivo pelo qual o paciente abandonou (opcional)');
+    }
+    if (!colNames.includes('usuario_abandono_id')) {
+      table.integer('usuario_abandono_id').nullable().comment('ID do usuário que registrou o abandono');
+    }
+    if (!colNames.includes('etapa_abandono')) {
+      table.string('etapa_abandono', 50).nullable().comment('Etapa do atendimento quando abandonou (recepcao, triagem, etc)');
+    }
   });
-  
-  console.log('✅ Campos de abandono de atendimento adicionados à tabela atendimentos');
+  console.log('✅ Campos de abandono de atendimento adicionados à tabela atendimentos (se não existiam)');
 };
 
 exports.down = async function(knex) {
