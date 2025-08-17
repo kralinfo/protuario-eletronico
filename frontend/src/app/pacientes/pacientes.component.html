@@ -61,6 +61,11 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" />
                     </svg>
                   </button>
+                  <button (click)="abrirHistoricoPaciente(paciente)" [disabled]="loading" class="text-green-700 hover:text-green-900 transition" title="Histórico de atendimentos">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17l4-4-4-4m8 8V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2z" />
+                    </svg>
+                  </button>
                   <button (click)="imprimirPaciente(paciente)" [disabled]="loading" class="text-gray-700 hover:text-gray-900 transition" title="Imprimir paciente">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />

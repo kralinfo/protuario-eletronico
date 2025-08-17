@@ -44,7 +44,6 @@ import { RealizarTriagemComponent } from './triagem/realizar-triagem-seguro.comp
 @NgModule({
   declarations: [
     AppComponent,
-    PacientesComponent,
     PacientesFormComponent,
     NovoAtendimentoComponent,
     LoginComponent,

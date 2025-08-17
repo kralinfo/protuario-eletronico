@@ -1,0 +1,34 @@
+<div class="historico-container" style="max-height: 400px; overflow-y: auto;">
+  <h2>Histórico de Atendimentos</h2>
+
+  <div *ngIf="carregando" class="loading">
+    Carregando histórico...
+  </div>
+
+  <div *ngIf="erro" class="erro">
+    {{ erro }}
+  </div>
+
+  <table *ngIf="!carregando && historico.length > 0" class="historico-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Motivo</th>
+        <th>Status</th>
+        <th>Médico</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let atendimento of historico">
+        <td>{{ atendimento.data_hora_atendimento | date:'short' }}</td>
+        <td>{{ atendimento.motivo }}</td>
+        <td>{{ atendimento.status }}</td>
+        <td>{{ atendimento.medico_nome || '-' }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!carregando && historico.length === 0" class="vazio">
+    Nenhum atendimento encontrado para este paciente.
+  </div>
+</div>
