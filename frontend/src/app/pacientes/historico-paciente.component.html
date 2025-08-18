@@ -1,0 +1,26 @@
+<div class="historico-paciente-container">
+  <h2>Histórico Clínico do Paciente</h2>
+
+  <div *ngIf="carregando" class="loading">Carregando dados clínicos...</div>
+  <div *ngIf="erro" class="erro">{{ erro }}</div>
+
+  <div *ngIf="paciente">
+    <table class="dados-clinicos-table">
+      <tr><th>Nome</th><td>{{ paciente.nome }}</td></tr>
+      <tr><th>Nome da Mãe</th><td>{{ paciente.mae }}</td></tr>
+      <tr><th>Data de Nascimento</th><td>{{ paciente.nascimento | date:'shortDate' }}</td></tr>
+      <tr><th>Sexo</th><td>{{ paciente.sexo }}</td></tr>
+      <tr><th>Estado Civil</th><td>{{ paciente.estado_civil }}</td></tr>
+      <tr><th>Profissão</th><td>{{ paciente.profissao }}</td></tr>
+      <tr><th>Escolaridade</th><td>{{ paciente.escolaridade }}</td></tr>
+      <tr><th>Raça/Cor</th><td>{{ paciente.raca }}</td></tr>
+      <tr><th>Endereço</th><td>{{ paciente.endereco }}</td></tr>
+      <tr><th>Bairro</th><td>{{ paciente.bairro }}</td></tr>
+      <tr><th>Município</th><td>{{ paciente.municipio }}</td></tr>
+      <tr><th>UF</th><td>{{ paciente.uf }}</td></tr>
+      <tr><th>CEP</th><td>{{ paciente.cep }}</td></tr>
+      <tr><th>Telefone</th><td>{{ paciente.telefone }}</td></tr>
+      <tr><th>SUS</th><td>{{ paciente.sus }}</td></tr>
+    </table>
+  </div>
+</div>

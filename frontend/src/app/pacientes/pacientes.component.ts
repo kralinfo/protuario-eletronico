@@ -5,6 +5,8 @@ import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
 import { MatDialog } from '@angular/material/dialog';
+import { HistoricoAtendimentosComponent } from './historico-atendimentos.component';
+import { HistoricoPacienteTimelineComponent } from './historico-paciente-timeline.component';
 import { RegistrarAtendimentoComponent } from '../atendimento/registrar-atendimento.component';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
 
@@ -29,13 +31,19 @@ export interface Paciente {
   procedencia: string;
 }
 
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { PacientesFormComponent } from './pacientes-form/pacientes-form.component';
+
 @Component({
     selector: 'app-pacientes',
     templateUrl: './pacientes.component.html',
     styleUrls: ['./pacientes.component.scss', '../shared/styles/table-footer.css'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, FormsModule, PacientesFormComponent]
 })
 export class PacientesComponent implements OnInit, AfterViewInit {
+
   imprimirFichaPacienteEmBranco() {
     // Carrega a imagem do brasão dinamicamente do assets e gera o PDF após carregamento
     const img = new window.Image();
@@ -736,6 +744,12 @@ export class PacientesComponent implements OnInit, AfterViewInit {
     this.dialog.open(RegistrarAtendimentoComponent, {
       width: '400px',
       data: { pacienteId }
+    });
+  }
+  abrirHistoricoPaciente(paciente: Paciente) {
+    this.dialog.open(HistoricoPacienteTimelineComponent, {
+      width: '600px',
+      data: { pacienteId: paciente.id }
     });
   }
 }

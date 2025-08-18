@@ -42,7 +42,6 @@ import { FilaTriagemComponent } from './triagem/fila-triagem/fila-triagem.compon
 @NgModule({
   declarations: [
     AppComponent,
-    PacientesComponent,
     PacientesFormComponent,
     NovoAtendimentoComponent,
     LoginComponent,
