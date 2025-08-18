@@ -1,3 +1,15 @@
+::ng-deep .cdk-overlay-pane {
+  max-width: 360px !important;
+  min-width: 0 !important;
+  width: 360px !important;
+}
+::ng-deep .mat-dialog-container {
+  max-width: 360px !important;
+  width: 360px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
 .timeline-container {
   max-width: 600px;
   margin: 0 auto;
