@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
@@ -19,10 +20,20 @@ export class HistoricoPacienteTimelineComponent implements OnInit {
   carregando = false;
   erro = '';
 
-  constructor(private http: HttpClient, @Inject(MAT_DIALOG_DATA) public data: any, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private dialog: MatDialog,
+    private dialogRef: MatDialogRef<HistoricoPacienteTimelineComponent>
+  ) {}
+
+  fechar() {
+    this.dialogRef.close();
+  }
   abrirDetalheAtendimento(atendimentoId: number) {
     this.dialog.open(HistoricoAtendimentoDetalheComponent, {
-      width: '700px',
+  width: '980px',
+  maxWidth: '980px',
       data: { atendimentoId }
     });
   }
