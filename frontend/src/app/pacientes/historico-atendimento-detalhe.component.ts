@@ -1,6 +1,8 @@
 import { Component, Inject, OnInit } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { environment } from '../../environments/environment';
@@ -10,14 +12,22 @@ import { environment } from '../../environments/environment';
   templateUrl: './historico-atendimento-detalhe.component.html',
   styleUrls: ['./historico-atendimento-detalhe.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatProgressSpinnerModule]
+  imports: [CommonModule, MatDialogModule, MatProgressSpinnerModule, MatIconModule]
 })
 export class HistoricoAtendimentoDetalheComponent implements OnInit {
   atendimento: any = null;
   carregando = false;
   erro = '';
 
-  constructor(private http: HttpClient, @Inject(MAT_DIALOG_DATA) public data: any) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private dialogRef: MatDialogRef<HistoricoAtendimentoDetalheComponent>
+  ) {}
+
+  fechar() {
+    this.dialogRef.close();
+  }
 
   ngOnInit() {
     if (this.data?.atendimentoId) {

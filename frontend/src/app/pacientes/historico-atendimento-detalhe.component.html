@@ -1,4 +1,7 @@
-<div class="detalhe-container">
+<div class="detalhe-container" style="position:relative;">
+  <button type="button" (click)="fechar()" class="close-btn" title="Fechar" style="position:absolute;top:16px;right:16px;z-index:10;background:none;border:none;cursor:pointer;padding:4px;">
+    <mat-icon>close</mat-icon>
+  </button>
   <h2>Dados do Atendimento</h2>
   <div *ngIf="carregando" class="loading">
     <mat-spinner diameter="32"></mat-spinner>
@@ -7,47 +10,45 @@
   <div *ngIf="erro" class="erro">{{ erro }}</div>
 
   <div *ngIf="atendimento">
-    <div class="cards-container">
+    <div class="cards-container-horizontal">
       <div class="card-group">
-        <h3><svg class="inline w-5 h-5 text-blue-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.657 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Atendimento</h3>
-        <div class="card-row"><span>Data:</span> <strong>{{ atendimento.data_hora_atendimento | date:'short' }}</strong></div>
-        <div class="card-row"><span>Status:</span> <strong>{{ atendimento.status }}</strong></div>
-        <div class="card-row"><span>Motivo:</span> <strong>{{ atendimento.motivo }}</strong></div>
-        <div class="card-row"><span>Procedência:</span> <strong>{{ atendimento.procedencia }}</strong></div>
-        <div class="card-row"><span>Queixa Principal:</span> <strong>{{ atendimento.queixa_principal }}</strong></div>
-        <div class="card-row"><span>História Atual:</span> <strong>{{ atendimento.historia_atual }}</strong></div>
-        <div class="card-row"><span>Observações:</span> <strong>{{ atendimento.observacoes }}</strong></div>
-        <div class="card-row"><span>Observações Triagem:</span> <strong>{{ atendimento.observacoes_triagem }}</strong></div>
+        <h3>Dados Gerais</h3>
+        <div class="grid-row"><span class="grid-label">Data:</span> <span class="grid-value">{{ atendimento.data_hora_atendimento | date:'short' }}</span></div>
+        <div class="grid-row"><span class="grid-label">Status:</span> <span class="grid-value">{{ atendimento.status }}</span></div>
+        <div class="grid-row"><span class="grid-label">Motivo:</span> <span class="grid-value">{{ atendimento.motivo }}</span></div>
+        <div class="grid-row"><span class="grid-label">Procedência:</span> <span class="grid-value">{{ atendimento.procedencia }}</span></div>
+        <div class="grid-row"><span class="grid-label">Queixa Principal:</span> <span class="grid-value">{{ atendimento.queixa_principal }}</span></div>
+        <div class="grid-row"><span class="grid-label">História Atual:</span> <span class="grid-value">{{ atendimento.historia_atual }}</span></div>
+        <div class="grid-row"><span class="grid-label">Observações:</span> <span class="grid-value">{{ atendimento.observacoes }}</span></div>
+        <div class="grid-row"><span class="grid-label">Observações Triagem:</span> <span class="grid-value">{{ atendimento.observacoes_triagem }}</span></div>
       </div>
-      <hr>
       <div class="card-group">
-        <h3><svg class="inline w-5 h-5 text-pink-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.293l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.293l-7.682-7.682a4.5 4.5 0 010-6.364z" /></svg> Sinais Vitais</h3>
-        <div class="card-row"><span>Classificação de Risco:</span> <strong>{{ atendimento.classificacao_risco }}</strong></div>
-        <div class="card-row"><span>Prioridade:</span> <strong>{{ atendimento.prioridade }}</strong></div>
-        <div class="card-row"><span>Temperatura:</span> <strong>{{ atendimento.temperatura }}</strong></div>
-        <div class="card-row"><span>Pressão Arterial:</span> <strong>{{ atendimento.pressao_arterial }}</strong></div>
-        <div class="card-row"><span>Frequência Cardíaca:</span> <strong>{{ atendimento.frequencia_cardiaca }}</strong></div>
-        <div class="card-row"><span>Frequência Respiratória:</span> <strong>{{ atendimento.frequencia_respiratoria }}</strong></div>
-        <div class="card-row"><span>Saturação de Oxigênio:</span> <strong>{{ atendimento.saturacao_oxigenio }}</strong></div>
-        <div class="card-row"><span>Peso:</span> <strong>{{ atendimento.peso }}</strong></div>
-        <div class="card-row"><span>Altura:</span> <strong>{{ atendimento.altura }}</strong></div>
+        <h3>Sinais Vitais</h3>
+        <div class="grid-row"><span class="grid-label">Classificação de Risco:</span> <span class="grid-value">{{ atendimento.classificacao_risco }}</span></div>
+        <div class="grid-row"><span class="grid-label">Prioridade:</span> <span class="grid-value">{{ atendimento.prioridade }}</span></div>
+        <div class="grid-row"><span class="grid-label">Temperatura:</span> <span class="grid-value">{{ atendimento.temperatura }}</span></div>
+        <div class="grid-row"><span class="grid-label">Pressão Arterial:</span> <span class="grid-value">{{ atendimento.pressao_arterial }}</span></div>
+        <div class="grid-row"><span class="grid-label">Frequência Cardíaca:</span> <span class="grid-value">{{ atendimento.frequencia_cardiaca }}</span></div>
+        <div class="grid-row"><span class="grid-label">Frequência Respiratória:</span> <span class="grid-value">{{ atendimento.frequencia_respiratoria }}</span></div>
+        <div class="grid-row"><span class="grid-label">Saturação de Oxigênio:</span> <span class="grid-value">{{ atendimento.saturacao_oxigenio }}</span></div>
+        <div class="grid-row"><span class="grid-label">Peso:</span> <span class="grid-value">{{ atendimento.peso }}</span></div>
+        <div class="grid-row"><span class="grid-label">Altura:</span> <span class="grid-value">{{ atendimento.altura }}</span></div>
       </div>
-      <hr>
       <div class="card-group">
-        <h3><svg class="inline w-5 h-5 text-gray-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20h6M3 20h5v-2a4 4 0 013-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 010 7.75" /></svg> Outros</h3>
-        <div class="card-row"><span>Acompanhante:</span> <strong>{{ atendimento.acompanhante }}</strong></div>
-        <div class="card-row"><span>Medicamentos em Uso:</span> <strong>{{ atendimento.medicamentos_uso }}</strong></div>
-        <div class="card-row"><span>Alergias:</span> <strong>{{ atendimento.alergias }}</strong></div>
-        <div class="card-row"><span>Abandonado:</span> <strong>{{ atendimento.abandonado ? 'Sim' : 'Não' }}</strong></div>
-        <div class="card-row"><span>Motivo Abandono:</span> <strong>{{ atendimento.motivo_abandono }}</strong></div>
-        <div class="card-row"><span>Data Abandono:</span> <strong>{{ atendimento.data_abandono | date:'short' }}</strong></div>
-        <div class="card-row"><span>Assinado:</span> <strong>{{ atendimento.assinado ? 'Sim' : 'Não' }}</strong></div>
-        <div class="card-row"><span>Assinatura Digital:</span> <strong>{{ atendimento.assinatura_digital }}</strong></div>
-        <div class="card-row"><span>Data Assinatura:</span> <strong>{{ atendimento.data_assinatura | date:'short' }}</strong></div>
-        <div class="card-row"><span>Data Início Triagem:</span> <strong>{{ atendimento.data_inicio_triagem | date:'short' }}</strong></div>
-        <div class="card-row"><span>Data Fim Triagem:</span> <strong>{{ atendimento.data_fim_triagem | date:'short' }}</strong></div>
-        <div class="card-row"><span>Triagem Realizada Por:</span> <strong>{{ atendimento.triagem_realizada_por }}</strong></div>
-        <div class="card-row"><span>Motivo Interrupção:</span> <strong>{{ atendimento.motivo_interrupcao }}</strong></div>
+        <h3>Outros</h3>
+        <div class="grid-row"><span class="grid-label">Acompanhante:</span> <span class="grid-value">{{ atendimento.acompanhante }}</span></div>
+        <div class="grid-row"><span class="grid-label">Medicamentos em Uso:</span> <span class="grid-value">{{ atendimento.medicamentos_uso }}</span></div>
+        <div class="grid-row"><span class="grid-label">Alergias:</span> <span class="grid-value">{{ atendimento.alergias }}</span></div>
+        <div class="grid-row"><span class="grid-label">Abandonado:</span> <span class="grid-value">{{ atendimento.abandonado ? 'Sim' : 'Não' }}</span></div>
+        <div class="grid-row"><span class="grid-label">Motivo Abandono:</span> <span class="grid-value">{{ atendimento.motivo_abandono }}</span></div>
+        <div class="grid-row"><span class="grid-label">Data Abandono:</span> <span class="grid-value">{{ atendimento.data_abandono | date:'short' }}</span></div>
+        <div class="grid-row"><span class="grid-label">Assinado:</span> <span class="grid-value">{{ atendimento.assinado ? 'Sim' : 'Não' }}</span></div>
+        <div class="grid-row"><span class="grid-label">Assinatura Digital:</span> <span class="grid-value">{{ atendimento.assinatura_digital }}</span></div>
+        <div class="grid-row"><span class="grid-label">Data Assinatura:</span> <span class="grid-value">{{ atendimento.data_assinatura | date:'short' }}</span></div>
+        <div class="grid-row"><span class="grid-label">Data Início Triagem:</span> <span class="grid-value">{{ atendimento.data_inicio_triagem | date:'short' }}</span></div>
+        <div class="grid-row"><span class="grid-label">Data Fim Triagem:</span> <span class="grid-value">{{ atendimento.data_fim_triagem | date:'short' }}</span></div>
+        <div class="grid-row"><span class="grid-label">Triagem Realizada Por:</span> <span class="grid-value">{{ atendimento.triagem_realizada_por }}</span></div>
+        <div class="grid-row"><span class="grid-label">Motivo Interrupção:</span> <span class="grid-value">{{ atendimento.motivo_interrupcao }}</span></div>
       </div>
     </div>
-</div>
+  </div>
