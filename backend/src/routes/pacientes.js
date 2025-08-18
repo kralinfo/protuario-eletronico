@@ -65,6 +65,24 @@ router.get('/check-sus', PacientesController.checkSusAvailability);
 router.get('/:id', validateId, PacientesController.show);
 
 /**
+ * @route GET /api/pacientes/:id/atendimentos
+ * @desc Listar atendimentos do paciente
+ * @access Private
+ */
+import knex from '../db.js';
+router.get('/:id/atendimentos', validateId, async (req, res) => {
+  try {
+    const pacienteId = req.params.id;
+    const atendimentos = await knex('atendimentos')
+      .where('paciente_id', pacienteId)
+      .orderBy('data_hora_atendimento', 'desc');
+    res.json({ data: atendimentos });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar atendimentos.', details: err.message });
+  }
+});
+
+/**
  * @route POST /api/pacientes
  * @desc Criar novo paciente
  * @access Private
