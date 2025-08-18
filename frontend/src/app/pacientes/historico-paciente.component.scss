@@ -1,0 +1,39 @@
+.historico-paciente-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.dados-clinicos-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  max-height: 350px;
+  overflow-y: auto;
+  display: block;
+}
+.dados-clinicos-table th, .dados-clinicos-table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+}
+.dados-clinicos-table th {
+  background: #f5f5f5;
+  font-weight: 500;
+  width: 160px;
+}
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1976d2;
+  font-size: 16px;
+}
+.erro {
+  color: #d32f2f;
+  font-size: 15px;
+  margin-top: 12px;
+}

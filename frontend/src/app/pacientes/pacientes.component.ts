@@ -8,6 +8,7 @@ import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
 import { MatDialog } from '@angular/material/dialog';
 import { HistoricoAtendimentosComponent } from './historico-atendimentos.component';
+import { HistoricoPacienteTimelineComponent } from './historico-paciente-timeline.component';
 import { RegistrarAtendimentoComponent } from '../atendimento/registrar-atendimento.component';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog.component';
 
@@ -748,7 +749,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
     });
   }
   abrirHistoricoPaciente(paciente: Paciente) {
-    this.dialog.open(HistoricoAtendimentosComponent, {
+    this.dialog.open(HistoricoPacienteTimelineComponent, {
       width: '600px',
       data: { pacienteId: paciente.id }
     });
