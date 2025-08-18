@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { interval, Subscription, firstValueFrom } from 'rxjs';
 import { TriagemService } from '../services/triagem.service';
 import { TriagemEventService } from '../services/triagem-event.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 interface PacienteTriagem {
   id: number;
@@ -44,7 +45,8 @@ interface Estatisticas {
     MatIconModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+     MatTooltipModule 
   ],
   template: `
     <div class="triagem-container">
@@ -135,7 +137,7 @@ interface Estatisticas {
               <div class="info-row">
                 <mat-icon>schedule</mat-icon>
                 <span>Tempo em espera desde o atendimento: {{formatarTempo(paciente.tempo_espera)}}</span>
-                <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'"
+                <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'" matTooltip="O paciente já ultrapassou o tempo máximo de espera recomendado para atendimento"
                          class="alert-icon">warning</mat-icon>
               </div>
 
