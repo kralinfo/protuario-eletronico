@@ -6,7 +6,7 @@ import { AuthService } from '../../auth/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, interval, takeUntil } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { ClassificacaoDialogComponent } from '../classificacao-dialog/classificacao-dialog.component';
+import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 
 interface EstatisticasTriagem {
   pacientes_aguardando: number;

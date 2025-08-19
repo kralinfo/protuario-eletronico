@@ -1,154 +1,196 @@
 <div class="triagem-container">
-  <h1 class="page-title">
-    <mat-icon>medical_services</mat-icon>
-    Fila de Triagem
-    <span class="flex-1"></span>
-    <button mat-stroked-button color="primary" (click)="carregarDados()">
-      <mat-icon>refresh</mat-icon>
-      Atualizar
-    </button>
-  </h1>
+      <h1 class="page-title">
+        <mat-icon>medical_services</mat-icon>
+        Fila de Triagem
+        <span class="flex-1"></span>
+        <button mat-stroked-button color="primary" (click)="carregarDados()">
+          <mat-icon>refresh</mat-icon>
+          Atualizar
+        </button>
+      </h1>
 
-  <!-- Estatísticas -->
-  <div class="stats-cards">
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-number">{{contarPacientesAguardando()}}</div>
-        <div class="stat-label">Aguardando Triagem</div>
-      </mat-card-content>
-    </mat-card>
+      <!-- Estatísticas -->
+      <div class="stats-cards">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{contarPacientesAguardando()}}</div>
+            <div class="stat-label">Aguardando Triagem</div>
+          </mat-card-content>
+        </mat-card>
 
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-number">{{formatarTempo(estatisticas.tempo_medio_espera)}}</div>
-        <div class="stat-label">Tempo Médio Espera</div>
-      </mat-card-content>
-    </mat-card>
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{formatarTempo(estatisticas.tempo_medio_espera)}}</div>
+            <div class="stat-label">Tempo Médio Espera</div>
+          </mat-card-content>
+        </mat-card>
 
-    <mat-card class="stat-card priority-card">
-      <mat-card-content>
-        <div class="stat-label">Por Classificação</div>
-        <div class="priority-chips">
-          <mat-chip-set>
-            <mat-chip *ngFor="let item of getClassificacaoArray()"
-                     [style.background-color]="getCor(item.key)"
-                     class="priority-chip">
-              {{item.value}}
-            </mat-chip>
-          </mat-chip-set>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Filtro de Status -->
-  <div class="status-filter mb-4">
-    <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
-    <select
-      [(ngModel)]="filtroStatus"
-      (change)="carregarDados()"
-      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-      <option value="">Todos os Status</option>
-      <option value="encaminhado para triagem">Aguardando Triagem</option>
-      <option value="em_triagem">Em Triagem</option>
-      <option value="encaminhado para sala médica">Encaminhado para Sala Médica</option>
-      <option value="em atendimento médico">Em Atendimento Médico</option>
-      <option value="encaminhado para ambulatório">Encaminhado para Ambulatório</option>
-      <option value="encaminhado para exames">Encaminhado para Exames</option>
-      <option value="aguardando exames">Aguardando Exames</option>
-      <option value="exames concluídos">Exames Concluídos</option>
-      <option value="alta médica">Alta Médica</option>
-      <option value="transferido">Transferido</option>
-      <option value="óbito">Óbito</option>
-    </select>
-  </div>
-
-  <!-- Lista de Pacientes -->
-  <div class="patients-list" *ngIf="!carregando; else loadingTemplate">
-    <mat-card *ngFor="let paciente of pacientes"
-              class="patient-card"
-              [class.priority-alert]="paciente.alerta === 'tempo_excedido'">
-
-      <mat-card-header>
-        <div mat-card-avatar class="patient-avatar"
-             [style.background-color]="getCor(paciente.classificacao_risco)">
-          {{getIniciais(paciente.paciente_nome)}}
-        </div>
-
-        <mat-card-title>{{paciente.paciente_nome}}</mat-card-title>
-        <mat-card-subtitle>
-          {{getIdade(paciente.paciente_nascimento)}} anos • {{paciente.paciente_sexo}}
-        </mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <div class="patient-info">
-          <div class="info-row">
-            <mat-icon>schedule</mat-icon>
-            <span>Tempo em espera desde o atendimento: {{formatarTempo(paciente.tempo_espera)}}</span>
-            <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'"
-                     class="alert-icon">warning</mat-icon>
+  <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-2">
+              <p class="text-sm font-medium text-gray-600">Por Classificação</p>
+            </div>
+            <div class="bg-purple-100 rounded-full flex items-center justify-center">
+              <button
+                mat-icon-button
+                (click)="abrirDialogClassificacao()"
+                aria-label="Informações"
+                matTooltip="Ver detalhes da classificação"
+                matTooltipPosition="above"
+                class="w-full h-full flex items-center justify-center"
+              >
+                <mat-icon class="text-purple-500">assessment</mat-icon>
+              </button>
+            </div>
           </div>
-
-          <div class="info-row" *ngIf="paciente.queixa_principal">
-            <mat-icon>chat</mat-icon>
-            <span>{{paciente.queixa_principal}}</span>
-          </div>
-
-          <div class="info-row">
-            <mat-icon>event</mat-icon>
-            <span>Chegada: {{formatarDataHora(paciente.data_hora_atendimento)}}</span>
-          </div>
-
-          <div class="status-chip" *ngIf="!isStatusEncaminhadoParaTriagem(paciente.status)">
-            <mat-chip [style.background-color]="getCorStatus(paciente.status)">
-              {{getDescricaoStatus(paciente.status)}}
-            </mat-chip>
+          <div class="flex items-center justify-center space-x-2">
+            <!-- Vermelho -->
+            <div class="text-center">
+              <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+                {{estatisticas.por_classificacao['vermelho'] || 0}}
+              </div>
+              <p class="text-xs text-gray-600">🔴</p>
+            </div>
+            <!-- Laranja -->
+            <div class="text-center">
+              <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+                {{estatisticas.por_classificacao['laranja'] || 0}}
+              </div>
+              <p class="text-xs text-gray-600">🟠</p>
+            </div>
+            <!-- Amarelo -->
+            <div class="text-center">
+              <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+                {{estatisticas.por_classificacao['amarelo'] || 0}}
+              </div>
+              <p class="text-xs text-gray-600">🟡</p>
+            </div>
+            <!-- Verde -->
+            <div class="text-center">
+              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+                {{estatisticas.por_classificacao['verde'] || 0}}
+              </div>
+              <p class="text-xs text-gray-600">🟢</p>
+            </div>
+            <!-- Azul -->
+            <div class="text-center">
+              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+                {{estatisticas.por_classificacao['azul'] || 0}}
+              </div>
+              <p class="text-xs text-gray-600">🔵</p>
+            </div>
           </div>
         </div>
-      </mat-card-content>
+      </div>
 
-      <mat-card-actions>
-        <!-- Iniciar Triagem - apenas para status "encaminhado para triagem" -->
-        <button *ngIf="isStatusEncaminhadoParaTriagem(paciente.status)"
-                mat-raised-button
-                color="primary"
-                (click)="iniciarTriagem(paciente)">
-          <mat-icon>play_arrow</mat-icon>
-          Iniciar Triagem
-        </button>
+      <!-- Filtro de Status -->
+      <div class="status-filter mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
+        <select
+          [(ngModel)]="filtroStatus"
+          (change)="carregarDados()"
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          <option value="">Todos os Status</option>
+          <option value="encaminhado para triagem">Aguardando Triagem</option>
+          <option value="em_triagem">Em Triagem</option>
+          <option value="encaminhado para sala médica">Encaminhado para Sala Médica</option>
+          <option value="em atendimento médico">Em Atendimento Médico</option>
+          <option value="encaminhado para ambulatório">Encaminhado para Ambulatório</option>
+          <option value="encaminhado para exames">Encaminhado para Exames</option>
+          <option value="aguardando exames">Aguardando Exames</option>
+          <option value="exames concluídos">Exames Concluídos</option>
+          <option value="alta médica">Alta Médica</option>
+          <option value="transferido">Transferido</option>
+          <option value="óbito">Óbito</option>
+        </select>
+      </div>
 
-        <!-- Em Triagem - mostrar botão para continuar/editar -->
-        <button *ngIf="isStatusEmTriagem(paciente.status)"
-                mat-raised-button
-                color="accent"
-                (click)="continuarTriagem(paciente)">
-          <mat-icon>edit</mat-icon>
-          Continuar Triagem
-        </button>
+      <!-- Lista de Pacientes -->
+      <div class="patients-list" *ngIf="!carregando; else loadingTemplate">
+        <mat-card *ngFor="let paciente of pacientes"
+                  class="patient-card"
+                  [class.priority-alert]="paciente.alerta === 'tempo_excedido'">
 
-        <!-- Detalhes - apenas para pacientes que já foram triados (finalizados) -->
-        <button *ngIf="!isStatusEncaminhadoParaTriagem(paciente.status) && !isStatusEmTriagem(paciente.status)" 
-                mat-button 
-                (click)="verDetalhes(paciente)">
-          <mat-icon>visibility</mat-icon>
-          Detalhes
-        </button>
-      </mat-card-actions>
-    </mat-card>
+          <mat-card-header>
+            <div mat-card-avatar class="patient-avatar"
+                 [style.background-color]="getCor(paciente.classificacao_risco)">
+              {{getIniciais(paciente.paciente_nome)}}
+            </div>
 
-    <!-- Mensagem quando não há pacientes -->
-    <div *ngIf="pacientes.length === 0" class="no-patients">
-      <mat-icon>check_circle</mat-icon>
-      <h3>Nenhum paciente aguardando triagem</h3>
-      <p>Todos os pacientes foram atendidos ou não há novos atendimentos.</p>
+            <mat-card-title>{{paciente.paciente_nome}}</mat-card-title>
+            <mat-card-subtitle>
+              {{getIdade(paciente.paciente_nascimento)}} anos • {{paciente.paciente_sexo}}
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="patient-info">
+              <div class="info-row">
+                <mat-icon>schedule</mat-icon>
+                <span>Tempo em espera desde o atendimento: {{formatarTempo(paciente.tempo_espera)}}</span>
+                <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'" matTooltip="O paciente já ultrapassou o tempo máximo de espera recomendado para atendimento"
+                         class="alert-icon">warning</mat-icon>
+              </div>
+
+              <div class="info-row" *ngIf="paciente.queixa_principal">
+                <mat-icon>chat</mat-icon>
+                <span>{{paciente.queixa_principal}}</span>
+              </div>
+
+              <div class="info-row">
+                <mat-icon>event</mat-icon>
+                <span>Chegada: {{formatarDataHora(paciente.data_hora_atendimento)}}</span>
+              </div>
+
+              <div class="status-chip" *ngIf="!isStatusEncaminhadoParaTriagem(paciente.status)">
+                <mat-chip [style.background-color]="getCorStatus(paciente.status)">
+                  {{getDescricaoStatus(paciente.status)}}
+                </mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <!-- Iniciar Triagem - apenas para status "encaminhado para triagem" -->
+            <button *ngIf="isStatusEncaminhadoParaTriagem(paciente.status)"
+                    mat-raised-button
+                    color="primary"
+                    (click)="iniciarTriagem(paciente)">
+              <mat-icon>play_arrow</mat-icon>
+              Iniciar Triagem
+            </button>
+
+            <!-- Em Triagem - mostrar botão para continuar/editar -->
+            <button *ngIf="isStatusEmTriagem(paciente.status)"
+                    mat-raised-button
+                    color="accent"
+                    (click)="continuarTriagem(paciente)">
+              <mat-icon>edit</mat-icon>
+              Continuar Triagem
+            </button>
+
+            <!-- Detalhes - apenas para pacientes que já foram triados (finalizados) -->
+            <button *ngIf="!isStatusEncaminhadoParaTriagem(paciente.status) && !isStatusEmTriagem(paciente.status)"
+                    mat-button
+                    (click)="verDetalhes(paciente)">
+              <mat-icon>visibility</mat-icon>
+              Detalhes
+            </button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- Mensagem quando não há pacientes -->
+  <div *ngIf="pacientes.length === 0" class="no-patients">
+          <mat-icon>check_circle</mat-icon>
+          <h3>Nenhum paciente aguardando triagem</h3>
+          <p>Todos os pacientes foram atendidos ou não há novos atendimentos.</p>
+        </div>
+      </div>
+
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+          <p>Carregando fila de triagem...</p>
+        </div>
+      </ng-template>
     </div>
-  </div>
-
-  <ng-template #loadingTemplate>
-    <div class="loading-container">
-      <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-      <p>Carregando fila de triagem...</p>
-    </div>
-  </ng-template>
-</div>

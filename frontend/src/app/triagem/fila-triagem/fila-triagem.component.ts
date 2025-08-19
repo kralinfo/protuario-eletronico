@@ -8,11 +8,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { Router } from '@angular/router';
 import { interval, Subscription, firstValueFrom } from 'rxjs';
-import { TriagemService } from '../../services/triagem.service';
-import { TriagemEventService } from '../../services/triagem-event.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TriagemEventService } from 'src/app/services/triagem-event.service';
+import { TriagemService } from 'src/app/services/triagem.service';
 
 interface PacienteTriagem {
   id: number;
@@ -48,8 +49,9 @@ interface Estatisticas {
     MatSnackBarModule,
      MatTooltipModule
   ],
-  templateUrl: './fila-triagem.component.html',
-  styleUrls: ['./fila-triagem.component.scss']
+    templateUrl: './fila-triagem.component.html',
+    styleUrls: ['./fila-triagem.component.scss'],
+
 })
 export class FilaTriagemComponent implements OnInit, OnDestroy {
   pacientes: PacienteTriagem[] = [];
@@ -79,6 +81,12 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private router: Router
   ) {}
+
+    abrirDialogClassificacao() {
+      this.dialog.open(ClassificacaoDialogComponent, {
+        panelClass: ['p-0', 'max-w-3xl', 'w-full']
+      });
+    }
 
   ngOnInit() {
     this.carregarDados();
