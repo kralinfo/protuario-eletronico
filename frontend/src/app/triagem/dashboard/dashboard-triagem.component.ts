@@ -5,6 +5,8 @@ import { TriagemEventService } from '../../services/triagem-event.service';
 import { AuthService } from '../../auth/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, interval, takeUntil } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { ClassificacaoDialogComponent } from '../classificacao-dialog/classificacao-dialog.component';
 
 interface EstatisticasTriagem {
   pacientes_aguardando: number;
@@ -82,9 +84,16 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     private triagemEventService: TriagemEventService,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.usuarioLogado = this.authService.user;
+  }
+
+  abrirDialogClassificacao() {
+    this.dialog.open(ClassificacaoDialogComponent, {
+      panelClass: ['p-0', 'max-w-3xl', 'w-full']
+    });
   }
 
   ngOnInit() {
@@ -130,43 +139,74 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
       .subscribe(() => this.horaAtual = new Date());
   }
 
-  carregarAlertasTempo() {
-    // Limites do Protocolo de Manchester (minutos)
-    const LIMITES: Record<string, number> = {
-      vermelho: 0,
-      laranja: 10,
-      amarelo: 60,
-      verde: 120,
-      azul: 240
-    };
-  const STATUS_ALERTAS = new Set<string>([...this.STATUS.DISPONIVEIS, ...this.STATUS.EM_TRIAGEM]);
+carregarAlertasTempo() {
+  console.log('🚀 Iniciando carregamento de alertas de tempo...');
+
+  const LIMITES: Record<string, number> = {
+    vermelho: 0,
+    laranja: 10,
+    amarelo: 60,
+    verde: 120,
+    azul: 240
+  };
+
+  const STATUS_ALERTAS = new Set<string>([
+    ...this.STATUS.DISPONIVEIS,
+    ...this.STATUS.EM_TRIAGEM,
+    'encaminhado para sala médica'
+  ]);
+
   this.triagemService.listarTodosAtendimentosDia().subscribe({
-      next: (pacientes: any[]) => {
-    // Somente itens relevantes para o tempo de espera de triagem
-    const lista = (pacientes || []).filter(p => !!p?.classificacao_risco && STATUS_ALERTAS.has(p.status));
-        const criticos: PacienteTriagem[] = [];
-        const atencao: PacienteTriagem[] = [];
-        for (const p of lista) {
-          const risco = (p.classificacao_risco || '').toLowerCase();
-          const limite = LIMITES[risco];
-          const espera = p.tempo_espera || 0;
-          if (limite === undefined) continue;
-          if (limite <= 0) {
-            if (espera > 0) criticos.push(p);
-            continue;
-          }
-          const perc = espera / limite;
-          if (perc >= 1) criticos.push(p);
-          else if (perc >= 0.8) atencao.push(p);
+    next: (pacientes: any[]) => {
+      console.log('📦 Dados recebidos da API:', pacientes);
+
+      const criticos: PacienteTriagem[] = [];
+      const atencao: PacienteTriagem[] = [];
+
+      for (const p of pacientes || []) {
+        const risco = typeof p.classificacao_risco === 'string'
+          ? p.classificacao_risco.toLowerCase()
+          : '';
+        const limite = LIMITES[risco];
+        const espera = Number(p.tempo_espera) || 0;
+        const statusValido = STATUS_ALERTAS.has(p.status);
+
+        if (!risco || limite === undefined || !statusValido) {
+          console.warn('⚠️ Ignorado:', p);
+          continue;
         }
-        // Ordenar por gravidade: maior percentual de estouro/mais próximos
-        const sortByGravidade = (a: any, b: any) => (b.tempo_espera || 0) - (a.tempo_espera || 0);
-        this.alertasCriticos = criticos.sort(sortByGravidade).slice(0, 5);
-        this.alertasAtencao = atencao.sort(sortByGravidade).slice(0, 5);
-      },
-      error: (err) => console.error('Dashboard: Erro ao carregar alertas de tempo:', err)
-    });
-  }
+
+        if (limite <= 0) {
+          if (espera > 0) {
+            console.log(`🟥 Crítico absoluto: ${p.paciente_nome}`);
+            criticos.push(p);
+          }
+          continue;
+        }
+
+        const perc = espera / limite;
+        console.log(`⏱️ ${p.paciente_nome} → ${perc.toFixed(2)} (${espera}min / ${limite}min)`);
+
+        if (perc >= 1) {
+          criticos.push(p);
+        } else if (perc >= 0.8) {
+          atencao.push(p);
+        }
+      }
+
+      const sortByGravidade = (a: any, b: any) =>
+        (b.tempo_espera || 0) - (a.tempo_espera || 0);
+
+      this.alertasCriticos = criticos.sort(sortByGravidade).slice(0, 5);
+      this.alertasAtencao = atencao.sort(sortByGravidade).slice(0, 5);
+
+      console.log('✅ Alertas críticos finais:', this.alertasCriticos);
+      console.log('✅ Alertas atenção finais:', this.alertasAtencao);
+    },
+    error: (err) =>
+      console.error('❌ Dashboard: Erro ao carregar alertas de tempo:', err)
+  });
+}
 
   ngOnDestroy() {
     this.destroy$.next();
