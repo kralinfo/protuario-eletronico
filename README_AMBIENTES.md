@@ -22,7 +22,7 @@
 
 ## Design Profissional
 
-O sistema possui layout moderno e profissional para ambiente hospitalar:
+O sistema possui layout moderno e profissional para ambiente  hospitalar:
 - Gradientes e sombras suaves
 - Cores institucionais (azul, verde, cinza)
 - Ícones representativos (🏥, 📋)
