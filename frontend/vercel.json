@@ -1,5 +1,5 @@
 {
-  "buildCommand": "ng build --configuration production",
+  "buildCommand": "npm run build:root",
   "outputDirectory": "dist/frontend/browser",
   "rewrites": [
     {
