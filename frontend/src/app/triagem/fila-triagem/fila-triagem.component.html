@@ -27,15 +27,50 @@
 
     <mat-card class="stat-card priority-card">
       <mat-card-content>
-        <div class="stat-label">Por Classificação</div>
-        <div class="priority-chips">
-          <mat-chip-set>
-            <mat-chip *ngFor="let item of getClassificacaoArray()"
-                     [style.background-color]="getCor(item.key)"
-                     class="priority-chip">
-              {{item.value}}
-            </mat-chip>
-          </mat-chip-set>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="stat-label">Por Classificação</div>
+          </div>
+          <div class="bg-purple-100 p-3 rounded-full">
+            <mat-icon class="text-purple-500">assessment</mat-icon>
+          </div>
+        </div>
+        <div class="flex items-center justify-center space-x-2">
+          <!-- Vermelho -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao['vermelho'] || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🔴</p>
+          </div>
+          <!-- Laranja -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao['laranja'] || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🟠</p>
+          </div>
+          <!-- Amarelo -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao['amarelo'] || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🟡</p>
+          </div>
+          <!-- Verde -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao['verde'] || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🟢</p>
+          </div>
+          <!-- Azul -->
+          <div class="text-center">
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">
+              {{estatisticas.por_classificacao['azul'] || 0}}
+            </div>
+            <p class="text-xs text-gray-600">🔵</p>
+          </div>
         </div>
       </mat-card-content>
     </mat-card>
