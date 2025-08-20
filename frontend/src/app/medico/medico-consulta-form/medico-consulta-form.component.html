@@ -1,0 +1,14 @@
+<h2>Consulta Médica</h2>
+<form (ngSubmit)="salvarConsulta()">
+  <label>Anamnese</label>
+  <textarea [(ngModel)]="consulta.anamnese" name="anamnese"></textarea>
+  <label>Exame Físico</label>
+  <textarea [(ngModel)]="consulta.exame_fisico" name="exame_fisico"></textarea>
+  <label>Diagnóstico</label>
+  <input [(ngModel)]="consulta.diagnostico" name="diagnostico" />
+  <label>Conduta</label>
+  <input [(ngModel)]="consulta.conduta" name="conduta" />
+  <label>Observações</label>
+  <textarea [(ngModel)]="consulta.observacoes" name="observacoes"></textarea>
+  <button type="submit">Salvar</button>
+</form>

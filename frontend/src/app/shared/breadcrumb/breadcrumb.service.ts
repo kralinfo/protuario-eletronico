@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
+import { AuthService } from '../../auth/auth.service';
 
 export interface BreadcrumbItem {
   label: string;
@@ -20,7 +21,8 @@ export class BreadcrumbService {
 
   constructor(
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private authService: AuthService
   ) {
     this.router.events
       .pipe(
@@ -75,8 +77,9 @@ export class BreadcrumbService {
       breadcrumbs[breadcrumbs.length - 1].isActive = true;
     }
 
-    // Always add Home as first breadcrumb if not present and not on login page
-    if (breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
+    // Adiciona Home apenas se não for módulo médico
+    const modulo = this.authService.getSelectedModule?.() || localStorage.getItem('moduloSelecionado');
+    if (modulo !== 'medico' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
       breadcrumbs.unshift({
         label: 'Home',
         url: '/',
@@ -87,6 +90,11 @@ export class BreadcrumbService {
     }
 
     this.breadcrumbsSubject.next(breadcrumbs);
+  }
+
+  private isModuloMedico(): boolean {
+    const modulo = localStorage.getItem('moduloSelecionado');
+    return modulo === 'medico';
   }
 
   private getParentBreadcrumb(parentPath: string): BreadcrumbItem | null {

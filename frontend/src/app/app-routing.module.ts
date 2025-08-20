@@ -20,11 +20,23 @@ const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, ModuloGuard],
     data: {
       breadcrumb: 'Home',
       icon: 'home',
-      title: 'Dashboard Principal'
+      title: 'Dashboard Principal',
+      hideForModulo: 'medico'
+    }
+  },
+  {
+    path: 'medico',
+    loadChildren: () => import('./medico/medico.module').then(m => m.MedicoModule),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'medico',
+      breadcrumb: 'Sala Médica',
+      icon: 'local_hospital',
+      title: 'Atendimentos em Sala Médica'
     }
   },
   {

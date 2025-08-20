@@ -21,14 +21,12 @@ export class ModuloGuard implements CanActivate {
       // Permite navegação, o interceptor lida com sessão expirada nas requisições.
       return true;
     }
-  // ...existing code...
     
     const requiredModulo = route.data['modulo'] as string;
     
     // Se não exigir módulo, libera
     if (!requiredModulo) return true;
   console.log('[ModuloGuard] requiredModulo:', requiredModulo);
-  // ...existing code...
     
     // Define as permissões por módulo
     const modulePermissions: Record<string, string[]> = {
@@ -62,6 +60,15 @@ export class ModuloGuard implements CanActivate {
       }
       console.log('[ModuloGuard] Liberando acesso padrão');
       return true;
+    }
+    
+    // Bloqueia acesso à Home para módulo médico
+    if ((route.routeConfig?.path === '' || route.routeConfig?.path === undefined) && selectedModule === 'medico') {
+      // Evita loop de navegação
+      if (state.url !== '/medico') {
+        this.router.navigate(['/medico']);
+      }
+      return false;
     }
     
     // Redireciona para home se não tiver permissão
