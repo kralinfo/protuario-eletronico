@@ -261,7 +261,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             }
           });
         } else if (error.status === 401) {
-          this.errorMessage = 'Email ou senha inválidos.';
+          this.errorMessage = 'Senha incorreta ou email inválido.';
         } else if (error.status === 500) {
           this.errorMessage = 'Erro interno do servidor. Tente novamente.';
         } else {
