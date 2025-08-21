@@ -8,13 +8,23 @@ import { ModuloGuard } from '../auth/modulo.guard';
 const routes: Routes = [
   {
     path: '',
-  component: DashboardMedicoComponent,
+    component: DashboardMedicoComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'medico'
+      // Não define breadcrumb para dashboard
+    }
+  },
+  {
+    path: 'fila',
+    loadComponent: () => import('./fila-atendimentos-medicos/fila-atendimentos-medicos.component').then(m => m.FilaAtendimentosMedicosComponent),
     canActivate: [AuthGuard, ModuloGuard],
     data: {
       modulo: 'medico',
-      breadcrumb: 'Sala Médica',
-      icon: 'local_hospital',
-      title: 'Atendimentos em Sala Médica'
+      breadcrumb: 'Fila de Atendimentos',
+      icon: 'queue',
+      title: 'Fila de Atendimentos Médicos'
+      // parent removido para não exibir 'Sala Médica'
     }
   },
   {
@@ -25,8 +35,8 @@ const routes: Routes = [
       modulo: 'medico',
       breadcrumb: 'Consulta Médica',
       icon: 'assignment',
-      title: 'Consulta Médica',
-      parent: 'medico'
+      title: 'Consulta Médica'
+      // parent removido para não exibir 'Sala Médica'
     }
   }
 ];

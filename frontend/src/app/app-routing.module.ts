@@ -33,10 +33,8 @@ const routes: Routes = [
     loadChildren: () => import('./medico/medico.module').then(m => m.MedicoModule),
     canActivate: [AuthGuard, ModuloGuard],
     data: {
-      modulo: 'medico',
-      breadcrumb: 'Sala Médica',
-      icon: 'local_hospital',
-      title: 'Atendimentos em Sala Médica'
+      modulo: 'medico'
+      // Não define breadcrumb para rota raiz do módulo médico
     }
   },
   {

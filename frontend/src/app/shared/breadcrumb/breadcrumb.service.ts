@@ -72,14 +72,27 @@ export class BreadcrumbService {
       }
     }
 
+    // Se for dashboard médico, não exibe nenhum breadcrumb
+    const modulo = this.authService.getSelectedModule?.() || localStorage.getItem('moduloSelecionado');
+    const isMedicoDashboard = modulo === 'medico' && breadcrumbs.length === 1 && (breadcrumbs[0].url === '/medico' || breadcrumbs[0].url === '/medico/');
+    if (isMedicoDashboard) {
+      this.breadcrumbsSubject.next([]);
+      return;
+    }
     // Mark the last item as active
     if (breadcrumbs.length > 0) {
       breadcrumbs[breadcrumbs.length - 1].isActive = true;
     }
-
-    // Adiciona Home apenas se não for módulo médico
-    const modulo = this.authService.getSelectedModule?.() || localStorage.getItem('moduloSelecionado');
-    if (modulo !== 'medico' && modulo !== 'ambulatorio' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
+    // Adiciona Home para módulo médico nas demais telas
+    if (modulo === 'medico' && breadcrumbs.length > 0 && !this.isLoginPage()) {
+      breadcrumbs.unshift({
+        label: 'Home',
+        url: '/medico',
+        icon: 'home',
+        title: 'Dashboard Médico',
+        isActive: false
+      });
+    } else if (modulo !== 'medico' && modulo !== 'ambulatorio' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
       breadcrumbs.unshift({
         label: 'Home',
         url: '/',
@@ -88,7 +101,6 @@ export class BreadcrumbService {
         isActive: false
       });
     }
-
     this.breadcrumbsSubject.next(breadcrumbs);
   }
 
@@ -98,6 +110,7 @@ export class BreadcrumbService {
   }
 
   private getParentBreadcrumb(parentPath: string): BreadcrumbItem | null {
+    // Não retorna parent para 'medico' para evitar breadcrumb 'Sala Médica'
     const parentRoutes: { [key: string]: BreadcrumbItem } = {
       'pacientes': {
         label: 'Pacientes',
@@ -121,7 +134,7 @@ export class BreadcrumbService {
         isActive: false
       }
     };
-
+    if (parentPath === 'medico') return null;
     return parentRoutes[parentPath] || null;
   }
 

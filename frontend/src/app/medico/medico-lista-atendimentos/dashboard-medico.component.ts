@@ -3,7 +3,7 @@ import { MedicoService } from 'src/app/medico/medico.service';
 
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -36,7 +36,7 @@ export class DashboardMedicoComponent implements OnInit {
   alertasCriticos: any[] = [];
   alertasAtencao: any[] = [];
 
-  constructor(private medicoService: MedicoService) {}
+  constructor(private medicoService: MedicoService, private router: Router) {}
 
   ngOnInit() {
     this.carregarEstatisticas();
@@ -55,10 +55,6 @@ export class DashboardMedicoComponent implements OnInit {
     });
   }
 
-  irParaFilaAtendimento() {
-    // Navegação para a fila de atendimento
-    // Exemplo: this.router.navigate(['/medico/fila']);
-  }
 
   irParaConsultas() {
     // Navegação para consultas
@@ -80,12 +76,13 @@ export class DashboardMedicoComponent implements OnInit {
   getCorStatus(status: string): string {
     switch (status) {
       case 'aguardando': return '#4299e1';
-      case 'em_atendimento': return '#ed8936';
-      case 'finalizado': return '#38a169';
-      case 'em_sala_medica': return '#8b5cf6';
       case 'consulta': return '#3b82f6';
       default: return '#a0aec0';
     }
+  }
+
+  irParaFilaAtendimento(): void {
+    this.router.navigate(['medico/fila']);
   }
 
   formatarTempo(minutos: number): string {

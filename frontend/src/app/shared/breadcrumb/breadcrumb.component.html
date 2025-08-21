@@ -1,9 +1,9 @@
-<nav
-  *ngIf="breadcrumbs.length > 0"
+  <nav
+  *ngIf="breadcrumbs.length > 0 && !(breadcrumbs.length === 1 && isModuloMedico() && breadcrumbs[0].url === '/medico')"
   class="breadcrumb-nav"
   role="navigation"
   aria-label="Localização atual no sistema"
->
+  >
   <ol class="breadcrumb-list">
     <ng-container *ngFor="let breadcrumb of breadcrumbs">
       <li
