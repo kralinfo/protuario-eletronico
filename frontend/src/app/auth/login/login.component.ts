@@ -243,6 +243,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         // Redireciona para o módulo selecionado
         if (moduloSelecionado === 'ambulatorio') {
           this.router.navigate(['/ambulatorio']);
+        } else if (moduloSelecionado === 'recepcao') {
+          this.router.navigate(['/']);
         } else if (moduloSelecionado) {
           this.router.navigate(['/' + moduloSelecionado]);
         } else {
