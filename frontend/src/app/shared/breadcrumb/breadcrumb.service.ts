@@ -79,7 +79,7 @@ export class BreadcrumbService {
 
     // Adiciona Home apenas se não for módulo médico
     const modulo = this.authService.getSelectedModule?.() || localStorage.getItem('moduloSelecionado');
-    if (modulo !== 'medico' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
+    if (modulo !== 'medico' && modulo !== 'ambulatorio' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
       breadcrumbs.unshift({
         label: 'Home',
         url: '/',

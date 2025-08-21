@@ -25,7 +25,7 @@ const routes: Routes = [
       breadcrumb: 'Home',
       icon: 'home',
       title: 'Dashboard Principal',
-      hideForModulo: 'medico'
+      hideForModulo: ['medico', 'ambulatorio']
     }
   },
   {
@@ -37,6 +37,17 @@ const routes: Routes = [
       breadcrumb: 'Sala Médica',
       icon: 'local_hospital',
       title: 'Atendimentos em Sala Médica'
+    }
+  },
+  {
+    path: 'ambulatorio',
+    loadChildren: () => import('./ambulatorio/ambulatorio.module').then(m => m.AmbulatorioModule),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'ambulatorio',
+      breadcrumb: 'Ambulatório',
+      icon: 'local_hospital',
+      title: 'Atendimentos em Ambulatório'
     }
   },
   {

@@ -30,10 +30,11 @@ export class ModuloGuard implements CanActivate {
     
     // Define as permissões por módulo
     const modulePermissions: Record<string, string[]> = {
-      'recepcao': ['pacientes', 'atendimentos', 'relatorios', 'usuarios'], // Recepcao tem acesso a tudo
-  'triagem': ['triagem', 'pacientes', 'atendimentos', 'relatorios', 'usuarios'], // Triagem precisa destes módulos e usuários
-      'medico': ['medico', 'pacientes', 'atendimentos', 'relatorios'], // Médico (futuro)
-      'admin': ['admin', 'usuarios', 'pacientes', 'atendimentos', 'triagem', 'relatorios'], // Admin tem acesso total
+      'recepcao': ['pacientes', 'atendimentos', 'relatorios', 'usuarios'],
+      'triagem': ['triagem', 'pacientes', 'atendimentos', 'relatorios', 'usuarios'],
+      'medico': ['medico', 'pacientes', 'atendimentos', 'relatorios'],
+      'ambulatorio': ['ambulatorio'],
+      'admin': ['admin', 'usuarios', 'pacientes', 'atendimentos', 'triagem', 'relatorios', 'medico', 'ambulatorio'],
     };
     
     // Verifica se o módulo selecionado tem permissão para acessar o módulo requerido
@@ -62,11 +63,12 @@ export class ModuloGuard implements CanActivate {
       return true;
     }
     
-    // Bloqueia acesso à Home para módulo médico
-    if ((route.routeConfig?.path === '' || route.routeConfig?.path === undefined) && selectedModule === 'medico') {
+    // Bloqueia acesso à Home para módulo médico ou ambulatorio
+    if ((route.routeConfig?.path === '' || route.routeConfig?.path === undefined) && (selectedModule === 'medico' || selectedModule === 'ambulatorio')) {
       // Evita loop de navegação
-      if (state.url !== '/medico') {
-        this.router.navigate(['/medico']);
+      const target = selectedModule === 'medico' ? '/medico' : '/ambulatorio';
+      if (state.url !== target) {
+        this.router.navigate([target]);
       }
       return false;
     }

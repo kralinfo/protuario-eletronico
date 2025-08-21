@@ -241,7 +241,9 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.authService.setSelectedModule(moduloSelecionado);
         // Redireciona para o módulo selecionado
-        if (moduloSelecionado) {
+        if (moduloSelecionado === 'ambulatorio') {
+          this.router.navigate(['/ambulatorio']);
+        } else if (moduloSelecionado) {
           this.router.navigate(['/' + moduloSelecionado]);
         } else {
           this.router.navigate(['/']);
