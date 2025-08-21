@@ -72,10 +72,11 @@ export class BreadcrumbService {
       }
     }
 
-    // Se for dashboard médico, não exibe nenhum breadcrumb
+    // Se for dashboard médico ou ambulatorio, não exibe nenhum breadcrumb
     const modulo = this.authService.getSelectedModule?.() || localStorage.getItem('moduloSelecionado');
     const isMedicoDashboard = modulo === 'medico' && breadcrumbs.length === 1 && (breadcrumbs[0].url === '/medico' || breadcrumbs[0].url === '/medico/');
-    if (isMedicoDashboard) {
+    const isAmbulatorioDashboard = modulo === 'ambulatorio' && breadcrumbs.length === 1 && (breadcrumbs[0].url === '/ambulatorio' || breadcrumbs[0].url === '/ambulatorio/');
+    if (isMedicoDashboard || isAmbulatorioDashboard) {
       this.breadcrumbsSubject.next([]);
       return;
     }
@@ -83,13 +84,21 @@ export class BreadcrumbService {
     if (breadcrumbs.length > 0) {
       breadcrumbs[breadcrumbs.length - 1].isActive = true;
     }
-    // Adiciona Home para módulo médico nas demais telas
+    // Adiciona Home para módulo médico ou ambulatorio nas demais telas
     if (modulo === 'medico' && breadcrumbs.length > 0 && !this.isLoginPage()) {
       breadcrumbs.unshift({
         label: 'Home',
         url: '/medico',
         icon: 'home',
         title: 'Dashboard Médico',
+        isActive: false
+      });
+    } else if (modulo === 'ambulatorio' && breadcrumbs.length > 0 && !this.isLoginPage()) {
+      breadcrumbs.unshift({
+        label: 'Home',
+        url: '/ambulatorio',
+        icon: 'home',
+        title: 'Dashboard Ambulatorio',
         isActive: false
       });
     } else if (modulo !== 'medico' && modulo !== 'ambulatorio' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {

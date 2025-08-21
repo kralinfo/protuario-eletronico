@@ -42,10 +42,8 @@ const routes: Routes = [
     loadChildren: () => import('./ambulatorio/ambulatorio.module').then(m => m.AmbulatorioModule),
     canActivate: [AuthGuard, ModuloGuard],
     data: {
-      modulo: 'ambulatorio',
-      breadcrumb: 'Ambulatório',
-      icon: 'local_hospital',
-      title: 'Atendimentos em Ambulatório'
+      modulo: 'ambulatorio'
+      // Não define breadcrumb para rota raiz do módulo ambulatorio
     }
   },
   {

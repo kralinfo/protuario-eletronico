@@ -8,7 +8,22 @@ const routes: Routes = [
   {
     path: '',
     component: DashboardAmbulatorioComponent,
-    canActivate: [AuthGuard, ModuloGuard]
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'ambulatorio'
+      // Não define breadcrumb para dashboard
+    }
+  },
+  {
+    path: 'fila',
+    loadComponent: () => import('./fila-atendimentos-ambulatorio/fila-atendimentos-ambulatorio.component').then(m => m.FilaAtendimentosAmbulatorioComponent),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'ambulatorio',
+      breadcrumb: 'Fila de Atendimentos',
+      icon: 'queue',
+      title: 'Fila de Atendimentos Ambulatorio'
+    }
   }
 ];
 
