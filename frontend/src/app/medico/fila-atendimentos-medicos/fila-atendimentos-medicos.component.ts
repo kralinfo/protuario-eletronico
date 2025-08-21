@@ -18,7 +18,13 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
   constructor(private medicoService: MedicoService) {}
 
   ngOnInit(): void {
-    this.medicoService.getAtendimentosSalaMedica().subscribe((data: any[]) => {
+    const statusList = [
+      'em_sala_medica',
+      'encaminhado_para_sala_medica',
+      'encaminhado para sala médica',
+      '3 - Encaminhado para sala médica'
+    ];
+    this.medicoService.getAtendimentosPorStatus(statusList).subscribe((data: any[]) => {
       this.atendimentos = data;
     });
   }

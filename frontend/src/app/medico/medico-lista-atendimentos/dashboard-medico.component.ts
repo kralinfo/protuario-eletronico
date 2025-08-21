@@ -29,6 +29,7 @@ export class DashboardMedicoComponent implements OnInit {
     }
   };
   filaDisponiveisPreview: any[] = [];
+  filaSalaMedicaPreview: any[] = [];
   filaEmAtendimentoPreview: any[] = [];
   consultasPreview: any[] = [];
   consultasEncaminhadas: number = 0;
@@ -40,6 +41,23 @@ export class DashboardMedicoComponent implements OnInit {
 
   ngOnInit() {
     this.carregarEstatisticas();
+    this.carregarFilaSalaMedica();
+  }
+
+  carregarFilaSalaMedica() {
+    this.medicoService.getAtendimentosPorStatus(['encaminhado_para_sala_medica']).subscribe((atendimentos: any[]) => {
+      this.filaSalaMedicaPreview = (atendimentos || [])
+        .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0))
+        .slice(0, 5);
+    });
+  }
+
+  irParaFilaSalaMedica() {
+    this.router.navigate(['/medico/fila-sala-medica']);
+  }
+
+  abrirItemSalaMedica(item: any) {
+    this.router.navigate(['/medico/atendimento', item.id]);
   }
 
   carregarEstatisticas() {

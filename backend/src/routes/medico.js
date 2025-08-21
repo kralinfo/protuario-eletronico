@@ -5,8 +5,14 @@ const knex = require('../db');
 // Listar atendimentos em sala médica
 router.get('/atendimentos', async (req, res) => {
   try {
+    const statusSalaMedica = [
+      'em_sala_medica',
+      'encaminhado_para_sala_medica',
+      'encaminhado para sala médica',
+      '3 - Encaminhado para sala médica'
+    ];
     const atendimentos = await knex('atendimentos')
-      .where('status', 'em_sala_medica')
+      .whereIn('status', statusSalaMedica)
       .select('*');
     res.json(atendimentos);
   } catch (err) {
