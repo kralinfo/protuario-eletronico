@@ -9,13 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-medico-lista-atendimentos',
-  templateUrl: './medico-lista-atendimentos.component.html',
-  styleUrls: ['./medico-lista-atendimentos.component.scss'],
+  selector: 'app-dashboard-medico',
+  templateUrl: './dashboard-medico.component.html',
+  styleUrls: ['./dashboard-medico.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule]
 })
-export class MedicoListaAtendimentosComponent implements OnInit {
+export class DashboardMedicoComponent implements OnInit {
   estatisticas: any = {
     pacientes_aguardando: 0,
     pacientes_em_atendimento: 0,

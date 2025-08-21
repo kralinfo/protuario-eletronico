@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MedicoListaAtendimentosComponent } from './medico-lista-atendimentos/medico-lista-atendimentos.component';
+import { DashboardMedicoComponent } from './medico-lista-atendimentos/dashboard-medico.component';
 import { MedicoConsultaFormComponent } from './medico-consulta-form/medico-consulta-form.component';
 import { AuthGuard } from '../auth/auth.guard';
 import { ModuloGuard } from '../auth/modulo.guard';
@@ -8,7 +8,7 @@ import { ModuloGuard } from '../auth/modulo.guard';
 const routes: Routes = [
   {
     path: '',
-    component: MedicoListaAtendimentosComponent,
+  component: DashboardMedicoComponent,
     canActivate: [AuthGuard, ModuloGuard],
     data: {
       modulo: 'medico',
