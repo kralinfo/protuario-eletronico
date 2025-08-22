@@ -36,4 +36,9 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
     // Optional: Add analytics or custom behavior here
     console.log('Breadcrumb clicked:', breadcrumb);
   }
+
+  isModuloMedico(): boolean {
+    const modulo = localStorage.getItem('moduloSelecionado');
+    return modulo === 'medico';
+  }
 }

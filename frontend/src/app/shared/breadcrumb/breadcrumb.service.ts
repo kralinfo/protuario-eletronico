@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
+import { AuthService } from '../../auth/auth.service';
 
 export interface BreadcrumbItem {
   label: string;
@@ -20,7 +21,8 @@ export class BreadcrumbService {
 
   constructor(
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private authService: AuthService
   ) {
     this.router.events
       .pipe(
@@ -70,13 +72,36 @@ export class BreadcrumbService {
       }
     }
 
+    // Se for dashboard médico ou ambulatorio, não exibe nenhum breadcrumb
+    const modulo = this.authService.getSelectedModule?.() || localStorage.getItem('moduloSelecionado');
+    const isMedicoDashboard = modulo === 'medico' && breadcrumbs.length === 1 && (breadcrumbs[0].url === '/medico' || breadcrumbs[0].url === '/medico/');
+    const isAmbulatorioDashboard = modulo === 'ambulatorio' && breadcrumbs.length === 1 && (breadcrumbs[0].url === '/ambulatorio' || breadcrumbs[0].url === '/ambulatorio/');
+    if (isMedicoDashboard || isAmbulatorioDashboard) {
+      this.breadcrumbsSubject.next([]);
+      return;
+    }
     // Mark the last item as active
     if (breadcrumbs.length > 0) {
       breadcrumbs[breadcrumbs.length - 1].isActive = true;
     }
-
-    // Always add Home as first breadcrumb if not present and not on login page
-    if (breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
+    // Adiciona Home para módulo médico ou ambulatorio nas demais telas
+    if (modulo === 'medico' && breadcrumbs.length > 0 && !this.isLoginPage()) {
+      breadcrumbs.unshift({
+        label: 'Home',
+        url: '/medico',
+        icon: 'home',
+        title: 'Dashboard Médico',
+        isActive: false
+      });
+    } else if (modulo === 'ambulatorio' && breadcrumbs.length > 0 && !this.isLoginPage()) {
+      breadcrumbs.unshift({
+        label: 'Home',
+        url: '/ambulatorio',
+        icon: 'home',
+        title: 'Dashboard Ambulatorio',
+        isActive: false
+      });
+    } else if (modulo !== 'medico' && modulo !== 'ambulatorio' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
       breadcrumbs.unshift({
         label: 'Home',
         url: '/',
@@ -85,11 +110,16 @@ export class BreadcrumbService {
         isActive: false
       });
     }
-
     this.breadcrumbsSubject.next(breadcrumbs);
   }
 
+  private isModuloMedico(): boolean {
+    const modulo = localStorage.getItem('moduloSelecionado');
+    return modulo === 'medico';
+  }
+
   private getParentBreadcrumb(parentPath: string): BreadcrumbItem | null {
+    // Não retorna parent para 'medico' para evitar breadcrumb 'Sala Médica'
     const parentRoutes: { [key: string]: BreadcrumbItem } = {
       'pacientes': {
         label: 'Pacientes',
@@ -113,7 +143,7 @@ export class BreadcrumbService {
         isActive: false
       }
     };
-
+    if (parentPath === 'medico') return null;
     return parentRoutes[parentPath] || null;
   }
 

@@ -13,6 +13,9 @@ import { FeedbackDialogComponent } from './shared/feedback-dialog/feedback-dialo
   standalone: false
 })
 export class AppComponent {
+  isModuloMedico(): boolean {
+    return this.authService.getSelectedModule() === 'medico';
+  }
   @ViewChild('sobreDialog') sobreDialog!: TemplateRef<any>;
   @ViewChild('userMenu', { static: true }) userMenu!: MatMenu;
   sobreDialogRef: any;

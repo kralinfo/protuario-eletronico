@@ -240,7 +240,16 @@ export class LoginComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.loading = false;
         this.authService.setSelectedModule(moduloSelecionado);
-        this.router.navigate(['/']);
+        // Redireciona para o módulo selecionado
+        if (moduloSelecionado === 'ambulatorio') {
+          this.router.navigate(['/ambulatorio']);
+        } else if (moduloSelecionado === 'recepcao') {
+          this.router.navigate(['/']);
+        } else if (moduloSelecionado) {
+          this.router.navigate(['/' + moduloSelecionado]);
+        } else {
+          this.router.navigate(['/']);
+        }
       },
       error: (error) => {
         this.loading = false;
@@ -256,7 +265,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             }
           });
         } else if (error.status === 401) {
-          this.errorMessage = 'Email ou senha inválidos.';
+          this.errorMessage = 'Senha incorreta ou email inválido.';
         } else if (error.status === 500) {
           this.errorMessage = 'Erro interno do servidor. Tente novamente.';
         } else {

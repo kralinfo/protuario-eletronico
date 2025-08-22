@@ -20,11 +20,30 @@ const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, ModuloGuard],
     data: {
       breadcrumb: 'Home',
       icon: 'home',
-      title: 'Dashboard Principal'
+      title: 'Dashboard Principal',
+      hideForModulo: ['medico', 'ambulatorio']
+    }
+  },
+  {
+    path: 'medico',
+    loadChildren: () => import('./medico/medico.module').then(m => m.MedicoModule),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'medico'
+      // Não define breadcrumb para rota raiz do módulo médico
+    }
+  },
+  {
+    path: 'ambulatorio',
+    loadChildren: () => import('./ambulatorio/ambulatorio.module').then(m => m.AmbulatorioModule),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'ambulatorio'
+      // Não define breadcrumb para rota raiz do módulo ambulatorio
     }
   },
   {

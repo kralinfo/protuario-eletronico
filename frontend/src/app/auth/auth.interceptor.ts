@@ -46,20 +46,22 @@ export class AuthInterceptor implements HttpInterceptor {
         }
 
         // Para outras páginas, verifica se é erro de autenticação
-        if (error.status === 401 || error.status === 403) {
-          const dialogRef = this.dialog.open(FeedbackDialogComponent, {
-            data: {
-              title: 'Sessão expirada',
-              message: 'Sua sessão expirou. Faça login novamente.',
-              type: 'error'
-            },
-            disableClose: true
-          });
-          setTimeout(() => {
-            dialogRef.close();
-            this.router.navigate(['/login']);
-          }, 2000);
-        }
+          // Só exibe modal de sessão expirada se NÃO estiver na rota de login
+          const isLoginPage = window.location.pathname.includes('login');
+          if ((error.status === 401 || error.status === 403) && !isLoginPage) {
+            const dialogRef = this.dialog.open(FeedbackDialogComponent, {
+              data: {
+                title: 'Sessão expirada',
+                message: 'Sua sessão expirou. Faça login novamente.',
+                type: 'error'
+              },
+              disableClose: true
+            });
+            setTimeout(() => {
+              dialogRef.close();
+              this.router.navigate(['/login']);
+            }, 2000);
+          }
 
         return throwError(() => error);
       })
