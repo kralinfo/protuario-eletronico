@@ -16,4 +16,5 @@ export class DashboardAmbulatorioComponent {
   irParaFilaAtendimento() {
     this.router.navigate(['ambulatorio', 'fila']);
   }
+   dataAtual: Date = new Date();
 }

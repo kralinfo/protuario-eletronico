@@ -1,7 +1,23 @@
-<div class="dashboard-ambulatorio-container">
-  <h1>Ambulatório</h1>
-  <button mat-stroked-button color="primary" (click)="irParaFilaAtendimento()" style="margin-top: 24px;">
-    <mat-icon>queue</mat-icon>
-    Acessar Fila de Atendimentos
-  </button>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+  <div class="bg-white rounded-2xl shadow-2xl p-12 w-full max-w-5xl text-center">
+
+    <!-- Logo da prefeitura -->
+    <div class="mb-8">
+      <img src="assets/logo-alianca.svg" alt="Logo da Prefeitura" class="mx-auto h-24 w-auto">
+    </div>
+
+    <!-- Título -->
+    <h1 class="text-4xl font-bold text-gray-800 mb-4">Ambulatório</h1>
+    <p class="text-base text-gray-500 mb-6">Painel de controle do atendimento ambulatorial</p>
+
+    <!-- Data de atualização -->
+    <p class="text-sm text-gray-400 mb-10">Atualizado: {{ dataAtual | date:'short' }}</p>
+
+    <!-- Botão de acesso -->
+    <button mat-stroked-button color="primary" (click)="irParaFilaAtendimento()" class="px-8 py-4 text-indigo-700 border-indigo-500 hover:bg-indigo-50 rounded-lg transition-all text-lg">
+      <mat-icon class="mr-2">queue</mat-icon>
+      Acessar Fila de Atendimentos
+    </button>
+
+  </div>
 </div>
