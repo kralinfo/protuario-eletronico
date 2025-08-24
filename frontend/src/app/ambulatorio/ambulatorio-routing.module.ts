@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { DashboardAmbulatorioComponent } from './dashboard-ambulatorio.component';
+import { DashboardAmbulatorioComponent } from './dashboard/dashboard-ambulatorio.component';
 import { AuthGuard } from '../auth/auth.guard';
 import { ModuloGuard } from '../auth/modulo.guard';
 

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { AmbulatorioService } from './ambulatorio.service';
+import { AmbulatorioService } from '../ambulatorio.service';
 
 @Component({
   selector: 'app-dashboard-ambulatorio',
