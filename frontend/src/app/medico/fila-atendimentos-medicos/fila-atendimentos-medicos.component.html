@@ -1,19 +1,63 @@
-<div class="fila-atendimentos-container">
-  <h2>Fila de Atendimentos Médicos</h2>
-  <div *ngIf="atendimentos.length === 0" class="empty-message">
-    Nenhum atendimento encaminhado para sala médica.
-  </div>
-  <div *ngFor="let atendimento of atendimentos" class="atendimento-card">
-    <mat-card>
-      <mat-card-title>{{ atendimento.paciente_nome }}</mat-card-title>
+
+<div class="triagem-container">
+  <h1 class="page-title">
+    <mat-icon>medical_services</mat-icon>
+    Fila de Atendimentos Médicos
+    <span class="flex-1"></span>
+    <button mat-stroked-button color="primary" (click)="ngOnInit()">
+      <mat-icon>refresh</mat-icon>
+      Atualizar
+    </button>
+  </h1>
+
+  <div class="stats-cards">
+    <mat-card class="stat-card">
       <mat-card-content>
-        <div>Status: {{ atendimento.status }}</div>
-        <div>Horário: {{ atendimento.horario }}</div>
-        <!-- Adicione mais campos conforme necessário -->
+        <div class="stat-number">{{ atendimentos.length }}</div>
+        <div class="stat-label">Encaminhados para Sala Médica</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="patients-list" *ngIf="atendimentos.length > 0; else emptyMessage">
+    <mat-card *ngFor="let paciente of atendimentos" class="patient-card">
+      <mat-card-header>
+        <div mat-card-avatar class="patient-avatar" [style.background-color]="getCor(paciente.classificacao_risco)">
+          {{getIniciais(paciente.paciente_nome)}}
+        </div>
+        <mat-card-title>{{ paciente.paciente_nome }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ paciente.paciente_nascimento ? getIdade(paciente.paciente_nascimento) + ' anos' : '' }}
+          <span *ngIf="paciente.paciente_sexo">• {{ paciente.paciente_sexo }}</span>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="patient-info">
+          <div class="info-row">
+            <mat-icon>schedule</mat-icon>
+            <span>Tempo em espera: {{ formatarTempo(paciente.tempo_espera) }}</span>
+          </div>
+          <div class="info-row" *ngIf="paciente.queixa_principal">
+            <mat-icon>chat</mat-icon>
+            <span>{{ paciente.queixa_principal }}</span>
+          </div>
+          <div class="info-row">
+            <mat-icon>event</mat-icon>
+            <span>Chegada: {{ formatarDataHora(paciente.data_hora_atendimento) }}</span>
+          </div>
+          <div class="status-chip">
+            <mat-chip [style.background-color]="getCorStatus(paciente.status)">
+              {{ getDescricaoStatus(paciente.status) }}
+            </mat-chip>
+          </div>
+        </div>
       </mat-card-content>
       <mat-card-actions>
         <button mat-raised-button color="primary">Iniciar Atendimento</button>
       </mat-card-actions>
     </mat-card>
   </div>
+  <ng-template #emptyMessage>
+    <div class="empty-message">Nenhum atendimento encaminhado para sala médica.</div>
+  </ng-template>
 </div>

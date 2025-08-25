@@ -53,7 +53,7 @@ export class DashboardMedicoComponent implements OnInit {
   }
 
   irParaFilaSalaMedica() {
-    this.router.navigate(['/medico/fila-sala-medica']);
+    this.router.navigate(['/medico/fila']);
   }
 
   abrirItemSalaMedica(item: any) {
