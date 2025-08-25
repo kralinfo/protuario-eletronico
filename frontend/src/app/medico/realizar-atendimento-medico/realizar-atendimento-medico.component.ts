@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MedicoService } from '../medico.service';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
   selector: 'app-realizar-atendimento-medico',
@@ -28,10 +29,12 @@ import { MedicoService } from '../medico.service';
     MatIconModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    MatDividerModule
+    MatDividerModule,
+    MatExpansionModule
   ],
   templateUrl: './realizar-atendimento-medico.component.html',
   styleUrls: ['./realizar-atendimento-medico.component.scss']
+  ,encapsulation: ViewEncapsulation.None
 })
 export class RealizarAtendimentoMedicoComponent implements OnInit {
   atendimentoId: number;
@@ -65,7 +68,6 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
           hipotese_diagnostica: data.hipotese_diagnostica || '',
           conduta_prescricao: data.conduta_prescricao || '',
           pressao_arterial: data.pressao_arterial || '',
-          temperatura: data.temperatura || '',
           frequencia_cardiaca: data.frequencia_cardiaca || '',
           saturacao_oxigenio: data.saturacao_oxigenio || '',
           status_destino: data.status_destino || ''

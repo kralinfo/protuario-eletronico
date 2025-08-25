@@ -7,6 +7,13 @@
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+/* Removido border-color global para evitar conflito de cor em componentes customizados */
+*, ::before, ::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+}
+
 /* --- DARK MODE COM CINZA ESCURO --- */
 body.dark-mode {
   background: #22272b !important;
@@ -185,3 +192,16 @@ body.dark-mode .header-sistema .icon {
   filter: none !important;
 }
 /* --- FIM AJUSTE ICONE HEADER --- */
+.mat-expansion-indicator::after {
+    border-style: solid;
+    border-width: 0 2px 2px 0;
+    content: "";
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(45deg);
+    vertical-align: middle;
+    /* Força cor azul na seta do painel expansível */
+    color: #1976d2 !important;
+    border-color: #1976d2 !important;
+    display: var(--mat-expansion-legacy-header-indicator-display, none);
+}

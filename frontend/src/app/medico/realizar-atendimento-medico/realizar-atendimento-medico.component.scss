@@ -41,3 +41,10 @@ mat-card-actions {
   align-items: center;
   gap: 8px;
 }
+
+/* Adiciona cor personalizada à seta do painel expansível */
+:host ::ng-deep .mat-expansion-panel-header.mat-expanded .mat-expansion-indicator,
+:host ::ng-deep .mat-expansion-panel-header .mat-expansion-indicator {
+  color: #1976d2 !important;
+  fill: #1976d2 !important;
+}

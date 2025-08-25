@@ -4,7 +4,6 @@
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h1>
-      <mat-icon>medical_services</mat-icon>
       Atendimento Médico - {{nomePaciente}}
     </h1>
   </div>
@@ -15,22 +14,62 @@
         <mat-card-title>Dados do Atendimento Médico</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <h3>Queixa Principal</h3>
-        <mat-form-field>
-          <mat-label>Queixa Principal</mat-label>
-          <input matInput formControlName="queixa_principal">
-        </mat-form-field>
+        <mat-accordion>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title style="white-space: nowrap; overflow: visible; text-overflow: unset; background: transparent; color: inherit; z-index: 1;">
+                Dados clínicos do atendimento coletados na triagem
+              </mat-panel-title>
+              <mat-panel-description style="display: flex; align-items: center; justify-content: flex-end; width: 100%; color: #1976d2;">
+                Clique para visualizar/editar
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <h3>Queixa Principal</h3>
+            <mat-form-field>
+              <mat-label>Queixa Principal</mat-label>
+              <input matInput formControlName="queixa_principal">
+            </mat-form-field>
+
+            <h3>Histórico Atual</h3>
+            <mat-form-field>
+              <mat-label>Histórico Atual</mat-label>
+              <textarea matInput formControlName="historia_clinica" rows="3"></textarea>
+            </mat-form-field>
+
+            <h3>Observações</h3>
+            <mat-form-field>
+              <mat-label>Observações</mat-label>
+              <textarea matInput formControlName="observacoes" rows="2"></textarea>
+            </mat-form-field>
+
+            <h3>Sinais Vitais</h3>
+            <div class="form-row">
+              <mat-form-field>
+                <mat-label>Pressão Arterial</mat-label>
+                <input matInput formControlName="pressao_arterial" placeholder="120/80">
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Temperatura (°C)</mat-label>
+                <input matInput type="number" formControlName="temperatura" step="0.1">
+              </mat-form-field>
+            </div>
+            <div class="form-row">
+              <mat-form-field>
+                <mat-label>Frequência Cardíaca</mat-label>
+                <input matInput type="number" formControlName="frequencia_cardiaca">
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Saturação O2 (%)</mat-label>
+                <input matInput type="number" formControlName="saturacao_oxigenio" min="70" max="100">
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
 
         <h3>Motivo da Consulta</h3>
         <mat-form-field>
           <mat-label>Motivo da Consulta</mat-label>
           <input matInput formControlName="motivo_consulta" required>
-        </mat-form-field>
-
-        <h3>Histórico Atual</h3>
-        <mat-form-field>
-          <mat-label>Histórico Atual</mat-label>
-          <textarea matInput formControlName="historia_clinica" rows="3"></textarea>
         </mat-form-field>
 
         <h3>Exame Físico</h3>
@@ -50,34 +89,6 @@
           <mat-label>Conduta / Prescrição</mat-label>
           <textarea matInput formControlName="conduta_prescricao" rows="2"></textarea>
         </mat-form-field>
-
-        <h3>Observações</h3>
-        <mat-form-field>
-          <mat-label>Observações</mat-label>
-          <textarea matInput formControlName="observacoes" rows="2"></textarea>
-        </mat-form-field>
-
-        <h3>Sinais Vitais</h3>
-        <div class="form-row">
-          <mat-form-field>
-            <mat-label>Pressão Arterial</mat-label>
-            <input matInput formControlName="pressao_arterial" placeholder="120/80">
-          </mat-form-field>
-          <mat-form-field>
-            <mat-label>Temperatura (°C)</mat-label>
-            <input matInput type="number" formControlName="temperatura" step="0.1">
-          </mat-form-field>
-        </div>
-        <div class="form-row">
-          <mat-form-field>
-            <mat-label>Frequência Cardíaca</mat-label>
-            <input matInput type="number" formControlName="frequencia_cardiaca">
-          </mat-form-field>
-          <mat-form-field>
-            <mat-label>Saturação O2 (%)</mat-label>
-            <input matInput type="number" formControlName="saturacao_oxigenio" min="70" max="100">
-          </mat-form-field>
-        </div>
 
         <h3>Encaminhamento</h3>
         <mat-form-field>
