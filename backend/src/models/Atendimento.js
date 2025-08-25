@@ -178,15 +178,22 @@ class Atendimento {
   }
 
   static async update(id, atendimentoData) {
-    const { motivo, observacoes, status, procedencia, acompanhante } = atendimentoData;
-    
+    const { motivo, observacoes, status, procedencia, acompanhante, queixa_principal, historia_atual } = atendimentoData;
     const result = await db.query(
       `UPDATE atendimentos 
        SET motivo = $1, observacoes = $2, status = $3, procedencia = $4, 
-           acompanhante = $5, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $6 RETURNING *`,
-      [motivo, observacoes || null, status || 'encaminhado para triagem', 
-       procedencia || null, acompanhante || null, id]
+           acompanhante = $5, queixa_principal = $6, historia_atual = $7, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $8 RETURNING *`,
+      [
+        motivo,
+        observacoes || null,
+        status || 'encaminhado para triagem',
+        procedencia || null,
+        acompanhante || null,
+        queixa_principal || null,
+        historia_atual || null,
+        id
+      ]
     );
     return result.rows[0];
   }

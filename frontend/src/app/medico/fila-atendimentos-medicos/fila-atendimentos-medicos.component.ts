@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { MedicoService } from '../medico.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -14,6 +15,11 @@ import { MatChipsModule } from '@angular/material/chips';
   imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule]
 })
 export class FilaAtendimentosMedicosComponent implements OnInit {
+  constructor(private medicoService: MedicoService, private router: Router) {}
+
+  abrirAtendimento(paciente: any) {
+    this.router.navigate(['/medico/atendimento', paciente.id]);
+  }
   // Cores para classificação de risco
   private coresPrioridade: Record<string, string> = {
     'vermelho': '#E53E3E',
@@ -87,7 +93,6 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
   }
   atendimentos: any[] = [];
 
-  constructor(private medicoService: MedicoService) {}
 
   ngOnInit(): void {
     const statusList = [

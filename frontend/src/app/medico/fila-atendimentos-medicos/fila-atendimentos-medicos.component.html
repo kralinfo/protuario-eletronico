@@ -21,7 +21,7 @@
 
   <div class="patients-list" *ngIf="atendimentos.length > 0; else emptyMessage">
     <mat-card *ngFor="let paciente of atendimentos" class="patient-card">
-      <mat-card-header>
+  <mat-card-header (click)="abrirAtendimento(paciente)">
         <div mat-card-avatar class="patient-avatar" [style.background-color]="getCor(paciente.classificacao_risco)">
           {{getIniciais(paciente.paciente_nome)}}
         </div>
@@ -53,7 +53,7 @@
         </div>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-raised-button color="primary">Iniciar Atendimento</button>
+        <button mat-raised-button color="primary" (click)="abrirAtendimento(paciente)">Iniciar Atendimento</button>
       </mat-card-actions>
     </mat-card>
   </div>

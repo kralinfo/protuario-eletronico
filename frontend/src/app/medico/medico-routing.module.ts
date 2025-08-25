@@ -28,6 +28,17 @@ const routes: Routes = [
     }
   },
   {
+    path: 'atendimento/:id',
+    loadComponent: () => import('./realizar-atendimento-medico/realizar-atendimento-medico.component').then(m => m.RealizarAtendimentoMedicoComponent),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'medico',
+      breadcrumb: 'Atendimento Médico',
+      icon: 'medical_services',
+      title: 'Realizar Atendimento Médico'
+    }
+  },
+  {
     path: 'consulta/:id',
     component: MedicoConsultaFormComponent,
     canActivate: [AuthGuard, ModuloGuard],

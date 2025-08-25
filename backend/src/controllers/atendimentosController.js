@@ -307,7 +307,7 @@ const listarTodos = async (req, res) => {
 const atualizar = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { motivo, observacoes, status, procedencia, acompanhante } = req.body;
+  const { motivo, observacoes, status, procedencia, acompanhante, queixa_principal, historia_atual } = req.body;
     
     // Validar se o ID é um número válido
     if (isNaN(id) || id <= 0) {
@@ -342,7 +342,9 @@ const atualizar = async (req, res) => {
       observacoes: observacoes ? observacoes.trim() : null,
       status: status || 'encaminhado para triagem',
       procedencia: procedencia ? procedencia.trim() : null,
-      acompanhante: acompanhante ? acompanhante.trim() : null
+      acompanhante: acompanhante ? acompanhante.trim() : null,
+      queixa_principal: queixa_principal ? queixa_principal.trim() : null,
+      historia_atual: historia_atual ? historia_atual.trim() : null
     });
     
     res.json({
