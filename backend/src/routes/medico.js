@@ -1,6 +1,37 @@
-const express = require('express');
+import express from 'express';
+import knex from '../db.js';
 const router = express.Router();
-const knex = require('../db');
+router.get('/estatisticas', async (req, res) => {
+  try {
+    // Atendimentos do dia
+    const atendimentosDia = await knex('atendimentos')
+      .whereRaw('DATE(data_hora_atendimento) = CURRENT_DATE')
+      .select('id', 'status', 'classificacao_risco');
+
+    // Contagem por classificação
+    const classificacoes = ['vermelho', 'laranja', 'amarelo', 'verde', 'azul'];
+    const por_classificacao = {};
+    classificacoes.forEach(cl => {
+      por_classificacao[cl] = atendimentosDia.filter(a => a.classificacao_risco === cl).length;
+    });
+
+    // Outras estatísticas
+    const pacientes_aguardando = atendimentosDia.filter(a => a.status === 'aguardando').length;
+    const pacientes_em_atendimento = atendimentosDia.filter(a => a.status === 'em_atendimento').length;
+    const consultas_concluidas = atendimentosDia.filter(a => a.status === 'concluida').length;
+
+    res.json({
+      estatisticas: {
+        pacientes_aguardando,
+        pacientes_em_atendimento,
+        consultas_concluidas,
+        por_classificacao
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Listar atendimentos em sala médica
 router.get('/atendimentos', async (req, res) => {
@@ -54,4 +85,4 @@ router.put('/consulta/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

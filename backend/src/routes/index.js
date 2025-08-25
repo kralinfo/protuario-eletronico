@@ -2,6 +2,7 @@ import { Router } from 'express';
 import authRoutes from './auth.js';
 import pacientesRoutes from './pacientes.js';
 import usuariosRoutes from './usuarios.js';
+import medicoRoutes from './medico.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
@@ -77,4 +78,5 @@ router.get('/protected', authenticateToken, (req, res) => {
   });
 });
 
+router.use('/medico', medicoRoutes);
 export default router;
