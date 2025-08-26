@@ -111,7 +111,8 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
       'em_sala_medica',
       'encaminhado_para_sala_medica',
       'encaminhado para sala médica',
-      '3 - Encaminhado para sala médica'
+      '3 - Encaminhado para sala médica',
+      'em atendimento médico'
     ];
     this.medicoService.getAtendimentosPorStatus(statusList).subscribe((data: any[]) => {
       this.atendimentos = data;

@@ -6,6 +6,12 @@ import { environment } from 'src/environments/environment';
 @Injectable({ providedIn: 'root' })
 export class MedicoService {
   /**
+   * Atualiza o status do atendimento
+   */
+  atualizarStatus(id: string, status: string): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/atendimentos/${id}/status`, { status });
+  }
+  /**
    * Lista todos os atendimentos
    */
   getTodosAtendimentos(): Observable<any[]> {

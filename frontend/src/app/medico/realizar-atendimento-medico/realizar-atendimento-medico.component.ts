@@ -56,23 +56,32 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Busca os dados do atendimento e preenche o formulário
-    this.medicoService.getConsulta(String(this.atendimentoId)).subscribe((data: any) => {
-      if (data) {
-        this.atendimentoForm.patchValue({
-          queixa_principal: data.queixa_principal || '',
-          motivo_consulta: data.motivo || '',
-          historia_clinica: data.historia_atual || '',
-          observacoes: data.observacoes || data.observacoes_triagem || '',
-          exame_fisico: data.exame_fisico || '',
-          hipotese_diagnostica: data.hipotese_diagnostica || '',
-          conduta_prescricao: data.conduta_prescricao || '',
-          pressao_arterial: data.pressao_arterial || '',
-          frequencia_cardiaca: data.frequencia_cardiaca || '',
-          saturacao_oxigenio: data.saturacao_oxigenio || '',
-          status_destino: data.status_destino || ''
+    // Altera status do atendimento para 'em atendimento médico' ao abrir a tela
+    this.medicoService.atualizarStatus(String(this.atendimentoId), 'em atendimento médico').subscribe({
+      next: () => {
+        // Busca os dados do atendimento e preenche o formulário
+        this.medicoService.getConsulta(String(this.atendimentoId)).subscribe((data: any) => {
+          if (data) {
+            this.atendimentoForm.patchValue({
+              queixa_principal: data.queixa_principal || '',
+              motivo_consulta: data.motivo || '',
+              historia_clinica: data.historia_atual || '',
+              observacoes: data.observacoes || data.observacoes_triagem || '',
+              exame_fisico: data.exame_fisico || '',
+              hipotese_diagnostica: data.hipotese_diagnostica || '',
+              conduta_prescricao: data.conduta_prescricao || '',
+              pressao_arterial: data.pressao_arterial || '',
+              temperatura: data.temperatura || '',
+              frequencia_cardiaca: data.frequencia_cardiaca || '',
+              saturacao_oxigenio: data.saturacao_oxigenio || '',
+              status_destino: data.status_destino || ''
+            });
+            this.nomePaciente = data.paciente_nome || 'Paciente';
+          }
         });
-        this.nomePaciente = data.paciente_nome || 'Paciente';
+      },
+      error: () => {
+        this.snackBar.open('Erro ao atualizar status do atendimento.', 'Fechar', { duration: 5000 });
       }
     });
   }
