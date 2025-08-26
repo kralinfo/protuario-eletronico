@@ -13,14 +13,14 @@
   <div class="stats-cards">
     <mat-card class="stat-card">
       <mat-card-content>
-        <div class="stat-number">{{ atendimentos.length }}</div>
+  <div class="stat-number">{{ atendimentosRecentes.length }}</div>
         <div class="stat-label">Encaminhados para Sala Médica</div>
       </mat-card-content>
     </mat-card>
   </div>
 
-  <div class="patients-list" *ngIf="atendimentos.length > 0; else emptyMessage">
-    <mat-card *ngFor="let paciente of atendimentos" class="patient-card">
+  <div class="patients-list" *ngIf="atendimentosRecentes.length > 0; else emptyMessage">
+    <mat-card *ngFor="let paciente of atendimentosRecentes" class="patient-card">
   <mat-card-header (click)="abrirAtendimento(paciente)">
         <div mat-card-avatar class="patient-avatar" [style.background-color]="getCor(paciente.classificacao_risco)">
           {{getIniciais(paciente.paciente_nome)}}

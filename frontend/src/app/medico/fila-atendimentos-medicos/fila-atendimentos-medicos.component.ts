@@ -93,6 +93,18 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
   }
   atendimentos: any[] = [];
 
+  get atendimentosRecentes(): any[] {
+    const agora = new Date();
+    return this.atendimentos.filter(atendimento => {
+      let campoData = atendimento.created_at;
+      if (!campoData && atendimento.data_hora_atendimento) campoData = atendimento.data_hora_atendimento;
+      if (!campoData) return false;
+      const dataAtendimento = new Date(campoData);
+      const diffMs = agora.getTime() - dataAtendimento.getTime();
+      const diffHoras = diffMs / (1000 * 60 * 60);
+      return diffHoras < 24;
+    });
+  }
 
   ngOnInit(): void {
     const statusList = [
