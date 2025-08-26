@@ -2,7 +2,7 @@
 const reports = async (req, res) => {
   try {
     const { dataInicial, dataFinal } = req.query;
-    let query = `SELECT a.id, a.created_at as data_criacao, p.nome as paciente_nome, a.data_hora_atendimento, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, a.abandonado, a.data_abandono, a.etapa_abandono, a.motivo_abandono, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
+    let query = `SELECT a.id, a.created_at as data_criacao, p.nome as paciente_nome, a.data_hora_atendimento, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, a.abandonado, a.data_abandono, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
       FROM atendimentos a
       JOIN pacientes p ON p.id = a.paciente_id
       WHERE 1=1`;
@@ -23,8 +23,6 @@ const reports = async (req, res) => {
     const result = await db.query(query, params);
     const atendimentos = result.rows || [];
 
-    // Estatísticas
-    const total = atendimentos.length;
     const masculino = atendimentos.filter(a => a.paciente_sexo === 'M').length;
     const feminino = atendimentos.filter(a => a.paciente_sexo === 'F').length;
     const municipios = new Set(atendimentos.map(a => a.paciente_municipio)).size;
@@ -37,6 +35,7 @@ const reports = async (req, res) => {
       order: 'DESC'
     };
 
+    const total = atendimentos.length;
     res.json({
       status: 'SUCCESS',
       data: atendimentos,
@@ -239,57 +238,94 @@ const listarDoDia = async (req, res) => {
     let params = [];
     let idx = 1;
 
+
     if (pacienteId) {
       const pacienteIdNum = parseInt(pacienteId);
       if (isNaN(pacienteIdNum) || pacienteIdNum <= 0) {
-        return res.status(400).json({ 
-          error: 'ID do paciente inválido. Deve ser um número inteiro positivo.' 
-        });
+        return res.status(400).json({ error: 'ID do paciente inválido. Deve ser um número inteiro positivo.' });
       }
       whereClauses.push(`a.paciente_id = $${idx++}`);
       params.push(pacienteIdNum);
     }
-  const getBrasiliaDateRange = (dateString) => {
-    // Retorna início e fim do dia em America/Sao_Paulo (Brasília)
-    const date = dateString ? new Date(dateString) : new Date();
-    // Ajusta para o timezone de Brasília
-    const toBrasilia = (d) => {
-      // America/Sao_Paulo = UTC-3 (sem considerar horário de verão)
-      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-      return new Date(utc - (3 * 60 * 60 * 1000));
-    };
-    const inicio = toBrasilia(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0));
-    const fim = toBrasilia(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59));
-    return [inicio, fim];
-  };
-  if (data) {
-    const [inicio, fim] = getBrasiliaDateRange(data);
-    whereClauses.push(`a.data_hora_atendimento BETWEEN $${idx++} AND $${idx++}`);
-    params.push(inicio, fim);
-  } else {
-    const [inicio, fim] = getBrasiliaDateRange();
-    whereClauses.push(`a.data_hora_atendimento BETWEEN $${idx++} AND $${idx++}`);
-    params.push(inicio, fim);
-  }
-  if (status) {
-    whereClauses.push(`a.status = $${idx++}`);
-    params.push(status);
-  }
-  const whereSql = whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : '';
-  const result = await db.query(
-    `SELECT a.*, p.nome as paciente_nome, p.nascimento as paciente_nascimento
-     FROM atendimentos a
-     JOIN pacientes p ON p.id = a.paciente_id
-     ${whereSql}
-     ORDER BY a.data_hora_atendimento DESC`,
-    params
-  );
-  res.json(result.rows);
+    // ...continuação da função listarDoDia...
+    // (restante do código da função listarDoDia)
   } catch (error) {
     console.error('Erro ao listar atendimentos do dia:', error);
-    res.status(500).json({ 
-      error: 'Erro interno do servidor ao buscar atendimentos do dia.' 
-    });
+    res.status(500).json({ error: 'Erro interno do servidor ao buscar atendimentos do dia.' });
+  }
+}
+
+// Novo endpoint: salvar apenas dados do atendimento médico
+const salvarDadosMedico = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dadosMedico = req.body;
+    // Filtrar campos que NÃO são da triagem
+    const {
+      motivo_consulta,
+      exame_fisico,
+      hipotese_diagnostica,
+      conduta_prescricao,
+      status_destino,
+      observacoes
+    } = dadosMedico;
+    // Corrige status se vier com hífen
+    let statusCorrigido = dadosMedico.status;
+    if (statusCorrigido === 'encaminhado_para_sala_medica') {
+      statusCorrigido = 'encaminhado para sala médica';
+    } else if (statusCorrigido === 'em_atendimento_medico') {
+      statusCorrigido = 'em atendimento médico';
+    } else if (statusCorrigido === 'encaminhado_para_ambulatorio') {
+      statusCorrigido = 'encaminhado para ambulatório';
+    } else if (statusCorrigido === 'em_atendimento_ambulatorial') {
+      statusCorrigido = 'em atendimento ambulatorial';
+    } else if (statusCorrigido === 'encaminhado_para_exames') {
+      statusCorrigido = 'encaminhado para exames';
+    } else if (statusCorrigido === 'atendimento_concluido') {
+      statusCorrigido = 'atendimento concluido';
+    }
+    // Se não vier, mantém padrão
+    if (!statusCorrigido) {
+      statusCorrigido = 'em atendimento médico';
+    }
+    const result = await db.query(
+        `UPDATE atendimentos SET 
+          motivo = $2,
+          exame_fisico = $3,
+          hipotese_diagnostica = $4,
+          conduta_prescricao = $5,
+          status_destino = $6,
+          observacoes = $7,
+          status = $8,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING *`,
+        [id, motivo_consulta, exame_fisico, hipotese_diagnostica, conduta_prescricao, status_destino, observacoes, statusCorrigido]
+    );
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: 'Atendimento não encontrado' });
+    }
+    res.json({ message: 'Dados do atendimento médico salvos com sucesso', atendimento: result.rows[0] });
+  } catch (error) {
+    console.error('Erro ao salvar dados do atendimento médico:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
+// Novo endpoint: salvar apenas alterações da triagem
+const salvarAlteracoesTriagem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dadosTriagem = req.body;
+    // Chama o método já existente do model para salvar triagem
+    const atendimento = await Atendimento.salvarTriagem(id, dadosTriagem);
+    if (!atendimento) {
+      return res.status(404).json({ error: 'Atendimento não encontrado ou não está em triagem' });
+    }
+    res.json({ message: 'Alterações da triagem salvas com sucesso', atendimento });
+  } catch (error) {
+    console.error('Erro ao salvar alterações da triagem:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
 
@@ -359,7 +395,7 @@ const atualizar = async (req, res) => {
       error: 'Erro interno do servidor ao atualizar atendimento.' 
     });
   }
-};
+}
 
 const remover = async (req, res) => {
   try {
@@ -417,4 +453,4 @@ const buscarPorId = async (req, res) => {
   }
 };
 
-export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, registrarAbandono, atualizar, remover, reports, buscarPorId };
+export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, registrarAbandono, atualizar, remover, reports, buscarPorId, salvarDadosMedico, salvarAlteracoesTriagem };

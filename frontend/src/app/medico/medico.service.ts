@@ -5,6 +5,12 @@ import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class MedicoService {
+  /**
+   * Lista todos os atendimentos
+   */
+  getTodosAtendimentos(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/todos`);
+  }
   constructor(private http: HttpClient) {}
 
   /**
@@ -20,7 +26,7 @@ export class MedicoService {
    * Mantém compatibilidade: busca apenas atendimentos em sala médica
    */
   getAtendimentosSalaMedica(): Observable<any[]> {
-    return this.getAtendimentosPorStatus(['em_sala_medica']);
+    return this.getAtendimentosPorStatus(['encaminhado para sala médica']);
   }
 
   getConsulta(id: string): Observable<any> {
@@ -30,6 +36,11 @@ export class MedicoService {
   salvarConsulta(id: string, consulta: any): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/medico/consulta`, { ...consulta, atendimento_id: id });
   }
+
+    salvarTriagem(id: string, triagem: any): Observable<any> {
+      // Chama endpoint de triagem para salvar alterações parciais
+      return this.http.put<any>(`${environment.apiUrl}/triagem/${id}/salvar`, triagem);
+    }
 
   getEstatisticasMedico(): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/medico/estatisticas`);

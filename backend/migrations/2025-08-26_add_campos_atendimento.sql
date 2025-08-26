@@ -1,0 +1,21 @@
+-- Migration: Adiciona campos para atendimento médico e triagem
+ALTER TABLE atendimentos
+  ADD COLUMN IF NOT EXISTS motivo_consulta TEXT,
+  ADD COLUMN IF NOT EXISTS exame_fisico TEXT,
+  ADD COLUMN IF NOT EXISTS hipotese_diagnostica TEXT,
+  ADD COLUMN IF NOT EXISTS conduta_prescricao TEXT,
+  ADD COLUMN IF NOT EXISTS status_destino TEXT,
+  ADD COLUMN IF NOT EXISTS observacoes TEXT,
+  ADD COLUMN IF NOT EXISTS pressao_arterial TEXT,
+  ADD COLUMN IF NOT EXISTS temperatura NUMERIC,
+  ADD COLUMN IF NOT EXISTS frequencia_cardiaca INTEGER,
+  ADD COLUMN IF NOT EXISTS frequencia_respiratoria INTEGER,
+  ADD COLUMN IF NOT EXISTS saturacao_oxigenio INTEGER,
+  ADD COLUMN IF NOT EXISTS peso NUMERIC,
+  ADD COLUMN IF NOT EXISTS altura NUMERIC,
+  ADD COLUMN IF NOT EXISTS classificacao_risco TEXT,
+  ADD COLUMN IF NOT EXISTS prioridade INTEGER,
+  ADD COLUMN IF NOT EXISTS historia_atual TEXT,
+  ADD COLUMN IF NOT EXISTS alergias TEXT,
+  ADD COLUMN IF NOT EXISTS medicamentos_uso TEXT,
+  ADD COLUMN IF NOT EXISTS observacoes_triagem TEXT;

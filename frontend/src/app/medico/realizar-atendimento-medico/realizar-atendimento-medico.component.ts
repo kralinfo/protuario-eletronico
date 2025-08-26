@@ -112,6 +112,31 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     });
   }
 
+    salvarTriagem() {
+      // Coletar apenas os campos da triagem
+      const triagemData = {
+        queixa_principal: this.atendimentoForm.get('queixa_principal')?.value,
+        historia_atual: this.atendimentoForm.get('historia_clinica')?.value,
+        observacoes_triagem: this.atendimentoForm.get('observacoes')?.value,
+        pressao_arterial: this.atendimentoForm.get('pressao_arterial')?.value,
+        temperatura: this.atendimentoForm.get('temperatura')?.value,
+        frequencia_cardiaca: this.atendimentoForm.get('frequencia_cardiaca')?.value,
+        saturacao_oxigenio: this.atendimentoForm.get('saturacao_oxigenio')?.value
+      };
+      this.salvando = true;
+      this.medicoService.salvarTriagem(String(this.atendimentoId), triagemData).subscribe({
+        next: () => {
+          this.snackBar.open('Alterações da triagem salvas!', 'Fechar', { duration: 2500 });
+        },
+        error: () => {
+          this.snackBar.open('Erro ao salvar triagem.', 'Fechar', { duration: 5000 });
+        },
+        complete: () => {
+          this.salvando = false;
+        }
+      });
+    }
+
   voltar() {
     this.router.navigate(['/medico/fila']);
   }

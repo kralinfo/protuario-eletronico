@@ -15,10 +15,14 @@ router.get('/estatisticas', async (req, res) => {
       por_classificacao[cl] = atendimentosDia.filter(a => a.classificacao_risco === cl).length;
     });
 
-    // Outras estatísticas
-    const pacientes_aguardando = atendimentosDia.filter(a => a.status === 'aguardando').length;
-    const pacientes_em_atendimento = atendimentosDia.filter(a => a.status === 'em_atendimento').length;
-    const consultas_concluidas = atendimentosDia.filter(a => a.status === 'concluida').length;
+  // Outras estatísticas (considera variantes)
+  const aguardandoVariants = ['aguardando', 'aguardando_atendimento', 'aguardando atendimento'];
+  const emAtendimentoVariants = ['em_atendimento', 'em atendimento', 'em_atendimento_medico', 'em atendimento médico'];
+  const concluidaVariants = ['concluida', 'concluído', 'atendimento_concluido', 'atendimento concluido'];
+
+  const pacientes_aguardando = atendimentosDia.filter(a => aguardandoVariants.includes(a.status)).length;
+  const pacientes_em_atendimento = atendimentosDia.filter(a => emAtendimentoVariants.includes(a.status)).length;
+  const consultas_concluidas = atendimentosDia.filter(a => concluidaVariants.includes(a.status)).length;
 
     res.json({
       estatisticas: {
