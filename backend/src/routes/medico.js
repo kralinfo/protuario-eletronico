@@ -109,6 +109,19 @@ router.post('/consulta', async (req, res) => {
     if (!payload.data_hora_inicio) {
       payload.data_hora_inicio = new Date();
     }
+    // Normaliza status para ambulatorio
+    let statusToSave = payload.status_destino;
+    if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
+      statusToSave = 'encaminhado_para_ambulatorio';
+    }
+    if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
+      statusToSave = 'encaminhado_para_exames';
+    }
+    if (statusToSave && payload.atendimento_id) {
+      await knex('atendimentos')
+        .where('id', payload.atendimento_id)
+        .update({ status: statusToSave });
+    }
     const novaConsulta = await knex('consultas_medicas').insert(payload).returning('*');
     res.json(novaConsulta[0]);
   } catch (err) {
@@ -122,6 +135,19 @@ router.put('/consulta/:id', async (req, res) => {
     await knex('consultas_medicas')
       .where('id', req.params.id)
       .update(req.body);
+    // Normaliza status para ambulatorio
+    let statusToSave = req.body.status_destino;
+    if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
+      statusToSave = 'encaminhado_para_ambulatorio';
+    }
+    if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
+      statusToSave = 'encaminhado_para_exames';
+    }
+    if (statusToSave && req.body.atendimento_id) {
+      await knex('atendimentos')
+        .where('id', req.body.atendimento_id)
+        .update({ status: statusToSave });
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
