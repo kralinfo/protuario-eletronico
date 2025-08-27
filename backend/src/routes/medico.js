@@ -117,6 +117,9 @@ router.post('/consulta', async (req, res) => {
     if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
       statusToSave = 'encaminhado_para_exames';
     }
+    if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
+      statusToSave = 'atendimento_concluido';
+    }
     if (statusToSave && payload.atendimento_id) {
       await knex('atendimentos')
         .where('id', payload.atendimento_id)
@@ -142,6 +145,9 @@ router.put('/consulta/:id', async (req, res) => {
     }
     if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
       statusToSave = 'encaminhado_para_exames';
+    }
+    if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
+      statusToSave = 'atendimento_concluido';
     }
     if (statusToSave && req.body.atendimento_id) {
       await knex('atendimentos')

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MedicoService } from '../medico.service';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,9 +13,10 @@ import { MatChipsModule } from '@angular/material/chips';
   templateUrl: './fila-atendimentos-medicos.component.html',
   styleUrls: ['./fila-atendimentos-medicos.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule]
+  imports: [CommonModule, FormsModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule]
 })
 export class FilaAtendimentosMedicosComponent implements OnInit {
+  filtroStatus: string = '';
   constructor(private medicoService: MedicoService, private router: Router) {}
 
   abrirAtendimento(paciente: any) {
@@ -102,6 +104,14 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
       const dataAtendimento = new Date(campoData);
       const diffMs = agora.getTime() - dataAtendimento.getTime();
       const diffHoras = diffMs / (1000 * 60 * 60);
+      // Filtro por status
+      if (this.filtroStatus) {
+        if (this.filtroStatus === 'alta médica') {
+          if (atendimento.status !== 'alta médica' && atendimento.status !== 'atendimento_concluido' && atendimento.status !== 'Alta Médica') return false;
+        } else {
+          if (atendimento.status !== this.filtroStatus) return false;
+        }
+      }
       return diffHoras < 24;
     });
   }
@@ -109,7 +119,12 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
   ngOnInit(): void {
     const statusList = [
       'encaminhado para sala médica',
-      'em atendimento médico'
+      'em atendimento médico',
+      'encaminhado_para_ambulatorio',
+      'encaminhado_para_exames',
+      'alta médica',
+      'transferido',
+      'óbito'
     ];
     this.medicoService.getAtendimentosPorStatus(statusList).subscribe((data: any[]) => {
       this.atendimentos = data;

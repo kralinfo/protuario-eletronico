@@ -126,7 +126,8 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       hipotese_diagnostica: this.atendimentoForm.get('hipotese_diagnostica')?.value,
       conduta_prescricao: this.atendimentoForm.get('conduta_prescricao')?.value,
       status_destino: this.atendimentoForm.get('status_destino')?.value,
-      medico_id: medicoId
+      medico_id: medicoId,
+      atendimento_id: this.atendimentoId
     };
     // Verifica se já existe consulta médica para este atendimento
     this.medicoService.getConsulta(String(this.atendimentoId)).subscribe({
