@@ -52,7 +52,7 @@ export class DashboardMedicoComponent implements OnInit {
   }
 
   carregarFilaSalaMedica() {
-  this.medicoService.getAtendimentosPorStatus(['encaminhado para sala médica']).subscribe((atendimentos: any[]) => {
+  this.medicoService.getAtendimentosPorStatus(['encaminhado para sala médica', 'em atendimento médico']).subscribe((atendimentos: any[]) => {
       this.filaSalaMedicaPreview = (atendimentos || [])
         .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0))
         .slice(0, 5);
