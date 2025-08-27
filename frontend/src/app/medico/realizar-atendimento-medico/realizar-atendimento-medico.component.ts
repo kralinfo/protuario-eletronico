@@ -38,12 +38,13 @@ import { MatExpansionModule } from '@angular/material/expansion';
   ,encapsulation: ViewEncapsulation.None
 })
 export class RealizarAtendimentoMedicoComponent implements OnInit {
+  podeEditar = false;
+  labelBotao = 'Finalizar Atendimento';
   atendimentoId: number;
   atendimentoForm!: FormGroup;
   salvando = false;
   nomePaciente = 'Carregando...';
   statusAtendimento = '';
-  podeEditar = true;
 
   constructor(
     private fb: FormBuilder,
@@ -66,7 +67,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
           if (data) {
             this.atendimentoForm.patchValue({
               queixa_principal: data.queixa_principal || '',
-              motivo_consulta: data.motivo || '',
+              motivo_consulta: data.motivo_consulta || data.motivo || '',
               historia_clinica: data.historia_atual || '',
               observacoes: data.observacoes || data.observacoes_triagem || '',
               exame_fisico: data.exame_fisico || '',
@@ -78,7 +79,16 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
               saturacao_oxigenio: data.saturacao_oxigenio || '',
               status_destino: data.status_destino || ''
             });
+            this.atendimentoForm.updateValueAndValidity();
             this.nomePaciente = data.paciente_nome || 'Paciente';
+            // Se já existe atendimento médico preenchido, habilita edição e altera label do botão
+            if (data.exame_fisico || data.hipotese_diagnostica || data.conduta_prescricao || data.motivo_consulta) {
+              this.podeEditar = true;
+              this.labelBotao = 'Salvar Modificações';
+            } else {
+              this.podeEditar = true;
+              this.labelBotao = 'Finalizar Atendimento';
+            }
           }
         });
       },
@@ -108,26 +118,63 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   salvarAtendimento() {
     if (this.atendimentoForm.invalid) return;
     this.salvando = true;
-    // Enviar apenas campos exclusivos do atendimento médico
     const medicoId = this.authService.user?.id || null;
+    const motivoConsulta = this.atendimentoForm.get('motivo_consulta')?.value || '';
     const dadosMedico = {
-      motivo_consulta: this.atendimentoForm.get('motivo_consulta')?.value,
+      motivo_consulta: motivoConsulta,
       exame_fisico: this.atendimentoForm.get('exame_fisico')?.value,
       hipotese_diagnostica: this.atendimentoForm.get('hipotese_diagnostica')?.value,
       conduta_prescricao: this.atendimentoForm.get('conduta_prescricao')?.value,
       status_destino: this.atendimentoForm.get('status_destino')?.value,
       medico_id: medicoId
     };
-    this.medicoService.salvarConsulta(String(this.atendimentoId), dadosMedico).subscribe({
-      next: () => {
-        this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
-        this.router.navigate(['/medico/fila']);
+    // Verifica se já existe consulta médica para este atendimento
+    this.medicoService.getConsulta(String(this.atendimentoId)).subscribe({
+      next: (consulta) => {
+        if (consulta && consulta.id) {
+          // Atualiza consulta existente
+          this.medicoService.atualizarConsulta(consulta.id, dadosMedico).subscribe({
+            next: () => {
+              this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
+              this.router.navigate(['/medico/fila']);
+            },
+            error: () => {
+              this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
+            },
+            complete: () => {
+              this.salvando = false;
+            }
+          });
+        } else {
+          // Cria nova consulta
+          this.medicoService.salvarConsulta(String(this.atendimentoId), dadosMedico).subscribe({
+            next: () => {
+              this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
+              this.router.navigate(['/medico/fila']);
+            },
+            error: () => {
+              this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
+            },
+            complete: () => {
+              this.salvando = false;
+            }
+          });
+        }
       },
       error: () => {
-        this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
-      },
-      complete: () => {
-        this.salvando = false;
+        // Se não encontrar consulta, cria nova
+        this.medicoService.salvarConsulta(String(this.atendimentoId), dadosMedico).subscribe({
+          next: () => {
+            this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
+            this.router.navigate(['/medico/fila']);
+          },
+          error: () => {
+            this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
+          },
+          complete: () => {
+            this.salvando = false;
+          }
+        });
       }
     });
   }

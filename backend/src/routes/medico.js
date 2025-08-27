@@ -61,6 +61,7 @@ router.get('/consulta/:id', async (req, res) => {
     // Busca consulta médica pelo atendimento_id
     const consulta = await knex('consultas_medicas')
       .where('atendimento_id', req.params.id)
+      .orderBy('id', 'desc')
       .first();
     if (consulta) {
       // Consulta médica existe, retorna normalmente

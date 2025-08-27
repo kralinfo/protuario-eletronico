@@ -5,6 +5,9 @@ import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class MedicoService {
+  atualizarConsulta(id: string, consulta: any): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/medico/consulta/${id}`, consulta);
+  }
   /**
    * Atualiza o status do atendimento
    */

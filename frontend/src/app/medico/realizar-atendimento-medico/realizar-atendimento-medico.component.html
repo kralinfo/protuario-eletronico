@@ -109,7 +109,7 @@
       <mat-card-actions>
         <button *ngIf="podeEditar" mat-raised-button color="primary" type="submit" [disabled]="!atendimentoForm.valid || salvando">
           <mat-icon>save</mat-icon>
-          {{salvando ? 'Finalizando...' : 'Finalizar Atendimento'}}
+          {{salvando ? (labelBotao === 'Salvar Modificações' ? 'Salvando...' : 'Finalizando...') : labelBotao}}
         </button>
         <button mat-button type="button" (click)="voltar()">
           <mat-icon>cancel</mat-icon>
