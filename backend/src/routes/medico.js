@@ -104,7 +104,11 @@ router.get('/consulta/:id', async (req, res) => {
 // Criar nova consulta médica
 router.post('/consulta', async (req, res) => {
   try {
-    const novaConsulta = await knex('consultas_medicas').insert(req.body).returning('*');
+    const payload = { ...req.body };
+    if (!payload.data_hora_inicio) {
+      payload.data_hora_inicio = new Date();
+    }
+    const novaConsulta = await knex('consultas_medicas').insert(payload).returning('*');
     res.json(novaConsulta[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MedicoService } from '../medico.service';
+import { AuthService } from '../../auth/auth.service';
 import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
@@ -49,7 +50,8 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
-    private medicoService: MedicoService
+    private medicoService: MedicoService,
+  private authService: AuthService // ajuste para injetar AuthService corretamente
   ) {
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
@@ -106,8 +108,17 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   salvarAtendimento() {
     if (this.atendimentoForm.invalid) return;
     this.salvando = true;
-    // Chamar service para salvar atendimento
-  this.medicoService.salvarConsulta(String(this.atendimentoId), this.atendimentoForm.value).subscribe({
+    // Enviar apenas campos exclusivos do atendimento médico
+    const medicoId = this.authService.user?.id || null;
+    const dadosMedico = {
+      motivo_consulta: this.atendimentoForm.get('motivo_consulta')?.value,
+      exame_fisico: this.atendimentoForm.get('exame_fisico')?.value,
+      hipotese_diagnostica: this.atendimentoForm.get('hipotese_diagnostica')?.value,
+      conduta_prescricao: this.atendimentoForm.get('conduta_prescricao')?.value,
+      status_destino: this.atendimentoForm.get('status_destino')?.value,
+      medico_id: medicoId
+    };
+    this.medicoService.salvarConsulta(String(this.atendimentoId), dadosMedico).subscribe({
       next: () => {
         this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
         this.router.navigate(['/medico/fila']);
