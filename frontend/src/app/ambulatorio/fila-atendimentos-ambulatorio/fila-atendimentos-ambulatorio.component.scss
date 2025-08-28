@@ -1,4 +1,116 @@
-/* Estilos básicos para a tela de fila de atendimentos ambulatorio */
-.container {
-  max-width: 900px;
+/* Estilos básicos para a tela de fila de atendimentos ambulato */
+
+:host {
+  --card-col-min: 420px;
+}
+
+.ambulatorio-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: #2c5282;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stat-number {
+  font-size: 2em;
+  font-weight: bold;
+  color: #2c5282;
+  margin-bottom: 0.2em;
+}
+
+.stat-label {
+  color: #666;
+}
+
+.patients-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-col-min), 1fr));
+  gap: 15px;
+}
+
+.patient-card {
+  transition: all 0.3s ease;
+}
+
+.patient-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.priority-alert {
+  border-left: 4px solid #e53e3e;
+}
+
+.patient-avatar {
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patient-info {
+  margin: 10px 0;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  color: #666;
+}
+
+.alert-icon {
+  color: #e53e3e;
+  margin-left: auto;
+}
+
+.status-chip {
+  margin-top: 10px;
+}
+
+.status-chip mat-chip {
+  color: white;
+  font-weight: bold;
+}
+
+.no-patients {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  grid-column: 1 / -1;
+}
+
+.no-patients mat-icon {
+  font-size: 48px;
+  color: #48bb78;
+  margin-bottom: 10px;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 40px;
+  grid-column: 1 / -1;
 }
