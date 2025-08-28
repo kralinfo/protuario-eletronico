@@ -136,10 +136,37 @@ export class DashboardMedicoComponent implements OnInit {
   // ...existing code...
 
   ngOnInit() {
-  this.carregarEstatisticas();
-  this.carregarFilaSalaMedica();
-  this.carregarGridAtendimentos();
-  this.carregarAlertasTempo();
+    this.atualizarDashboard();
+  }
+
+  atualizarDashboard() {
+    // Resetar variáveis locais para garantir atualização total
+    this.estatisticas = {
+      pacientes_aguardando: 0,
+      pacientes_em_atendimento: 0,
+      consultas_concluidas: 0,
+      por_classificacao: {
+        vermelho: 0,
+        laranja: 0,
+        amarelo: 0,
+        verde: 0,
+        azul: 0
+      }
+    };
+    this.filaDisponiveisPreview = [];
+    this.filaSalaMedicaPreview = [];
+    this.filaEmAtendimentoPreview = [];
+    this.consultasPreview = [];
+    this.consultasEncaminhadas = 0;
+    this.consultasEmAtendimento = 0;
+    this.alertasCriticos = [];
+    this.alertasAtencao = [];
+
+    // Disparar todos os endpoints
+    this.carregarEstatisticas();
+    this.carregarFilaSalaMedica();
+    this.carregarGridAtendimentos();
+    this.carregarAlertasTempo();
   }
 
   carregarGridAtendimentos() {
