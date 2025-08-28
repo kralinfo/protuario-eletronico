@@ -67,7 +67,8 @@
         </div>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="abrirAtendimento(paciente)">
+        <button mat-raised-button color="primary" (click)="abrirAtendimento(paciente)"
+          [disabled]="paciente.status !== 'encaminhado para sala médica' && paciente.status !== 'em atendimento médico'">
           <mat-icon>play_arrow</mat-icon>
           {{ paciente.status === 'em atendimento médico' ? 'Continuar Atendimento' : 'Iniciar Atendimento' }}
         </button>
