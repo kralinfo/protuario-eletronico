@@ -16,7 +16,7 @@ import { MatChipsModule } from '@angular/material/chips';
   imports: [CommonModule, FormsModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule]
 })
 export class FilaAtendimentosMedicosComponent implements OnInit {
-  filtroStatus: string = '';
+  filtroStatus: string = 'encaminhado para sala médica';
   constructor(private medicoService: MedicoService, private router: Router) {}
 
   abrirAtendimento(paciente: any) {
@@ -106,8 +106,8 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
       const diffHoras = diffMs / (1000 * 60 * 60);
       // Filtro por status
       if (this.filtroStatus) {
-        if (this.filtroStatus === 'alta médica') {
-          if (atendimento.status !== 'alta médica' && atendimento.status !== 'atendimento_concluido' && atendimento.status !== 'Alta Médica') return false;
+        if (this.filtroStatus === 'alta médica' || this.filtroStatus === 'Alta Médica') {
+          if (atendimento.status !== 'atendimento_concluido') return false;
         } else {
           if (atendimento.status !== this.filtroStatus) return false;
         }
@@ -123,6 +123,7 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
       'encaminhado_para_ambulatorio',
       'encaminhado_para_exames',
       'alta médica',
+      'atendimento_concluido',
       'transferido',
       'óbito'
     ];
