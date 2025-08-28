@@ -16,6 +16,23 @@ import { MatChipsModule } from '@angular/material/chips';
   imports: [CommonModule, FormsModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule]
 })
 export class FilaAtendimentosMedicosComponent implements OnInit {
+  getEncaminhadosParaAmbulatorioCount(): number {
+    const hoje = new Date();
+    const statusList = [
+      'encaminhado para ambulatório',
+      'encaminhado_para_ambulatorio',
+      '5 - Encaminhado para ambulatório'
+    ];
+    return this.atendimentos?.filter(a => {
+      if (!statusList.includes(a.status)) return false;
+      let campoData = a.created_at || a.data_hora_atendimento;
+      if (!campoData) return false;
+      const data = new Date(campoData);
+      return data.getDate() === hoje.getDate() &&
+        data.getMonth() === hoje.getMonth() &&
+        data.getFullYear() === hoje.getFullYear();
+    })?.length || 0;
+  }
   filtroStatus: string = 'encaminhado para sala médica';
   constructor(private medicoService: MedicoService, private router: Router) {}
 
@@ -94,6 +111,19 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
     });
   }
   atendimentos: any[] = [];
+
+    getAguardandoAtendimentoCount(): number {
+      const hoje = new Date();
+      return this.atendimentos?.filter(a => {
+        if (a.status !== 'encaminhado para sala médica') return false;
+        let campoData = a.created_at || a.data_hora_atendimento;
+        if (!campoData) return false;
+        const data = new Date(campoData);
+        return data.getDate() === hoje.getDate() &&
+          data.getMonth() === hoje.getMonth() &&
+          data.getFullYear() === hoje.getFullYear();
+      })?.length || 0;
+    }
 
   get atendimentosRecentes(): any[] {
     const agora = new Date();

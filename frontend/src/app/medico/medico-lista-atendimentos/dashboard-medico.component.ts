@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { MedicoService } from 'src/app/medico/medico.service';
-
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -40,31 +39,36 @@ export class DashboardMedicoComponent implements OnInit {
   constructor(private medicoService: MedicoService, private router: Router) {}
 
   ngOnInit() {
-      this.carregarEstatisticas();
-      this.carregarFilaSalaMedica();
-      this.carregarGridAtendimentos();
-    }
+    this.carregarEstatisticas();
+    this.carregarFilaSalaMedica();
+    this.carregarGridAtendimentos();
+  }
 
-    carregarGridAtendimentos() {
-      this.medicoService.getTodosAtendimentos().subscribe((atendimentos: any[]) => {
-        this.filaDisponiveisPreview = atendimentos || [];
-      });
+  carregarGridAtendimentos() {
+    this.medicoService.getTodosAtendimentos().subscribe((atendimentos: any[]) => {
+      this.filaDisponiveisPreview = atendimentos || [];
+    });
   }
 
   carregarFilaSalaMedica() {
-  this.medicoService.getAtendimentosPorStatus(['encaminhado para sala médica', 'em atendimento médico']).subscribe((atendimentos: any[]) => {
+    this.medicoService.getAtendimentosPorStatus(['encaminhado para sala médica', 'em atendimento médico']).subscribe((atendimentos: any[]) => {
       this.filaSalaMedicaPreview = (atendimentos || [])
         .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0))
         .slice(0, 5);
     });
   }
 
-  irParaFilaSalaMedica() {
-    this.router.navigate(['/medico/fila']);
-  }
-
-  abrirItemSalaMedica(item: any) {
-    this.router.navigate(['/medico/atendimento', item.id]);
+  getAguardandoSalaMedicaHoje(): number {
+    const hoje = new Date();
+    return this.filaSalaMedicaPreview?.filter(a => {
+      if (a.status !== 'encaminhado para sala médica') return false;
+      let campoData = a.created_at || a.data_hora_atendimento;
+      if (!campoData) return false;
+      const data = new Date(campoData);
+      return data.getDate() === hoje.getDate() &&
+        data.getMonth() === hoje.getMonth() &&
+        data.getFullYear() === hoje.getFullYear();
+    })?.length || 0;
   }
 
   carregarEstatisticas() {
@@ -80,10 +84,20 @@ export class DashboardMedicoComponent implements OnInit {
     });
   }
 
+  irParaFilaSalaMedica() {
+    this.router.navigate(['/medico/fila']);
+  }
 
   irParaConsultas() {
-    // Navegação para consultas
-    // Exemplo: this.router.navigate(['/medico/consultas']);
+    this.router.navigate(['/medico/consultas']);
+  }
+
+  abrirItemSalaMedica(item: any) {
+    this.router.navigate(['/medico/atendimento', item.id]);
+  }
+
+  abrirItemConsulta(item: any) {
+    this.router.navigate(['/medico/consulta', item.id]);
   }
 
   getDescricaoStatus(status: string): string {
@@ -93,7 +107,9 @@ export class DashboardMedicoComponent implements OnInit {
       finalizado: 'Finalizado',
       em_sala_medica: 'Em Sala Médica',
       encaminhado: 'Encaminhado',
-      consulta: 'Consulta'
+      consulta: 'Consulta',
+      'encaminhado para sala médica': 'Encaminhado para Sala Médica',
+      'em atendimento médico': 'Em Atendimento Médico'
     };
     return map[status] || status;
   }
@@ -102,12 +118,10 @@ export class DashboardMedicoComponent implements OnInit {
     switch (status) {
       case 'aguardando': return '#4299e1';
       case 'consulta': return '#3b82f6';
+      case 'encaminhado para sala médica': return '#FF9800';
+      case 'em atendimento médico': return '#FF5722';
       default: return '#a0aec0';
     }
-  }
-
-  irParaFilaAtendimento(): void {
-    this.router.navigate(['medico/fila']);
   }
 
   formatarTempo(minutos: number): string {
@@ -118,13 +132,12 @@ export class DashboardMedicoComponent implements OnInit {
     return `${h}h ${m}min`;
   }
 
-  abrirItemFila(item: any) {
-    // Abrir detalhes do atendimento na fila
-    // Exemplo: abrir modal ou navegar para detalhes
-  }
-
-  abrirItemConsulta(item: any) {
-    // Abrir detalhes da consulta
-    // Exemplo: abrir modal ou navegar para detalhes
+  calcularTempoDecorrido(p: any): number {
+    const inicio = p.data_hora_atendimento || p.created_at;
+    if (!inicio) return 0;
+    const dataInicio = new Date(inicio);
+    const agora = new Date();
+    const diffMs = agora.getTime() - dataInicio.getTime();
+    return Math.floor(diffMs / 60000); // minutos
   }
 }

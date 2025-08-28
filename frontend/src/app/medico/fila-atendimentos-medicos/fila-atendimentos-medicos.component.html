@@ -13,8 +13,14 @@
   <div class="stats-cards">
     <mat-card class="stat-card">
       <mat-card-content>
-  <div class="stat-number">{{ atendimentosRecentes.length }}</div>
-        <div class="stat-label">Encaminhados para Sala Médica</div>
+  <div class="stat-number">{{ getAguardandoAtendimentoCount() }}</div>
+        <div class="stat-label">Aguardando Atendimento</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-number">{{ getEncaminhadosParaAmbulatorioCount() }}</div>
+        <div class="stat-label">Encaminhados para Ambulatório</div>
       </mat-card-content>
     </mat-card>
   </div>

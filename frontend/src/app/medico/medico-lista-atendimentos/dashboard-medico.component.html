@@ -14,29 +14,17 @@
     </div>
 
     <!-- Cards de estatísticas principais -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+
       <!-- Pacientes aguardando atendimento -->
       <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Aguardando Atendimento</p>
-            <p class="text-3xl font-bold text-red-500">{{ estatisticas.pacientes_aguardando }}</p>
+            <p class="text-3xl font-bold text-red-500">{{ getAguardandoSalaMedicaHoje() }}</p>
           </div>
           <div class="bg-red-100 p-3 rounded-full">
             <mat-icon class="text-red-500">people_outline</mat-icon>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pacientes em atendimento -->
-      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Em Atendimento</p>
-            <p class="text-3xl font-bold text-orange-500">{{ estatisticas.pacientes_em_atendimento }}</p>
-          </div>
-          <div class="bg-orange-100 p-3 rounded-full">
-            <mat-icon class="text-orange-500">assignment_ind</mat-icon>
           </div>
         </div>
       </div>
@@ -124,7 +112,7 @@
                 <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
                 <div class="text-xs text-blue-100 truncate">{{ getDescricaoStatus(p.status) }}</div>
               </div>
-              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
+              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(calcularTempoDecorrido(p)) }}</div>
             </li>
           </ul>
         </div>
