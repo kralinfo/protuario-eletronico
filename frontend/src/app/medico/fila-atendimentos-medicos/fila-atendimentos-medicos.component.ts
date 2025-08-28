@@ -16,6 +16,15 @@ import { MatChipsModule } from '@angular/material/chips';
   imports: [CommonModule, FormsModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule]
 })
 export class FilaAtendimentosMedicosComponent implements OnInit {
+  estatisticas: any = {
+    por_classificacao: {
+      vermelho: 0,
+      laranja: 0,
+      amarelo: 0,
+      verde: 0,
+      azul: 0
+    }
+  };
   getEncaminhadosParaAmbulatorioCount(): number {
     const hoje = new Date();
     const statusList = [
@@ -159,6 +168,27 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
     ];
     this.medicoService.getAtendimentosPorStatus(statusList).subscribe((data: any[]) => {
       this.atendimentos = data;
+      // Atualiza estatísticas por classificação
+      const por_classificacao = {
+        vermelho: 0,
+        laranja: 0,
+        amarelo: 0,
+        verde: 0,
+        azul: 0
+      };
+      for (const p of data || []) {
+        const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
+        switch (risco) {
+          case 'vermelho':
+          case 'laranja':
+          case 'amarelo':
+          case 'verde':
+          case 'azul':
+            por_classificacao[risco as keyof typeof por_classificacao]++;
+            break;
+        }
+      }
+      this.estatisticas.por_classificacao = por_classificacao;
     });
   }
 }
