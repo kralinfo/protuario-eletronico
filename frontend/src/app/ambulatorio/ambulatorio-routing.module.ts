@@ -24,7 +24,20 @@ const routes: Routes = [
       icon: 'queue',
       title: 'Fila de Atendimentos Ambulatorio'
     }
+  },
+
+  {
+    path: 'fila-consultas',
+    loadComponent: () => import('./fila-consultas/fila-consultas.component').then(m => m.FilaConsultasComponent),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'ambulatorio',
+      breadcrumb: 'Fila de Consultas',
+      icon: 'queue',
+      title: 'Fila de Consultas Ambulatorio'
+    }
   }
+
 ];
 
 @NgModule({

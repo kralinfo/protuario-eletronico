@@ -56,7 +56,7 @@ export class DashboardAmbulatorioComponent implements OnInit {
     });
   }
   irParaConsultas() {
-    this.router.navigate(['/ambulatorio/consultas']);
+    this.router.navigate(['/ambulatorio/fila-consultas']);
   }
 
   getDescricaoStatus(status: string): string {

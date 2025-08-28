@@ -13,9 +13,11 @@ export class AmbulatorioService {
     return this.http.get<any[]>('/api/ambulatorio/atendimentos');
   }
 
-  getConsultasAmbulatorio(id: String) {
-    return this.http.get<any[]>(`/api/ambulatorio/consulta/${id}`);
-  }
+  getConsultasAmbulatorio(id?: string) {
+  const url = id ? `/api/ambulatorio/consulta/${id}` : `/api/ambulatorio/consulta`;
+  return this.http.get<any[]>(url);
+}
+
 
   salvarConsultaAmbulatorio(id: String,consulta: any) {
     return this.http.post<any>('/api/ambulatorio/consulta', { ...consulta, atendimento_id: id });
@@ -30,5 +32,9 @@ export class AmbulatorioService {
   getProfissionaisAmbulatorio(): Observable<any[]> {
     return this.http.get<any[]>('/api/ambulatorio/profissionais');
   }
+
+  getEstatisticasConsultas(): Observable<any> {
+  return this.http.get<any>('/api/ambulatorio/estatisticas-consultas');
+}
 
 }
