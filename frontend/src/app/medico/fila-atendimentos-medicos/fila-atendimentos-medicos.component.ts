@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { MedicoService } from '../medico.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,7 +45,17 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
     })?.length || 0;
   }
   filtroStatus: string = 'encaminhado para sala médica';
-  constructor(private medicoService: MedicoService, private router: Router) {}
+  constructor(
+    private medicoService: MedicoService,
+    private router: Router,
+    private dialog: MatDialog
+  ) {}
+
+  abrirDialogClassificacao() {
+    this.dialog.open(ClassificacaoDialogComponent, {
+      panelClass: ['p-0', 'max-w-3xl', 'w-full']
+    });
+  }
 
   abrirAtendimento(paciente: any) {
     this.router.navigate(['/medico/atendimento', paciente.id]);

@@ -30,7 +30,9 @@
             <p class="text-sm font-medium text-gray-600">Por Classificação</p>
           </div>
           <div class="bg-purple-100 rounded-full flex items-center justify-center">
-            <mat-icon class="text-purple-500">assessment</mat-icon>
+            <button mat-icon-button (click)="abrirDialogClassificacao()" aria-label="Informações" matTooltip="Ver detalhes da classificação" matTooltipPosition="above" class="w-full h-full flex items-center justify-center">
+              <mat-icon class="text-purple-500">assessment</mat-icon>
+            </button>
           </div>
         </div>
         <div class="flex items-center justify-center space-x-2">
@@ -54,6 +56,9 @@
             <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1">{{ estatisticas?.por_classificacao?.azul || 0 }}</div>
             <p class="text-xs text-gray-600">🔵</p>
           </div>
+        </div>
+        <div class="flex justify-center mt-2">
+          <!-- Botão removido, já existe no canto superior direito -->
         </div>
       </mat-card-content>
     </mat-card>

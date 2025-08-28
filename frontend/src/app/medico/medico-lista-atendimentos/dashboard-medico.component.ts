@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { MedicoService } from 'src/app/medico/medico.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -15,6 +17,17 @@ import { MatButtonModule } from '@angular/material/button';
   imports: [CommonModule, FormsModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule]
 })
 export class DashboardMedicoComponent implements OnInit {
+  constructor(
+    private medicoService: MedicoService,
+    private router: Router,
+    private dialog: MatDialog
+  ) {}
+
+  abrirDialogClassificacao() {
+    this.dialog.open(ClassificacaoDialogComponent, {
+      panelClass: ['p-0', 'max-w-3xl', 'w-full']
+    });
+  }
   abrirItemAlertaTempo(p: any) {
     if (!p || !p.id) return;
     this.router.navigate(['/medico/atendimento', p.id]);
@@ -120,7 +133,7 @@ export class DashboardMedicoComponent implements OnInit {
   alertasCriticos: any[] = [];
   alertasAtencao: any[] = [];
 
-  constructor(private medicoService: MedicoService, private router: Router) {}
+  // ...existing code...
 
   ngOnInit() {
   this.carregarEstatisticas();
