@@ -35,7 +35,7 @@ export class AtendimentoService {
   }
 
   buscarAtendimentoPorId(id: number) {
-    return this.http.get(`${environment.apiUrl}/atendimentos/atendimento/${id}`);
+  return this.http.get(`${environment.apiUrl}/atendimentos/${id}`);
   }
 
   listarTodosAtendimentos() {
