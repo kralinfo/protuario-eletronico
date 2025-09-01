@@ -264,6 +264,7 @@
                       usuarioForm.get('senha')?.valid &&
                       usuarioForm.get('senha')?.touched
                     "
+                      (blur)="usuarioForm.get('senha')?.updateValueAndValidity()"
                   />
                   <button
                     type="button"
@@ -376,6 +377,7 @@
                     placeholder="••••••••"
                     [class.border-red-400]="(usuarioForm.get('repetirSenha')?.invalid && usuarioForm.get('repetirSenha')?.touched) || (usuarioForm.errors?.['senhasDiferentes'] && usuarioForm.get('repetirSenha')?.touched)"
                     [class.border-green-400]="usuarioForm.get('repetirSenha')?.valid && usuarioForm.get('repetirSenha')?.touched && !usuarioForm.errors?.['senhasDiferentes']"
+                      (blur)="usuarioForm.get('repetirSenha')?.updateValueAndValidity()"
                   />
                   <button
                     type="button"
@@ -676,7 +678,7 @@
           <div class="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               type="submit"
-              [disabled]="!podeSalvarUsuario() || isVisualizador()"
+              [disabled]="editandoUsuario() ? !podeAtualizarUsuario || isVisualizador() : !podeSalvarUsuario || isVisualizador()"
               class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm">
 
               <svg class="w-4 h-4 animate-spin" *ngIf="loadingState().loading" fill="none" viewBox="0 0 24 24">

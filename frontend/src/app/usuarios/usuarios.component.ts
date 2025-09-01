@@ -79,45 +79,38 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     return count > 0 ? Array(count).fill({}) : [];
   });
 
-  readonly podeSalvarUsuario = computed(() => {
+  get podeSalvarUsuario() {
+  const form = this.usuarioForm;
+  if (!form) return false;
+  const isLoading = this.loadingState().loading;
+  const isVisualizador = this.isVisualizador();
+  return form.valid === true && isLoading === false && isVisualizador === false;
+  }
+
+  get podeAtualizarUsuario() {
     const form = this.usuarioForm;
-    if (!form) {
-      return false;
-    }
-
-    try {
-      const nome = form.get('nome')?.value?.trim();
-      const email = form.get('email')?.value?.trim();
-      const nivel = form.get('nivel')?.value;
-      const modulos = form.get('modulos')?.value;
-      const isLoading = this.loadingState().loading;
-      const isVisualizador = this.isVisualizador();
-
-      if (this.editandoUsuario()) {
-        return !!nome && !!email && !!nivel &&
-               Array.isArray(modulos) && modulos.length > 0 &&
-               !isLoading && !isVisualizador && !!form.get('email')?.valid;
-      }
-
-      return form.valid && Array.isArray(modulos) && modulos.length > 0 &&
-             !isLoading && !isVisualizador;
-    } catch (error) {
-      console.error('Erro no computed podeSalvarUsuario:', error);
-      return false;
-    }
-  });
+    if (!form) return false;
+    const isLoading = this.loadingState().loading;
+    const isVisualizador = this.isVisualizador();
+    // Considera apenas os campos obrigatórios para edição (exclui senha e repetirSenha)
+    const nomeValido = form.get('nome')?.valid;
+    const emailValido = form.get('email')?.valid;
+    const nivelValido = form.get('nivel')?.valid;
+    const modulosValido = form.get('modulos')?.valid;
+    return nomeValido && emailValido && nivelValido && modulosValido && isLoading === false && isVisualizador === false;
+  }
 
   // Método simples para verificar se pode salvar
   canSave(): boolean {
     if (!this.usuarioForm) return false;
-    
+
     const form = this.usuarioForm;
     const modulos = form.get('modulos')?.value;
     const isLoading = this.loadingState().loading;
-    
-    return form.valid && 
-           Array.isArray(modulos) && 
-           modulos.length > 0 && 
+
+    return form.valid &&
+           Array.isArray(modulos) &&
+           modulos.length > 0 &&
            !isLoading;
   }
 
