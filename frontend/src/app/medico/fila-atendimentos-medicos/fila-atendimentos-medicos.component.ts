@@ -180,7 +180,8 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
     ];
     this.medicoService.getAtendimentosPorStatus(statusList).subscribe((data: any[]) => {
       this.atendimentos = data;
-      // Atualiza estatísticas por classificação
+      // Atualiza estatísticas por classificação apenas para atendimentos até 24h
+      const agora = new Date();
       const por_classificacao = {
         vermelho: 0,
         laranja: 0,
@@ -189,6 +190,11 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
         azul: 0
       };
       for (const p of data || []) {
+        let campoData = p.created_at || p.data_hora_atendimento;
+        if (!campoData) continue;
+        const dataAtendimento = new Date(campoData);
+        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+        if (diffHoras > 24) continue;
         const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
         switch (risco) {
           case 'vermelho':
