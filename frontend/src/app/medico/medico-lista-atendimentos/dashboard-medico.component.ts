@@ -98,6 +98,8 @@ export class DashboardMedicoComponent implements OnInit {
   };
   filaDisponiveisPreview: any[] = [];
   filaSalaMedicaPreview: any[] = [];
+  quantidadeEncaminhados: number = 0;
+  quantidadeEmAtendimentoMedico: number = 0;
   filaEmAtendimentoPreview: any[] = [];
   consultasPreview: any[] = [];
   consultasEncaminhadas: number = 0;
@@ -148,18 +150,35 @@ export class DashboardMedicoComponent implements OnInit {
   }
 
   carregarFilaSalaMedica() {
-    this.medicoService.getAtendimentosPorStatus(['encaminhado para sala médica', 'em atendimento médico']).subscribe((atendimentos: any[]) => {
+    this.medicoService.getAtendimentosPorStatus([
+      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
+      'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
+      'encaminhado-para-sala-medica', 'em-atendimento-medico'
+    ]).subscribe((atendimentos: any[]) => {
       const agora = new Date();
-      this.filaSalaMedicaPreview = (atendimentos || [])
-        .filter(a => {
-          let campoData = a.created_at || a.data_hora_atendimento;
-          if (!campoData) return false;
-          const dataAtendimento = new Date(campoData);
-          const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
-          return diffHoras <= 24;
-        })
-        .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0))
-        .slice(0, 5);
+      // Filtrar apenas atendimentos das últimas 24h
+      const atendimentos24h = (atendimentos || []).filter(a => {
+        let campoData = a.created_at || a.data_hora_atendimento;
+        if (!campoData) return false;
+        const dataAtendimento = new Date(campoData);
+        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+        return diffHoras <= 24;
+      });
+      this.filaSalaMedicaPreview = atendimentos24h.sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0)).slice(0, 5);
+
+      // Contar encaminhados para sala médica (todas variações)
+      const encaminhados = atendimentos24h.filter(a => {
+        const status = (a.status || '').toLowerCase().replace(/_/g, ' ').replace(/-/g, ' ');
+        return status.includes('encaminhado para sala médica');
+      });
+      this.quantidadeEncaminhados = encaminhados.length;
+
+      // Contar em atendimento médico (todas variações)
+      const emAtendimento = atendimentos24h.filter(a => {
+        const status = (a.status || '').toLowerCase().replace(/_/g, ' ').replace(/-/g, ' ');
+        return status.includes('em atendimento médico');
+      });
+      this.quantidadeEmAtendimentoMedico = emAtendimento.length;
     });
   }
 
