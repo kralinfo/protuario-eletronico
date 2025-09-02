@@ -229,8 +229,13 @@ carregarAlertasTempo() {
   carregarFilaDisponiveis() {
     this.triagemService.listarTodosAtendimentosDia().subscribe({
       next: (pacientes: PacienteTriagem[]) => {
+        const agora = new Date().getTime();
         const lista = (pacientes || [])
-          .filter(p => p && this.STATUS.DISPONIVEIS.has(p.status))
+          .filter(p => {
+            if (!p || !this.STATUS.DISPONIVEIS.has(p.status)) return false;
+            const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
+            return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
+          })
           .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
         this.filaDisponiveisPreview = lista.slice(0, 5);
       },
@@ -242,13 +247,18 @@ carregarAlertasTempo() {
     const POS_TRIAGEM = new Set<string>([...this.STATUS.ENCAMINHADOS, ...this.STATUS.EM_ATENDIMENTO]);
     this.triagemService.listarTodosAtendimentosDia().subscribe({
       next: (pacientes: PacienteTriagem[]) => {
+        const agora = new Date().getTime();
         const lista = (pacientes || [])
-          .filter(p => p && POS_TRIAGEM.has(p.status))
+          .filter(p => {
+            if (!p || !POS_TRIAGEM.has(p.status)) return false;
+            const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
+            return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
+          })
           .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
         this.posTriagemPreview = lista.slice(0, 5);
 
         // Contadores para o card de pós-triagem
-        const all = pacientes || [];
+        const all = lista;
         this.posEncaminhados = all.filter(p => p && this.STATUS.ENCAMINHADOS.has(p.status)).length;
         this.posEmAtendimento = all.filter(p => p && this.STATUS.EM_ATENDIMENTO.has(p.status)).length;
       },
@@ -259,8 +269,13 @@ carregarAlertasTempo() {
   carregarFilaEmTriagem() {
     this.triagemService.listarTodosAtendimentosDia().subscribe({
       next: (pacientes: PacienteTriagem[]) => {
+        const agora = new Date().getTime();
         const lista = (pacientes || [])
-          .filter(p => p && this.STATUS.EM_TRIAGEM.has(p.status))
+          .filter(p => {
+            if (!p || !this.STATUS.EM_TRIAGEM.has(p.status)) return false;
+            const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
+            return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
+          })
           .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
         this.filaEmTriagemPreview = lista.slice(0, 5);
       },
