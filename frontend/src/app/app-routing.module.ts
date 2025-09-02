@@ -13,6 +13,7 @@ import { HomeComponent } from './home/home.component';
 import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.component';
 import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 import { FilaTriagemComponent } from './triagem/fila-triagem/fila-triagem.component';
+import { DashboardTriagemComponent } from './triagem/dashboard/dashboard-triagem.component';
 import { RealizarTriagemUltraSeguroComponent } from './triagem/triagem/realizar-triagem-ultra-seguro.component';
 import { FilaPosTriagemComponent } from './triagem/fila-pos-triagem/fila-pos-triagem.component';
 
@@ -150,13 +151,13 @@ const routes: Routes = [
   },
   {
     path: 'triagem',
-    component: FilaTriagemComponent,
+    component: DashboardTriagemComponent,
     canActivate: [AuthGuard, ModuloGuard],
     data: {
       modulo: 'triagem',
       breadcrumb: 'Triagem',
       icon: 'medical_services',
-      title: 'Fila de Triagem'
+      title: 'Dashboard de Triagem'
     }
   },
   {
