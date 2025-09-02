@@ -9,6 +9,12 @@ import {
   EventEmitter,
   Input,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
 import { MatDialog } from '@angular/material/dialog';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
@@ -39,7 +45,16 @@ import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validat
   selector: 'app-pacientes-form',
   templateUrl: './pacientes-form.component.html',
   styleUrls: ['./pacientes.component.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule, 
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule
+  ]
 })
 export class PacientesFormComponent
   implements OnInit, OnDestroy, OnChanges {

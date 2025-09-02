@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Paciente } from '../pacientes.component';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-pacientes-form',
@@ -11,7 +12,7 @@ import { Paciente } from '../pacientes.component';
       <h2 *ngIf="pacienteEditando">Editar Paciente</h2>
       <h2 *ngIf="!pacienteEditando">Novo Paciente</h2>
       <!-- Adicione os campos do formulário conforme necessário -->
-      <button type="button" (click)="fechar.emit()">Fechar</button>
+      <button type="button" (click)="fecharModal()">Fechar</button>
     </div>
   `,
   styles: [`
@@ -20,6 +21,16 @@ import { Paciente } from '../pacientes.component';
   `]
 })
 export class PacientesFormComponent {
-  @Input() pacienteEditando: Paciente | null = null;
-  @Output() fechar = new EventEmitter<void>();
+  pacienteEditando: Paciente | null = null;
+
+  constructor(
+    public dialogRef: MatDialogRef<PacientesFormComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    this.pacienteEditando = data?.pacienteEditando || null;
+  }
+
+  fecharModal() {
+    this.dialogRef.close();
+  }
 }

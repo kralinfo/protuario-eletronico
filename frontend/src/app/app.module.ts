@@ -6,7 +6,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.component';
 import { AppComponent } from './app.component';
 import { PacientesComponent } from './pacientes/pacientes.component';
-import { PacientesFormComponent } from './pacientes/pacientes-form.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RelatoriosComponent } from './relatorios/relatorios.component';
 import { UsuariosComponent } from './usuarios/usuarios.component';
@@ -46,7 +45,6 @@ import { ClassificacaoDialogComponent } from './classificacao-dialog/classificac
 @NgModule({
   declarations: [
     AppComponent,
-    PacientesFormComponent,
     NovoAtendimentoComponent,
     LoginComponent,
     RelatoriosComponent,

@@ -33,7 +33,7 @@ export interface Paciente {
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PacientesFormComponent } from './pacientes-form/pacientes-form.component';
+import { PacientesFormComponent } from './pacientes-form.component';
 
 @Component({
     selector: 'app-pacientes',
