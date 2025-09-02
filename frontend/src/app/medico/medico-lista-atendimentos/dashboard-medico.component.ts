@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { MedicoService } from 'src/app/medico/medico.service';
+import { TriagemService } from 'src/app/services/triagem.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -19,6 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 export class DashboardMedicoComponent implements OnInit {
   constructor(
     private medicoService: MedicoService,
+    private triagemService: TriagemService,
     private router: Router,
     private dialog: MatDialog
   ) {}
@@ -175,33 +177,12 @@ export class DashboardMedicoComponent implements OnInit {
   }
 
   carregarEstatisticas() {
-    this.medicoService.getEstatisticasMedico().subscribe((data: any) => {
-      // Filtrar atendimentos por classificação para até 24h
-      const agora = new Date();
-      const atendimentos24h = (data.atendimentos || []).filter((a: any) => {
-        let campoData = a.created_at || a.data_hora_atendimento;
-        if (!campoData) return false;
-        const dataAtendimento = new Date(campoData);
-        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
-        return diffHoras <= 24;
-      });
-      // Recalcular estatisticas.por_classificacao
-      const por_classificacao = { vermelho: 0, laranja: 0, amarelo: 0, verde: 0, azul: 0 };
-      for (const p of atendimentos24h) {
-        const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
-        if (por_classificacao.hasOwnProperty(risco)) {
-          por_classificacao[risco as keyof typeof por_classificacao]++;
-        }
+    // Consome o endpoint igual ao dashboard de triagem
+    // Consome o endpoint de estatísticas de triagem para garantir o mesmo tratamento
+    this.triagemService.obterEstatisticasTriagem().subscribe((stats: any) => {
+      if (stats && stats.por_classificacao) {
+        this.estatisticas.por_classificacao = stats.por_classificacao;
       }
-      this.estatisticas = data.estatisticas || this.estatisticas;
-      this.estatisticas.por_classificacao = por_classificacao;
-      this.filaDisponiveisPreview = data.filaDisponiveisPreview || [];
-      this.filaEmAtendimentoPreview = data.filaEmAtendimentoPreview || [];
-      this.consultasPreview = data.consultasPreview || [];
-      this.consultasEncaminhadas = data.consultasEncaminhadas || 0;
-      this.consultasEmAtendimento = data.consultasEmAtendimento || 0;
-      this.alertasCriticos = data.alertasCriticos || [];
-      this.alertasAtencao = data.alertasAtencao || [];
     });
   }
 
