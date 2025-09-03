@@ -284,7 +284,8 @@ carregarAlertasTempo() {
   }
 
   irParaFilaTriagem() {
-    this.router.navigate(['/triagem']);
+    console.log('Dashboard: Navegando para fila de triagem...');
+    this.router.navigate(['/triagem/fila']);
   }
 
   irParaPosTriagem() {

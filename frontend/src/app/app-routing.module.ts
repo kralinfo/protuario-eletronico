@@ -161,6 +161,18 @@ const routes: Routes = [
     }
   },
   {
+    path: 'triagem/fila',
+    component: FilaTriagemComponent,
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'triagem',
+      breadcrumb: 'Fila de Triagem',
+      icon: 'queue',
+      title: 'Fila de Triagem',
+      parent: 'triagem'
+    }
+  },
+  {
     path: 'pos-triagem',
     component: FilaPosTriagemComponent,
     canActivate: [AuthGuard, ModuloGuard],
