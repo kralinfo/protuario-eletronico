@@ -235,12 +235,27 @@ export class DashboardMedicoComponent implements OnInit {
   }
 
   carregarEstatisticas() {
-    // Consome o endpoint igual ao dashboard de triagem
-    // Consome o endpoint de estatísticas de triagem para garantir o mesmo tratamento
-    this.triagemService.obterEstatisticasTriagem().subscribe((stats: any) => {
-      if (stats && stats.por_classificacao) {
-        this.estatisticas.por_classificacao = stats.por_classificacao;
-      }
+    this.medicoService.getAtendimentosPorStatus(['atendimento_concluido']).subscribe((atendimentos: any[]) => {
+      console.log('Atendimentos recebidos da API:', atendimentos);
+      const agora = new Date();
+      console.log('Data e hora atuais:', agora);
+      const concluidosUltimas24Horas = atendimentos.filter(a => {
+        const campoData = a.created_at || a.data_hora_atendimento;
+        if (!campoData) {
+          console.log('Atendimento ignorado (sem data):', a);
+          return false;
+        }
+        const dataAtendimento = new Date(campoData);
+        console.log('Data do atendimento:', dataAtendimento, 'Status:', a.status);
+        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+        if (diffHoras > 24) {
+          console.log('Atendimento ignorado (fora das últimas 24 horas):', a);
+        }
+        return diffHoras <= 24;
+      });
+      console.log('Atendimentos concluídos nas últimas 24 horas:', concluidosUltimas24Horas);
+      this.estatisticas.consultas_concluidas = concluidosUltimas24Horas.length;
+      console.log('Total de consultas concluídas nas últimas 24 horas:', this.estatisticas.consultas_concluidas);
     });
   }
 
