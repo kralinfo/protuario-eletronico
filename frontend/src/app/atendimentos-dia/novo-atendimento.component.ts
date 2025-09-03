@@ -1,4 +1,3 @@
-
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -9,11 +8,15 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { AtendimentoService } from '../services/atendimento.service';
+import { PacientesFormComponent } from '../pacientes/pacientes-form.component';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-novo-atendimento',
   templateUrl: './novo-atendimento.component.html',
-  standalone: false,
+  standalone: true,
+  imports: [PacientesFormComponent, CommonModule, FormsModule],
 })
 export class NovoAtendimentoComponent {
   motivosPossiveis: string[] = [
