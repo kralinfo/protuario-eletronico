@@ -139,10 +139,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
       .subscribe(() => this.horaAtual = new Date());
   }
 
-carregarAlertasTempo() {
-  console.log('🚀 Iniciando carregamento de alertas de tempo...');
-
-  const LIMITES: Record<string, number> = {
+  private readonly LIMITES_RISCO: Record<string, number> = {
     vermelho: 0,
     laranja: 10,
     amarelo: 60,
@@ -150,63 +147,60 @@ carregarAlertasTempo() {
     azul: 240
   };
 
-  const STATUS_ALERTAS = new Set<string>([
-    ...this.STATUS.DISPONIVEIS,
-    ...this.STATUS.EM_TRIAGEM,
-    'encaminhado para sala médica'
+  private readonly STATUS_ALERTAS = new Set<string>([
+    'aguardando triagem', '1 - Aguardando triagem', 'aguardando_triagem',
+    'em triagem', '2 - Em triagem', 'em_triagem',
+    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
   ]);
 
-  this.triagemService.listarTodosAtendimentosDia().subscribe({
-    next: (pacientes: any[]) => {
-      console.log('📦 Dados recebidos da API:', pacientes);
-
-      const criticos: PacienteTriagem[] = [];
-      const atencao: PacienteTriagem[] = [];
-
-      for (const p of pacientes || []) {
-        const risco = typeof p.classificacao_risco === 'string'
-          ? p.classificacao_risco.toLowerCase()
-          : '';
-        const limite = LIMITES[risco];
-        const espera = Number(p.tempo_espera) || 0;
-        const statusValido = STATUS_ALERTAS.has(p.status);
-
-        if (!risco || limite === undefined || !statusValido) {
-          console.warn('⚠️ Ignorado:', p);
-          continue;
-        }
-
-        if (limite <= 0) {
-          if (espera > 0) {
-            console.log(`🟥 Crítico absoluto: ${p.paciente_nome}`);
-            criticos.push(p);
+  carregarAlertasTempo() {
+    console.log('🚀 Dashboard Triagem: Iniciando carregamento de alertas de tempo...');
+    
+    this.triagemService.listarTodosAtendimentosDia().subscribe({
+      next: (atendimentos: any[]) => {
+        console.log('📦 Dados recebidos da API:', atendimentos);
+        const agora = new Date();
+        const criticos: any[] = [];
+        const atencao: any[] = [];
+        
+        for (const p of atendimentos || []) {
+          let campoData = p.created_at || p.data_hora_atendimento;
+          if (!campoData) continue;
+          
+          const dataAtendimento = new Date(campoData);
+          const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+          if (diffHoras > 24) continue;
+          
+          const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
+          const limite = this.LIMITES_RISCO[risco];
+          let tempoDecorrido = Math.floor((agora.getTime() - dataAtendimento.getTime()) / 60000);
+          
+          if (!this.STATUS_ALERTAS.has(p.status)) continue;
+          if (!risco || limite === undefined) continue;
+          
+          if (limite <= 0) {
+            if (tempoDecorrido > 0) criticos.push(p);
+            continue;
           }
-          continue;
+          
+          const perc = tempoDecorrido / limite;
+          if (perc >= 1) {
+            criticos.push(p);
+          } else if (perc >= 0.8) {
+            atencao.push(p);
+          }
         }
-
-        const perc = espera / limite;
-        console.log(`⏱️ ${p.paciente_nome} → ${perc.toFixed(2)} (${espera}min / ${limite}min)`);
-
-        if (perc >= 1) {
-          criticos.push(p);
-        } else if (perc >= 0.8) {
-          atencao.push(p);
-        }
-      }
-
-      const sortByGravidade = (a: any, b: any) =>
-        (b.tempo_espera || 0) - (a.tempo_espera || 0);
-
-      this.alertasCriticos = criticos.sort(sortByGravidade).slice(0, 5);
-      this.alertasAtencao = atencao.sort(sortByGravidade).slice(0, 5);
-
-      console.log('✅ Alertas críticos finais:', this.alertasCriticos);
-      console.log('✅ Alertas atenção finais:', this.alertasAtencao);
-    },
-    error: (err) =>
-      console.error('❌ Dashboard: Erro ao carregar alertas de tempo:', err)
-  });
-}
+        
+        const sortByGravidade = (a: any, b: any) => (b.tempo_espera || 0) - (a.tempo_espera || 0);
+        this.alertasCriticos = criticos.sort(sortByGravidade).slice(0, 5);
+        this.alertasAtencao = atencao.sort(sortByGravidade).slice(0, 5);
+        
+        console.log('✅ Alertas críticos finais:', this.alertasCriticos);
+        console.log('✅ Alertas atenção finais:', this.alertasAtencao);
+      },
+      error: (err) => console.error('❌ Dashboard: Erro ao carregar alertas de tempo:', err)
+    });
+  }
 
   ngOnDestroy() {
     this.destroy$.next();
@@ -286,6 +280,27 @@ carregarAlertasTempo() {
   irParaFilaTriagem() {
     console.log('Dashboard: Navegando para fila de triagem...');
     this.router.navigate(['/triagem/fila']);
+  }
+
+  abrirItemAlertaTempo(p: any) {
+    if (!p || !p.id) return;
+    // Se está disponível para triagem, abre a triagem
+    const DISPONIVEIS = this.STATUS.DISPONIVEIS;
+    if (DISPONIVEIS.has(p.status)) {
+      this.router.navigate(['/triagem/realizar', p.id]);
+    } else {
+      // Se não está disponível, vai para a fila
+      this.router.navigate(['/triagem/fila']);
+    }
+  }
+
+  calcularTempoDecorrido(p: any): number {
+    const inicio = p.data_hora_atendimento || p.created_at;
+    if (!inicio) return 0;
+    const dataInicio = new Date(inicio);
+    const agora = new Date();
+    const diffMs = agora.getTime() - dataInicio.getTime();
+    return Math.floor(diffMs / 60000); // minutos
   }
 
   irParaPosTriagem() {

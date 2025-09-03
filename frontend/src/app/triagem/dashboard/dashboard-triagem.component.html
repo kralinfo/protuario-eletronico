@@ -378,7 +378,7 @@
             <ul class="space-y-2">
               <li
                 *ngFor="let p of alertasCriticos"
-                (click)="abrirItemFila(p)"
+                (click)="abrirItemAlertaTempo(p)"
                 class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors"
               >
                 <div class="truncate mr-3">
@@ -395,7 +395,7 @@
                   [style.background-color]="getCorStatus(p.status)"
                   style="color: white"
                 >
-                  {{ formatarTempo(p.tempo_espera) }}
+                  {{ formatarTempo(calcularTempoDecorrido(p)) }}
                 </div>
               </li>
             </ul>
@@ -415,7 +415,7 @@
             <ul class="space-y-2">
               <li
                 *ngFor="let p of alertasAtencao"
-                (click)="abrirItemFila(p)"
+                (click)="abrirItemAlertaTempo(p)"
                 class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors"
               >
                 <div class="truncate mr-3">
@@ -432,7 +432,7 @@
                   [style.background-color]="getCorStatus(p.status)"
                   style="color: white"
                 >
-                  {{ formatarTempo(p.tempo_espera) }}
+                  {{ formatarTempo(calcularTempoDecorrido(p)) }}
                 </div>
               </li>
             </ul>
