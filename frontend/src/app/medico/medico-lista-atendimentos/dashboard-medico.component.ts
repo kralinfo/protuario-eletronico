@@ -106,11 +106,40 @@ export class DashboardMedicoComponent implements OnInit {
   consultasEmAtendimento: number = 0;
   alertasCriticos: any[] = [];
   alertasAtencao: any[] = [];
+  atendimentos: any[] = [];
 
-  // ...existing code...
+  atualizarEstatisticasPorClassificacao(data: any[]) {
+    const agora = new Date();
+    const por_classificacao = {
+      vermelho: 0,
+      laranja: 0,
+      amarelo: 0,
+      verde: 0,
+      azul: 0
+    };
+    for (const p of data || []) {
+      let campoData = p.created_at || p.data_hora_atendimento;
+      if (!campoData) continue;
+      const dataAtendimento = new Date(campoData);
+      const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+      if (diffHoras > 24) continue;
+      const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
+      switch (risco) {
+        case 'vermelho':
+        case 'laranja':
+        case 'amarelo':
+        case 'verde':
+        case 'azul':
+          por_classificacao[risco as keyof typeof por_classificacao]++;
+          break;
+      }
+    }
+    this.estatisticas.por_classificacao = por_classificacao;
+  }
 
   ngOnInit() {
     this.atualizarDashboard();
+    this.atualizarCardPorClassificacao();
   }
 
   atualizarDashboard() {
@@ -141,6 +170,7 @@ export class DashboardMedicoComponent implements OnInit {
     this.carregarFilaSalaMedica();
     this.carregarGridAtendimentos();
     this.carregarAlertasTempo();
+    this.atualizarCardPorClassificacao();
   }
 
   carregarGridAtendimentos() {
@@ -260,5 +290,40 @@ export class DashboardMedicoComponent implements OnInit {
     const agora = new Date();
     const diffMs = agora.getTime() - dataInicio.getTime();
     return Math.floor(diffMs / 60000); // minutos
+  }
+
+  calcularEstatisticasPorClassificacaoFila(data: any[]) {
+    const agora = new Date();
+    const por_classificacao = {
+      vermelho: 0,
+      laranja: 0,
+      amarelo: 0,
+      verde: 0,
+      azul: 0
+    };
+    for (const p of data || []) {
+      let campoData = p.created_at || p.data_hora_atendimento;
+      if (!campoData) continue;
+      const dataAtendimento = new Date(campoData);
+      const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+      if (diffHoras > 24) continue;
+      const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
+      switch (risco) {
+        case 'vermelho':
+        case 'laranja':
+        case 'amarelo':
+        case 'verde':
+        case 'azul':
+          por_classificacao[risco as keyof typeof por_classificacao]++;
+          break;
+      }
+    }
+    return por_classificacao;
+  }
+
+  atualizarCardPorClassificacao() {
+    this.medicoService.getTodosAtendimentos().subscribe((data: any[]) => {
+      this.estatisticas.por_classificacao = this.calcularEstatisticasPorClassificacaoFila(data);
+    });
   }
 }
