@@ -167,7 +167,26 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
     });
   }
 
+  quantidadeEncaminhados: number = 0;
+
   ngOnInit(): void {
+    this.medicoService.getAtendimentosPorStatus([
+      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
+    ]).subscribe((atendimentos: any[]) => {
+      const agora = new Date();
+      const atendimentos24h = (atendimentos || []).filter(a => {
+        let campoData = a.created_at || a.data_hora_atendimento;
+        if (!campoData) return false;
+        const dataAtendimento = new Date(campoData);
+        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+        return diffHoras <= 24;
+      });
+
+      this.quantidadeEncaminhados = atendimentos24h.filter(a => {
+        const status = (a.status || '').toLowerCase().replace(/_/g, ' ').replace(/-/g, ' ');
+        return status.includes('encaminhado para sala médica');
+      }).length;
+    });
     const statusList = [
       'encaminhado para sala médica',
       'em atendimento médico',

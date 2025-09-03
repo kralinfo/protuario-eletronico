@@ -139,7 +139,6 @@ export class DashboardMedicoComponent implements OnInit {
 
   ngOnInit() {
     this.atualizarDashboard();
-    this.atualizarCardPorClassificacao();
   }
 
   atualizarDashboard() {
@@ -165,12 +164,17 @@ export class DashboardMedicoComponent implements OnInit {
     this.alertasCriticos = [];
     this.alertasAtencao = [];
 
-    // Disparar todos os endpoints
+    // Disparar todos os endpoints na ordem correta
     this.carregarEstatisticas();
     this.carregarFilaSalaMedica();
     this.carregarGridAtendimentos();
     this.carregarAlertasTempo();
     this.atualizarCardPorClassificacao();
+
+    // Garantir que o cálculo seja feito após carregar a fila
+    setTimeout(() => {
+      this.calcularAguardandoAtendimento();
+    }, 0);
   }
 
   carregarGridAtendimentos() {
@@ -202,6 +206,11 @@ export class DashboardMedicoComponent implements OnInit {
         return status.includes('encaminhado para sala médica');
       });
       this.quantidadeEncaminhados = encaminhados.length;
+      console.log('Quantidade de encaminhados:', this.quantidadeEncaminhados);
+
+      // Atualizar o valor do card "Aguardando Atendimento"
+      this.estatisticas.pacientes_aguardando = this.quantidadeEncaminhados;
+      console.log('Pacientes aguardando:', this.estatisticas.pacientes_aguardando);
 
       // Contar em atendimento médico (todas variações)
       const emAtendimento = atendimentos24h.filter(a => {
@@ -325,5 +334,10 @@ export class DashboardMedicoComponent implements OnInit {
     this.medicoService.getTodosAtendimentos().subscribe((data: any[]) => {
       this.estatisticas.por_classificacao = this.calcularEstatisticasPorClassificacaoFila(data);
     });
+  }
+
+  calcularAguardandoAtendimento() {
+    // Reutilizar o valor já calculado no card de fila de atendimento
+    this.estatisticas.pacientes_aguardando = this.quantidadeEncaminhados;
   }
 }
