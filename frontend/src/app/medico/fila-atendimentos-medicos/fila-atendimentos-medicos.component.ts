@@ -169,6 +169,30 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
 
   quantidadeEncaminhados: number = 0;
 
+  calcularEncaminhadosParaAmbulatorio() {
+    this.medicoService.getAtendimentosPorStatus(['encaminhado_para_ambulatorio']).subscribe((atendimentos: any[]) => {
+      console.log('Atendimentos recebidos com status encaminhado_para_ambulatorio:', atendimentos);
+      const agora = new Date();
+      const encaminhadosUltimas24Horas = atendimentos.filter(a => {
+        const campoData = a.created_at || a.data_hora_atendimento;
+        if (!campoData) {
+          console.log('Atendimento ignorado (sem data):', a);
+          return false;
+        }
+        const dataAtendimento = new Date(campoData);
+        console.log('Data do atendimento:', dataAtendimento, 'Status:', a.status);
+        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+        if (diffHoras > 24) {
+          console.log('Atendimento ignorado (fora das últimas 24 horas):', a);
+        }
+        return diffHoras <= 24;
+      });
+      console.log('Atendimentos encaminhados para ambulatório nas últimas 24 horas:', encaminhadosUltimas24Horas);
+      this.estatisticas.encaminhados_para_ambulatorio = encaminhadosUltimas24Horas.length;
+      console.log('Total de encaminhados para ambulatório nas últimas 24 horas:', this.estatisticas.encaminhados_para_ambulatorio);
+    });
+  }
+
   ngOnInit(): void {
     this.medicoService.getAtendimentosPorStatus([
       'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
@@ -227,5 +251,6 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
       }
       this.estatisticas.por_classificacao = por_classificacao;
     });
+    this.calcularEncaminhadosParaAmbulatorio();
   }
 }
