@@ -54,4 +54,20 @@ export class MedicoService {
   getEstatisticasMedico(): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/medico/estatisticas`);
   }
+
+  /**
+   * Busca todos os atendimentos médicos que já passaram por consulta
+   */
+  getConsultasMedicas(): Observable<any[]> {
+    const statusMedicos = [
+      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
+      'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
+      'atendimento_concluido', '8 - Atendimento Concluído',
+      'alta_medica', 'alta médica',
+      'encaminhado_para_ambulatorio', 'encaminhado para ambulatório',
+      'encaminhado_para_exames', 'encaminhado para exames', '7 - Encaminhado para exames',
+      'transferido', 'óbito'
+    ];
+    return this.getAtendimentosPorStatus(statusMedicos);
+  }
 }

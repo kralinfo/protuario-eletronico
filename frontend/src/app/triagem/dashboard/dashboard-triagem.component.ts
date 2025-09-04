@@ -155,34 +155,34 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
 
   carregarAlertasTempo() {
     console.log('🚀 Dashboard Triagem: Iniciando carregamento de alertas de tempo...');
-    
+
     this.triagemService.listarTodosAtendimentosDia().subscribe({
       next: (atendimentos: any[]) => {
         console.log('📦 Dados recebidos da API:', atendimentos);
         const agora = new Date();
         const criticos: any[] = [];
         const atencao: any[] = [];
-        
+
         for (const p of atendimentos || []) {
           let campoData = p.created_at || p.data_hora_atendimento;
           if (!campoData) continue;
-          
+
           const dataAtendimento = new Date(campoData);
           const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
           if (diffHoras > 24) continue;
-          
+
           const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
           const limite = this.LIMITES_RISCO[risco];
           let tempoDecorrido = Math.floor((agora.getTime() - dataAtendimento.getTime()) / 60000);
-          
+
           if (!this.STATUS_ALERTAS.has(p.status)) continue;
           if (!risco || limite === undefined) continue;
-          
+
           if (limite <= 0) {
             if (tempoDecorrido > 0) criticos.push(p);
             continue;
           }
-          
+
           const perc = tempoDecorrido / limite;
           if (perc >= 1) {
             criticos.push(p);
@@ -190,11 +190,11 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
             atencao.push(p);
           }
         }
-        
+
         const sortByGravidade = (a: any, b: any) => (b.tempo_espera || 0) - (a.tempo_espera || 0);
         this.alertasCriticos = criticos.sort(sortByGravidade).slice(0, 5);
         this.alertasAtencao = atencao.sort(sortByGravidade).slice(0, 5);
-        
+
         console.log('✅ Alertas críticos finais:', this.alertasCriticos);
         console.log('✅ Alertas atenção finais:', this.alertasAtencao);
       },

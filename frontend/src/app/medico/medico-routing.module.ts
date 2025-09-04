@@ -39,6 +39,17 @@ const routes: Routes = [
     }
   },
   {
+    path: 'consultas',
+    loadComponent: () => import('./consultas/consultas-medicas.component').then(m => m.ConsultasMedicasComponent),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'medico',
+      breadcrumb: 'Consultas Médicas',
+      icon: 'assignment',
+      title: 'Consultas Médicas Realizadas'
+    }
+  },
+  {
     path: 'consulta/:id',
     component: MedicoConsultaFormComponent,
     canActivate: [AuthGuard, ModuloGuard],

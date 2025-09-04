@@ -1,0 +1,112 @@
+<div class="consultas-container">
+  <h1 class="page-title">
+    <mat-icon>medical_services</mat-icon>
+    Consultas Médicas Realizadas
+    <span class="flex-1"></span>
+    <button mat-stroked-button color="primary" (click)="atualizar()">
+      <mat-icon>refresh</mat-icon>
+      Atualizar
+    </button>
+  </h1>
+
+  <div class="stats-cards">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-number">{{consultas.length}}</div>
+        <div class="stat-label">Total de Consultas</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-number">{{consultasFiltradas.length}}</div>
+        <div class="stat-label">Consultas Filtradas</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-number">{{formatarTempo(tempoMedioEspera)}}</div>
+        <div class="stat-label">Tempo Médio</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filtro de Status -->
+  <div class="status-filter mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
+    <select [(ngModel)]="filtroStatus" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+      <option value="">Todas as Consultas</option>
+      <option value="encaminhado para sala médica">Encaminhado para Sala Médica</option>
+      <option value="em atendimento médico">Em Atendimento Médico</option>
+      <option value="atendimento_concluido">Atendimento Concluído</option>
+      <option value="alta médica">Alta Médica</option>
+      <option value="encaminhado para ambulatório">Encaminhado para Ambulatório</option>
+      <option value="encaminhado para exames">Encaminhado para Exames</option>
+      <option value="transferido">Transferido</option>
+      <option value="óbito">Óbito</option>
+    </select>
+  </div>
+
+  <!-- Lista de Consultas -->
+  <div class="patients-list" *ngIf="!carregando; else loadingTemplate">
+    <mat-card *ngFor="let consulta of consultasFiltradas" class="patient-card" (click)="abrirConsulta(consulta)">
+      <mat-card-header>
+        <div mat-card-avatar class="patient-avatar" [style.background-color]="getCor(consulta.classificacao_risco)">
+          {{getIniciais(consulta.paciente_nome)}}
+        </div>
+        <mat-card-title>{{ consulta.paciente_nome }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ consulta.paciente_nascimento ? getIdade(consulta.paciente_nascimento) + ' anos' : '' }}
+          <span *ngIf="consulta.paciente_sexo">• {{ consulta.paciente_sexo }}</span>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="patient-info">
+          <div class="info-row">
+            <mat-icon>event</mat-icon>
+            <span>Data da Consulta: {{ formatarDataHora(consulta.data_hora_atendimento) }}</span>
+          </div>
+          <div class="info-row" *ngIf="consulta.queixa_principal">
+            <mat-icon>chat</mat-icon>
+            <span>{{ consulta.queixa_principal }}</span>
+          </div>
+          <div class="info-row" *ngIf="consulta.classificacao_risco">
+            <mat-icon>priority_high</mat-icon>
+            <span>Classificação: {{ consulta.classificacao_risco | titlecase }}</span>
+          </div>
+          <div class="status-chip">
+            <mat-chip [style.background-color]="getCorStatus(consulta.status)">
+              {{ getDescricaoStatus(consulta.status) }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="abrirConsulta(consulta); $event.stopPropagation()">
+          <mat-icon>visibility</mat-icon>
+          Ver Detalhes
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <div *ngIf="consultasFiltradas.length === 0 && consultas.length > 0" class="no-patients">
+      <mat-icon>filter_list</mat-icon>
+      <h3>Nenhuma consulta encontrada</h3>
+      <p>Não há consultas que correspondam aos filtros aplicados.</p>
+    </div>
+
+    <div *ngIf="consultas.length === 0" class="no-patients">
+      <mat-icon>medical_services</mat-icon>
+      <h3>Nenhuma consulta médica realizada</h3>
+      <p>Não há consultas médicas registradas no sistema.</p>
+    </div>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+      <p>Carregando consultas médicas...</p>
+    </div>
+  </ng-template>
+</div>
