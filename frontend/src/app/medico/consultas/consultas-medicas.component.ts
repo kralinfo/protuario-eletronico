@@ -138,17 +138,8 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
       const filtro = this.filtroStatus.toLowerCase();
 
       // Verificação específica para cada status
-      if (filtro === 'encaminhado para sala médica') {
-        return status.includes('encaminhado para sala médica') || status.includes('encaminhado_para_sala_medica');
-      }
-      if (filtro === 'em atendimento médico') {
-        return status.includes('em atendimento médico') || status.includes('em_atendimento_medico');
-      }
-      if (filtro === 'atendimento_concluido') {
-        return status.includes('atendimento_concluido') || status.includes('atendimento concluido') || status.includes('atendimento concluído');
-      }
       if (filtro === 'alta médica') {
-        return status.includes('alta médica') || status.includes('alta_medica');
+        return status.includes('alta médica') || status.includes('alta_medica') || status.includes('atendimento_concluido') || status.includes('atendimento concluido') || status.includes('atendimento concluído');
       }
       if (filtro === 'encaminhado para ambulatório') {
         return status.includes('encaminhado para ambulatório') || status.includes('encaminhado_para_ambulatorio');
