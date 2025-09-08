@@ -153,6 +153,29 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
   ]);
 
+  private classificacaoOrder(risco: string): number {
+    switch ((risco || '').toLowerCase()) {
+      case 'vermelho': return 1;
+      case 'laranja': return 2;
+      case 'amarelo': return 3;
+      case 'verde': return 4;
+      case 'azul': return 5;
+      default: return 6;
+    }
+  }
+
+  private ordenarPorClassificacaoETempo(lista: any[]): any[] {
+    return [...(lista || [])].sort((a, b) => {
+      const ca = this.classificacaoOrder(a.classificacao_risco);
+      const cb = this.classificacaoOrder(b.classificacao_risco);
+      if (ca !== cb) return ca - cb;
+      // Prioriza maior tempo de espera
+      const ta = a.tempo_espera || this.calcularTempoDecorrido(a);
+      const tb = b.tempo_espera || this.calcularTempoDecorrido(b);
+      return tb - ta;
+    });
+  }
+
   carregarAlertasTempo() {
     console.log('🚀 Dashboard Triagem: Iniciando carregamento de alertas de tempo...');
 
@@ -191,9 +214,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
           }
         }
 
-        const sortByGravidade = (a: any, b: any) => (b.tempo_espera || 0) - (a.tempo_espera || 0);
-        this.alertasCriticos = criticos.sort(sortByGravidade).slice(0, 5);
-        this.alertasAtencao = atencao.sort(sortByGravidade).slice(0, 5);
+        this.alertasCriticos = this.ordenarPorClassificacaoETempo(criticos).slice(0, 5);
+        this.alertasAtencao = this.ordenarPorClassificacaoETempo(atencao).slice(0, 5);
 
         console.log('✅ Alertas críticos finais:', this.alertasCriticos);
         console.log('✅ Alertas atenção finais:', this.alertasAtencao);
@@ -229,9 +251,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
             if (!p || !this.STATUS.DISPONIVEIS.has(p.status)) return false;
             const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
             return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
-          })
-          .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
-        this.filaDisponiveisPreview = lista.slice(0, 5);
+          });
+        this.filaDisponiveisPreview = this.ordenarPorClassificacaoETempo(lista).slice(0, 5);
       },
       error: (err) => console.error('Dashboard: Erro ao carregar fila disponíveis:', err)
     });
@@ -247,9 +268,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
             if (!p || !POS_TRIAGEM.has(p.status)) return false;
             const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
             return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
-          })
-          .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
-        this.posTriagemPreview = lista.slice(0, 5);
+          });
+        this.posTriagemPreview = this.ordenarPorClassificacaoETempo(lista).slice(0, 5);
 
         // Contadores para o card de pós-triagem
         const all = lista;
@@ -269,9 +289,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
             if (!p || !this.STATUS.EM_TRIAGEM.has(p.status)) return false;
             const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
             return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
-          })
-          .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
-        this.filaEmTriagemPreview = lista.slice(0, 5);
+          });
+        this.filaEmTriagemPreview = this.ordenarPorClassificacaoETempo(lista).slice(0, 5);
       },
       error: (err) => console.error('Dashboard: Erro ao carregar em triagem preview:', err)
     });

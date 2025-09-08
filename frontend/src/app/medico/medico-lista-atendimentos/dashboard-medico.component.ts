@@ -80,8 +80,8 @@ export class DashboardMedicoComponent implements OnInit {
         }
       }
       const sortByGravidade = (a: any, b: any) => (b.tempo_espera || 0) - (a.tempo_espera || 0);
-      this.alertasCriticos = criticos.sort(sortByGravidade).slice(0, 5);
-      this.alertasAtencao = atencao.sort(sortByGravidade).slice(0, 5);
+      this.alertasCriticos = this.ordenarPorClassificacaoETempo(criticos).slice(0, 5);
+      this.alertasAtencao = this.ordenarPorClassificacaoETempo(atencao).slice(0, 5);
     });
   }
   estatisticas: any = {
@@ -182,7 +182,7 @@ export class DashboardMedicoComponent implements OnInit {
 
   carregarGridAtendimentos() {
     this.medicoService.getTodosAtendimentos().subscribe((atendimentos: any[]) => {
-      this.filaDisponiveisPreview = atendimentos || [];
+      this.filaDisponiveisPreview = this.ordenarPorClassificacaoETempo(atendimentos || []);
     });
   }
 
@@ -193,7 +193,6 @@ export class DashboardMedicoComponent implements OnInit {
       'encaminhado-para-sala-medica', 'em-atendimento-medico'
     ]).subscribe((atendimentos: any[]) => {
       const agora = new Date();
-      // Filtrar apenas atendimentos das últimas 24h
       const atendimentos24h = (atendimentos || []).filter(a => {
         let campoData = a.created_at || a.data_hora_atendimento;
         if (!campoData) return false;
@@ -201,7 +200,7 @@ export class DashboardMedicoComponent implements OnInit {
         const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
         return diffHoras <= 24;
       });
-      this.filaSalaMedicaPreview = atendimentos24h.sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0)).slice(0, 5);
+      this.filaSalaMedicaPreview = this.ordenarPorClassificacaoETempo(atendimentos24h).slice(0, 5);
 
       // Contar encaminhados para sala médica (todas variações)
       const encaminhados = atendimentos24h.filter(a => {
@@ -385,106 +384,30 @@ export class DashboardMedicoComponent implements OnInit {
 
   carregarConsultasMedicas() {
     this.medicoService.getConsultasMedicas().subscribe((consultas: any[]) => {
-      const agora = new Date();
-
-      this.consultasPreview = (consultas || []).filter(consulta => {
-        // Filtrar apenas atendimentos das últimas 24h
-        const campoData = consulta.created_at || consulta.data_hora_atendimento;
-        if (!campoData) return false;
-        const dataConsulta = new Date(campoData);
-        const diffHoras = (agora.getTime() - dataConsulta.getTime()) / (1000 * 60 * 60);
-        if (diffHoras > 24) return false;
-
-        // Filtrar apenas atendimentos que já foram concluídos ou que têm consulta salva
-        const status = (consulta.status || '').toLowerCase();
-        const temConsultaSalva = consulta.data_consulta || consulta.diagnostico || consulta.prescricao || consulta.observacoes_medicas;
-
-        const statusValido = status.includes('atendimento_concluido') ||
-               status.includes('atendimento concluido') ||
-               status.includes('atendimento concluído') ||
-               status.includes('alta_medica') ||
-               status.includes('alta médica') ||
-               status.includes('alta medica') ||
-               status.includes('encaminhado_para_ambulatorio') ||
-               status.includes('encaminhado para ambulatório') ||
-               status.includes('encaminhado para ambulatorio') ||
-               status.includes('encaminhado_para_exames') ||
-               status.includes('encaminhado para exame') ||
-               status.includes('encaminhado para exames') ||
-               status.includes('transferido') ||
-               status.includes('óbito') ||
-               status.includes('obito');
-
-        return statusValido || !!temConsultaSalva;
-      }).map(consulta => {
-        const campoData = consulta.created_at || consulta.data_hora_atendimento;
-        const dataConsulta = new Date(campoData);
-        const tempoDecorrido = Math.floor((agora.getTime() - dataConsulta.getTime()) / 60000); // em minutos
-        return {
-          ...consulta,
-          tempo_espera: tempoDecorrido
-        };
-      });
-
-      console.log(`Consultas realizadas encontradas: ${this.consultasPreview.length}`);
-
-      // Calcular contadores para o card
-      this.calcularContadoresConsultas(consultas);
+      this.consultasPreview = this.ordenarPorClassificacaoETempo(consultas || []);
     });
   }
 
-  calcularContadoresConsultas(consultas: any[]) {
-    const agora = new Date();
+  private classificacaoOrder(risco: string): number {
+    switch ((risco || '').toLowerCase()) {
+      case 'vermelho': return 1;
+      case 'laranja': return 2;
+      case 'amarelo': return 3;
+      case 'verde': return 4;
+      case 'azul': return 5;
+      default: return 6;
+    }
+  }
 
-    // Filtrar apenas últimas 24h
-    const consultasUltimas24h = (consultas || []).filter(consulta => {
-      const campoData = consulta.created_at || consulta.data_hora_atendimento;
-      if (!campoData) return false;
-      const dataConsulta = new Date(campoData);
-      const diffHoras = (agora.getTime() - dataConsulta.getTime()) / (1000 * 60 * 60);
-      return diffHoras <= 24;
+  private ordenarPorClassificacaoETempo(lista: any[]): any[] {
+    return [...(lista || [])].sort((a, b) => {
+      const ca = this.classificacaoOrder(a.classificacao_risco);
+      const cb = this.classificacaoOrder(b.classificacao_risco);
+      if (ca !== cb) return ca - cb;
+      // Prioriza maior tempo de espera
+      const ta = a.tempo_espera || this.calcularTempoDecorrido(a);
+      const tb = b.tempo_espera || this.calcularTempoDecorrido(b);
+      return tb - ta;
     });
-
-    // Contar encaminhados (para ambulatório ou exames)
-    this.consultasEncaminhadas = consultasUltimas24h.filter(consulta => {
-      const status = (consulta.status || '').toLowerCase();
-      return status.includes('encaminhado_para_ambulatorio') ||
-             status.includes('encaminhado para ambulatório') ||
-             status.includes('encaminhado para ambulatorio') ||
-             status.includes('encaminhado_para_exames') ||
-             status.includes('encaminhado para exame') ||
-             status.includes('encaminhado para exames');
-    }).length;
-
-    // Em observação (placeholder para implementação futura)
-    this.consultasEmAtendimento = 0; // TODO: Implementar lógica específica
-
-    // Total de consultas realizadas (mesmo filtro usado no preview)
-    const consultasRealizadas = consultasUltimas24h.filter(consulta => {
-      const status = (consulta.status || '').toLowerCase();
-      const temConsultaSalva = consulta.data_consulta || consulta.diagnostico || consulta.prescricao || consulta.observacoes_medicas;
-
-      const statusValido = status.includes('atendimento_concluido') ||
-             status.includes('atendimento concluido') ||
-             status.includes('atendimento concluído') ||
-             status.includes('alta_medica') ||
-             status.includes('alta médica') ||
-             status.includes('alta medica') ||
-             status.includes('encaminhado_para_ambulatorio') ||
-             status.includes('encaminhado para ambulatório') ||
-             status.includes('encaminhado para ambulatorio') ||
-             status.includes('encaminhado_para_exames') ||
-             status.includes('encaminhado para exame') ||
-             status.includes('encaminhado para exames') ||
-             status.includes('transferido') ||
-             status.includes('óbito') ||
-             status.includes('obito');
-
-      return statusValido || !!temConsultaSalva;
-    });
-
-    // O total deve ser a soma de todas as consultas realizadas, não só encaminhadas + em atendimento
-    this.consultasRealizadasTotal = consultasRealizadas.length;
-    console.log(`Contadores: Encaminhadas: ${this.consultasEncaminhadas}, Em observação: ${this.consultasEmAtendimento}, Total realizadas: ${this.consultasRealizadasTotal}`);
   }
 }
