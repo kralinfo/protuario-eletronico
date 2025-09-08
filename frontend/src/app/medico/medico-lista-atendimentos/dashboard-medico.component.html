@@ -1,19 +1,15 @@
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
   <div class="container mx-auto px-4 py-8">
-    <!-- Cabeçalho -->
+    <!-- Cabeçalho do módulo médico -->
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-3xl font-bold text-gray-800 flex items-center">
         <mat-icon class="mr-3 text-blue-600">medical_services</mat-icon>
         Médico
       </h1>
-  <button mat-stroked-button color="primary" (click)="atualizarDashboard()">
-        <mat-icon>refresh</mat-icon>
-        Atualizar
-      </button>
     </div>
 
     <!-- Cards de estatísticas principais -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
       <!-- Pacientes aguardando atendimento -->
       <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
