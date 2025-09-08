@@ -315,6 +315,17 @@ export class DashboardMedicoComponent implements OnInit {
     }
   }
 
+  getCorClassificacao(classificacao: string): string {
+    switch ((classificacao || '').toLowerCase()) {
+      case 'vermelho': return '#ef4444';
+      case 'laranja': return '#f97316';
+      case 'amarelo': return '#eab308';
+      case 'verde': return '#22c55e';
+      case 'azul': return '#3b82f6';
+      default: return '#d1d5db';
+    }
+  }
+
   formatarTempo(minutos: number): string {
     if (!minutos) return '0 min';
     if (minutos < 60) return minutos + ' min';

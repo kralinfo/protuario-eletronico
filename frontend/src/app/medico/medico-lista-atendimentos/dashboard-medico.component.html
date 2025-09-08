@@ -6,6 +6,10 @@
         <mat-icon class="mr-3 text-blue-600">medical_services</mat-icon>
         Médico
       </h1>
+      <button mat-stroked-button color="primary" (click)="atualizarDashboard()">
+        <mat-icon>refresh</mat-icon>
+        Atualizar
+      </button>
     </div>
 
     <!-- Cards de estatísticas principais -->
@@ -109,9 +113,12 @@
           </div>
           <ul class="space-y-2">
             <li *ngFor="let p of filaSalaMedicaPreview" (click)="abrirItemSalaMedica(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-              <div class="truncate mr-3">
-                <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                <div class="text-xs text-blue-100 truncate">{{ getDescricaoStatus(p.status) }}</div>
+              <div class="flex items-center gap-2 truncate mr-3">
+                <span class="inline-block w-4 h-4 rounded-full border border-gray-300 mr-2" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                <div>
+                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                  <div class="text-xs text-blue-100 truncate">{{ getDescricaoStatus(p.status) }}</div>
+                </div>
               </div>
               <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(calcularTempoDecorrido(p)) }}</div>
             </li>
@@ -153,9 +160,12 @@
           </div>
           <ul class="space-y-2">
             <li *ngFor="let p of consultasPreview" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-              <div class="truncate mr-3">
-                <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                <div class="text-xs text-purple-100 truncate" *ngIf="p.status !== 'encaminhado para consulta' && p.status !== 'encaminhado_para_consulta' && p.status !== '1 - Encaminhado para consulta'">{{ getDescricaoStatus(p.status) }}</div>
+              <div class="flex items-center gap-2 truncate mr-3">
+                <span class="inline-block w-4 h-4 rounded-full border border-gray-300 mr-2" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                <div>
+                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                  <div class="text-xs text-purple-100 truncate" *ngIf="p.status !== 'encaminhado para consulta' && p.status !== 'encaminhado_para_consulta' && p.status !== '1 - Encaminhado para consulta'">{{ getDescricaoStatus(p.status) }}</div>
+                </div>
               </div>
               <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
             </li>
@@ -184,9 +194,12 @@
             </div>
             <ul class="space-y-2">
               <li *ngFor="let p of alertasCriticos" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-                <div class="truncate mr-3">
-                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                  <div class="text-xs text-red-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
+                <div class="flex items-center gap-2 truncate mr-3">
+                  <span class="inline-block w-4 h-4 rounded-full border border-gray-300" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                  <div>
+                    <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                    <div class="text-xs text-red-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
+                  </div>
                 </div>
                 <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(calcularTempoDecorrido(p)) }}</div>
               </li>
@@ -200,9 +213,12 @@
             </div>
             <ul class="space-y-2">
               <li *ngFor="let p of alertasAtencao" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-                <div class="truncate mr-3">
-                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                  <div class="text-xs text-orange-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
+                <div class="flex items-center gap-2 truncate mr-3">
+                  <span class="inline-block w-4 h-4 rounded-full border border-gray-300" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                  <div>
+                    <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                    <div class="text-xs text-orange-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
+                  </div>
                 </div>
                 <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
               </li>
