@@ -5,6 +5,7 @@
     </button>
     <h1>
       Atendimento Médico - {{nomePaciente}}
+      <span *ngIf="consultaRealizada" style="font-size: 0.7em; color: #666; margin-left: 10px;">(Visualização)</span>
     </h1>
   </div>
 
@@ -107,10 +108,24 @@
         </mat-form-field>
       </mat-card-content>
       <mat-card-actions>
+        <!-- Botão para habilitar edição quando for consulta realizada -->
+        <button *ngIf="consultaRealizada && !edicaoHabilitada" mat-raised-button color="accent" type="button" (click)="habilitarEdicao()">
+          <mat-icon>edit</mat-icon>
+          Habilitar Edição
+        </button>
+        
+        <!-- Botão para desabilitar edição quando for consulta realizada e edição estiver habilitada -->
+        <button *ngIf="consultaRealizada && edicaoHabilitada" mat-stroked-button color="warn" type="button" (click)="desabilitarEdicao()">
+          <mat-icon>visibility</mat-icon>
+          Modo Visualização
+        </button>
+
+        <!-- Botão de salvar (só aparece quando pode editar) -->
         <button *ngIf="podeEditar" mat-raised-button color="primary" type="submit" [disabled]="!atendimentoForm.valid || salvando">
           <mat-icon>save</mat-icon>
           {{salvando ? (labelBotao === 'Salvar Modificações' ? 'Salvando...' : 'Finalizando...') : labelBotao}}
         </button>
+        
         <button mat-button type="button" (click)="voltar()">
           <mat-icon>cancel</mat-icon>
           {{podeEditar ? 'Cancelar' : 'Voltar'}}

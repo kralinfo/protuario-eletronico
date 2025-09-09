@@ -34,6 +34,14 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
   filtroStatus: string = '';
   atualizacaoSubscription?: Subscription;
 
+  // Contadores por status
+  totalConsultas: number = 0;
+  altasMedicas: number = 0;
+  encaminhadosAmbulatorio: number = 0;
+  encaminhadosExames: number = 0;
+  transferidos: number = 0;
+  obitos: number = 0;
+
   constructor(
     private medicoService: MedicoService,
     private snackBar: MatSnackBar,
@@ -51,22 +59,29 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
 
   carregarDados(): void {
     this.carregando = true;
-    this.medicoService.getConsultasMedicas().subscribe({
+    this.medicoService.getTodosAtendimentos().subscribe({
       next: (data: any[]) => {
+        console.log('🔍 TOTAL de atendimentos recebidos:', data?.length || 0);
         const agora = new Date();
 
         this.consultas = (data || []).filter(consulta => {
-          // Filtrar apenas atendimentos das últimas 24h
+          // Filtrar apenas atendimentos das últimas 24h (mesma lógica do dashboard)
           const campoData = consulta.created_at || consulta.data_hora_atendimento;
-          if (!campoData) return false;
-          const dataConsulta = new Date(campoData);
-          const diffHoras = (agora.getTime() - dataConsulta.getTime()) / (1000 * 60 * 60);
-          if (diffHoras > 24) return false;
+          if (!campoData) {
+            console.log('❌ Atendimento sem data:', consulta.id);
+            return false;
+          }
+          
+          const dataAtendimento = new Date(campoData);
+          const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+          
+          if (diffHoras > 24) {
+            console.log(`⏰ Atendimento ${consulta.id} fora das 24h: ${diffHoras.toFixed(2)}h - Data: ${dataAtendimento.toLocaleString()}`);
+            return false;
+          }
 
-          // Filtrar apenas atendimentos que já foram concluídos ou que têm consulta salva
+          // Incluir todos os status que representam consultas realizadas (mesma lógica do dashboard)
           const status = (consulta.status || '').toLowerCase();
-          const temConsultaSalva = consulta.data_consulta || consulta.diagnostico || consulta.prescricao || consulta.observacoes_medicas;
-
           const statusValido = status.includes('atendimento_concluido') ||
                  status.includes('atendimento concluido') ||
                  status.includes('atendimento concluído') ||
@@ -83,11 +98,19 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
                  status.includes('óbito') ||
                  status.includes('obito');
 
-          return statusValido || !!temConsultaSalva;
+          if (!statusValido) {
+            console.log(`❌ Status inválido para consulta ${consulta.id}: "${consulta.status}"`);
+            return false;
+          }
+
+          console.log(`✅ Consulta válida ${consulta.id}: ${diffHoras.toFixed(2)}h - Status: "${consulta.status}" - Data: ${dataAtendimento.toLocaleString()}`);
+          return statusValido;
         });
 
-        console.log(`Consultas realizadas encontradas: ${this.consultas.length}`);
+        console.log(`🎯 RESULTADO FINAL: ${this.consultas.length} consultas realizadas encontradas`);
+        console.log('📊 Comparar com dashboard que mostra: 1 consulta');
 
+        this.calcularContadores();
         this.calcularTempoMedio();
         this.carregando = false;
       },
@@ -125,6 +148,31 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
     }
 
     this.tempoMedioEspera = consultasValidas > 0 ? Math.floor(tempoTotal / consultasValidas) : 0;
+  }
+
+  calcularContadores(): void {
+    this.totalConsultas = this.consultas.length;
+    this.altasMedicas = 0;
+    this.encaminhadosAmbulatorio = 0;
+    this.encaminhadosExames = 0;
+    this.transferidos = 0;
+    this.obitos = 0;
+
+    for (const consulta of this.consultas) {
+      const status = (consulta.status || '').toLowerCase();
+      
+      if (status.includes('alta_medica') || status.includes('alta médica') || status.includes('alta medica')) {
+        this.altasMedicas++;
+      } else if (status.includes('encaminhado_para_ambulatorio') || status.includes('encaminhado para ambulatório') || status.includes('encaminhado para ambulatorio')) {
+        this.encaminhadosAmbulatorio++;
+      } else if (status.includes('encaminhado_para_exames') || status.includes('encaminhado para exames') || status.includes('encaminhado para exame')) {
+        this.encaminhadosExames++;
+      } else if (status.includes('transferido')) {
+        this.transferidos++;
+      } else if (status.includes('óbito') || status.includes('obito')) {
+        this.obitos++;
+      }
+    }
   }
 
   get consultasFiltradas(): any[] {

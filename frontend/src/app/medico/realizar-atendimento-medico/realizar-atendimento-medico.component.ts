@@ -45,6 +45,9 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   salvando = false;
   nomePaciente = 'Carregando...';
   statusAtendimento = '';
+  modoVisualizacao = false; // Controla se é modo visualização
+  consultaRealizada = false; // Controla se é uma consulta já realizada
+  edicaoHabilitada = false; // Controla se a edição foi habilitada pelo usuário
 
   constructor(
     private fb: FormBuilder,
@@ -56,44 +59,71 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   ) {
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
+    
+    // Verificar se foi navegado do card de consultas realizadas
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras?.state) {
+      this.modoVisualizacao = navigation.extras.state['modoVisualizacao'] || false;
+      this.consultaRealizada = navigation.extras.state['consultaRealizada'] || false;
+    }
   }
 
   ngOnInit() {
-    // Altera status do atendimento para 'em atendimento médico' ao abrir a tela
+    // Se for uma consulta realizada, não alterar o status automaticamente
+    if (this.consultaRealizada) {
+      console.log('🔍 Consulta realizada detectada - carregando em modo visualização');
+      this.carregarDadosAtendimento();
+      return;
+    }
+
+    // Para atendimentos normais, altera status para 'em atendimento médico' ao abrir a tela
     this.medicoService.atualizarStatus(String(this.atendimentoId), 'em atendimento médico').subscribe({
       next: () => {
-        // Busca os dados do atendimento e preenche o formulário
-        this.medicoService.getConsulta(String(this.atendimentoId)).subscribe((data: any) => {
-          if (data) {
-            this.atendimentoForm.patchValue({
-              queixa_principal: data.queixa_principal || '',
-              motivo_consulta: data.motivo_consulta || data.motivo || '',
-              historia_clinica: data.historia_atual || '',
-              observacoes: data.observacoes || data.observacoes_triagem || '',
-              exame_fisico: data.exame_fisico || '',
-              hipotese_diagnostica: data.hipotese_diagnostica || '',
-              conduta_prescricao: data.conduta_prescricao || '',
-              pressao_arterial: data.pressao_arterial || '',
-              temperatura: data.temperatura || '',
-              frequencia_cardiaca: data.frequencia_cardiaca || '',
-              saturacao_oxigenio: data.saturacao_oxigenio || '',
-              status_destino: data.status_destino || ''
-            });
-            this.atendimentoForm.updateValueAndValidity();
-            this.nomePaciente = data.paciente_nome || 'Paciente';
-            // Se já existe atendimento médico preenchido, habilita edição e altera label do botão
-            if (data.exame_fisico || data.hipotese_diagnostica || data.conduta_prescricao || data.motivo_consulta) {
-              this.podeEditar = true;
-              this.labelBotao = 'Salvar Modificações';
-            } else {
-              this.podeEditar = true;
-              this.labelBotao = 'Finalizar Atendimento';
-            }
-          }
-        });
+        this.carregarDadosAtendimento();
       },
       error: () => {
         this.snackBar.open('Erro ao atualizar status do atendimento.', 'Fechar', { duration: 5000 });
+      }
+    });
+  }
+
+  carregarDadosAtendimento() {
+    // Busca os dados do atendimento e preenche o formulário
+    this.medicoService.getConsulta(String(this.atendimentoId)).subscribe((data: any) => {
+      if (data) {
+        this.atendimentoForm.patchValue({
+          queixa_principal: data.queixa_principal || '',
+          motivo_consulta: data.motivo_consulta || data.motivo || '',
+          historia_clinica: data.historia_atual || '',
+          observacoes: data.observacoes || data.observacoes_triagem || '',
+          exame_fisico: data.exame_fisico || '',
+          hipotese_diagnostica: data.hipotese_diagnostica || '',
+          conduta_prescricao: data.conduta_prescricao || '',
+          pressao_arterial: data.pressao_arterial || '',
+          temperatura: data.temperatura || '',
+          frequencia_cardiaca: data.frequencia_cardiaca || '',
+          saturacao_oxigenio: data.saturacao_oxigenio || '',
+          status_destino: data.status_destino || ''
+        });
+        this.atendimentoForm.updateValueAndValidity();
+        this.nomePaciente = data.paciente_nome || 'Paciente';
+        
+        // Se for consulta realizada, desabilitar edição inicialmente
+        if (this.consultaRealizada) {
+          this.podeEditar = false;
+          this.labelBotao = 'Consulta Finalizada';
+          this.atendimentoForm.disable(); // Desabilita todo o formulário
+          console.log('🔒 Formulário desabilitado - modo visualização');
+        } else {
+          // Se já existe atendimento médico preenchido, habilita edição e altera label do botão
+          if (data.exame_fisico || data.hipotese_diagnostica || data.conduta_prescricao || data.motivo_consulta) {
+            this.podeEditar = true;
+            this.labelBotao = 'Salvar Modificações';
+          } else {
+            this.podeEditar = true;
+            this.labelBotao = 'Finalizar Atendimento';
+          }
+        }
       }
     });
   }
@@ -116,6 +146,12 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   }
 
   salvarAtendimento() {
+    // Impedir salvamento se estiver em modo de visualização e edição não foi habilitada
+    if (this.consultaRealizada && !this.edicaoHabilitada) {
+      this.snackBar.open('Esta consulta já foi finalizada e não pode ser editada.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
     if (this.atendimentoForm.invalid) return;
     this.salvando = true;
     const medicoId = this.authService.user?.id || null;
@@ -180,7 +216,24 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     });
   }
 
-    salvarTriagem() {
+  habilitarEdicao() {
+    this.edicaoHabilitada = true;
+    this.podeEditar = true;
+    this.labelBotao = 'Salvar Modificações';
+    this.atendimentoForm.enable(); // Habilita todo o formulário
+    console.log('✏️ Edição habilitada para consulta realizada');
+    this.snackBar.open('Edição habilitada. Você pode modificar os campos.', 'Fechar', { duration: 3000 });
+  }
+
+  desabilitarEdicao() {
+    this.edicaoHabilitada = false;
+    this.podeEditar = false;
+    this.labelBotao = 'Consulta Finalizada';
+    this.atendimentoForm.disable(); // Desabilita todo o formulário
+    console.log('🔒 Edição desabilitada para consulta realizada');
+  }
+
+  salvarTriagem() {
       // Coletar apenas os campos da triagem
       const triagemData = {
         queixa_principal: this.atendimentoForm.get('queixa_principal')?.value,
