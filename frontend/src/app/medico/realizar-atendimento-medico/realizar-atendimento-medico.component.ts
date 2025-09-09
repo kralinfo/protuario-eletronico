@@ -14,6 +14,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MedicoService } from '../medico.service';
 import { AuthService } from '../../auth/auth.service';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-realizar-atendimento-medico',
@@ -31,7 +32,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatDividerModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatCheckboxModule
   ],
   templateUrl: './realizar-atendimento-medico.component.html',
   styleUrls: ['./realizar-atendimento-medico.component.scss']
@@ -59,7 +61,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   ) {
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
-    
+
     // Verificar se foi navegado do card de consultas realizadas
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras?.state) {
@@ -103,11 +105,31 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
           temperatura: data.temperatura || '',
           frequencia_cardiaca: data.frequencia_cardiaca || '',
           saturacao_oxigenio: data.saturacao_oxigenio || '',
-          status_destino: data.status_destino || ''
+          status_destino: data.status_destino || '',
+
+          // Novos campos detalhados
+          medicamentos_prescritos: data.medicamentos_prescritos || '',
+          medicamentos_ambulatorio: data.medicamentos_ambulatorio || '',
+          atestado_emitido: data.atestado_emitido || false,
+          atestado_cid: data.atestado_cid || '',
+          atestado_detalhes: data.atestado_detalhes || '',
+          atestado_dias: data.atestado_dias || '',
+          necessita_observacao: data.necessita_observacao || false,
+          tempo_observacao_horas: data.tempo_observacao_horas || '',
+          motivo_observacao: data.motivo_observacao || '',
+          exames_solicitados: data.exames_solicitados || '',
+          orientacoes_paciente: data.orientacoes_paciente || '',
+          retorno_agendado: data.retorno_agendado || false,
+          data_retorno: data.data_retorno || '',
+          observacoes_retorno: data.observacoes_retorno || '',
+          procedimentos_realizados: data.procedimentos_realizados || '',
+          detalhes_destino: data.detalhes_destino || '',
+          alergias_identificadas: data.alergias_identificadas || '',
+          historico_familiar_relevante: data.historico_familiar_relevante || ''
         });
         this.atendimentoForm.updateValueAndValidity();
         this.nomePaciente = data.paciente_nome || 'Paciente';
-        
+
         // Se for consulta realizada, desabilitar edição inicialmente
         if (this.consultaRealizada) {
           this.podeEditar = false;
@@ -141,7 +163,27 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       temperatura: [''],
       frequencia_cardiaca: [''],
       saturacao_oxigenio: [''],
-      status_destino: ['', Validators.required]
+      status_destino: ['', Validators.required],
+
+      // Novos campos detalhados
+      medicamentos_prescritos: [''],
+      medicamentos_ambulatorio: [''],
+      atestado_emitido: [false],
+      atestado_cid: [''],
+      atestado_detalhes: [''],
+      atestado_dias: [''],
+      necessita_observacao: [false],
+      tempo_observacao_horas: [''],
+      motivo_observacao: [''],
+      exames_solicitados: [''],
+      orientacoes_paciente: [''],
+      retorno_agendado: [false],
+      data_retorno: [''],
+      observacoes_retorno: [''],
+      procedimentos_realizados: [''],
+      detalhes_destino: [''],
+      alergias_identificadas: [''],
+      historico_familiar_relevante: ['']
     });
   }
 
@@ -163,7 +205,28 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       conduta_prescricao: this.atendimentoForm.get('conduta_prescricao')?.value,
       status_destino: this.atendimentoForm.get('status_destino')?.value,
       medico_id: medicoId,
-      atendimento_id: this.atendimentoId
+      atendimento_id: this.atendimentoId,
+
+      // Novos campos detalhados
+      medicamentos_prescritos: this.atendimentoForm.get('medicamentos_prescritos')?.value,
+      medicamentos_ambulatorio: this.atendimentoForm.get('medicamentos_ambulatorio')?.value,
+      atestado_emitido: this.atendimentoForm.get('atestado_emitido')?.value,
+      atestado_cid: this.atendimentoForm.get('atestado_cid')?.value,
+      atestado_detalhes: this.atendimentoForm.get('atestado_detalhes')?.value,
+      atestado_dias: this.atendimentoForm.get('atestado_dias')?.value,
+      necessita_observacao: this.atendimentoForm.get('necessita_observacao')?.value,
+      tempo_observacao_horas: this.atendimentoForm.get('tempo_observacao_horas')?.value,
+      motivo_observacao: this.atendimentoForm.get('motivo_observacao')?.value,
+      exames_solicitados: this.atendimentoForm.get('exames_solicitados')?.value,
+      orientacoes_paciente: this.atendimentoForm.get('orientacoes_paciente')?.value,
+      retorno_agendado: this.atendimentoForm.get('retorno_agendado')?.value,
+      data_retorno: this.atendimentoForm.get('data_retorno')?.value,
+      observacoes_retorno: this.atendimentoForm.get('observacoes_retorno')?.value,
+      procedimentos_realizados: this.atendimentoForm.get('procedimentos_realizados')?.value,
+      detalhes_destino: this.atendimentoForm.get('detalhes_destino')?.value,
+      alergias_identificadas: this.atendimentoForm.get('alergias_identificadas')?.value,
+      historico_familiar_relevante: this.atendimentoForm.get('historico_familiar_relevante')?.value,
+      data_prescricao: new Date()
     };
     // Verifica se já existe consulta médica para este atendimento
     this.medicoService.getConsulta(String(this.atendimentoId)).subscribe({

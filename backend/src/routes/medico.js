@@ -109,6 +109,12 @@ router.post('/consulta', async (req, res) => {
     if (!payload.data_hora_inicio) {
       payload.data_hora_inicio = new Date();
     }
+    
+    // Adicionar data de prescrição se não existir
+    if (!payload.data_prescricao) {
+      payload.data_prescricao = new Date();
+    }
+    
     // Normaliza status para ambulatorio
     let statusToSave = payload.status_destino;
     if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
@@ -120,11 +126,14 @@ router.post('/consulta', async (req, res) => {
     if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
       statusToSave = 'atendimento_concluido';
     }
-    if (statusToSave && payload.atendimento_id) {
+    
+    // Atualizar apenas o status do atendimento
+    if (payload.atendimento_id) {
       await knex('atendimentos')
         .where('id', payload.atendimento_id)
         .update({ status: statusToSave });
     }
+    
     const novaConsulta = await knex('consultas_medicas').insert(payload).returning('*');
     res.json(novaConsulta[0]);
   } catch (err) {
@@ -138,6 +147,7 @@ router.put('/consulta/:id', async (req, res) => {
     await knex('consultas_medicas')
       .where('id', req.params.id)
       .update(req.body);
+      
     // Normaliza status para ambulatorio
     let statusToSave = req.body.status_destino;
     if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
@@ -149,11 +159,14 @@ router.put('/consulta/:id', async (req, res) => {
     if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
       statusToSave = 'atendimento_concluido';
     }
-    if (statusToSave && req.body.atendimento_id) {
+    
+    // Atualizar apenas o status do atendimento
+    if (req.body.atendimento_id) {
       await knex('atendimentos')
         .where('id', req.body.atendimento_id)
         .update({ status: statusToSave });
     }
+    
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

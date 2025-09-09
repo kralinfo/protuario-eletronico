@@ -97,6 +97,170 @@
           <textarea matInput formControlName="conduta_prescricao" rows="2"></textarea>
         </mat-form-field>
 
+        <!-- Seção de Medicamentos -->
+        <mat-accordion>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Medicamentos e Prescrições</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <h4>Medicamentos Prescritos</h4>
+            <mat-form-field>
+              <mat-label>Medicamentos Prescritos (nome, dosagem, posologia)</mat-label>
+              <textarea matInput formControlName="medicamentos_prescritos" rows="4"
+                placeholder="Ex: Dipirona 500mg - 1 comprimido de 6/6h por 3 dias"></textarea>
+            </mat-form-field>
+
+            <h4>Medicamentos para Ambulatório</h4>
+            <mat-form-field>
+              <mat-label>Medicamentos para aplicação/administração no ambulatório</mat-label>
+              <textarea matInput formControlName="medicamentos_ambulatorio" rows="3"
+                placeholder="Ex: Soro fisiológico 500ml EV, Dipirona 1ml IM"></textarea>
+            </mat-form-field>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <!-- Seção de Atestado Médico -->
+        <mat-accordion>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Atestado Médico</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <div class="form-row">
+              <mat-checkbox formControlName="atestado_emitido">Emitir atestado médico</mat-checkbox>
+            </div>
+
+            <div *ngIf="atendimentoForm.get('atestado_emitido')?.value">
+              <div class="form-row">
+                <mat-form-field>
+                  <mat-label>CID do Atestado</mat-label>
+                  <input matInput formControlName="atestado_cid" placeholder="Ex: Z76.3">
+                </mat-form-field>
+
+                <mat-form-field>
+                  <mat-label>Dias de Afastamento</mat-label>
+                  <input matInput type="number" formControlName="atestado_dias" placeholder="Ex: 3">
+                </mat-form-field>
+              </div>
+
+              <mat-form-field>
+                <mat-label>Detalhes do Atestado</mat-label>
+                <textarea matInput formControlName="atestado_detalhes" rows="2"
+                  placeholder="Motivo do afastamento e observações"></textarea>
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <!-- Seção de Observação -->
+        <mat-accordion>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Observação Médica</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <div class="form-row">
+              <mat-checkbox formControlName="necessita_observacao">Paciente necessita observação</mat-checkbox>
+            </div>
+
+            <div *ngIf="atendimentoForm.get('necessita_observacao')?.value">
+              <div class="form-row">
+                <mat-form-field>
+                  <mat-label>Tempo de Observação (horas)</mat-label>
+                  <input matInput type="number" formControlName="tempo_observacao_horas" placeholder="Ex: 6">
+                </mat-form-field>
+              </div>
+
+              <mat-form-field>
+                <mat-label>Motivo da Observação</mat-label>
+                <textarea matInput formControlName="motivo_observacao" rows="2"></textarea>
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <!-- Seção de Exames e Procedimentos -->
+        <mat-accordion>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Exames e Procedimentos</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <mat-form-field>
+              <mat-label>Exames Solicitados</mat-label>
+              <textarea matInput formControlName="exames_solicitados" rows="3"
+                placeholder="Ex: Hemograma completo, Raio-X de tórax"></textarea>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Procedimentos Realizados</mat-label>
+              <textarea matInput formControlName="procedimentos_realizados" rows="3"
+                placeholder="Ex: Sutura simples, Curativo"></textarea>
+            </mat-form-field>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <!-- Seção de Retorno e Acompanhamento -->
+        <mat-accordion>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Retorno e Acompanhamento</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <div class="form-row">
+              <mat-checkbox formControlName="retorno_agendado">Agendar retorno</mat-checkbox>
+            </div>
+
+            <div *ngIf="atendimentoForm.get('retorno_agendado')?.value">
+              <div class="form-row">
+                <mat-form-field>
+                  <mat-label>Data do Retorno</mat-label>
+                  <input matInput type="date" formControlName="data_retorno">
+                </mat-form-field>
+              </div>
+
+              <mat-form-field>
+                <mat-label>Observações sobre o Retorno</mat-label>
+                <textarea matInput formControlName="observacoes_retorno" rows="2"></textarea>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field>
+              <mat-label>Orientações ao Paciente</mat-label>
+              <textarea matInput formControlName="orientacoes_paciente" rows="3"
+                placeholder="Orientações gerais, cuidados, restrições"></textarea>
+            </mat-form-field>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <!-- Seção de Informações Complementares -->
+        <mat-accordion>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Informações Complementares</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <mat-form-field>
+              <mat-label>Alergias Identificadas</mat-label>
+              <textarea matInput formControlName="alergias_identificadas" rows="2"
+                placeholder="Alergias medicamentosas ou alimentares identificadas"></textarea>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Histórico Familiar Relevante</mat-label>
+              <textarea matInput formControlName="historico_familiar_relevante" rows="2"
+                placeholder="Histórico familiar de doenças relevantes"></textarea>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Detalhes do Destino</mat-label>
+              <textarea matInput formControlName="detalhes_destino" rows="2"
+                placeholder="Detalhes sobre alta, transferência, etc."></textarea>
+            </mat-form-field>
+          </mat-expansion-panel>
+        </mat-accordion>
+
         <h3>Encaminhamento</h3>
         <mat-form-field>
           <mat-label>Encaminhar para</mat-label>
@@ -113,7 +277,7 @@
           <mat-icon>edit</mat-icon>
           Habilitar Edição
         </button>
-        
+
         <!-- Botão para desabilitar edição quando for consulta realizada e edição estiver habilitada -->
         <button *ngIf="consultaRealizada && edicaoHabilitada" mat-stroked-button color="warn" type="button" (click)="desabilitarEdicao()">
           <mat-icon>visibility</mat-icon>
@@ -125,7 +289,7 @@
           <mat-icon>save</mat-icon>
           {{salvando ? (labelBotao === 'Salvar Modificações' ? 'Salvando...' : 'Finalizando...') : labelBotao}}
         </button>
-        
+
         <button mat-button type="button" (click)="voltar()">
           <mat-icon>cancel</mat-icon>
           {{podeEditar ? 'Cancelar' : 'Voltar'}}
