@@ -132,43 +132,27 @@ class Atendimento {
       pressao_arterial,
       temperatura,
       frequencia_cardiaca,
-      frequencia_respiratoria,
       saturacao_oxigenio,
-      peso,
-      altura,
-      classificacao_risco,
-      prioridade,
       queixa_principal,
       historia_atual,
-      alergias,
-      medicamentos_uso,
       observacoes_triagem
     } = dadosTriagem;
 
     const result = await db.query(
       `UPDATE atendimentos 
        SET pressao_arterial = $2, temperatura = $3, frequencia_cardiaca = $4,
-           frequencia_respiratoria = $5, saturacao_oxigenio = $6, peso = $7, altura = $8,
-           classificacao_risco = $9, prioridade = $10, queixa_principal = $11,
-           historia_atual = $12, alergias = $13, medicamentos_uso = $14,
-           observacoes_triagem = $15, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1 AND (status = 'em_triagem' OR status = 'em atendimento médico')
+           saturacao_oxigenio = $5, queixa_principal = $6,
+           historia_atual = $7, observacoes_triagem = $8, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1
        RETURNING *`,
       [
         id,
         pressao_arterial,
         parseNum(temperatura),
         parseNum(frequencia_cardiaca),
-        parseNum(frequencia_respiratoria),
         parseNum(saturacao_oxigenio),
-        parseNum(peso),
-        parseNum(altura),
-        classificacao_risco,
-        prioridade,
         queixa_principal,
         historia_atual,
-        alergias,
-        medicamentos_uso,
         observacoes_triagem
       ]
     );

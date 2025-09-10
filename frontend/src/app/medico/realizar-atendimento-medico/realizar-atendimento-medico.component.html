@@ -1,300 +1,271 @@
-<div class="triagem-container">
-  <div class="header">
-    <button mat-icon-button (click)="voltar()">
+<div class="container mx-auto p-6 bg-gray-50 rounded-lg shadow-md">
+  <div class="flex items-center gap-4 mb-6">
+    <button class="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600" (click)="voltar()">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1>
+    <h1 class="text-2xl font-bold text-gray-800">
       Atendimento Médico - {{nomePaciente}}
-      <span *ngIf="consultaRealizada" style="font-size: 0.7em; color: #666; margin-left: 10px;">(Visualização)</span>
+      <span *ngIf="consultaRealizada" class="text-sm text-gray-500 ml-2">(Visualização)</span>
     </h1>
   </div>
 
   <form [formGroup]="atendimentoForm" (ngSubmit)="salvarAtendimento()">
-    <mat-card class="form-card">
-      <mat-card-header>
-        <mat-card-title>Dados do Atendimento Médico</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <mat-accordion>
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title style="white-space: nowrap; overflow: visible; text-overflow: unset; background: transparent; color: inherit; z-index: 1;">
-                Dados clínicos do atendimento coletados na triagem
-              </mat-panel-title>
-              <mat-panel-description style="display: flex; align-items: center; justify-content: flex-end; width: 100%; color: #1976d2;">
-                Clique para visualizar/editar
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            <h3>Queixa Principal</h3>
-            <mat-form-field>
-              <mat-label>Queixa Principal</mat-label>
-              <input matInput formControlName="queixa_principal">
-            </mat-form-field>
+    <!-- Campo de Motivo da Consulta como primeiro campo da tela -->
+    <div class="mt-6 bg-white p-4 rounded-lg shadow mb-6">
+      <h3 class="text-md font-medium text-gray-600 mb-2">Motivo da Consulta</h3>
+      <input class="w-full p-2 border border-gray-300 rounded" formControlName="motivo_consulta" placeholder="Digite o motivo da consulta" required>
+    </div>
 
-            <h3>Histórico Atual</h3>
-            <mat-form-field>
-              <mat-label>Histórico Atual</mat-label>
-              <textarea matInput formControlName="historia_clinica" rows="3"></textarea>
-            </mat-form-field>
+    <mat-accordion>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Dados da Triagem</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Queixa Principal</h3>
+          <input class="w-full p-2 border border-gray-300 rounded" formControlName="queixa_principal" placeholder="Digite a queixa principal">
+        </div>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Histórico Atual</h3>
+          <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="historia_clinica" rows="3" placeholder="Descreva o histórico atual"></textarea>
+        </div>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Sinais Vitais</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <input class="w-full p-2 border border-gray-300 rounded" formControlName="pressao_arterial" placeholder="Pressão Arterial (Ex: 120/80)">
+            <input class="w-full p-2 border border-gray-300 rounded" type="number" formControlName="temperatura" placeholder="Temperatura (°C)">
+            <input class="w-full p-2 border border-gray-300 rounded" type="number" formControlName="frequencia_cardiaca" placeholder="Frequência Cardíaca">
+            <input class="w-full p-2 border border-gray-300 rounded" type="number" formControlName="saturacao_oxigenio" placeholder="Saturação O2 (%)">
+          </div>
+        </div>
+        <div class="text-right mt-4">
+          <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 opacity-50" type="button" (click)="salvarTriagem()" [disabled]="salvando || !edicaoHabilitada" [ngClass]="{'opacity-50': !edicaoHabilitada, 'opacity-100': edicaoHabilitada}">
+            {{salvando ? 'Salvando...' : 'Salvar alterações da triagem'}}
+          </button>
+        </div>
+      </mat-expansion-panel>
 
-            <h3>Observações</h3>
-            <mat-form-field>
-              <mat-label>Observações</mat-label>
-              <textarea matInput formControlName="observacoes" rows="2"></textarea>
-            </mat-form-field>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Exame Físico e Diagnóstico</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Exame Físico</h3>
+          <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="exame_fisico" rows="3" placeholder="Descreva o exame físico"></textarea>
+        </div>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Hipótese Diagnóstica</h3>
+          <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="hipotese_diagnostica" rows="2" placeholder="Descreva a hipótese diagnóstica"></textarea>
+        </div>
+      </mat-expansion-panel>
 
-            <h3>Sinais Vitais</h3>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Conduta e Medicamentos</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Conduta / Prescrição</h3>
+          <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="conduta_prescricao" rows="2" placeholder="Descreva a conduta ou prescrição"></textarea>
+        </div>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Medicamentos e Prescrições</h3>
+          <div class="space-y-4">
+            <div>
+              <h4 class="text-sm font-medium text-gray-500 mb-2">Medicamentos Prescritos</h4>
+              <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="medicamentos_prescritos" rows="4" placeholder="Ex: Dipirona 500mg - 1 comprimido de 6/6h por 3 dias"></textarea>
+            </div>
+            <div>
+              <h4 class="text-sm font-medium text-gray-500 mb-2">Medicamentos para Ambulatório</h4>
+              <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="medicamentos_ambulatorio" rows="3" placeholder="Ex: Soro fisiológico 500ml EV, Dipirona 1ml IM"></textarea>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Seção de Atestado Médico -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Atestado Médico</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+          <h2 class="text-lg font-semibold text-gray-700 mb-4">Atestado Médico</h2>
+
+          <div class="form-row">
+            <mat-checkbox formControlName="atestado_emitido">Emitir atestado médico</mat-checkbox>
+          </div>
+
+          <div *ngIf="atendimentoForm.get('atestado_emitido')?.value">
             <div class="form-row">
               <mat-form-field>
-                <mat-label>Pressão Arterial</mat-label>
-                <input matInput formControlName="pressao_arterial" placeholder="120/80">
+                <mat-label>CID do Atestado</mat-label>
+                <input matInput formControlName="atestado_cid" placeholder="Ex: Z76.3">
               </mat-form-field>
+
               <mat-form-field>
-                <mat-label>Temperatura (°C)</mat-label>
-                <input matInput type="number" formControlName="temperatura" step="0.1">
+                <mat-label>Dias de Afastamento</mat-label>
+                <input matInput type="number" formControlName="atestado_dias" placeholder="Ex: 3">
               </mat-form-field>
             </div>
+
+            <mat-form-field>
+              <mat-label>Detalhes do Atestado</mat-label>
+              <textarea matInput formControlName="atestado_detalhes" rows="2"
+                placeholder="Motivo do afastamento e observações"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Seção de Observação -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Observação Médica</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+          <h2 class="text-lg font-semibold text-gray-700 mb-4">Observação Médica</h2>
+
+          <div class="form-row">
+            <mat-checkbox formControlName="necessita_observacao">Paciente necessita observação</mat-checkbox>
+          </div>
+
+          <div *ngIf="atendimentoForm.get('necessita_observacao')?.value">
             <div class="form-row">
               <mat-form-field>
-                <mat-label>Frequência Cardíaca</mat-label>
-                <input matInput type="number" formControlName="frequencia_cardiaca">
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Saturação O2 (%)</mat-label>
-                <input matInput type="number" formControlName="saturacao_oxigenio" min="70" max="100">
+                <mat-label>Tempo de Observação (horas)</mat-label>
+                <input matInput type="number" formControlName="tempo_observacao_horas" placeholder="Ex: 6">
               </mat-form-field>
             </div>
-              <div style="margin-top: 16px; text-align: right;">
-                <button mat-stroked-button color="accent" type="button" (click)="salvarTriagem()" [disabled]="salvando">
-                  <mat-icon>save</mat-icon>
-                  {{salvando ? 'Salvando...' : 'Salvar alterações da triagem'}}
-                </button>
-              </div>
-          </mat-expansion-panel>
-        </mat-accordion>
 
-        <h3>Motivo da Consulta</h3>
-        <mat-form-field>
-          <mat-label>Motivo da Consulta</mat-label>
-          <input matInput formControlName="motivo_consulta" required>
-        </mat-form-field>
-
-        <h3>Exame Físico</h3>
-        <mat-form-field>
-          <mat-label>Exame Físico</mat-label>
-          <textarea matInput formControlName="exame_fisico" rows="3"></textarea>
-        </mat-form-field>
-
-        <h3>Hipótese Diagnóstica</h3>
-        <mat-form-field>
-          <mat-label>Hipótese Diagnóstica</mat-label>
-          <textarea matInput formControlName="hipotese_diagnostica" rows="2"></textarea>
-        </mat-form-field>
-
-        <h3>Conduta / Prescrição</h3>
-        <mat-form-field>
-          <mat-label>Conduta / Prescrição</mat-label>
-          <textarea matInput formControlName="conduta_prescricao" rows="2"></textarea>
-        </mat-form-field>
-
-        <!-- Seção de Medicamentos -->
-        <mat-accordion>
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>Medicamentos e Prescrições</mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <h4>Medicamentos Prescritos</h4>
             <mat-form-field>
-              <mat-label>Medicamentos Prescritos (nome, dosagem, posologia)</mat-label>
-              <textarea matInput formControlName="medicamentos_prescritos" rows="4"
-                placeholder="Ex: Dipirona 500mg - 1 comprimido de 6/6h por 3 dias"></textarea>
+              <mat-label>Motivo da Observação</mat-label>
+              <textarea matInput formControlName="motivo_observacao" rows="2"></textarea>
             </mat-form-field>
+          </div>
+        </div>
+      </mat-expansion-panel>
 
-            <h4>Medicamentos para Ambulatório</h4>
-            <mat-form-field>
-              <mat-label>Medicamentos para aplicação/administração no ambulatório</mat-label>
-              <textarea matInput formControlName="medicamentos_ambulatorio" rows="3"
-                placeholder="Ex: Soro fisiológico 500ml EV, Dipirona 1ml IM"></textarea>
-            </mat-form-field>
-          </mat-expansion-panel>
-        </mat-accordion>
+      <!-- Seção de Exames e Procedimentos -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Exames e Procedimentos</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+          <h2 class="text-lg font-semibold text-gray-700 mb-4">Exames e Procedimentos</h2>
 
-        <!-- Seção de Atestado Médico -->
-        <mat-accordion>
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>Atestado Médico</mat-panel-title>
-            </mat-expansion-panel-header>
+          <mat-form-field>
+            <mat-label>Exames Solicitados</mat-label>
+            <textarea matInput formControlName="exames_solicitados" rows="3"
+              placeholder="Ex: Hemograma completo, Raio-X de tórax"></textarea>
+          </mat-form-field>
 
+          <mat-form-field>
+            <mat-label>Procedimentos Realizados</mat-label>
+            <textarea matInput formControlName="procedimentos_realizados" rows="3"
+              placeholder="Ex: Sutura simples, Curativo"></textarea>
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Seção de Retorno e Acompanhamento -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Retorno e Acompanhamento</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+          <h2 class="text-lg font-semibold text-gray-700 mb-4">Retorno e Acompanhamento</h2>
+
+          <div class="form-row">
+            <mat-checkbox formControlName="retorno_agendado">Agendar retorno</mat-checkbox>
+          </div>
+
+          <div *ngIf="atendimentoForm.get('retorno_agendado')?.value">
             <div class="form-row">
-              <mat-checkbox formControlName="atestado_emitido">Emitir atestado médico</mat-checkbox>
-            </div>
-
-            <div *ngIf="atendimentoForm.get('atestado_emitido')?.value">
-              <div class="form-row">
-                <mat-form-field>
-                  <mat-label>CID do Atestado</mat-label>
-                  <input matInput formControlName="atestado_cid" placeholder="Ex: Z76.3">
-                </mat-form-field>
-
-                <mat-form-field>
-                  <mat-label>Dias de Afastamento</mat-label>
-                  <input matInput type="number" formControlName="atestado_dias" placeholder="Ex: 3">
-                </mat-form-field>
-              </div>
-
               <mat-form-field>
-                <mat-label>Detalhes do Atestado</mat-label>
-                <textarea matInput formControlName="atestado_detalhes" rows="2"
-                  placeholder="Motivo do afastamento e observações"></textarea>
-              </mat-form-field>
-            </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-
-        <!-- Seção de Observação -->
-        <mat-accordion>
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>Observação Médica</mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <div class="form-row">
-              <mat-checkbox formControlName="necessita_observacao">Paciente necessita observação</mat-checkbox>
-            </div>
-
-            <div *ngIf="atendimentoForm.get('necessita_observacao')?.value">
-              <div class="form-row">
-                <mat-form-field>
-                  <mat-label>Tempo de Observação (horas)</mat-label>
-                  <input matInput type="number" formControlName="tempo_observacao_horas" placeholder="Ex: 6">
-                </mat-form-field>
-              </div>
-
-              <mat-form-field>
-                <mat-label>Motivo da Observação</mat-label>
-                <textarea matInput formControlName="motivo_observacao" rows="2"></textarea>
-              </mat-form-field>
-            </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-
-        <!-- Seção de Exames e Procedimentos -->
-        <mat-accordion>
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>Exames e Procedimentos</mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <mat-form-field>
-              <mat-label>Exames Solicitados</mat-label>
-              <textarea matInput formControlName="exames_solicitados" rows="3"
-                placeholder="Ex: Hemograma completo, Raio-X de tórax"></textarea>
-            </mat-form-field>
-
-            <mat-form-field>
-              <mat-label>Procedimentos Realizados</mat-label>
-              <textarea matInput formControlName="procedimentos_realizados" rows="3"
-                placeholder="Ex: Sutura simples, Curativo"></textarea>
-            </mat-form-field>
-          </mat-expansion-panel>
-        </mat-accordion>
-
-        <!-- Seção de Retorno e Acompanhamento -->
-        <mat-accordion>
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>Retorno e Acompanhamento</mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <div class="form-row">
-              <mat-checkbox formControlName="retorno_agendado">Agendar retorno</mat-checkbox>
-            </div>
-
-            <div *ngIf="atendimentoForm.get('retorno_agendado')?.value">
-              <div class="form-row">
-                <mat-form-field>
-                  <mat-label>Data do Retorno</mat-label>
-                  <input matInput type="date" formControlName="data_retorno">
-                </mat-form-field>
-              </div>
-
-              <mat-form-field>
-                <mat-label>Observações sobre o Retorno</mat-label>
-                <textarea matInput formControlName="observacoes_retorno" rows="2"></textarea>
+                <mat-label>Data do Retorno</mat-label>
+                <input matInput type="date" formControlName="data_retorno">
               </mat-form-field>
             </div>
 
             <mat-form-field>
-              <mat-label>Orientações ao Paciente</mat-label>
-              <textarea matInput formControlName="orientacoes_paciente" rows="3"
-                placeholder="Orientações gerais, cuidados, restrições"></textarea>
+              <mat-label>Observações sobre o Retorno</mat-label>
+              <textarea matInput formControlName="observacoes_retorno" rows="2"></textarea>
             </mat-form-field>
-          </mat-expansion-panel>
-        </mat-accordion>
+          </div>
 
-        <!-- Seção de Informações Complementares -->
-        <mat-accordion>
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>Informações Complementares</mat-panel-title>
-            </mat-expansion-panel-header>
+          <mat-form-field>
+            <mat-label>Orientações ao Paciente</mat-label>
+            <textarea matInput formControlName="orientacoes_paciente" rows="3"
+              placeholder="Orientações gerais, cuidados, restrições"></textarea>
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
 
-            <mat-form-field>
-              <mat-label>Alergias Identificadas</mat-label>
-              <textarea matInput formControlName="alergias_identificadas" rows="2"
-                placeholder="Alergias medicamentosas ou alimentares identificadas"></textarea>
-            </mat-form-field>
+      <!-- Seção de Informações Complementares -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Informações Complementares</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+          <h2 class="text-lg font-semibold text-gray-700 mb-4">Informações Complementares</h2>
 
-            <mat-form-field>
-              <mat-label>Histórico Familiar Relevante</mat-label>
-              <textarea matInput formControlName="historico_familiar_relevante" rows="2"
-                placeholder="Histórico familiar de doenças relevantes"></textarea>
-            </mat-form-field>
+          <mat-form-field>
+            <mat-label>Alergias Identificadas</mat-label>
+            <textarea matInput formControlName="alergias_identificadas" rows="2"
+              placeholder="Alergias medicamentosas ou alimentares identificadas"></textarea>
+          </mat-form-field>
 
-            <mat-form-field>
-              <mat-label>Detalhes do Destino</mat-label>
-              <textarea matInput formControlName="detalhes_destino" rows="2"
-                placeholder="Detalhes sobre alta, transferência, etc."></textarea>
-            </mat-form-field>
-          </mat-expansion-panel>
-        </mat-accordion>
+          <mat-form-field>
+            <mat-label>Histórico Familiar Relevante</mat-label>
+            <textarea matInput formControlName="historico_familiar_relevante" rows="2"
+              placeholder="Histórico familiar de doenças relevantes"></textarea>
+          </mat-form-field>
 
-        <h3>Encaminhamento</h3>
-        <mat-form-field>
-          <mat-label>Encaminhar para</mat-label>
-          <mat-select formControlName="status_destino" required>
-            <mat-option value="encaminhado para ambulatório">Ambulatório</mat-option>
-            <mat-option value="encaminhado para exames">Exames</mat-option>
-            <mat-option value="atendimento_concluido">Alta</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </mat-card-content>
-      <mat-card-actions>
-        <!-- Botão para habilitar edição quando for consulta realizada -->
-        <button *ngIf="consultaRealizada && !edicaoHabilitada" mat-raised-button color="accent" type="button" (click)="habilitarEdicao()">
-          <mat-icon>edit</mat-icon>
-          Habilitar Edição
-        </button>
+          <mat-form-field>
+            <mat-label>Detalhes do Destino</mat-label>
+            <textarea matInput formControlName="detalhes_destino" rows="2"
+              placeholder="Detalhes sobre alta, transferência, etc."></textarea>
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
 
-        <!-- Botão para desabilitar edição quando for consulta realizada e edição estiver habilitada -->
-        <button *ngIf="consultaRealizada && edicaoHabilitada" mat-stroked-button color="warn" type="button" (click)="desabilitarEdicao()">
-          <mat-icon>visibility</mat-icon>
-          Modo Visualização
-        </button>
+    </mat-accordion>
 
-        <!-- Botão de salvar (só aparece quando pode editar) -->
-        <button *ngIf="podeEditar" mat-raised-button color="primary" type="submit" [disabled]="!atendimentoForm.valid || salvando">
-          <mat-icon>save</mat-icon>
-          {{salvando ? (labelBotao === 'Salvar Modificações' ? 'Salvando...' : 'Finalizando...') : labelBotao}}
-        </button>
+    <!-- Seção de Encaminhamento sempre visível -->
+    <div class="mt-6 bg-white p-4 rounded-lg shadow mb-6">
+      <h3 class="text-md font-medium text-gray-600 mb-2">Encaminhamento</h3>
+      <mat-form-field>
+        <mat-label>Encaminhar para</mat-label>
+        <mat-select formControlName="status_destino" required>
+          <mat-option value="encaminhado para ambulatório">Ambulatório</mat-option>
+          <mat-option value="encaminhado para exames">Exames</mat-option>
+          <mat-option value="atendimento_concluido">Alta</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-        <button mat-button type="button" (click)="voltar()">
-          <mat-icon>cancel</mat-icon>
-          {{podeEditar ? 'Cancelar' : 'Voltar'}}
-        </button>
-      </mat-card-actions>
-    </mat-card>
+    <div class="flex justify-end gap-4">
+      <!-- Botão para habilitar edição quando for consulta realizada -->
+      <button *ngIf="consultaRealizada && !edicaoHabilitada" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" type="button" (click)="habilitarEdicao()">
+        <mat-icon>edit</mat-icon>
+        Habilitar Edição
+      </button>
+
+      <!-- Botão para desabilitar edição quando for consulta realizada e edição estiver habilitada -->
+      <button *ngIf="consultaRealizada && edicaoHabilitada" class="px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-400" type="button" (click)="desabilitarEdicao()">
+        <mat-icon>visibility</mat-icon>
+        Modo Visualização
+      </button>
+
+      <!-- Botão de salvar (só aparece quando pode editar) -->
+      <button *ngIf="podeEditar" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" type="submit" [disabled]="!atendimentoForm.valid || salvando">
+        <mat-icon>save</mat-icon>
+        {{salvando ? (labelBotao === 'Salvar Modificações' ? 'Salvando...' : 'Finalizando...') : labelBotao}}
+      </button>
+
+      <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400" type="button" (click)="voltar()">
+        <mat-icon>cancel</mat-icon>
+        {{podeEditar ? 'Cancelar' : 'Voltar'}}
+      </button>
+    </div>
   </form>
 </div>

@@ -46,10 +46,11 @@ export class MedicoService {
     return this.http.post<any>(`${environment.apiUrl}/medico/consulta`, { ...consulta, atendimento_id: id });
   }
 
-    salvarTriagem(id: string, triagem: any): Observable<any> {
-      // Chama endpoint de triagem para salvar alterações parciais
-      return this.http.put<any>(`${environment.apiUrl}/triagem/${id}/salvar`, triagem);
-    }
+  salvarTriagem(id: string, triagem: any): Observable<any> {
+    // Verifica se os dados da triagem estão completos antes de enviar
+    console.log('Salvando triagem:', triagem);
+    return this.http.put<any>(`${environment.apiUrl}/triagem/${id}/salvar`, triagem);
+  }
 
   getEstatisticasMedico(): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/medico/estatisticas`);

@@ -93,42 +93,56 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     // Busca os dados do atendimento e preenche o formulário
     this.medicoService.getConsulta(String(this.atendimentoId)).subscribe((data: any) => {
       if (data) {
-        this.atendimentoForm.patchValue({
-          queixa_principal: data.queixa_principal || '',
-          motivo_consulta: data.motivo_consulta || data.motivo || '',
-          historia_clinica: data.historia_atual || '',
-          observacoes: data.observacoes || data.observacoes_triagem || '',
-          exame_fisico: data.exame_fisico || '',
-          hipotese_diagnostica: data.hipotese_diagnostica || '',
-          conduta_prescricao: data.conduta_prescricao || '',
-          pressao_arterial: data.pressao_arterial || '',
-          temperatura: data.temperatura || '',
-          frequencia_cardiaca: data.frequencia_cardiaca || '',
-          saturacao_oxigenio: data.saturacao_oxigenio || '',
-          status_destino: data.status_destino || '',
+        console.log('Dados recebidos do backend:', data);
 
-          // Novos campos detalhados
-          medicamentos_prescritos: data.medicamentos_prescritos || '',
-          medicamentos_ambulatorio: data.medicamentos_ambulatorio || '',
-          atestado_emitido: data.atestado_emitido || false,
-          atestado_cid: data.atestado_cid || '',
-          atestado_detalhes: data.atestado_detalhes || '',
-          atestado_dias: data.atestado_dias || '',
-          necessita_observacao: data.necessita_observacao || false,
-          tempo_observacao_horas: data.tempo_observacao_horas || '',
-          motivo_observacao: data.motivo_observacao || '',
-          exames_solicitados: data.exames_solicitados || '',
-          orientacoes_paciente: data.orientacoes_paciente || '',
-          retorno_agendado: data.retorno_agendado || false,
-          data_retorno: data.data_retorno || '',
-          observacoes_retorno: data.observacoes_retorno || '',
-          procedimentos_realizados: data.procedimentos_realizados || '',
-          detalhes_destino: data.detalhes_destino || '',
-          alergias_identificadas: data.alergias_identificadas || '',
-          historico_familiar_relevante: data.historico_familiar_relevante || ''
+        // Dados da consulta médica (se existir)
+        const consultaData = data.consulta || {};
+
+        // Dados da triagem (sempre existem se o atendimento passou pela triagem)
+        const triagemData = data.triagem || {};
+
+        console.log('Dados da triagem:', triagemData);
+        console.log('Dados da consulta:', consultaData);
+
+        this.atendimentoForm.patchValue({
+          // Dados da triagem (prioridade para carregar primeiro)
+          queixa_principal: triagemData.queixa_principal || consultaData.queixa_principal || '',
+          motivo_consulta: consultaData.motivo_consulta || triagemData.motivo || '',
+          historia_clinica: triagemData.historia_atual || consultaData.historia_atual || '',
+          observacoes: triagemData.observacoes_triagem || triagemData.observacoes || consultaData.observacoes || '',
+          exame_fisico: consultaData.exame_fisico || '',
+          hipotese_diagnostica: consultaData.hipotese_diagnostica || '',
+          conduta_prescricao: consultaData.conduta_prescricao || '',
+          pressao_arterial: triagemData.pressao_arterial || '',
+          temperatura: triagemData.temperatura || '',
+          frequencia_cardiaca: triagemData.frequencia_cardiaca || '',
+          saturacao_oxigenio: triagemData.saturacao_oxigenio || '',
+          status_destino: triagemData.status_destino || consultaData.status_destino || '',
+
+          // Novos campos detalhados (principalmente da consulta)
+          medicamentos_prescritos: consultaData.medicamentos_prescritos || '',
+          medicamentos_ambulatorio: consultaData.medicamentos_ambulatorio || '',
+          atestado_emitido: consultaData.atestado_emitido || false,
+          atestado_cid: consultaData.atestado_cid || '',
+          atestado_detalhes: consultaData.atestado_detalhes || '',
+          atestado_dias: consultaData.atestado_dias || '',
+          necessita_observacao: consultaData.necessita_observacao || false,
+          tempo_observacao_horas: consultaData.tempo_observacao_horas || '',
+          motivo_observacao: consultaData.motivo_observacao || '',
+          exames_solicitados: consultaData.exames_solicitados || '',
+          orientacoes_paciente: consultaData.orientacoes_paciente || '',
+          retorno_agendado: consultaData.retorno_agendado || false,
+          data_retorno: consultaData.data_retorno || '',
+          observacoes_retorno: consultaData.observacoes_retorno || '',
+          procedimentos_realizados: consultaData.procedimentos_realizados || '',
+          detalhes_destino: consultaData.detalhes_destino || '',
+          alergias_identificadas: consultaData.alergias_identificadas || '',
+          historico_familiar_relevante: consultaData.historico_familiar_relevante || ''
         });
         this.atendimentoForm.updateValueAndValidity();
-        this.nomePaciente = data.paciente_nome || 'Paciente';
+
+        // Nome do paciente vem dos dados da triagem
+        this.nomePaciente = triagemData.paciente_nome || 'Paciente';
 
         // Se for consulta realizada, desabilitar edição inicialmente
         if (this.consultaRealizada) {
@@ -138,7 +152,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
           console.log('🔒 Formulário desabilitado - modo visualização');
         } else {
           // Se já existe atendimento médico preenchido, habilita edição e altera label do botão
-          if (data.exame_fisico || data.hipotese_diagnostica || data.conduta_prescricao || data.motivo_consulta) {
+          if (consultaData.exame_fisico || consultaData.hipotese_diagnostica || consultaData.conduta_prescricao || consultaData.motivo_consulta) {
             this.podeEditar = true;
             this.labelBotao = 'Salvar Modificações';
           } else {
@@ -228,53 +242,61 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       historico_familiar_relevante: this.atendimentoForm.get('historico_familiar_relevante')?.value,
       data_prescricao: new Date()
     };
-    // Verifica se já existe consulta médica para este atendimento
-    this.medicoService.getConsulta(String(this.atendimentoId)).subscribe({
-      next: (consulta) => {
-        if (consulta && consulta.id) {
-          // Atualiza consulta existente
-          this.medicoService.atualizarConsulta(consulta.id, dadosMedico).subscribe({
-            next: () => {
-              this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
-              this.router.navigate(['/medico/fila']);
-            },
-            error: () => {
-              this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
-            },
-            complete: () => {
-              this.salvando = false;
+
+    const dadosTriagem = {
+      pressao_arterial: this.atendimentoForm.get('pressao_arterial')?.value,
+      temperatura: this.atendimentoForm.get('temperatura')?.value,
+      frequencia_cardiaca: this.atendimentoForm.get('frequencia_cardiaca')?.value,
+      saturacao_oxigenio: this.atendimentoForm.get('saturacao_oxigenio')?.value,
+      queixa_principal: this.atendimentoForm.get('queixa_principal')?.value,
+      historia_atual: this.atendimentoForm.get('historia_clinica')?.value,
+      observacoes_triagem: this.atendimentoForm.get('observacoes')?.value
+    };
+
+    // Salvar triagem antes de salvar consulta
+    this.medicoService.salvarTriagem(String(this.atendimentoId), dadosTriagem).subscribe({
+      next: () => {
+        this.medicoService.getConsulta(String(this.atendimentoId)).subscribe({
+          next: (consulta) => {
+            if (consulta && consulta.id) {
+              // Atualiza consulta existente
+              this.medicoService.atualizarConsulta(consulta.id, dadosMedico).subscribe({
+                next: () => {
+                  this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
+                  this.router.navigate(['/medico/fila']);
+                },
+                error: () => {
+                  this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
+                },
+                complete: () => {
+                  this.salvando = false;
+                }
+              });
+            } else {
+              // Cria nova consulta
+              this.medicoService.salvarConsulta(String(this.atendimentoId), dadosMedico).subscribe({
+                next: () => {
+                  this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
+                  this.router.navigate(['/medico/fila']);
+                },
+                error: () => {
+                  this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
+                },
+                complete: () => {
+                  this.salvando = false;
+                }
+              });
             }
-          });
-        } else {
-          // Cria nova consulta
-          this.medicoService.salvarConsulta(String(this.atendimentoId), dadosMedico).subscribe({
-            next: () => {
-              this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
-              this.router.navigate(['/medico/fila']);
-            },
-            error: () => {
-              this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
-            },
-            complete: () => {
-              this.salvando = false;
-            }
-          });
-        }
-      },
-      error: () => {
-        // Se não encontrar consulta, cria nova
-        this.medicoService.salvarConsulta(String(this.atendimentoId), dadosMedico).subscribe({
-          next: () => {
-            this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
-            this.router.navigate(['/medico/fila']);
           },
           error: () => {
-            this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
-          },
-          complete: () => {
+            this.snackBar.open('Erro ao buscar consulta.', 'Fechar', { duration: 5000 });
             this.salvando = false;
           }
         });
+      },
+      error: () => {
+        this.snackBar.open('Erro ao salvar dados da triagem.', 'Fechar', { duration: 5000 });
+        this.salvando = false;
       }
     });
   }
@@ -297,29 +319,36 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   }
 
   salvarTriagem() {
-      // Coletar apenas os campos da triagem
-      const triagemData = {
-        queixa_principal: this.atendimentoForm.get('queixa_principal')?.value,
-        historia_atual: this.atendimentoForm.get('historia_clinica')?.value,
-        observacoes_triagem: this.atendimentoForm.get('observacoes')?.value,
-        pressao_arterial: this.atendimentoForm.get('pressao_arterial')?.value,
-        temperatura: this.atendimentoForm.get('temperatura')?.value,
-        frequencia_cardiaca: this.atendimentoForm.get('frequencia_cardiaca')?.value,
-        saturacao_oxigenio: this.atendimentoForm.get('saturacao_oxigenio')?.value
-      };
-      this.salvando = true;
-      this.medicoService.salvarTriagem(String(this.atendimentoId), triagemData).subscribe({
-        next: () => {
-          this.snackBar.open('Alterações da triagem salvas!', 'Fechar', { duration: 2500 });
-        },
-        error: () => {
-          this.snackBar.open('Erro ao salvar triagem.', 'Fechar', { duration: 5000 });
-        },
-        complete: () => {
-          this.salvando = false;
-        }
-      });
-    }
+    if (this.salvando) return; // Evita múltiplas chamadas
+
+    // Coletar apenas os campos da triagem original
+    const triagemData = {
+      queixa_principal: this.atendimentoForm.get('queixa_principal')?.value || '',
+      historia_atual: this.atendimentoForm.get('historia_clinica')?.value || '',
+      observacoes_triagem: this.atendimentoForm.get('observacoes')?.value || '',
+      pressao_arterial: this.atendimentoForm.get('pressao_arterial')?.value || '',
+      temperatura: this.atendimentoForm.get('temperatura')?.value || null,
+      frequencia_cardiaca: this.atendimentoForm.get('frequencia_cardiaca')?.value || null,
+      saturacao_oxigenio: this.atendimentoForm.get('saturacao_oxigenio')?.value || null
+    };
+
+    console.log('🩺 Salvando dados da triagem:', triagemData);
+    this.salvando = true;
+
+    this.medicoService.salvarTriagem(String(this.atendimentoId), triagemData).subscribe({
+      next: (response) => {
+        console.log('✅ Triagem salva com sucesso:', response);
+        this.snackBar.open('Alterações da triagem salvas!', 'Fechar', { duration: 2500 });
+      },
+      error: (error) => {
+        console.error('❌ Erro ao salvar triagem:', error);
+        this.snackBar.open('Erro ao salvar triagem: ' + (error.error?.error || error.message), 'Fechar', { duration: 5000 });
+      },
+      complete: () => {
+        this.salvando = false;
+      }
+    });
+  }
 
   voltar() {
     this.router.navigate(['/medico/fila']);

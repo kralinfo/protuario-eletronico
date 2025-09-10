@@ -58,45 +58,40 @@ router.get('/atendimentos', async (req, res) => {
 // Detalhes de uma consulta médica
 router.get('/consulta/:id', async (req, res) => {
   try {
-    // Busca consulta médica pelo atendimento_id
     const consulta = await knex('consultas_medicas')
       .where('atendimento_id', req.params.id)
       .orderBy('id', 'desc')
       .first();
-    if (consulta) {
-      // Consulta médica existe, retorna normalmente
-      res.json(consulta);
-    } else {
-      // Se não existe consulta médica, busca dados do atendimento (triagem)
-      const atendimento = await knex('atendimentos as a')
-        .leftJoin('pacientes as p', 'a.paciente_id', 'p.id')
-        .select(
-          'a.motivo as motivo',
-          'a.observacoes as observacoes',
-          'a.pressao_arterial as pressao_arterial',
-          'a.temperatura as temperatura',
-          'a.frequencia_cardiaca as frequencia_cardiaca',
-          'a.frequencia_respiratoria as frequencia_respiratoria',
-          'a.saturacao_oxigenio as saturacao_oxigenio',
-          'a.peso as peso',
-          'a.altura as altura',
-          'a.classificacao_risco as classificacao_risco',
-          'a.prioridade as prioridade',
-          'a.queixa_principal as queixa_principal',
-          'a.historia_atual as historia_atual',
-          'a.alergias as alergias',
-          'a.medicamentos_uso as medicamentos_uso',
-          'a.observacoes_triagem as observacoes_triagem',
-          'a.status_destino as status_destino',
-          'p.nome as paciente_nome',
-          'p.nascimento as paciente_nascimento',
-          'p.sexo as paciente_sexo',
-          'p.sus as paciente_sus'
-        )
-        .where('a.id', req.params.id)
-        .first();
-      res.json(atendimento || {});
-    }
+
+    const atendimento = await knex('atendimentos as a')
+      .leftJoin('pacientes as p', 'a.paciente_id', 'p.id')
+      .select(
+        'a.motivo as motivo',
+        'a.observacoes as observacoes',
+        'a.pressao_arterial as pressao_arterial',
+        'a.temperatura as temperatura',
+        'a.frequencia_cardiaca as frequencia_cardiaca',
+        'a.frequencia_respiratoria as frequencia_respiratoria',
+        'a.saturacao_oxigenio as saturacao_oxigenio',
+        'a.peso as peso',
+        'a.altura as altura',
+        'a.classificacao_risco as classificacao_risco',
+        'a.prioridade as prioridade',
+        'a.queixa_principal as queixa_principal',
+        'a.historia_atual as historia_atual',
+        'a.alergias as alergias',
+        'a.medicamentos_uso as medicamentos_uso',
+        'a.observacoes_triagem as observacoes_triagem',
+        'a.status_destino as status_destino',
+        'p.nome as paciente_nome',
+        'p.nascimento as paciente_nascimento',
+        'p.sexo as paciente_sexo',
+        'p.sus as paciente_sus'
+      )
+      .where('a.id', req.params.id)
+      .first();
+
+    res.json({ consulta: consulta || {}, triagem: atendimento || {} });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

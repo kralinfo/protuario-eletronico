@@ -149,26 +149,34 @@ class TriagemController {
       const { id } = req.params;
       const dadosTriagem = req.body;
 
-      // Validar classificação de risco se fornecida
-      if (dadosTriagem.classificacao_risco && !CLASSIFICACAO_RISCO[dadosTriagem.classificacao_risco]) {
-        return res.status(400).json({ 
-          error: 'Classificação de risco inválida' 
+      console.log(`[SALVAR TRIAGEM] ID: ${id}, Dados:`, dadosTriagem);
+
+      // Verificar se o atendimento existe
+      const atendimentoAtual = await db.query(
+        'SELECT id, status FROM atendimentos WHERE id = $1',
+        [id]
+      );
+
+      if (atendimentoAtual.rows.length === 0) {
+        console.log(`[SALVAR TRIAGEM] Atendimento ${id} não encontrado`);
+        return res.status(404).json({ 
+          error: 'Atendimento não encontrado' 
         });
       }
 
-      // Se classificação foi definida, definir prioridade automaticamente
-      if (dadosTriagem.classificacao_risco) {
-        dadosTriagem.prioridade = CLASSIFICACAO_RISCO[dadosTriagem.classificacao_risco].prioridade;
-      }
+      const statusAtual = atendimentoAtual.rows[0].status;
+      console.log(`[SALVAR TRIAGEM] Status atual do atendimento ${id}: ${statusAtual}`);
 
       const atendimento = await Atendimento.salvarTriagem(id, dadosTriagem);
       
       if (!atendimento) {
-        return res.status(404).json({ 
-          error: 'Atendimento não encontrado ou não está em triagem' 
+        console.log(`[SALVAR TRIAGEM] Falha ao salvar triagem - Erro desconhecido`);
+        return res.status(500).json({ 
+          error: 'Erro ao salvar dados da triagem' 
         });
       }
 
+      console.log(`[SALVAR TRIAGEM] Triagem salva com sucesso para atendimento ${id}`);
       res.json({
         message: 'Dados da triagem salvos com sucesso',
         atendimento
