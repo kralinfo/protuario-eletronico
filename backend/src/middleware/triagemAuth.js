@@ -28,9 +28,6 @@ const triagemAuth = (req, res, next) => {
 
     req.user = user;
 
-    // LOG para depuração
-    console.log('[TRIAGEM AUTH DEBUG] user.modulos:', user.modulos, '| user.nivel:', user.nivel);
-
     // Verificar se o usuário tem acesso ao módulo de triagem
     if (!user.modulos || !Array.isArray(user.modulos)) {
       return res.status(403).json({

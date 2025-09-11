@@ -99,10 +99,6 @@ class TriagemController {
       const { id } = req.params;
       const usuario_id = req.user?.id; // Pegar do token JWT
 
-      // Debug logs
-      console.log('[INICIAR TRIAGEM DEBUG] req.user:', req.user);
-      console.log('[INICIAR TRIAGEM DEBUG] usuario_id:', usuario_id);
-
       if (!usuario_id) {
         return res.status(400).json({ error: 'ID do usuário é obrigatório' });
       }

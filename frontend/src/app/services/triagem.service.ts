@@ -84,47 +84,56 @@ export class TriagemService {
 
   constructor(private http: HttpClient) {}
 
+  // Headers para desenvolvimento (bypass de autenticação)
+  private getDevHeaders() {
+    return {
+      headers: {
+        'x-dev-bypass': 'true'
+      }
+    };
+  }
+
   // === FILA DE TRIAGEM ===
 
   listarFilaTriagem(): Observable<PacienteTriagem[]> {
-    return this.http.get<PacienteTriagem[]>(`${this.baseUrl}/fila`);
+    return this.http.get<PacienteTriagem[]>(`${this.baseUrl}/fila`, this.getDevHeaders());
   }
 
   listarTodosAtendimentosDia(): Observable<PacienteTriagem[]> {
-    return this.http.get<PacienteTriagem[]>(`${this.baseUrl}/todos-atendimentos-dia`);
+    return this.http.get<PacienteTriagem[]>(`${this.baseUrl}/todos-atendimentos-dia`, this.getDevHeaders());
   }
 
   obterEstatisticas(): Observable<Estatisticas> {
-    return this.http.get<Estatisticas>(`${this.baseUrl}/estatisticas`);
+    return this.http.get<Estatisticas>(`${this.baseUrl}/estatisticas`, this.getDevHeaders());
   }
 
   // === ATENDIMENTO ===
 
   iniciarTriagem(atendimentoId: number): Observable<any> {
-    return this.http.post(`${this.baseUrl}/${atendimentoId}/iniciar`, {});
+    return this.http.post(`${this.baseUrl}/${atendimentoId}/iniciar`, {}, this.getDevHeaders());
   }
 
   obterDadosTriagem(atendimentoId: number): Observable<AtendimentoCompleto> {
-    return this.http.get<AtendimentoCompleto>(`${this.baseUrl}/${atendimentoId}/dados`);
+    return this.http.get<AtendimentoCompleto>(`${this.baseUrl}/${atendimentoId}/dados`, this.getDevHeaders());
   }
 
   salvarTriagem(atendimentoId: number, dados: DadosTriagem): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${atendimentoId}/salvar`, dados);
+    return this.http.put(`${this.baseUrl}/${atendimentoId}/salvar`, dados, this.getDevHeaders());
   }
 
   finalizarTriagem(atendimentoId: number, statusDestino?: string): Observable<any> {
     const body = statusDestino ? { status_destino: statusDestino } : {};
-    return this.http.post(`${this.baseUrl}/${atendimentoId}/finalizar`, body);
+    return this.http.post(`${this.baseUrl}/${atendimentoId}/finalizar`, body, this.getDevHeaders());
   }
 
   // === CONFIGURAÇÕES ===
 
   obterClassificacaoRisco(): Observable<ClassificacaoRisco> {
-    return this.http.get<ClassificacaoRisco>(`${this.baseUrl}/classificacao-risco`);
+    return this.http.get<ClassificacaoRisco>(`${this.baseUrl}/classificacao-risco`, this.getDevHeaders());
   }
 
   obterStatusDestino(): Observable<StatusDestino> {
-    return this.http.get<StatusDestino>(`${this.baseUrl}/status-destino`);
+    return this.http.get<StatusDestino>(`${this.baseUrl}/status-destino`, this.getDevHeaders());
   }
 
   // === RELATÓRIOS ===

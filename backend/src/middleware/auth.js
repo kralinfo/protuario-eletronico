@@ -23,8 +23,6 @@ const auth = (roles = []) => {
         });
       }
       req.user = user;
-      // LOG para depuração do nível recebido no token
-      console.log('[AUTH DEBUG] user.nivel:', user.nivel, '| roles permitidos:', roles);
       if (roles.length > 0 && !roles.includes(user.nivel)) {
         return res.status(403).json({
           status: 'ERROR',

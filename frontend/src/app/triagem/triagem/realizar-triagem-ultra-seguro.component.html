@@ -1,118 +1,155 @@
-<div class="triagem-container">
-  <div class="header">
-    <button mat-icon-button (click)="voltar()">
+<div class="container mx-auto p-6 bg-gray-50 rounded-lg shadow-md">
+  <div class="flex items-center gap-4 mb-6">
+    <button class="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600" (click)="voltar()">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1>
-      <mat-icon>medical_services</mat-icon>
+    <h1 class="text-2xl font-bold text-gray-800">
       Triagem - {{nomePaciente}}
     </h1>
+    
+    <!-- Botão para alternar edição (similar ao módulo médico) -->
+    <div class="ml-auto" *ngIf="triagemRealizada">
+      <button 
+        class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+        [class]="edicaoHabilitada ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-green-500 text-white hover:bg-green-600'"
+        (click)="alternarEdicao()">
+        <mat-icon>{{ edicaoHabilitada ? 'visibility' : 'edit' }}</mat-icon>
+        {{ edicaoHabilitada ? 'Desabilitar Edição' : 'Habilitar Edição' }}
+      </button>
+    </div>
   </div>
 
-  <!-- Status do Sistema -->
-  <!-- Card removido - carregamento automático implementado -->
+  <!-- Indicador do modo atual -->
+  <div *ngIf="triagemRealizada" class="mb-4 p-3 rounded-lg"
+       [class]="edicaoHabilitada ? 'bg-orange-100 border border-orange-300' : 'bg-blue-100 border border-blue-300'">
+    <div class="flex items-center gap-2">
+      <mat-icon [class]="edicaoHabilitada ? 'text-orange-600' : 'text-blue-600'">
+        {{ edicaoHabilitada ? 'edit' : 'visibility' }}
+      </mat-icon>
+      <span [class]="edicaoHabilitada ? 'text-orange-800' : 'text-blue-800'" class="font-medium">
+        {{ edicaoHabilitada ? 'Modo Edição Ativado' : 'Modo Visualização' }}
+      </span>
+    </div>
+  </div>
 
-  <!-- Formulário Ultra Simples -->
   <form [formGroup]="triagemForm" (ngSubmit)="salvarTriagem()">
-    <mat-card class="form-card">
-      <mat-card-header>
-        <mat-card-title>Dados da Triagem</mat-card-title>
-        <mat-card-subtitle>
-          <!-- Removed button with edit icon -->
-        </mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <!-- Aviso quando não pode editar -->
-        <div *ngIf="!podeEditar" class="status-warning">
-          <mat-icon>info</mat-icon>
-          <span>
-            <ng-container *ngIf="statusAtendimento !== 'em_triagem' && statusAtendimento !== 'em triagem' && statusAtendimento !== '2 - Em triagem'">
-              Esta triagem foi finalizada e não pode ser editada. Status atual: {{statusAtendimento}}
-            </ng-container>
-            <ng-container *ngIf="statusAtendimento === 'em_triagem' || statusAtendimento === 'em triagem' || statusAtendimento === '2 - Em triagem'">
-              Visualizando detalhes da triagem em modo somente leitura.
-            </ng-container>
-          </span>
+    <div class="mt-6 bg-white p-4 rounded-lg shadow mb-6">
+      <h3 class="text-md font-medium text-gray-600 mb-2">Sinais Vitais</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Pressão Arterial</label>
+          <input 
+            class="w-full p-2 border border-gray-300 rounded"
+            [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+            formControlName="pressao_arterial" 
+            placeholder="Pressão Arterial (Ex: 120/80)">
         </div>
-
-        <!-- Sinais Vitais -->
-        <h3>Sinais Vitais</h3>
-        <div class="form-row">
-          <mat-form-field>
-            <mat-label>Pressão Arterial</mat-label>
-            <input matInput formControlName="pressao_arterial" placeholder="120/80">
-          </mat-form-field>
-
-          <mat-form-field>
-            <mat-label>Temperatura (°C)</mat-label>
-            <input matInput type="number" formControlName="temperatura" step="0.1">
-          </mat-form-field>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Temperatura (°C)</label>
+          <input 
+            class="w-full p-2 border border-gray-300 rounded" 
+            [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+            type="number" 
+            formControlName="temperatura" 
+            placeholder="Temperatura (°C)">
         </div>
-
-        <div class="form-row">
-          <mat-form-field>
-            <mat-label>Frequência Cardíaca</mat-label>
-            <input matInput type="number" formControlName="frequencia_cardiaca">
-          </mat-form-field>
-
-          <mat-form-field>
-            <mat-label>Saturação O2 (%)</mat-label>
-            <input matInput type="number" formControlName="saturacao_oxigenio" min="70" max="100">
-          </mat-form-field>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Frequência Cardíaca</label>
+          <input 
+            class="w-full p-2 border border-gray-300 rounded" 
+            [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+            type="number" 
+            formControlName="frequencia_cardiaca" 
+            placeholder="Frequência Cardíaca">
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Saturação O2 (%)</label>
+          <input 
+            class="w-full p-2 border border-gray-300 rounded" 
+            [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+            type="number" 
+            formControlName="saturacao_oxigenio" 
+            placeholder="Saturação O2 (%)">
+        </div>
+      </div>
+    </div>
 
-        <!-- Classificação de Risco -->
-        <h3>Classificação de Risco</h3>
-        <mat-form-field>
-          <mat-label>Classificação de Risco</mat-label>
-          <mat-select formControlName="classificacao_risco">
-            <mat-option value="vermelho">🔴 Vermelho - Emergência</mat-option>
-            <mat-option value="laranja">🟠 Laranja - Urgente</mat-option>
-            <mat-option value="amarelo">🟡 Amarelo - Pouco Urgente</mat-option>
-            <mat-option value="verde">🟢 Verde - Não Urgente</mat-option>
-            <mat-option value="azul">🔵 Azul - Eletivo</mat-option>
-          </mat-select>
-        </mat-form-field>
+    <div class="mt-6 bg-white p-4 rounded-lg shadow mb-6">
+      <h3 class="text-md font-medium text-gray-600 mb-2">Classificação de Risco</h3>
+      <div class="relative">
+        <select 
+          class="w-full p-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none" 
+          [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+          formControlName="classificacao_risco">
+          <option value="">Selecione a classificação</option>
+          <option value="vermelho">🔴 Vermelho - Emergência</option>
+          <option value="laranja">🟠 Laranja - Urgente</option>
+          <option value="amarelo">🟡 Amarelo - Pouco Urgente</option>
+          <option value="verde">🟢 Verde - Não Urgente</option>
+          <option value="azul">🔵 Azul - Eletivo</option>
+        </select>
+      </div>
+    </div>
 
-        <mat-form-field>
-          <mat-label>Encaminhar para</mat-label>
-          <mat-select formControlName="status_destino">
-            <mat-option value="encaminhado para sala médica">Sala Médica</mat-option>
-            <mat-option value="encaminhado para ambulatório">Ambulatório</mat-option>
-            <mat-option value="encaminhado para exames">Exames</mat-option>
-          </mat-select>
-        </mat-form-field>
+    <div class="mt-6 bg-white p-4 rounded-lg shadow mb-6">
+      <h3 class="text-md font-medium text-gray-600 mb-2">Dados Clínicos</h3>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Queixa Principal</label>
+        <textarea 
+          class="w-full p-2 border border-gray-300 rounded" 
+          [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+          formControlName="queixa_principal" 
+          rows="3" 
+          placeholder="Queixa Principal"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">História Atual</label>
+        <textarea 
+          class="w-full p-2 border border-gray-300 rounded" 
+          [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+          formControlName="historia_atual" 
+          rows="3" 
+          placeholder="História Atual"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+        <textarea 
+          class="w-full p-2 border border-gray-300 rounded" 
+          [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+          formControlName="observacoes_triagem" 
+          rows="2" 
+          placeholder="Observações"></textarea>
+      </div>
+    </div>
 
-        <!-- Dados Clínicos -->
-        <h3>Dados Clínicos</h3>
-        <mat-form-field>
-          <mat-label>Queixa Principal</mat-label>
-          <textarea matInput formControlName="queixa_principal" rows="3"></textarea>
-        </mat-form-field>
+    <div class="mt-6 bg-white p-4 rounded-lg shadow mb-6">
+      <h3 class="text-md font-medium text-gray-600 mb-2">Encaminhamento</h3>
+      <select 
+        class="w-full p-2 border border-gray-300 rounded" 
+        [class.bg-gray-100]="triagemRealizada && !edicaoHabilitada"
+        formControlName="status_destino">
+        <option value="encaminhado para sala médica">Sala Médica</option>
+        <option value="encaminhado para ambulatório">Ambulatório</option>
+        <option value="encaminhado para exames">Exames</option>
+      </select>
+    </div>
 
-        <mat-form-field>
-          <mat-label>História Atual</mat-label>
-          <textarea matInput formControlName="historia_atual" rows="3"></textarea>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-label>Observações</mat-label>
-          <textarea matInput formControlName="observacoes_triagem" rows="2"></textarea>
-        </mat-form-field>
-      </mat-card-content>
-
-      <mat-card-actions>
-        <button *ngIf="podeEditar" mat-raised-button color="primary" type="submit" [disabled]="!triagemForm.valid || salvando">
-          <mat-icon>save</mat-icon>
-          {{salvando ? 'Finalizando...' : 'Finalizar Triagem'}}
-        </button>
-
-        <button mat-button type="button" (click)="voltar()">
-          <mat-icon>cancel</mat-icon>
-          {{podeEditar ? 'Cancelar' : 'Voltar'}}
-        </button>
-      </mat-card-actions>
-    </mat-card>
+    <div class="flex justify-end gap-4">
+      <!-- Botão Finalizar Triagem - só aparece se não for triagem realizada OU se edição estiver habilitada -->
+      <button 
+        *ngIf="!triagemRealizada || edicaoHabilitada"
+        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" 
+        type="submit" 
+        [disabled]="!triagemForm.valid || salvando">
+        <mat-icon>save</mat-icon>
+        {{salvando ? 'Salvando...' : (triagemRealizada && edicaoHabilitada ? 'Salvar Alterações' : 'Finalizar Triagem')}}
+      </button>
+      
+      <!-- Botão Voltar - sempre visível -->
+      <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400" type="button" (click)="voltar()">
+        <mat-icon>cancel</mat-icon>
+        Voltar
+      </button>
+    </div>
   </form>
 </div>

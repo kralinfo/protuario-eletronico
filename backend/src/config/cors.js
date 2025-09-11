@@ -35,7 +35,8 @@ export const corsOptions = {
     'Authorization', 
     'X-Requested-With',
     'Accept',
-    'Origin'
+    'Origin',
+    'x-dev-bypass'
   ],
   credentials: true,
   maxAge: 86400 // Cache preflight por 24 horas

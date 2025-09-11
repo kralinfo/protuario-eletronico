@@ -82,12 +82,14 @@ class Atendimento {
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
        WHERE (
-         -- Itens do dia atual
-         (DATE(a.data_hora_atendimento) = CURRENT_DATE AND a.status IN (
+         -- Itens dos últimos 2 dias (mais flexível para testes)
+         (DATE(a.data_hora_atendimento) >= CURRENT_DATE - INTERVAL '1 day' AND a.status IN (
            'encaminhado para triagem',
            'encaminhado para sala médica',
-           'encaminhado para ambulatório',
+           'encaminhado para ambulatório', 
+           'encaminhado_para_ambulatorio',
            'encaminhado para exames',
+           'encaminhado_para_exames',
            'em atendimento médico',
            'aguardando exames',
            'exames concluídos',
@@ -133,6 +135,7 @@ class Atendimento {
       temperatura,
       frequencia_cardiaca,
       saturacao_oxigenio,
+      classificacao_risco,
       queixa_principal,
       historia_atual,
       observacoes_triagem
@@ -141,8 +144,8 @@ class Atendimento {
     const result = await db.query(
       `UPDATE atendimentos 
        SET pressao_arterial = $2, temperatura = $3, frequencia_cardiaca = $4,
-           saturacao_oxigenio = $5, queixa_principal = $6,
-           historia_atual = $7, observacoes_triagem = $8, updated_at = CURRENT_TIMESTAMP
+           saturacao_oxigenio = $5, classificacao_risco = $6, queixa_principal = $7,
+           historia_atual = $8, observacoes_triagem = $9, updated_at = CURRENT_TIMESTAMP
        WHERE id = $1
        RETURNING *`,
       [
@@ -151,6 +154,7 @@ class Atendimento {
         parseNum(temperatura),
         parseNum(frequencia_cardiaca),
         parseNum(saturacao_oxigenio),
+        classificacao_risco,
         queixa_principal,
         historia_atual,
         observacoes_triagem

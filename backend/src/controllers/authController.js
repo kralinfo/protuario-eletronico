@@ -118,16 +118,11 @@ class AuthController {
       // Buscar usuário por email
       const usuario = await Usuario.findByEmail(email);
       if (!usuario) {
-        console.log(`[LOGIN DEBUG] Usuário não encontrado para email: '${email}'`);
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }
 
       // Verificar senha
-      console.log(`[LOGIN DEBUG] Email recebido: '${email}'`);
-      console.log(`[LOGIN DEBUG] Senha recebida: '${senha}'`);
-      console.log(`[LOGIN DEBUG] Hash no banco: '${usuario.senha}'`);
       const senhaValida = await bcrypt.compare(senha, usuario.senha);
-      console.log(`[LOGIN DEBUG] Resultado do bcrypt.compare: ${senhaValida}`);
       if (!senhaValida) {
         throw new AppError('Credenciais inválidas', 401, 'INVALID_CREDENTIALS');
       }

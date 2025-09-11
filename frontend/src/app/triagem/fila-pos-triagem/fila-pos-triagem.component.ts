@@ -57,7 +57,12 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
   async carregarDados(mostrarLoading = true) {
     try {
       if (mostrarLoading) this.carregando = true;
+      console.log('[Pós-Triagem] Carregando dados...');
       const pacientes = await firstValueFrom(this.triagemService.listarTodosAtendimentosDia());
+
+      console.log('[Pós-Triagem] Total de registros recebidos:', pacientes?.length);
+      console.log('[Pós-Triagem] Primeiros 3 registros:', pacientes?.slice(0, 3));
+
       const POS_TRIAGEM = new Set([
         'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
         'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
@@ -66,16 +71,21 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
         'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
         'aguardando exames', 'exames concluídos', 'alta médica', 'transferido', 'óbito'
       ]);
+
       const lista = (pacientes || [])
         .filter(p => p && POS_TRIAGEM.has(p.status))
         .filter(p => !this.filtroStatus || p.status === this.filtroStatus)
         .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
+
+      console.log('[Pós-Triagem] Após filtro de status:', lista.length);
+      console.log('[Pós-Triagem] Status únicos encontrados:', [...new Set(pacientes?.map(p => p.status) || [])]);
+      console.log(`[Pós-Triagem] ${lista.length} pacientes encontrados`);
       this.pacientes = lista;
 
       const tempos = this.pacientes.map(p => p.tempo_espera || 0);
-      this.tempoMedioEspera = tempos.length ? Math.round(tempos.reduce((a,b)=>a+b,0) / tempos.length) : 0;
+      this.tempoMedioEspera = tempos.length ? Math.round(tempos.reduce((a, b) => a + b, 0) / tempos.length) : 0;
     } catch (err) {
-      console.error('Erro ao carregar pós-triagem:', err);
+      console.error('[Pós-Triagem] Erro ao carregar dados:', err);
       this.snackBar.open('Erro ao carregar pós-triagem', 'Fechar', { duration: 5000 });
     } finally {
       this.carregando = false;
@@ -85,11 +95,11 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
   abrirTriagem(paciente: PacienteTriagem) {
     if (!paciente?.id) return;
     // Abrir em modo visualização (somente leitura) para pacientes pós-triagem
-    this.router.navigate(['/triagem/realizar', paciente.id], { 
-      state: { 
+    this.router.navigate(['/triagem/realizar', paciente.id], {
+      state: {
         modoVisualizacao: true,
-        paciente_nome: paciente.paciente_nome 
-      } 
+        paciente_nome: paciente.paciente_nome
+      }
     });
   }
 
