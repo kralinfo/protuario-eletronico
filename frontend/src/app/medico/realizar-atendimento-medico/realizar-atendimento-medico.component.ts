@@ -71,8 +71,17 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Habilitar edição automaticamente ao carregar o modal
-    this.edicaoHabilitada = true;
+    // Ajustar estados de visualização e edição
+    if (this.modoVisualizacao || this.consultaRealizada) {
+      this.consultaRealizada = true;
+      this.podeEditar = false;
+      this.edicaoHabilitada = false;
+      console.log('Modo visualização ativado - consulta realizada em modo somente leitura');
+    } else {
+      this.podeEditar = true;
+      this.edicaoHabilitada = true;
+      console.log('Modo edição ativado - consulta em andamento');
+    }
 
     // Se for uma consulta realizada, não alterar o status automaticamente
     if (this.consultaRealizada) {
@@ -319,6 +328,22 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     this.labelBotao = 'Consulta Finalizada';
     this.atendimentoForm.disable(); // Desabilita todo o formulário
     console.log('🔒 Edição desabilitada para consulta realizada');
+  }
+
+  alternarEdicao() {
+    this.edicaoHabilitada = !this.edicaoHabilitada;
+
+    if (this.edicaoHabilitada) {
+      // Habilitar formulário para edição
+      this.atendimentoForm.enable();
+      this.snackBar.open('Modo edição ativado', 'Fechar', { duration: 2000 });
+      console.log('Modo edição ativado');
+    } else {
+      // Desabilitar formulário e voltar ao modo visualização
+      this.atendimentoForm.disable();
+      this.snackBar.open('Modo visualização ativado', 'Fechar', { duration: 2000 });
+      console.log('Modo visualização ativado');
+    }
   }
 
   salvarTriagem() {

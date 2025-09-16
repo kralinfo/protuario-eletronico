@@ -5,8 +5,31 @@
     </button>
     <h1 class="text-2xl font-bold text-gray-800">
       Atendimento Médico - {{nomePaciente}}
-      <span *ngIf="consultaRealizada" class="text-sm text-gray-500 ml-2">(Visualização)</span>
     </h1>
+
+    <!-- Botão para alternar edição -->
+    <div class="ml-auto" *ngIf="consultaRealizada">
+      <button
+        class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+        [ngClass]="edicaoHabilitada ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-green-500 text-white hover:bg-green-600'"
+        (click)="alternarEdicao()">
+        <mat-icon>{{ edicaoHabilitada ? 'visibility' : 'edit' }}</mat-icon>
+        {{ edicaoHabilitada ? 'Desabilitar Edição' : 'Habilitar Edição' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Indicador do modo atual -->
+  <div *ngIf="consultaRealizada" class="mb-4 p-3 rounded-lg"
+       [ngClass]="edicaoHabilitada ? 'bg-orange-100 border border-orange-300' : 'bg-blue-100 border border-blue-300'">
+    <div class="flex items-center gap-2">
+      <mat-icon [ngClass]="edicaoHabilitada ? 'text-orange-600' : 'text-blue-600'">
+        {{ edicaoHabilitada ? 'edit' : 'visibility' }}
+      </mat-icon>
+      <span [ngClass]="edicaoHabilitada ? 'text-orange-800' : 'text-blue-800'" class="font-medium">
+        {{ edicaoHabilitada ? 'Modo Edição Ativado' : 'Modo Visualização' }}
+      </span>
+    </div>
   </div>
 
   <form [formGroup]="atendimentoForm" (ngSubmit)="salvarAtendimento()">
@@ -244,27 +267,20 @@
     </div>
 
     <div class="flex justify-end gap-4">
-      <!-- Botão para habilitar edição quando for consulta realizada -->
-      <button *ngIf="consultaRealizada && !edicaoHabilitada" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" type="button" (click)="habilitarEdicao()">
-        <mat-icon>edit</mat-icon>
-        Habilitar Edição
-      </button>
-
-      <!-- Botão para desabilitar edição quando for consulta realizada e edição estiver habilitada -->
-      <button *ngIf="consultaRealizada && edicaoHabilitada" class="px-4 py-2 bg-yellow-300 text-white rounded hover:bg-yellow-400" type="button" (click)="desabilitarEdicao()">
-        <mat-icon>visibility</mat-icon>
-        Modo Visualização
-      </button>
-
-      <!-- Botão de salvar (só aparece quando pode editar) -->
-      <button *ngIf="podeEditar" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" type="submit" [disabled]="!atendimentoForm.valid || salvando">
+      <!-- Botão de salvar - só aparece se não for consulta realizada OU se edição estiver habilitada -->
+      <button
+        *ngIf="!consultaRealizada || edicaoHabilitada"
+        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+        type="submit"
+        [disabled]="!atendimentoForm.valid || salvando">
         <mat-icon>save</mat-icon>
-        {{salvando ? (labelBotao === 'Salvar Modificações' ? 'Salvando...' : 'Finalizando...') : labelBotao}}
+        {{salvando ? 'Salvando...' : (consultaRealizada && edicaoHabilitada ? 'Salvar Alterações' : 'Finalizar Atendimento')}}
       </button>
 
+      <!-- Botão Voltar - sempre visível -->
       <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400" type="button" (click)="voltar()">
         <mat-icon>cancel</mat-icon>
-        {{podeEditar ? 'Cancelar' : 'Voltar'}}
+        Voltar
       </button>
     </div>
   </form>
