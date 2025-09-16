@@ -94,6 +94,18 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
 
   abrirTriagem(paciente: PacienteTriagem) {
     if (!paciente?.id) return;
+
+    // Define restricted statuses for editing
+    const RESTRICTED_STATUSES = new Set([
+      'alta médica', 'transferido', 'óbito'
+    ]);
+
+    // Check if the patient's status is restricted
+    if (RESTRICTED_STATUSES.has(paciente.status)) {
+      this.snackBar.open('Edição não permitida para este status.', 'Fechar', { duration: 5000 });
+      return;
+    }
+
     // Abrir em modo visualização (somente leitura) para pacientes pós-triagem
     this.router.navigate(['/triagem/realizar', paciente.id], {
       state: {

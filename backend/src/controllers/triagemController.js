@@ -213,6 +213,11 @@ class TriagemController {
       }
 
       const { status_destino = 'encaminhado para sala médica' } = req.body;
+      
+      console.log('DEBUG - Finalizando triagem:');
+      console.log('ID:', id);
+      console.log('Status destino recebido:', status_destino);
+      console.log('Body completo:', req.body);
 
       const atendimento = await Atendimento.finalizarTriagem(id, status_destino);
       

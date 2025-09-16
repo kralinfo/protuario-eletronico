@@ -47,7 +47,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   salvando = false;
   nomePaciente = 'Carregando...';
   statusAtendimento = '';
-  modoVisualizacao = false; // Controla se é modo visualização
+  modoVisualizacao = false; // Controla se é modo visualizacao
   consultaRealizada = false; // Controla se é uma consulta já realizada
   edicaoHabilitada = false; // Controla se a edição foi habilitada pelo usuário
 
@@ -71,6 +71,9 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Habilitar edição automaticamente ao carregar o modal
+    this.edicaoHabilitada = true;
+
     // Se for uma consulta realizada, não alterar o status automaticamente
     if (this.consultaRealizada) {
       console.log('🔍 Consulta realizada detectada - carregando em modo visualização');
