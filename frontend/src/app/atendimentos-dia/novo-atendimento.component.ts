@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-novo-atendimento',
   templateUrl: './novo-atendimento.component.html',
+  styleUrls: ['./novo-atendimento.component.scss'],
   standalone: true,
   imports: [PacientesFormComponent, CommonModule, FormsModule],
 })
@@ -49,19 +50,19 @@ export class NovoAtendimentoComponent {
   motivo_interrupcao: string = '';
   exibirCadastroPaciente: boolean = false;
   horario: string = '';
-  
+
   // Propriedades para edição
   isEdicao: boolean = false;
   atendimentoId: number | null = null;
   atendimentoOriginal: any = null;
-  
+
   apiUrl = environment.apiUrl + '/pacientes';
   private filtroSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
   constructor(
-    private http: HttpClient, 
-    private dialog: MatDialog, 
+    private http: HttpClient,
+    private dialog: MatDialog,
     private router: Router,
     private route: ActivatedRoute,
     private atendimentoService: AtendimentoService
@@ -77,7 +78,7 @@ export class NovoAtendimentoComponent {
   ngOnInit() {
     // Inicializa lista vazia
     this.pacientesFiltrados = [];
-    
+
     // Verifica se é edição baseado nos parâmetros da rota
     this.route.params.subscribe(params => {
       if (params['id']) {
@@ -116,14 +117,14 @@ export class NovoAtendimentoComponent {
     this.procedencia = atendimento.procedimento || atendimento.procedencia || '';
     this.status = atendimento.status || 'encaminhado para triagem';
     this.motivo_interrupcao = atendimento.motivo_interrupcao || '';
-    
+
     // Para edição, precisamos simular a seleção do paciente
     this.pacienteSelecionado = {
       id: atendimento.paciente_id,
       nome: atendimento.paciente_nome
     };
     this.filtroPaciente = atendimento.paciente_nome || '';
-    
+
     // Converter data/hora do atendimento para o formato do input
     if (atendimento.data_hora_atendimento) {
       const data = new Date(atendimento.data_hora_atendimento);
@@ -222,12 +223,12 @@ export class NovoAtendimentoComponent {
       status: this.status,
       motivo_interrupcao: this.status === 'interrompido' ? this.motivo_interrupcao : undefined
     };
-    
+
     // Determinar a mensagem e ação baseada no modo
     const isEdit = this.isEdicao;
     const confirmMessage = isEdit ? 'Atualizar dados do atendimento?' : 'Registrar atendimento para este paciente?';
     const confirmTitle = isEdit ? 'Confirmar Atualização' : 'Confirmação';
-    
+
     // Exibe dialog de confirmação antes de registrar/atualizar
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
@@ -284,7 +285,7 @@ export class NovoAtendimentoComponent {
         }
       });
   }
-  
+
   atualizarAtendimento(atendimento: any) {
     this.atendimentoService.atualizarAtendimento(this.atendimentoId!, atendimento)
       .subscribe({
@@ -314,7 +315,7 @@ export class NovoAtendimentoComponent {
         }
       });
   }
-  
+
   // Atualizar lista de pacientes filtrados ao digitar
   onFiltroPacienteChange() {
     this.pacienteSelecionado = null;

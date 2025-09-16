@@ -1,0 +1,35 @@
+/* Estilo customizado para o campo Status do atendimento */
+.status-field-custom {
+  @media (min-width: 768px) {
+    grid-column: span 1.5 / span 1.5;
+    /* Fallback para navegadores que não suportam span fracional */
+    flex: 1.5;
+    min-width: 200px;
+    max-width: 300px;
+  }
+}
+
+/* Ajuste para o campo de observações para compensar */
+.observacoes-field-custom {
+  @media (min-width: 768px) {
+    grid-column: span 2.5 / span 2.5;
+    /* Fallback */
+    flex: 2.5;
+  }
+}
+
+/* Container customizado para melhor controle */
+.form-row-custom {
+  @media (min-width: 768px) {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+}
+
+/* Garantir que os campos se comportem bem */
+.status-field-custom,
+.observacoes-field-custom {
+  display: flex;
+  flex-direction: column;
+}
