@@ -72,11 +72,12 @@ export class BreadcrumbService {
       }
     }
 
-    // Se for dashboard médico ou ambulatorio, não exibe nenhum breadcrumb
+    // Se for dashboard médico, ambulatorio ou triagem, não exibe nenhum breadcrumb
     const modulo = this.authService.getSelectedModule?.() || localStorage.getItem('moduloSelecionado');
     const isMedicoDashboard = modulo === 'medico' && breadcrumbs.length === 1 && (breadcrumbs[0].url === '/medico' || breadcrumbs[0].url === '/medico/');
     const isAmbulatorioDashboard = modulo === 'ambulatorio' && breadcrumbs.length === 1 && (breadcrumbs[0].url === '/ambulatorio' || breadcrumbs[0].url === '/ambulatorio/');
-    if (isMedicoDashboard || isAmbulatorioDashboard) {
+    const isTriagemDashboard = modulo === 'triagem' && breadcrumbs.length === 1 && (breadcrumbs[0].url === '/triagem' || breadcrumbs[0].url === '/triagem/');
+    if (isMedicoDashboard || isAmbulatorioDashboard || isTriagemDashboard) {
       this.breadcrumbsSubject.next([]);
       return;
     }
@@ -84,7 +85,7 @@ export class BreadcrumbService {
     if (breadcrumbs.length > 0) {
       breadcrumbs[breadcrumbs.length - 1].isActive = true;
     }
-    // Adiciona Home para módulo médico ou ambulatorio nas demais telas
+    // Adiciona Home para módulo médico, ambulatorio ou triagem nas demais telas
     if (modulo === 'medico' && breadcrumbs.length > 0 && !this.isLoginPage()) {
       breadcrumbs.unshift({
         label: 'Home',
@@ -101,7 +102,15 @@ export class BreadcrumbService {
         title: 'Dashboard Ambulatorio',
         isActive: false
       });
-    } else if (modulo !== 'medico' && modulo !== 'ambulatorio' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
+    } else if (modulo === 'triagem' && breadcrumbs.length > 0 && !this.isLoginPage()) {
+      breadcrumbs.unshift({
+        label: 'Home',
+        url: '/triagem',
+        icon: 'home',
+        title: 'Dashboard de Triagem',
+        isActive: false
+      });
+    } else if (modulo !== 'medico' && modulo !== 'ambulatorio' && modulo !== 'triagem' && breadcrumbs.length > 0 && breadcrumbs[0].url !== '/' && !this.isLoginPage()) {
       breadcrumbs.unshift({
         label: 'Home',
         url: '/',
