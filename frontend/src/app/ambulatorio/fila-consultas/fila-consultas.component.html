@@ -1,7 +1,7 @@
 <div class="ambulatorio-container">
   <h1 class="page-title">
-    <mat-icon>local_hospital</mat-icon>
-    Fila de Atendimentos Ambulatoriais
+    <mat-icon>event_note</mat-icon>
+    Fila de Consultas Ambulatoriais
     <span class="flex-1"></span>
     <button mat-stroked-button color="primary" (click)="carregarDados()">
       <mat-icon>refresh</mat-icon>
@@ -9,12 +9,11 @@
     </button>
   </h1>
 
-  <!-- Estatísticas -->
   <div class="stats-cards">
     <mat-card class="stat-card">
       <mat-card-content>
         <div class="stat-number">{{contarPacientesAguardando()}}</div>
-        <div class="stat-label">Aguardando Atendimento</div>
+        <div class="stat-label">Aguardando Consulta</div>
       </mat-card-content>
     </mat-card>
 
@@ -24,7 +23,7 @@
         <div class="stat-label">Tempo Médio de Espera</div>
       </mat-card-content>
     </mat-card>
-     <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-2">
               <p class="text-sm font-medium text-gray-600">Por Classificação</p>
@@ -81,100 +80,84 @@
         </div>
   </div>
 
-  <!-- Filtro de Status -->
- <div class="status-filter mb-4 w-1/2">
-  <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
-  <select
-    [(ngModel)]="filtroStatus"
-    (change)="carregarDados()"
-    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-    <option value="">Todos os Status</option>
-    <option value="encaminhado para ambulatorio">Encaminhado</option>
-    <option value="em atendimento ambulatorial">Em Atendimento</option>
-    <option value="alta médica">Alta Médica</option>
-    <option value="transferido">Transferido</option>
-    <option value="óbito">Óbito</option>
-  </select>
-</div>
+  <div class="status-filter mb-4 w-1/2">
+    <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
+    <select [(ngModel)]="filtroStatus" (change)="carregarDados()" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+      <option value="">Todos os Status</option>
+      <option value="agendada">Agendada</option>
+      <option value="em consulta">Em Consulta</option>
+      <option value="finalizada">Finalizada</option>
+      <option value="cancelada">Cancelada</option>
+    </select>
+  </div>
 
-  <!-- Lista de Pacientes -->
-  <div class="patients-list" *ngIf="!carregando; else loadingTemplate">
-    <mat-card *ngFor="let paciente of pacientes; trackBy: trackPaciente"
-              class="patient-card"
-              [class.priority-alert]="paciente.alerta === 'tempo_excedido'">
-
+  <div class="consultas-list" *ngIf="!carregando; else loadingTemplate">
+    <mat-card *ngFor="let consulta of consultas; trackBy: trackConsulta" class="consulta-card" [class.priority-alert]="consulta.alerta === 'tempo_excedido'">
       <mat-card-header>
-        <div mat-card-avatar class="patient-avatar"
-             [style.background-color]="getCor(paciente.classificacao_risco)">
-          {{getIniciais(paciente.paciente_nome)}}
+        <div mat-card-avatar class="consulta-avatar" [style.background-color]="getCorEspecialidade(consulta.especialidade)">
+          {{getIniciais(consulta.paciente_nome)}}
         </div>
-
-        <mat-card-title>{{paciente.paciente_nome}}</mat-card-title>
+        <mat-card-title>{{consulta.paciente_nome}}</mat-card-title>
         <mat-card-subtitle>
-          {{getIdade(paciente.paciente_nascimento)}} anos • {{paciente.paciente_sexo}}
+          {{getIdade(consulta.paciente_nascimento)}} anos • {{consulta.paciente_sexo}}
         </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
-        <div class="patient-info">
+        <div class="consulta-info">
           <div class="info-row">
             <mat-icon>schedule</mat-icon>
-            <span>Tempo em espera: {{formatarTempo(paciente.tempo_espera ?? 0)}}</span>
-            <mat-icon *ngIf="paciente.alerta === 'tempo_excedido'"
-                      matTooltip="O paciente já ultrapassou o tempo máximo de espera recomendado"
-                      class="alert-icon">warning</mat-icon>
+            <span>Tempo em espera: {{formatarTempo(consulta.tempo_espera ?? 0)}}</span>
+            <mat-icon *ngIf="consulta.alerta === 'tempo_excedido'" matTooltip="Tempo de espera excedido" class="alert-icon">warning</mat-icon>
           </div>
 
-          <div class="info-row" *ngIf="paciente.queixa_principal">
-            <mat-icon>chat</mat-icon>
-            <span>{{paciente.queixa_principal}}</span>
+          <div class="info-row" *ngIf="consulta.especialidade">
+            <mat-icon>medical_services</mat-icon>
+            <span>Especialidade: {{consulta.especialidade}}</span>
+          </div>
+
+          <div class="info-row" *ngIf="consulta.medico">
+            <mat-icon>person</mat-icon>
+            <span>Médico: {{consulta.medico}}</span>
           </div>
 
           <div class="info-row">
             <mat-icon>event</mat-icon>
-            <span>Chegada: {{formatarDataHora(paciente.data_hora_atendimento)}}</span>
+            <span>Agendamento: {{formatarDataHora(consulta.data_hora_consulta)}}</span>
           </div>
 
           <div class="status-chip">
-            <mat-chip [style.background-color]="getCorStatus(paciente.status)">
-              {{getDescricaoStatus(paciente.status)}}
+            <mat-chip [style.background-color]="getCorStatus(consulta.status)">
+              {{getDescricaoStatus(consulta.status)}}
             </mat-chip>
           </div>
         </div>
       </mat-card-content>
 
       <mat-card-actions>
-        <!-- Em atendimento -->
-        <button *ngIf="isStatusEmAtendimentoAmbulatorial(paciente.status)"
-                mat-raised-button
-                color="accent"
-                (click)="continuarAtendimento(paciente)">
+        <button *ngIf="isStatusEmConsulta(consulta.status)" mat-raised-button color="accent" (click)="continuarConsulta(consulta)">
           <mat-icon>edit</mat-icon>
-          Continuar Atendimento
+          Continuar Consulta
         </button>
 
-        <!-- Detalhes -->
-        <button *ngIf="!isStatusEmAtendimentoAmbulatorial(paciente.status)"
-                mat-button
-                (click)="verDetalhes(paciente)">
+        <button *ngIf="!isStatusEmConsulta(consulta.status)" mat-button (click)="verDetalhes(consulta)">
           <mat-icon>visibility</mat-icon>
           Detalhes
         </button>
       </mat-card-actions>
     </mat-card>
 
-    <!-- Mensagem quando não há pacientes -->
-    <div *ngIf="pacientes.length === 0" class="no-patients">
+    <div *ngIf="consultas.length === 0" class="no-consultas">
       <mat-icon>check_circle</mat-icon>
-      <h3>Nenhum paciente em atendimento ambulatorial</h3>
-      <p>Todos os pacientes foram atendidos ou não há novos atendimentos.</p>
+      <h3>Nenhuma consulta ambulatorial pendente</h3>
+      <p>Todos os pacientes foram atendidos ou não há consultas agendadas.</p>
     </div>
   </div>
 
   <ng-template #loadingTemplate>
     <div class="loading-container">
       <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-      <p>Carregando fila de atendimentos...</p>
+      <p>Carregando fila de consultas...</p>
     </div>
   </ng-template>
 </div>

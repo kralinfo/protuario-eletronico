@@ -1,5 +1,3 @@
-/* Estilos básicos para a tela de fila de atendimentos ambulato */
-
 :host {
   --card-col-min: 420px;
 }
@@ -43,26 +41,26 @@
   color: #666;
 }
 
-.patients-list {
+.consultas-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--card-col-min), 1fr));
   gap: 15px;
 }
 
-.patient-card {
+.consulta-card {
   transition: all 0.3s ease;
 }
 
-.patient-card:hover {
+.consulta-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .priority-alert {
   border-left: 4px solid #e53e3e;
 }
 
-.patient-avatar {
+.consulta-avatar {
   color: white;
   font-weight: bold;
   display: flex;
@@ -70,7 +68,7 @@
   justify-content: center;
 }
 
-.patient-info {
+.consulta-info {
   margin: 10px 0;
 }
 
@@ -96,14 +94,14 @@
   font-weight: bold;
 }
 
-.no-patients {
+.no-consultas {
   text-align: center;
   padding: 40px;
   color: #666;
   grid-column: 1 / -1;
 }
 
-.no-patients mat-icon {
+.no-consultas mat-icon {
   font-size: 48px;
   color: #48bb78;
   margin-bottom: 10px;
