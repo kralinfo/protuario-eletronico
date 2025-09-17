@@ -4,6 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { AmbulatorioService } from '../ambulatorio.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 
 @Component({
   selector: 'app-dashboard-ambulatorio',
@@ -36,8 +38,8 @@ export class DashboardAmbulatorioComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private ambulatorioService: AmbulatorioService
-
+    private ambulatorioService: AmbulatorioService,
+    private dialog: MatDialog
   ) {}
   ngOnInit() {
      this.carregarEstatisticas();
@@ -102,5 +104,11 @@ export class DashboardAmbulatorioComponent implements OnInit {
   irParaFilaAtendimento() {
     this.router.navigate(['ambulatorio', 'fila']);
   }
-  
+
+  abrirDialogClassificacao() {
+    console.log('Abrindo modal de classificação de risco no dashboard ambulatório...');
+    this.dialog.open(ClassificacaoDialogComponent, {
+      panelClass: ['p-0', 'max-w-3xl', 'w-full']
+    });
+  }
 }

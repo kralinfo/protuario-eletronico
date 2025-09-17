@@ -37,4 +37,11 @@ export class AmbulatorioService {
   return this.http.get<any>('/api/ambulatorio/estatisticas-consultas');
 }
 
+showModal(modalId: string, data: any) {
+    // Implementação para abrir o modal
+    const modalElement = document.getElementById(modalId);
+    if (modalElement) {
+      modalElement.dispatchEvent(new CustomEvent('open', { detail: data }));
+    }
+  }
 }
