@@ -227,7 +227,7 @@
                     <div class="text-xs text-red-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
                   </div>
                 </div>
-                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
+                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(calcularTempoDecorrido(p)) }}</div>
               </li>
             </ul>
           </div>
@@ -246,7 +246,7 @@
                     <div class="text-xs text-orange-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
                   </div>
                 </div>
-                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
+                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(calcularTempoDecorrido(p)) }}</div>
               </li>
             </ul>
           </div>

@@ -17,7 +17,7 @@ import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/class
 export class DashboardAmbulatorioComponent implements OnInit {
 
   // Limites de tempo por classificação de risco (em minutos)
-  private readonly LIMITES_RISCO = {
+  private readonly LIMITES_RISCO: Record<string, number> = {
     vermelho: 0,   // Imediato
     laranja: 10,   // Muito urgente - 10 min
     amarelo: 60,   // Urgente - 1 hora
@@ -25,10 +25,16 @@ export class DashboardAmbulatorioComponent implements OnInit {
     azul: 240      // Não urgente - 4 horas
   };
 
-  // Status que devem ser monitorados para alertas no ambulatório
+  // Status que devem ser monitorados para alertas (todos os status do fluxo)
   private readonly STATUS_ALERTAS = new Set<string>([
+    'encaminhado para triagem', '1 - Encaminhado para triagem', 'encaminhado_para_triagem',
+    'em triagem', '2 - Em triagem', 'em_triagem',
+    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
+    'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
     'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-    'em atendimento ambulatorial', 'em_atendimento_ambulatorial'
+    'em atendimento ambulatorial', 'em_atendimento_ambulatorial',
+    'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
+    'aguardando exames'
   ]);
 
   estatisticas: any = {
@@ -57,105 +63,103 @@ export class DashboardAmbulatorioComponent implements OnInit {
     private ambulatorioService: AmbulatorioService,
     private dialog: MatDialog
   ) {}
+
+  private classificacaoOrder(risco: string): number {
+    switch ((risco || '').toLowerCase()) {
+      case 'vermelho': return 1;
+      case 'laranja': return 2;
+      case 'amarelo': return 3;
+      case 'verde': return 4;
+      case 'azul': return 5;
+      default: return 6;
+    }
+  }
+
+  private ordenarPorClassificacaoETempo(lista: any[]): any[] {
+    return [...(lista || [])].sort((a, b) => {
+      const ca = this.classificacaoOrder(a.classificacao_risco);
+      const cb = this.classificacaoOrder(b.classificacao_risco);
+      if (ca !== cb) return ca - cb;
+      // Prioriza maior tempo de espera
+      const ta = a.tempo_espera || this.calcularTempoDecorrido(a);
+      const tb = b.tempo_espera || this.calcularTempoDecorrido(b);
+      return tb - ta;
+    });
+  }
+
   ngOnInit() {
-     this.carregarEstatisticas();
-     this.carregarAlertasTempo();
+    this.carregarEstatisticas();
+    this.carregarAlertasTempo();
   }
 
   carregarAlertasTempo() {
-    console.log('🚨 Carregando alertas de tempo do ambulatório...');
-    this.ambulatorioService.getTodosAtendimentos().subscribe((atendimentos: any[]) => {
-      console.log('📊 Atendimentos recebidos:', atendimentos?.length, atendimentos);
-      const agora = new Date();
-      const criticos: any[] = [];
-      const atencao: any[] = [];
+    console.log('🚀 Dashboard Ambulatório: Iniciando carregamento de alertas de tempo...');
 
-      for (const p of atendimentos || []) {
-        let campoData = p.created_at || p.data_hora_atendimento;
-        if (!campoData) {
-          console.log('❌ Atendimento sem data:', p.id);
-          continue;
-        }
+    this.ambulatorioService.getTodosAtendimentos().subscribe({
+      next: (atendimentos: any[]) => {
+        console.log('📦 Dados recebidos da API:', atendimentos?.length, 'atendimentos');
+        const agora = new Date();
+        const criticos: any[] = [];
+        const atencao: any[] = [];
 
-        const dataAtendimento = new Date(campoData);
-        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
-        if (diffHoras > 24) {
-          console.log('⏰ Atendimento muito antigo (>24h):', p.id, 'diffHoras:', diffHoras);
-          continue; // Apenas últimas 24h
-        }
+        for (const p of atendimentos || []) {
+          let campoData = p.created_at || p.data_hora_atendimento;
+          if (!campoData) continue;
 
-        const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
-        const limite = this.LIMITES_RISCO[risco as keyof typeof this.LIMITES_RISCO];
-        let tempoDecorrido = Math.floor((agora.getTime() - dataAtendimento.getTime()) / 60000);
+          const dataAtendimento = new Date(campoData);
+          const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+          if (diffHoras > 24) continue;
 
-        console.log(`🔍 Paciente ${p.id}: status="${p.status}", risco="${risco}", limite=${limite}min, tempo=${tempoDecorrido}min`);
+          const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
+          const limite = this.LIMITES_RISCO[risco];
+          let tempoDecorrido = Math.floor((agora.getTime() - dataAtendimento.getTime()) / 60000);
 
-        // Verificar se está nos status de ambulatório que devem ser monitorados
-        if (!this.STATUS_ALERTAS.has(p.status)) {
-          console.log(`⚠️ Status não monitorado: "${p.status}" para paciente ${p.id}`);
-          continue;
-        }
-        if (!risco || limite === undefined) {
-          console.log(`⚠️ Risco inválido ou limite indefinido: risco="${risco}", limite=${limite} para paciente ${p.id}`);
-          continue;
-        }
+          // Log para debug
+          console.log(`🔍 Paciente ${p.id}: status="${p.status}", risco="${risco}", tempo=${tempoDecorrido}min, monitorado=${this.STATUS_ALERTAS.has(p.status)}`);
 
-        if (limite <= 0) {
-          // Vermelho: qualquer tempo é crítico
-          if (tempoDecorrido > 0) {
-            console.log(`🔴 CRÍTICO (vermelho): Paciente ${p.id} - ${tempoDecorrido}min`);
-            criticos.push(p);
+          if (!this.STATUS_ALERTAS.has(p.status)) continue;
+          if (!risco || limite === undefined) continue;
+
+          // Adicionar o tempo_espera calculado ao objeto
+          p.tempo_espera = tempoDecorrido;
+
+          if (limite <= 0) {
+            if (tempoDecorrido > 0) {
+              console.log(`🔴 CRÍTICO (risco vermelho): Paciente ${p.id} - ${tempoDecorrido}min`);
+              criticos.push(p);
+            }
+            continue;
           }
-          continue;
+
+          const perc = tempoDecorrido / limite;
+          if (perc >= 1) {
+            console.log(`🔴 CRÍTICO (limite estourado): Paciente ${p.id} - ${tempoDecorrido}min/${limite}min`);
+            criticos.push(p);
+          } else if (perc >= 0.8) {
+            console.log(`🟡 ATENÇÃO (≥80% limite): Paciente ${p.id} - ${tempoDecorrido}min/${limite}min`);
+            atencao.push(p);
+          }
         }
 
-        const perc = tempoDecorrido / limite;
-        if (perc >= 1) {
-          console.log(`🔴 CRÍTICO: Paciente ${p.id} - ${tempoDecorrido}min/${limite}min (${Math.round(perc*100)}%)`);
-          criticos.push(p);
-        } else if (perc >= 0.8) {
-          console.log(`🟡 ATENÇÃO: Paciente ${p.id} - ${tempoDecorrido}min/${limite}min (${Math.round(perc*100)}%)`);
-          atencao.push(p);
-        }
-      }
-
-      this.alertasCriticos = this.ordenarPorClassificacaoETempo(criticos).slice(0, 5);
-      this.alertasAtencao = this.ordenarPorClassificacaoETempo(atencao).slice(0, 5);
-
-      console.log('🚨 RESULTADO FINAL:');
-      console.log('   🔴 Críticos:', this.alertasCriticos.length, this.alertasCriticos);
-      console.log('   🟡 Atenção:', this.alertasAtencao.length, this.alertasAtencao);
-      
-      // Log específico para verificar classificacao_risco
-      this.alertasCriticos.forEach((p, i) => {
-        console.log(`🔴 Crítico ${i+1}: ${p.paciente_nome} - classificacao_risco: "${p.classificacao_risco}"`);
-      });
-      this.alertasAtencao.forEach((p, i) => {
-        console.log(`🟡 Atenção ${i+1}: ${p.paciente_nome} - classificacao_risco: "${p.classificacao_risco}"`);
-      });
-    }, error => {
-      console.error('❌ Erro ao carregar atendimentos:', error);
+        console.log(`📋 Resultado: ${criticos.length} críticos, ${atencao.length} atenção`);
+        this.alertasCriticos = this.ordenarPorClassificacaoETempo(criticos).slice(0, 5);
+        this.alertasAtencao = this.ordenarPorClassificacaoETempo(atencao).slice(0, 5);
+        console.log('✅ Alertas finais:', this.alertasCriticos.length, 'críticos,', this.alertasAtencao.length, 'atenção');
+      },
+      error: (err) => console.error('❌ Erro ao carregar alertas de tempo:', err)
     });
   }
 
-  ordenarPorClassificacaoETempo(lista: any[]) {
-    const ordemPrioridade = { 'vermelho': 1, 'laranja': 2, 'amarelo': 3, 'verde': 4, 'azul': 5 };
-    return lista.sort((a, b) => {
-      const prioridadeA = ordemPrioridade[a.classificacao_risco?.toLowerCase() as keyof typeof ordemPrioridade] || 6;
-      const prioridadeB = ordemPrioridade[b.classificacao_risco?.toLowerCase() as keyof typeof ordemPrioridade] || 6;
-
-      if (prioridadeA !== prioridadeB) {
-        return prioridadeA - prioridadeB;
-      }
-
-      // Se mesma classificação, ordena por tempo de espera
-      const tempoA = a.tempo_espera || 0;
-      const tempoB = b.tempo_espera || 0;
-      return tempoB - tempoA;
-    });
+  calcularTempoDecorrido(p: any): number {
+    const inicio = p.data_hora_atendimento || p.created_at;
+    if (!inicio) return 0;
+    const dataInicio = new Date(inicio);
+    const agora = new Date();
+    const diffMs = agora.getTime() - dataInicio.getTime();
+    return Math.floor(diffMs / 60000); // minutos
   }
 
-   carregarEstatisticas() {
+  carregarEstatisticas() {
     // Buscar estatísticas do backend
     this.ambulatorioService.getEstatisticasAmbulatorio().subscribe((data: any) => {
       this.estatisticas = data.estatisticas || this.estatisticas;
