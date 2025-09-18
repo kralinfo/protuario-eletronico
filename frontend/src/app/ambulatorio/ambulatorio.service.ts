@@ -28,6 +28,11 @@ export class AmbulatorioService {
     return this.http.get<any>('/api/ambulatorio/estatisticas');
   }
 
+  // Buscar todos os atendimentos (para alertas e dashboard)
+  getTodosAtendimentos(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:3001/api/ambulatorio/todos');
+  }
+
   // Exemplo extra: listar profissionais do ambulatório
   getProfissionaisAmbulatorio(): Observable<any[]> {
     return this.http.get<any[]>('/api/ambulatorio/profissionais');

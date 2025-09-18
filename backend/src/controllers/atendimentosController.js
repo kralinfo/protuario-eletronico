@@ -260,6 +260,13 @@ const salvarDadosMedico = async (req, res) => {
   try {
     const { id } = req.params;
     const dadosMedico = req.body;
+    
+    // IMPORTANTE: Buscar o atendimento atual para preservar campos críticos da triagem
+    const atendimentoAtual = await db.query('SELECT classificacao_risco, prioridade FROM atendimentos WHERE id = $1', [id]);
+    if (!atendimentoAtual.rows[0]) {
+      return res.status(404).json({ error: 'Atendimento não encontrado' });
+    }
+    
     // Filtrar campos que NÃO são da triagem
     const {
       motivo_consulta,

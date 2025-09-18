@@ -110,23 +110,25 @@ router.post('/consulta', async (req, res) => {
       payload.data_prescricao = new Date();
     }
     
-    // Normaliza status para ambulatorio
-    let statusToSave = payload.status_destino;
-    if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
-      statusToSave = 'encaminhado_para_ambulatorio';
-    }
-    if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
-      statusToSave = 'encaminhado_para_exames';
-    }
-    if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
-      statusToSave = 'atendimento_concluido';
-    }
-    
-    // Atualizar apenas o status do atendimento
-    if (payload.atendimento_id) {
+    // APENAS atualizar status se o status_destino for diferente de 'em_atendimento_medico'
+    // Isso significa que o paciente está sendo encaminhado para outro setor
+    if (payload.atendimento_id && payload.status_destino && payload.status_destino !== 'em_atendimento_medico') {
+      // Normaliza status para ambulatorio
+      let statusToSave = payload.status_destino;
+      if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
+        statusToSave = 'encaminhado_para_ambulatorio';
+      }
+      if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
+        statusToSave = 'encaminhado_para_exames';
+      }
+      if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
+        statusToSave = 'atendimento_concluido';
+      }
+      
+      // Atualizar apenas quando o paciente está sendo encaminhado/finalizado
       await knex('atendimentos')
         .where('id', payload.atendimento_id)
-        .update({ status: statusToSave });
+        .update({ status: statusToSave, status_destino: statusToSave });
     }
     
     const novaConsulta = await knex('consultas_medicas').insert(payload).returning('*');
@@ -143,23 +145,25 @@ router.put('/consulta/:id', async (req, res) => {
       .where('id', req.params.id)
       .update(req.body);
       
-    // Normaliza status para ambulatorio
-    let statusToSave = req.body.status_destino;
-    if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
-      statusToSave = 'encaminhado_para_ambulatorio';
-    }
-    if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
-      statusToSave = 'encaminhado_para_exames';
-    }
-    if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
-      statusToSave = 'atendimento_concluido';
-    }
-    
-    // Atualizar apenas o status do atendimento
-    if (req.body.atendimento_id) {
+    // APENAS atualizar status se o status_destino for diferente de 'em_atendimento_medico'
+    // Isso significa que o paciente está sendo encaminhado para outro setor
+    if (req.body.atendimento_id && req.body.status_destino && req.body.status_destino !== 'em_atendimento_medico') {
+      // Normaliza status para ambulatorio
+      let statusToSave = req.body.status_destino;
+      if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
+        statusToSave = 'encaminhado_para_ambulatorio';
+      }
+      if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
+        statusToSave = 'encaminhado_para_exames';
+      }
+      if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
+        statusToSave = 'atendimento_concluido';
+      }
+      
+      // Atualizar apenas quando o paciente está sendo encaminhado/finalizado
       await knex('atendimentos')
         .where('id', req.body.atendimento_id)
-        .update({ status: statusToSave });
+        .update({ status: statusToSave, status_destino: statusToSave });
     }
     
     res.json({ success: true });
