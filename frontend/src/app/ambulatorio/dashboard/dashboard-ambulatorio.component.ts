@@ -90,6 +90,46 @@ export class DashboardAmbulatorioComponent implements OnInit {
   ngOnInit() {
     this.carregarEstatisticas();
     this.carregarAlertasTempo();
+    this.carregarFilaAmbulatorio();
+  }
+
+  carregarFilaAmbulatorio() {
+    this.ambulatorioService.getTodosAtendimentos().subscribe((atendimentos: any[]) => {
+      const agora = new Date();
+      const atendimentos24h = (atendimentos || []).filter(a => {
+        let campoData = a.created_at || a.data_hora_atendimento;
+        if (!campoData) return false;
+        const dataAtendimento = new Date(campoData);
+        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+        return diffHoras <= 24;
+      });
+
+      // Filtrar atendimentos para fila: "em atendimento ambulatorial" + "encaminhado para ambulatório"
+      const filaAtendimento = atendimentos24h.filter(a => {
+        const status = (a.status || '').toLowerCase();
+        return status === 'em atendimento ambulatorial' ||
+               status === 'encaminhado para ambulatório' ||
+               status === '5 - encaminhado para ambulatório' ||
+               status === 'encaminhado_para_ambulatorio' ||
+               status === 'em_atendimento_ambulatorial';
+      });
+      this.filaDisponiveisPreview = this.ordenarPorClassificacaoETempo(filaAtendimento).slice(0, 5);
+
+      // Contador "Encaminhados" (esquerda) - apenas "encaminhado para ambulatório"
+      this.consultasEncaminhadas = atendimentos24h.filter(a => {
+        const status = (a.status || '').toLowerCase();
+        return status === 'encaminhado para ambulatório' ||
+               status === '5 - encaminhado para ambulatório' ||
+               status === 'encaminhado_para_ambulatorio';
+      }).length;
+
+      // Contador "Em Atendimento" (direita) - apenas "em atendimento ambulatorial"
+      this.consultasEmAtendimento = atendimentos24h.filter(a => {
+        const status = (a.status || '').toLowerCase();
+        return status === 'em atendimento ambulatorial' ||
+               status === 'em_atendimento_ambulatorial';
+      }).length;
+    });
   }
 
   carregarAlertasTempo() {
