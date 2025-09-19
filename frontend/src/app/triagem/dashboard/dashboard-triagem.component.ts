@@ -107,11 +107,17 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Carregar dados imediatamente
     this.carregarEstatisticas();
     this.carregarFilaDisponiveis();
     this.carregarFilaEmTriagem();
     this.carregarPosTriagemPreview();
     this.carregarAlertasTempo();
+
+    // Força atualização do card por classificação após carregar dados iniciais
+    setTimeout(() => {
+      this.atualizarCardPorClassificacao();
+    }, 500);
 
     // Escutar notificações de atualização
     this.triagemEventService.atualizarDashboard$
@@ -147,6 +153,14 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     interval(60000)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.horaAtual = new Date());
+
+    // Escutar quando a página fica visível novamente (volta de outra tela)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        console.log('Dashboard: Página ficou visível - atualizando card classificação');
+        this.atualizarCardPorClassificacao();
+      }
+    });
   }
 
   private readonly LIMITES_RISCO: Record<string, number> = {
@@ -244,18 +258,62 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     this.triagemService.obterEstatisticasTriagem().subscribe({
       next: (stats: any) => {
         console.log('Dashboard: Estatísticas recebidas:', stats);
+        // Preserva as estatísticas por classificação calculadas localmente
+        const porClassificacaoAnterior = this.estatisticas.por_classificacao;
         this.estatisticas = stats;
+        // Se as estatísticas da API não incluem por_classificacao ou estão zeradas, mantém as calculadas
+        if (!stats.por_classificacao || this.isEstatisticasZeradas(stats.por_classificacao)) {
+          this.estatisticas.por_classificacao = porClassificacaoAnterior;
+        }
       },
       error: (error: any) => {
         console.error('Dashboard: Erro ao carregar estatísticas:', error);
       }
     });
-    this.atualizarCardPorClassificacao();
+  }
+
+  // Verifica se todas as estatísticas por classificação estão zeradas
+  private isEstatisticasZeradas(porClassificacao: any): boolean {
+    if (!porClassificacao) return true;
+    return porClassificacao.vermelho === 0 && 
+           porClassificacao.laranja === 0 && 
+           porClassificacao.amarelo === 0 && 
+           porClassificacao.verde === 0 && 
+           porClassificacao.azul === 0;
+  }
+
+  atualizarCompleto() {
+    console.log('🔄 Dashboard: Iniciando atualização completa (simula reload)...');
+    
+    // Carregar todos os dados como no ngOnInit
+    this.carregarEstatisticas();
+    this.carregarFilaDisponiveis();
+    this.carregarFilaEmTriagem();
+    this.carregarPosTriagemPreview();
+    this.carregarAlertasTempo();
+
+    // Força atualização do card por classificação após um pequeno delay
+    // para garantir que os dados das estatísticas sejam carregados primeiro
+    setTimeout(() => {
+      this.atualizarCardPorClassificacao();
+    }, 800);
+
+    console.log('✅ Dashboard: Atualização completa finalizada');
   }
 
   atualizarCardPorClassificacao() {
-    this.triagemService.listarTodosAtendimentosDia().subscribe((data: any[]) => {
-      this.estatisticas.por_classificacao = this.calcularEstatisticasPorClassificacao(data);
+    console.log('🎯 Atualizando card por classificação...');
+    this.triagemService.listarTodosAtendimentosDia().subscribe({
+      next: (data: any[]) => {
+        console.log('📦 Dados recebidos para classificação:', data?.length, 'atendimentos');
+        const novasEstatisticas = this.calcularEstatisticasPorClassificacao(data);
+        console.log('🧮 Estatísticas calculadas:', novasEstatisticas);
+        this.estatisticas.por_classificacao = novasEstatisticas;
+        console.log('✅ Card por classificação atualizado:', this.estatisticas.por_classificacao);
+      },
+      error: (error: any) => {
+        console.error('❌ Erro ao atualizar card por classificação:', error);
+      }
     });
   }
 
