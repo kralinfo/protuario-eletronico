@@ -145,12 +145,14 @@ router.get('/todos', async (req, res) => {
   try {
     const atendimentos = await knex('atendimentos as a')
       .leftJoin('pacientes as p', 'a.paciente_id', 'p.id')
+      .leftJoin('consultas_medicas as cm', 'a.id', 'cm.atendimento_id')
       .select(
         'a.*',
         'p.nome as paciente_nome',
         'p.nascimento as paciente_nascimento',
         'p.sexo as paciente_sexo',
-        'p.sus as paciente_sus'
+        'p.sus as paciente_sus',
+        knex.raw('CASE WHEN cm.id IS NOT NULL THEN true ELSE false END as passou_por_atendimento_medico')
       )
       .orderBy('a.data_hora_atendimento', 'desc');
     

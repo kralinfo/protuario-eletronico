@@ -25,7 +25,7 @@ export class DashboardAmbulatorioComponent implements OnInit {
     azul: 240      // Não urgente - 4 horas
   };
 
-  // Status que devem ser monitorados para alertas (todos os status do fluxo)
+  // Status que devem ser monitorados para alertas (todos os status do fluxo antes do ambulatório)
   private readonly STATUS_ALERTAS = new Set<string>([
     'encaminhado para triagem', '1 - Encaminhado para triagem', 'encaminhado_para_triagem',
     'em triagem', '2 - Em triagem', 'em_triagem',
@@ -110,12 +110,18 @@ export class DashboardAmbulatorioComponent implements OnInit {
           const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
           if (diffHoras > 24) continue;
 
+          // NOVA LÓGICA: Excluir pacientes que já passaram por atendimento médico
+          if (p.passou_por_atendimento_medico) {
+            console.log(`⏭️  Paciente ${p.id} já passou por atendimento médico - ignorando`);
+            continue;
+          }
+
           const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
           const limite = this.LIMITES_RISCO[risco];
           let tempoDecorrido = Math.floor((agora.getTime() - dataAtendimento.getTime()) / 60000);
 
           // Log para debug
-          console.log(`🔍 Paciente ${p.id}: status="${p.status}", risco="${risco}", tempo=${tempoDecorrido}min, monitorado=${this.STATUS_ALERTAS.has(p.status)}`);
+          console.log(`🔍 Paciente ${p.id}: status="${p.status}", risco="${risco}", tempo=${tempoDecorrido}min, monitorado=${this.STATUS_ALERTAS.has(p.status)}, passou_por_medico=${p.passou_por_atendimento_medico}`);
 
           if (!this.STATUS_ALERTAS.has(p.status)) continue;
           if (!risco || limite === undefined) continue;
