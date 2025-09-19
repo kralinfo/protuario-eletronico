@@ -263,6 +263,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       queixa_principal: this.atendimentoForm.get('queixa_principal')?.value,
       historia_atual: this.atendimentoForm.get('historia_clinica')?.value,
       observacoes_triagem: this.atendimentoForm.get('observacoes')?.value
+      // NÃO INCLUIR classificacao_risco para preservar o valor da triagem
     };
 
     // Salvar triagem antes de salvar consulta

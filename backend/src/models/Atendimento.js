@@ -141,24 +141,55 @@ class Atendimento {
       observacoes_triagem
     } = dadosTriagem;
 
+    // Montar query dinamicamente para não sobrescrever classificacao_risco se não vier
+    let queryFields = [];
+    let queryValues = [id];
+    let valueIndex = 2;
+
+    if (pressao_arterial !== undefined) {
+      queryFields.push(`pressao_arterial = $${valueIndex++}`);
+      queryValues.push(pressao_arterial);
+    }
+    if (temperatura !== undefined) {
+      queryFields.push(`temperatura = $${valueIndex++}`);
+      queryValues.push(parseNum(temperatura));
+    }
+    if (frequencia_cardiaca !== undefined) {
+      queryFields.push(`frequencia_cardiaca = $${valueIndex++}`);
+      queryValues.push(parseNum(frequencia_cardiaca));
+    }
+    if (saturacao_oxigenio !== undefined) {
+      queryFields.push(`saturacao_oxigenio = $${valueIndex++}`);
+      queryValues.push(parseNum(saturacao_oxigenio));
+    }
+    if (classificacao_risco !== undefined) {
+      queryFields.push(`classificacao_risco = $${valueIndex++}`);
+      queryValues.push(classificacao_risco);
+    }
+    if (queixa_principal !== undefined) {
+      queryFields.push(`queixa_principal = $${valueIndex++}`);
+      queryValues.push(queixa_principal);
+    }
+    if (historia_atual !== undefined) {
+      queryFields.push(`historia_atual = $${valueIndex++}`);
+      queryValues.push(historia_atual);
+    }
+    if (observacoes_triagem !== undefined) {
+      queryFields.push(`observacoes_triagem = $${valueIndex++}`);
+      queryValues.push(observacoes_triagem);
+    }
+
+    if (queryFields.length === 0) {
+      // Se não há campos para atualizar, apenas retorna o atendimento atual
+      const result = await db.query('SELECT * FROM atendimentos WHERE id = $1', [id]);
+      return result.rows[0];
+    }
+
+    queryFields.push(`updated_at = CURRENT_TIMESTAMP`);
+
     const result = await db.query(
-      `UPDATE atendimentos 
-       SET pressao_arterial = $2, temperatura = $3, frequencia_cardiaca = $4,
-           saturacao_oxigenio = $5, classificacao_risco = $6, queixa_principal = $7,
-           historia_atual = $8, observacoes_triagem = $9, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1
-       RETURNING *`,
-      [
-        id,
-        pressao_arterial,
-        parseNum(temperatura),
-        parseNum(frequencia_cardiaca),
-        parseNum(saturacao_oxigenio),
-        classificacao_risco,
-        queixa_principal,
-        historia_atual,
-        observacoes_triagem
-      ]
+      `UPDATE atendimentos SET ${queryFields.join(', ')} WHERE id = $1 RETURNING *`,
+      queryValues
     );
     return result.rows[0];
   }
