@@ -160,11 +160,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   private readonly STATUS_ALERTAS = new Set<string>([
     'encaminhado para triagem', '1 - Encaminhado para triagem', 'encaminhado_para_triagem',
     'em triagem', '2 - Em triagem', 'em_triagem',
-    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-    'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-    'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-    'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-    'aguardando exames'
+    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
   ]);
 
   private classificacaoOrder(risco: string): number {
@@ -254,6 +250,42 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
         console.error('Dashboard: Erro ao carregar estatísticas:', error);
       }
     });
+    this.atualizarCardPorClassificacao();
+  }
+
+  atualizarCardPorClassificacao() {
+    this.triagemService.listarTodosAtendimentosDia().subscribe((data: any[]) => {
+      this.estatisticas.por_classificacao = this.calcularEstatisticasPorClassificacao(data);
+    });
+  }
+
+  calcularEstatisticasPorClassificacao(data: any[]) {
+    const agora = new Date();
+    const por_classificacao = {
+      vermelho: 0,
+      laranja: 0,
+      amarelo: 0,
+      verde: 0,
+      azul: 0
+    };
+    for (const p of data || []) {
+      let campoData = p.created_at || p.data_hora_atendimento;
+      if (!campoData) continue;
+      const dataAtendimento = new Date(campoData);
+      const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+      if (diffHoras > 24) continue;
+      const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
+      switch (risco) {
+        case 'vermelho':
+        case 'laranja':
+        case 'amarelo':
+        case 'verde':
+        case 'azul':
+          por_classificacao[risco as keyof typeof por_classificacao]++;
+          break;
+      }
+    }
+    return por_classificacao;
   }
 
   carregarFilaDisponiveis() {
