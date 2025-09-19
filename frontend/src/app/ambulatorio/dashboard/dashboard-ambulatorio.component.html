@@ -1,4 +1,3 @@
-
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
   <div class="container mx-auto px-4 py-8">
     <!-- Cabeçalho -->
@@ -14,7 +13,7 @@
     </div>
 
     <!-- Cards de estatísticas principais -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <!-- Pacientes aguardando atendimento -->
       <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
@@ -24,19 +23,6 @@
           </div>
           <div class="bg-red-100 p-3 rounded-full">
             <mat-icon class="text-red-500">people_outline</mat-icon>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pacientes em atendimento -->
-      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Em Atendimento</p>
-            <p class="text-3xl font-bold text-orange-500">{{ estatisticas.pacientes_em_atendimento }}</p>
-          </div>
-          <div class="bg-orange-100 p-3 rounded-full">
-            <mat-icon class="text-orange-500">assignment_ind</mat-icon>
           </div>
         </div>
       </div>
@@ -100,49 +86,37 @@
             <mat-icon class="mr-2">list_alt</mat-icon>
             Fila de Atendimento
           </h3>
-          <p class="text-blue-100 text-sm">Gerencie a fila de pacientes</p>
+          <p class="text-blue-100 text-sm">Pacientes encaminhados</p>
         </div>
         <div class="flex justify-between mb-4">
-          <div class="text-center">
-            <p class="text-2xl font-bold">{{ estatisticas.pacientes_aguardando }}</p>
-            <p class="text-xs text-blue-100">Aguardando</p>
-          </div>
-          <div class="text-center">
-            <p class="text-2xl font-bold">{{ estatisticas.pacientes_em_atendimento }}</p>
-            <p class="text-xs text-blue-100">Em Atendimento</p>
+          <div class="flex space-x-6 w-full justify-center">
+            <div class="text-center">
+              <p class="text-2xl font-bold">{{ estatisticas.pacientes_aguardando }}</p>
+              <p class="text-xs text-blue-100">Aguardando</p>
+            </div>
+            <div class="text-center">
+              <p class="text-2xl font-bold">{{ estatisticas.pacientes_em_atendimento }}</p>
+              <p class="text-xs text-blue-100">Em Atendimento</p>
+            </div>
           </div>
         </div>
         <button (click)="irParaFilaAtendimento()" class="w-full bg-white text-blue-600 px-4 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center">
           <mat-icon class="mr-2">arrow_forward</mat-icon>
           Acessar Fila
         </button>
-        <!-- Preview compacto da fila -->
         <div class="mt-4 bg-white/10 rounded p-3" *ngIf="filaDisponiveisPreview && filaDisponiveisPreview.length">
           <div class="text-sm text-blue-100 mb-2 flex items-center">
             <mat-icon class="mr-2">visibility</mat-icon>
-            Disponíveis para iniciar (top {{ filaDisponiveisPreview.length }})
+            Disponíveis (top {{ filaDisponiveisPreview.length }})
           </div>
           <ul class="space-y-2">
             <li *ngFor="let p of filaDisponiveisPreview" (click)="abrirItemFila(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-              <div class="truncate mr-3">
-                <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                <div class="text-xs text-blue-100 truncate" *ngIf="p.status !== 'encaminhado para atendimento' && p.status !== 'encaminhado_para_atendimento' && p.status !== '1 - Encaminhado para atendimento'">{{ getDescricaoStatus(p.status) }}</div>
-              </div>
-              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
-            </li>
-          </ul>
-        </div>
-        <!-- Preview de itens em atendimento -->
-        <div class="mt-4 bg-white/10 rounded p-3" *ngIf="filaEmAtendimentoPreview && filaEmAtendimentoPreview.length">
-          <div class="text-sm text-blue-100 mb-2 flex items-center">
-            <mat-icon class="mr-2">edit</mat-icon>
-            Em atendimento (top {{ filaEmAtendimentoPreview.length }})
-          </div>
-          <ul class="space-y-2">
-            <li *ngFor="let p of filaEmAtendimentoPreview" (click)="abrirItemFila(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-              <div class="truncate mr-3">
-                <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                <div class="text-xs text-blue-100 truncate">{{ getDescricaoStatus(p.status) }}</div>
+              <div class="flex items-center gap-2 truncate mr-3">
+                <span class="inline-block w-4 h-4 rounded-full border border-gray-300 mr-2" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                <div>
+                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                  <div class="text-xs text-blue-100 truncate">{{ getDescricaoStatus(p.status) }}</div>
+                </div>
               </div>
               <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
             </li>
@@ -184,9 +158,12 @@
           </div>
           <ul class="space-y-2">
             <li *ngFor="let p of consultasPreview" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-              <div class="truncate mr-3">
-                <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                <div class="text-xs text-purple-100 truncate" *ngIf="p.status !== 'encaminhado para consulta' && p.status !== 'encaminhado_para_consulta' && p.status !== '1 - Encaminhado para consulta'">{{ getDescricaoStatus(p.status) }}</div>
+              <div class="flex items-center gap-2 truncate mr-3">
+                <span class="inline-block w-4 h-4 rounded-full border border-gray-300 mr-2" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                <div>
+                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                  <div class="text-xs text-purple-100 truncate" *ngIf="p.status !== 'encaminhado para consulta' && p.status !== 'encaminhado_para_consulta' && p.status !== '1 - Encaminhado para consulta'">{{ getDescricaoStatus(p.status) }}</div>
+                </div>
               </div>
               <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
             </li>
@@ -215,9 +192,12 @@
             </div>
             <ul class="space-y-2">
               <li *ngFor="let p of alertasCriticos" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-                <div class="truncate mr-3">
-                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                  <div class="text-xs text-red-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
+                <div class="flex items-center gap-2 truncate mr-3">
+                  <span class="inline-block w-4 h-4 rounded-full border border-gray-300" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                  <div>
+                    <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                    <div class="text-xs text-red-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
+                  </div>
                 </div>
                 <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
               </li>
@@ -231,9 +211,12 @@
             </div>
             <ul class="space-y-2">
               <li *ngFor="let p of alertasAtencao" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-                <div class="truncate mr-3">
-                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
-                  <div class="text-xs text-orange-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
+                <div class="flex items-center gap-2 truncate mr-3">
+                  <span class="inline-block w-4 h-4 rounded-full border border-gray-300" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                  <div>
+                    <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                    <div class="text-xs text-orange-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
+                  </div>
                 </div>
                 <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
               </li>

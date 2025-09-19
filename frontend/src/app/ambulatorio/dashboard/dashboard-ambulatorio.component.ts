@@ -102,5 +102,24 @@ export class DashboardAmbulatorioComponent implements OnInit {
   irParaFilaAtendimento() {
     this.router.navigate(['ambulatorio', 'fila']);
   }
+
+    getCorClassificacao(classificacao: string): string {
+    if (!classificacao) return '#9ca3af'; // cor padrão cinza
+    switch (classificacao.toLowerCase()) {
+      case 'vermelho':
+        return '#ef4444'; // vermelho
+      case 'laranja':
+        return '#f97316'; // laranja
+      case 'amarelo':
+        return '#eab308'; // amarelo
+      case 'verde':
+        return '#22c55e'; // verde
+      case 'azul':
+        return '#3b82f6'; // azul
+      default:
+        return '#9ca3af'; // fallback cinza
+    }
+  }
+
   
 }
