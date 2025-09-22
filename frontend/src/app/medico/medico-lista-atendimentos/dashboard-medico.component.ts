@@ -288,6 +288,17 @@ export class DashboardMedicoComponent implements OnInit {
     });
   }
 
+  abrirConsultaRealizada(consulta: any) {
+    if (!consulta || !consulta.id) return;
+    
+    console.log('🔍 Abrindo consulta realizada:', consulta.id);
+    
+    // Navegar para a consulta em modo de visualização com opção de edição
+    this.router.navigate(['/medico/consulta', consulta.id], { 
+      state: { modoVisualizacao: true, podeEditar: true }
+    });
+  }
+
   abrirConsultaVisualizacao(consulta: any, isConsultaRealizada: boolean = false) {
     if (!consulta || !consulta.id) return;
 
@@ -465,6 +476,9 @@ export class DashboardMedicoComponent implements OnInit {
 
             const status = (atendimento.status || '').toLowerCase();
             const statusPosConsulta = status === 'encaminhado_para_ambulatorio' ||
+                                    status === 'encaminhado para ambulatório' ||
+                                    status === 'em atendimento ambulatorial' ||
+                                    status === 'em_atendimento_ambulatorial' ||
                                     status === 'encaminhado_para_exames' ||
                                     status === 'atendimento_concluido' ||
                                     status === 'alta_medica' ||
