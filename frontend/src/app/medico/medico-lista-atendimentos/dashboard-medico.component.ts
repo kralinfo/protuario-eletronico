@@ -283,18 +283,18 @@ export class DashboardMedicoComponent implements OnInit {
   abrirItemConsulta(item: any) {
     // Para consultas realizadas, navegar normalmente mas em modo de visualização
     // O modo de visualização será controlado na página de atendimento baseado no status
-    this.router.navigate(['/medico/atendimento', item.id], { 
+    this.router.navigate(['/medico/atendimento', item.id], {
       state: { modoVisualizacao: true, consultaRealizada: true }
     });
   }
 
   abrirConsultaRealizada(consulta: any) {
     if (!consulta || !consulta.id) return;
-    
+
     console.log('🔍 Abrindo consulta realizada:', consulta.id);
-    
-    // Navegar para a consulta em modo de visualização com opção de edição
-    this.router.navigate(['/medico/consulta', consulta.id], { 
+
+    // Navegar para a tela de atendimento médico em modo de visualização/edição
+    this.router.navigate(['/medico/atendimento', consulta.id], {
       state: { modoVisualizacao: true, podeEditar: true }
     });
   }
