@@ -1,0 +1,71 @@
+/* Estilos personalizados para o componente de atendimento ambulatorial */
+
+.container {
+  max-width: 1200px;
+}
+
+/* Estilos para campos desabilitados */
+.ng-invalid {
+  border-color: #ef4444;
+}
+
+.ng-valid {
+  border-color: #10b981;
+}
+
+/* Estilos para o accordion */
+mat-expansion-panel {
+  margin-bottom: 1rem !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+mat-expansion-panel-header {
+  background-color: #f8fafc !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+}
+
+/* Estilos para botões */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Estilos para campos de texto */
+input, textarea, select {
+  transition: border-color 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos para campos desabilitados */
+input:disabled, textarea:disabled, select:disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+}

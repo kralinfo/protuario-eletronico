@@ -47,9 +47,19 @@ export class AmbulatorioService {
     return this.http.get<any>(`http://localhost:3001/api/ambulatorio/atendimento/${id}`);
   }
 
+  // Buscar dados específicos de um atendimento (alias para compatibilidade)
+  obterAtendimento(id: number): Observable<any> {
+    return this.getAtendimento(id);
+  }
+
   // Salvar dados do atendimento ambulatorial
   salvarAtendimentoAmbulatorio(id: number, dados: any): Observable<any> {
     return this.http.put<any>(`http://localhost:3001/api/ambulatorio/atendimento/${id}`, dados);
+  }
+
+  // Salvar dados do atendimento (alias para compatibilidade)
+  salvarAtendimento(id: number, dados: any): Observable<any> {
+    return this.salvarAtendimentoAmbulatorio(id, dados);
   }
 
   // Atualizar status do atendimento
