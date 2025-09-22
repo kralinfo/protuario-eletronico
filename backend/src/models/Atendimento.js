@@ -88,6 +88,8 @@ class Atendimento {
            'encaminhado para sala médica',
            'encaminhado para ambulatório', 
            'encaminhado_para_ambulatorio',
+           'em atendimento ambulatorial',
+           'em_atendimento_ambulatorial',
            'encaminhado para exames',
            'encaminhado_para_exames',
            'em atendimento médico',
