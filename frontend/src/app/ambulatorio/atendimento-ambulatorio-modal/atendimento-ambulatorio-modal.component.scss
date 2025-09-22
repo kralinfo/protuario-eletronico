@@ -1,0 +1,57 @@
+// Estilo para ficar idêntico ao modal médico
+.container {
+  background: #f9fafb;
+}
+
+// Acordeon personalizado
+mat-accordion {
+  .mat-expansion-panel {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db;
+    border-radius: 8px !important;
+    margin-bottom: 16px !important;
+    background: white;
+  }
+
+  .mat-expansion-panel-header {
+    background-color: white !important;
+    border-radius: 8px 8px 0 0 !important;
+    font-weight: 500;
+  }
+
+  .mat-expansion-panel-header.mat-expanded {
+    border-radius: 8px 8px 0 0 !important;
+  }
+
+  .mat-expansion-panel-body {
+    padding: 16px !important;
+  }
+}
+
+// Estilos dos campos
+input, textarea {
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &[readonly] {
+    background-color: #f9fafb !important;
+    color: #6b7280 !important;
+    cursor: default;
+  }
+}
+
+// Botões
+button {
+  transition: all 0.2s ease;
+}
+
+// Títulos das seções
+h3 {
+  color: #4b5563;
+  font-weight: 500;
+}

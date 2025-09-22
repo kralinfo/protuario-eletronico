@@ -39,10 +39,25 @@ export class AmbulatorioService {
   }
 
   getEstatisticasConsultas(): Observable<any> {
-  return this.http.get<any>('/api/ambulatorio/estatisticas-consultas');
-}
+    return this.http.get<any>('/api/ambulatorio/estatisticas-consultas');
+  }
 
-showModal(modalId: string, data: any) {
+  // Buscar dados específicos de um atendimento
+  getAtendimento(id: number): Observable<any> {
+    return this.http.get<any>(`http://localhost:3001/api/ambulatorio/atendimento/${id}`);
+  }
+
+  // Salvar dados do atendimento ambulatorial
+  salvarAtendimentoAmbulatorio(id: number, dados: any): Observable<any> {
+    return this.http.put<any>(`http://localhost:3001/api/ambulatorio/atendimento/${id}`, dados);
+  }
+
+  // Atualizar status do atendimento
+  atualizarStatus(id: string, status: string): Observable<any> {
+    return this.http.put<any>(`http://localhost:3001/api/ambulatorio/status/${id}`, { status });
+  }
+
+  showModal(modalId: string, data: any) {
     // Implementação para abrir o modal
     const modalElement = document.getElementById(modalId);
     if (modalElement) {

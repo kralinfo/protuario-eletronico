@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { AmbulatorioService } from '../ambulatorio.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
+import { AtendimentoAmbulatorioModalComponent } from '../atendimento-ambulatorio-modal/atendimento-ambulatorio-modal.component';
 
 @Component({
   selector: 'app-dashboard-ambulatorio',
@@ -332,8 +333,58 @@ export class DashboardAmbulatorioComponent implements OnInit {
   }
 
   abrirItemFila(item: any) {
-    // Abrir detalhes do atendimento na fila
-    // Exemplo: abrir modal ou navegar para detalhes
+    if (!item?.id) {
+      console.log('❌ Item inválido:', item);
+      return;
+    }
+
+    console.log('🔄 Iniciando atendimento ambulatorial para:', item.id);
+
+    // Alterar status para "em atendimento ambulatorial"
+    this.ambulatorioService.atualizarStatus(String(item.id), 'em atendimento ambulatorial').subscribe({
+      next: () => {
+        console.log('✅ Status alterado para: em atendimento ambulatorial');
+
+        // Abrir o modal de atendimento ambulatorial
+        const dialogRef = this.dialog.open(AtendimentoAmbulatorioModalComponent, {
+          data: { consulta: item, modoVisualizacao: true }, // Sempre inicia em modo visualização
+          panelClass: ['p-0'],
+          maxWidth: '95vw',
+          maxHeight: '95vh',
+          width: '1200px',
+          disableClose: false
+        });
+
+        dialogRef.afterClosed().subscribe((resultado) => {
+          if (!resultado || resultado.cancelado) {
+            // Restaurar status anterior se cancelado
+            console.log('🔄 Restaurando status para: encaminhado para ambulatório');
+            this.ambulatorioService.atualizarStatus(String(item.id), 'encaminhado para ambulatório').subscribe({
+              next: () => {
+                console.log('✅ Status restaurado');
+                this.atualizarDashboard();
+              },
+              error: (error: any) => {
+                console.error('❌ Erro ao restaurar status:', error);
+              }
+            });
+          } else {
+            // Atualizar dashboard se salvo
+            console.log('✅ Atendimento ambulatorial salvo');
+            this.atualizarDashboard();
+          }
+        });
+      },
+      error: (error: any) => {
+        console.error('❌ Erro ao alterar status para "em atendimento ambulatorial":', error);
+      }
+    });
+  }
+
+  atualizarDashboard() {
+    this.carregarEstatisticas();
+    this.carregarAlertasTempo();
+    this.carregarFilaAmbulatorio();
   }
 
   abrirItemConsulta(item: any) {

@@ -162,4 +162,68 @@ router.get('/todos', async (req, res) => {
   }
 });
 
+// Buscar um atendimento específico
+router.get('/atendimento/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const atendimento = await knex('atendimentos')
+      .leftJoin('consultas_medicas as cm', 'atendimentos.id', 'cm.atendimento_id')
+      .where('atendimentos.id', id)
+      .select(
+        'atendimentos.*',
+        'cm.diagnostico_principal',
+        'cm.procedimentos_realizados',
+        'cm.medicamentos_prescritos',
+        'cm.observacoes as observacao_medica'
+      )
+      .first();
+
+    if (!atendimento) {
+      return res.status(404).json({ error: 'Atendimento não encontrado' });
+    }
+
+    res.json(atendimento);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Atualizar status do atendimento
+router.put('/status/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    await knex('atendimentos')
+      .where('id', id)
+      .update({ status });
+
+    res.json({ message: 'Status atualizado com sucesso' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Salvar dados do atendimento ambulatorial
+router.put('/atendimento/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dados = req.body;
+
+    // Atualizar dados na tabela atendimentos
+    await knex('atendimentos')
+      .where('id', id)
+      .update({
+        conduta_ambulatorio: JSON.stringify(dados.conduta_ambulatorio),
+        exames_ambulatorio: JSON.stringify(dados.exames_ambulatorio),
+        informacoes_complementares: dados.informacoes_complementares,
+        status: dados.status || 'em atendimento ambulatorial'
+      });
+
+    res.json({ message: 'Atendimento ambulatorial salvo com sucesso' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
