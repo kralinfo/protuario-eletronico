@@ -113,6 +113,10 @@ export class DashboardAmbulatorioComponent implements OnInit {
                status === 'encaminhado_para_ambulatorio' ||
                status === 'em_atendimento_ambulatorial';
       });
+      // Corrigir tempo_espera para cada paciente da fila
+      filaAtendimento.forEach(p => {
+        p.tempo_espera = this.calcularTempoDecorrido(p);
+      });
       this.filaDisponiveisPreview = this.ordenarPorClassificacaoETempo(filaAtendimento).slice(0, 5);
 
       // Contador "Encaminhados" (esquerda) - apenas "encaminhado para ambulatório"

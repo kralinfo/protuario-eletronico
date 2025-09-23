@@ -297,16 +297,23 @@
     </div>
 
     <!-- Botões de ação -->
-    <div class="flex justify-between mt-8 gap-4">
-      <button type="button" (click)="voltar()"
-              class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-        Voltar
+    <div class="flex justify-end gap-4 mt-8">
+      <!-- Botão Salvar -->
+      <button
+        type="submit"
+        [disabled]="!modoEdicao || atendimentoForm.invalid"
+        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+        <mat-icon>save</mat-icon>
+        Salvar Alterações
       </button>
 
-      <button type="submit"
-              [disabled]="!modoEdicao || atendimentoForm.invalid"
-              class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-        Salvar Atendimento
+      <!-- Botão Voltar -->
+      <button
+        type="button"
+        (click)="voltar()"
+        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center gap-2">
+        <mat-icon>cancel</mat-icon>
+        Voltar
       </button>
     </div>
   </form>
