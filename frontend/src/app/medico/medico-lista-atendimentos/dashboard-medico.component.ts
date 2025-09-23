@@ -46,6 +46,7 @@ export class DashboardMedicoComponent implements OnInit {
   private readonly STATUS_ALERTAS = new Set<string>([
     'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
     'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
+    'retornar_atendimento_medico',
     'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
     'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
     'aguardando exames'
@@ -67,7 +68,7 @@ export class DashboardMedicoComponent implements OnInit {
         const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
         const limite = this.LIMITES_RISCO[risco];
         let tempoDecorrido = Math.floor((agora.getTime() - dataAtendimento.getTime()) / 60000);
-        if (p.status !== 'encaminhado para sala médica' && p.status !== 'em atendimento médico') continue;
+  if (p.status !== 'encaminhado para sala médica' && p.status !== 'em atendimento médico') continue;
         if (!risco || limite === undefined) continue;
         if (limite <= 0) {
           if (tempoDecorrido > 0) criticos.push(p);
@@ -197,14 +198,16 @@ export class DashboardMedicoComponent implements OnInit {
       const filaAtendimento = atendimentos24h.filter(a => {
         const status = (a.status || '').toLowerCase();
         return status === 'em atendimento médico' ||
-               status === 'encaminhado para sala médica';
+               status === 'encaminhado para sala médica' ||
+               status === 'retornar_atendimento_medico';
       });
       this.filaSalaMedicaPreview = this.ordenarPorClassificacaoETempo(filaAtendimento).slice(0, 5);
 
-      // Contador "Encaminhados" (esquerda) - apenas "encaminhado para sala médica"
-      this.quantidadeEncaminhados = atendimentos24h.filter(a =>
-        (a.status || '').toLowerCase() === 'encaminhado para sala médica'
-      ).length;
+      // Contador "Encaminhados" (esquerda) - "encaminhado para sala médica" ou "retornar_atendimento_medico"
+      this.quantidadeEncaminhados = atendimentos24h.filter(a => {
+        const status = (a.status || '').toLowerCase();
+        return status === 'encaminhado para sala médica' || status === 'retornar_atendimento_medico';
+      }).length;
 
       // Contador "Em Atendimento Médico" (direita) - apenas "em atendimento médico"
       this.quantidadeEmAtendimentoMedico = atendimentos24h.filter(a => {
