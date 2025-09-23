@@ -31,6 +31,28 @@ import { AuthService } from '../../auth/auth.service';
   styleUrl: './atendimento-ambulatorio.component.scss'
 })
 export class AtendimentoAmbulatorioComponent implements OnInit {
+  // Atualiza o status do atendimento conforme o destino selecionado
+  onDestinoChange(valor: string) {
+    if (!this.atendimentoId) return;
+    if (valor === 'alta_ambulatorial') {
+      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'atendimento_concluido').subscribe();
+    } else if (valor === 'retornar_atendimento_medico') {
+      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'encaminhado para sala médica').subscribe();
+    }
+  }
+  opcoesDestino: { label: string, value: string }[] = [
+    { label: 'Alta Ambulatorial', value: 'alta_ambulatorial' },
+    { label: 'Encaminhar para Atendimento Médico Novamente', value: 'retornar_atendimento_medico' }
+  ];
+
+  get opcoesDestinoFiltradas() {
+    // Se necessita_observacao está marcado, mostra as opções de encaminhamento
+    if (this.atendimentoForm?.get('necessita_observacao')?.value) {
+      return this.opcoesDestino;
+    }
+    // Caso contrário, só mostra alta
+    return [this.opcoesDestino[0]];
+  }
   atendimentoForm!: FormGroup;
   atendimentoId: number;
   nomePaciente: string = '';
@@ -50,6 +72,18 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   ngOnInit() {
     if (this.atendimentoId) {
       this.carregarDadosAtendimento();
+      // Atualiza status para 'em atendimento ambulatorial' se necessário
+      this.ambulatorioService.getAtendimento(this.atendimentoId).subscribe((data: any) => {
+        const statusAtual = data?.triagem?.status || data?.status;
+        if (statusAtual !== 'em atendimento ambulatorial') {
+          this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'em atendimento ambulatorial').subscribe({
+            next: () => {
+              // Opcional: recarregar dados após atualização
+              this.carregarDadosAtendimento();
+            }
+          });
+        }
+      });
     }
   }
 

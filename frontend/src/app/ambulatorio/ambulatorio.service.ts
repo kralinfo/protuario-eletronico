@@ -8,6 +8,11 @@ import { environment } from '../../environments/environment';
 })
 export class AmbulatorioService {
 
+  atualizarStatusAtendimento(id: number, status: string) {
+    // Usa a URL absoluta para garantir que vai para o backend correto
+    return this.http.put<any>(`http://localhost:3001/api/ambulatorio/status/${id}`, { status });
+  }
+
   constructor(private http: HttpClient) { }
 
   getAtendimentosAmbulatorio() {

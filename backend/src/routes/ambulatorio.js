@@ -271,10 +271,11 @@ router.put('/atendimento/:id', async (req, res) => {
 
     // Atualizar o status na tabela atendimentos se necessário
     if (dados.status_destino) {
+      let statusToSave = dados.status_destino === 'alta_ambulatorial' ? 'atendimento_concluido' : dados.status_destino;
       await knex('atendimentos')
         .where('id', id)
         .update({
-          status: dados.status_destino
+          status: statusToSave
         });
     }
 
