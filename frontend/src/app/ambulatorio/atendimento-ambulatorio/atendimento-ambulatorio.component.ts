@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AmbulatorioService } from '../ambulatorio.service';
 import { AuthService } from '../../auth/auth.service';
 
@@ -25,7 +26,8 @@ import { AuthService } from '../../auth/auth.service';
     MatSelectModule,
     MatExpansionModule,
     MatIconModule,
-    MatCheckboxModule
+  MatCheckboxModule,
+  MatSnackBarModule
   ],
   templateUrl: './atendimento-ambulatorio.component.html',
   styleUrl: './atendimento-ambulatorio.component.scss'
@@ -63,7 +65,8 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private ambulatorioService: AmbulatorioService,
-    private authService: AuthService
+    private authService: AuthService,
+    private snackBar: MatSnackBar
   ) {
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
@@ -246,10 +249,12 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
       });
       this.ambulatorioService.salvarAtendimento(this.atendimentoId, payload).subscribe({
         next: () => {
-          console.log('Atendimento ambulatorial salvo com sucesso');
+          this.snackBar.open('Atendimento ambulatorial salvo com sucesso!', 'Fechar', { duration: 3000 });
           this.modoEdicao = false;
+          this.router.navigate(['/ambulatorio']);
         },
         error: (error: any) => {
+          this.snackBar.open('Erro ao salvar atendimento ambulatorial.', 'Fechar', { duration: 5000 });
           console.error('Erro ao salvar atendimento ambulatorial:', error);
         }
       });
