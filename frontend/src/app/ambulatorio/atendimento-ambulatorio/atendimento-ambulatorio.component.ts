@@ -83,26 +83,26 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
           exame_fisico: consultaData.exame_fisico || '',
           hipotese_diagnostica: consultaData.hipotese_diagnostica || '',
           diagnostico_principal: consultaData.diagnostico_principal || '',
-          
+
           // Conduta e Medicamentos
           plano_terapeutico: consultaData.plano_terapeutico || consultaData.conduta_prescricao || '',
           medicamentos_prescritos: consultaData.medicamentos_prescritos || '',
-          
+
           // Observação Médica
           necessita_observacao: consultaData.necessita_observacao || false,
           tempo_observacao_horas: consultaData.tempo_observacao_horas || '',
           motivo_observacao: consultaData.motivo_observacao || '',
           observacoes: triagemData.observacoes_triagem || triagemData.observacoes || consultaData.observacoes || '',
-          
+
           // Exames e Procedimentos
           exames_solicitados: consultaData.exames_solicitados || '',
           procedimentos_realizados: consultaData.procedimentos_realizados || '',
-          
+
           // Informações Complementares
           orientacoes_gerais: consultaData.orientacoes_gerais || consultaData.orientacoes_paciente || '',
           status_destino: triagemData.status_destino || consultaData.status_destino || '',
           observacoes_destino: consultaData.observacoes_destino || '',
-          
+
           // Campos específicos do ambulatório
           medicamentos_ambulatorio: consultaData.medicamentos_ambulatorio || '',
           alergias_identificadas: consultaData.alergias_identificadas || triagemData.alergias || '',
@@ -135,26 +135,26 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
       exame_fisico: [''],
       hipotese_diagnostica: [''],
       diagnostico_principal: [''],
-      
+
       // Conduta e Medicamentos
       plano_terapeutico: [''],
       medicamentos_prescritos: [''],
-      
+
       // Observação Médica
       necessita_observacao: [false],
       tempo_observacao_horas: [''],
       motivo_observacao: [''],
       observacoes: [''],
-      
+
       // Exames e Procedimentos
       exames_solicitados: [''],
       procedimentos_realizados: [''],
-      
+
       // Informações Complementares
       orientacoes_gerais: [''],
       status_destino: [''],
       observacoes_destino: [''],
-      
+
       // Campos específicos do ambulatório
       medicamentos_ambulatorio: [''],
       alergias_identificadas: [''],
@@ -175,9 +175,42 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   salvar() {
     if (this.atendimentoForm.valid && this.atendimentoId) {
       const dadosAtendimento = this.atendimentoForm.value;
-      dadosAtendimento.id = this.atendimentoId;
-      
-      this.ambulatorioService.salvarAtendimento(this.atendimentoId, dadosAtendimento).subscribe({
+      // Mapeamento input -> coluna do banco (apenas campos editáveis na tela)
+      const mapeamento: { [key: string]: string } = {
+        plano_terapeutico: 'conduta_prescricao',
+        medicamentos_prescritos: 'medicamentos_prescritos',
+        medicamentos_ambulatorio: 'medicamentos_ambulatorio',
+        exame_fisico: 'exame_fisico',
+        hipotese_diagnostica: 'hipotese_diagnostica',
+        necessita_observacao: 'necessita_observacao',
+        tempo_observacao_horas: 'tempo_observacao_horas',
+        motivo_observacao: 'motivo_observacao',
+        observacoes: 'observacoes',
+        exames_solicitados: 'exames_solicitados',
+        procedimentos_realizados: 'procedimentos_realizados',
+        orientacoes_gerais: 'orientacoes_paciente',
+        status_destino: 'status_destino',
+        observacoes_destino: 'observacoes_destino',
+        alergias_identificadas: 'alergias_identificadas',
+        historico_familiar_relevante: 'historico_familiar_relevante',
+        detalhes_destino: 'detalhes_destino',
+        orientacoes_paciente: 'orientacoes_paciente'
+      };
+      const payload: any = { id: this.atendimentoId };
+      Object.keys(mapeamento).forEach(input => {
+        const coluna = mapeamento[input];
+        const valor = dadosAtendimento[input];
+        if (
+          valor !== undefined &&
+          valor !== null &&
+          !(typeof valor === 'string' && valor.trim() === '')
+        ) {
+          // Se for orientacoes_gerais e orientacoes_paciente já estiver preenchido, não sobrescreve
+          if (input === 'orientacoes_gerais' && dadosAtendimento['orientacoes_paciente']) return;
+          payload[coluna] = valor;
+        }
+      });
+      this.ambulatorioService.salvarAtendimento(this.atendimentoId, payload).subscribe({
         next: () => {
           console.log('Atendimento ambulatorial salvo com sucesso');
           this.modoEdicao = false;

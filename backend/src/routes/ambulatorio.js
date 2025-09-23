@@ -226,64 +226,47 @@ router.put('/atendimento/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const dados = req.body;
-
-    // Primeiro, verificar se já existe uma consulta médica para este atendimento
-    const consultaExistente = await knex('consultas_medicas')
-      .where('atendimento_id', id)
-      .first();
-
-    if (consultaExistente) {
-      // Atualizar a consulta médica existente com os dados ambulatoriais
-      await knex('consultas_medicas')
+    // Lista de campos válidos para consultas_medicas (apenas os que têm input na tela)
+    const camposValidos = [
+      'conduta_prescricao',
+      'medicamentos_prescritos',
+      'medicamentos_ambulatorio',
+      'exame_fisico',
+      'hipotese_diagnostica',
+      'diagnostico_principal',
+      'necessita_observacao',
+      'tempo_observacao_horas',
+      'motivo_observacao',
+      'observacoes',
+      'exames_solicitados',
+      'procedimentos_realizados',
+      'orientacoes_paciente',
+      'status_destino',
+      'observacoes_destino',
+      'alergias_identificadas',
+      'historico_familiar_relevante',
+      'detalhes_destino'
+    ];
+    // Monta objeto de update apenas com campos válidos presentes no payload
+    const updateData = {};
+    camposValidos.forEach(campo => {
+      if (dados[campo] !== undefined) {
+        updateData[campo] = dados[campo];
+      }
+    });
+    // Atualiza apenas se houver campos válidos
+    if (Object.keys(updateData).length > 0) {
+      const consultaExistente = await knex('consultas_medicas')
         .where('atendimento_id', id)
-        .update({
-          // Dados vitais (pode ser atualizado no ambulatório)
-          pressao_arterial: dados.pressao_arterial || consultaExistente.pressao_arterial,
-          frequencia_cardiaca: dados.frequencia_cardiaca || consultaExistente.frequencia_cardiaca,
-          temperatura: dados.temperatura || consultaExistente.temperatura,
-          saturacao_oxigenio: dados.saturacao_oxigenio || consultaExistente.saturacao_oxigenio,
-          frequencia_respiratoria: dados.frequencia_respiratoria || consultaExistente.frequencia_respiratoria,
-          peso: dados.peso || consultaExistente.peso,
-          altura: dados.altura || consultaExistente.altura,
-          glicemia: dados.glicemia || consultaExistente.glicemia,
-
-          // Dados que podem ser complementados no ambulatório
-          plano_terapeutico: dados.plano_terapeutico || consultaExistente.plano_terapeutico,
-          orientacoes_gerais: dados.orientacoes_gerais || consultaExistente.orientacoes_gerais,
-          observacoes: dados.observacoes || consultaExistente.observacoes,
-          medicamentos_prescritos: dados.medicamentos_prescritos || consultaExistente.medicamentos_prescritos,
-          status_destino: dados.status_destino || consultaExistente.status_destino,
-          observacoes_destino: dados.observacoes_destino || consultaExistente.observacoes_destino,
-
-          // Dados específicos do ambulatório
-          usuario_ambulatorio: dados.usuario_ambulatorio,
-          data_atendimento_ambulatorio: new Date()
-        });
-    } else {
-      // Criar nova entrada na consultas_medicas (caso não tenha passado pelo médico)
-      await knex('consultas_medicas').insert({
-        atendimento_id: id,
-        pressao_arterial: dados.pressao_arterial,
-        frequencia_cardiaca: dados.frequencia_cardiaca,
-        temperatura: dados.temperatura,
-        saturacao_oxigenio: dados.saturacao_oxigenio,
-        frequencia_respiratoria: dados.frequencia_respiratoria,
-        peso: dados.peso,
-        altura: dados.altura,
-        glicemia: dados.glicemia,
-        queixa_principal: dados.queixa_principal,
-        historia_doenca_atual: dados.historia_doenca_atual,
-        exame_fisico: dados.exame_fisico,
-        hipotese_diagnostica: dados.hipotese_diagnostica,
-        plano_terapeutico: dados.plano_terapeutico,
-        orientacoes_gerais: dados.orientacoes_gerais,
-        observacoes: dados.observacoes,
-        medicamentos_prescritos: dados.medicamentos_prescritos,
-        status_destino: dados.status_destino,
-        observacoes_destino: dados.observacoes_destino,
-        usuario_ambulatorio: dados.usuario_ambulatorio,
-        data_atendimento_ambulatorio: new Date()
-      });
+        .first();
+      if (consultaExistente) {
+        await knex('consultas_medicas')
+          .where('atendimento_id', id)
+          .update(updateData);
+      } else {
+        updateData.atendimento_id = id;
+        await knex('consultas_medicas').insert(updateData);
+      }
     }
 
     // Atualizar o status na tabela atendimentos se necessário
