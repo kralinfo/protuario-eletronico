@@ -75,45 +75,41 @@ class Atendimento {
 
   static async listarTodosAtendimentosDia() {
     const result = await db.query(
-      `SELECT a.id, a.created_at, a.data_hora_atendimento, a.status, a.prioridade,
-              a.classificacao_risco, a.queixa_principal,
-              p.nome as paciente_nome, p.nascimento as paciente_nascimento,
-              p.sexo as paciente_sexo
-       FROM atendimentos a
-       JOIN pacientes p ON p.id = a.paciente_id
-       WHERE (
-         -- Itens dos últimos 2 dias (mais flexível para testes)
-         (DATE(a.data_hora_atendimento) >= CURRENT_DATE - INTERVAL '1 day' AND a.status IN (
-           'encaminhado para triagem',
-           'encaminhado para sala médica',
-           'encaminhado para ambulatório', 
-           'encaminhado_para_ambulatorio',
-           'em atendimento ambulatorial',
-           'em_atendimento_ambulatorial',
-           'encaminhado para exames',
-           'encaminhado_para_exames',
-           'em atendimento médico',
-           'aguardando exames',
-           'exames concluídos',
-           'alta médica',
-           'transferido',
-           'óbito'
-         ))
-         OR
-         -- Em triagem (pode ter iniciado em dia anterior, manter visível)
-         a.status = 'em_triagem'
-       )
-       ORDER BY 
-         CASE 
-           WHEN a.status = 'encaminhado para triagem' THEN 1
-           WHEN a.status = 'em_triagem' THEN 2
-           ELSE 3
-         END,
-         a.prioridade ASC NULLS LAST,
-         a.created_at ASC`
-    );
-    return result.rows;
-  }
+          `SELECT a.id, a.created_at, a.data_hora_atendimento, a.status, a.prioridade,
+                  a.classificacao_risco, a.queixa_principal,
+                  p.nome as paciente_nome, p.nascimento as paciente_nascimento,
+                  p.sexo as paciente_sexo
+           FROM atendimentos a
+           JOIN pacientes p ON p.id = a.paciente_id
+           WHERE (
+             -- Itens dos últimos 24h que já passaram pela triagem (classificacao_risco preenchida)
+             a.classificacao_risco IS NOT NULL
+             AND a.data_hora_atendimento >= NOW() - INTERVAL '24 hours'
+           )
+           OR (
+             -- Itens disponíveis para triagem (mantém lógica anterior para o card de disponíveis)
+             a.status IN (
+               'encaminhado para triagem',
+               'encaminhado_para_triagem',
+               '1 - Encaminhado para triagem',
+               'em_triagem',
+               'em triagem',
+               '2 - Em triagem',
+               '2 - Em Triagem'
+             )
+             AND a.data_hora_atendimento >= NOW() - INTERVAL '24 hours'
+           )
+           ORDER BY 
+             CASE 
+               WHEN a.status = 'encaminhado para triagem' THEN 1
+               WHEN a.status = 'em_triagem' THEN 2
+               ELSE 3
+             END,
+             a.prioridade ASC NULLS LAST,
+             a.created_at ASC`
+        );
+        return result.rows;
+      }
 
   static async iniciarTriagem(id, usuarioId) {
     const result = await db.query(
