@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -42,9 +43,9 @@ export class AmbulatorioService {
     return this.http.get<any>('/api/ambulatorio/estatisticas-consultas');
   }
 
-  // Buscar dados específicos de um atendimento
+  // Buscar dados específicos de um atendimento (usa mesmo endpoint do médico)
   getAtendimento(id: number): Observable<any> {
-    return this.http.get<any>(`http://localhost:3001/api/ambulatorio/atendimento/${id}`);
+    return this.http.get<any>(`${environment.apiUrl}/medico/consulta/${id}`);
   }
 
   // Buscar dados específicos de um atendimento (alias para compatibilidade)

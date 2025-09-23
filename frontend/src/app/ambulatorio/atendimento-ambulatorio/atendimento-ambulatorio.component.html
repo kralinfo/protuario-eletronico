@@ -1,6 +1,6 @@
 <div class="container mx-auto p-6 bg-gray-50 rounded-lg shadow-md">
   <div class="flex items-center gap-4 mb-6">
-    <button class="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600" (click)="voltarParaDashboard()">
+    <button class="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600" (click)="voltar()">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h1 class="text-2xl font-bold text-gray-800">
@@ -10,214 +10,301 @@
     <!-- Botão para alternar edição -->
     <div class="ml-auto">
       <button
-        *ngIf="modoVisualizacao"
-        class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 bg-green-500 text-white hover:bg-green-600"
-        (click)="habilitarEdicao()">
-        <mat-icon>edit</mat-icon>
-        Habilitar Edição
-      </button>
-      <button
-        *ngIf="!modoVisualizacao"
-        class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-600"
-        (click)="cancelarEdicao()">
-        <mat-icon>visibility</mat-icon>
-        Desabilitar Edição
+        class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+        [ngClass]="modoEdicao ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-green-500 text-white hover:bg-green-600'"
+        (click)="alternarEdicao()">
+        <mat-icon>{{ modoEdicao ? 'visibility' : 'edit' }}</mat-icon>
+        {{ modoEdicao ? 'Modo Visualização' : 'Modo Edição' }}
       </button>
     </div>
   </div>
 
   <!-- Indicador do modo atual -->
   <div class="mb-4 p-3 rounded-lg"
-       [ngClass]="modoVisualizacao ? 'bg-blue-100 border border-blue-300' : 'bg-orange-100 border border-orange-300'">
+       [ngClass]="modoEdicao ? 'bg-orange-100 border border-orange-300' : 'bg-blue-100 border border-blue-300'">
     <div class="flex items-center gap-2">
-      <mat-icon [ngClass]="modoVisualizacao ? 'text-blue-600' : 'text-orange-600'">
-        {{ modoVisualizacao ? 'visibility' : 'edit' }}
+      <mat-icon [ngClass]="modoEdicao ? 'text-orange-600' : 'text-blue-600'">
+        {{ modoEdicao ? 'edit' : 'visibility' }}
       </mat-icon>
-      <span [ngClass]="modoVisualizacao ? 'text-blue-800' : 'text-orange-800'" class="font-medium">
-        {{ modoVisualizacao ? 'Modo Visualização' : 'Modo Edição Ativado' }}
+      <span [ngClass]="modoEdicao ? 'text-orange-800' : 'text-blue-800'" class="font-medium">
+        {{ modoEdicao ? 'Modo Edição Ativado' : 'Modo Visualização' }}
       </span>
     </div>
   </div>
 
   <form [formGroup]="atendimentoForm" (ngSubmit)="salvar()">
-    
     <mat-accordion>
-      <!-- Dados Vitais -->
+      
+      <!-- 1. Conduta e Medicamentos - PRIMEIRO e ABERTO por padrão -->
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
-          <mat-panel-title>Dados Vitais</mat-panel-title>
+          <mat-panel-title>Conduta e Medicamentos</mat-panel-title>
         </mat-expansion-panel-header>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+        <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Pressão Arterial</label>
-            <input class="w-full p-2 border border-gray-300 rounded" 
-                   formControlName="pressao_arterial" 
-                   placeholder="Ex: 120/80 mmHg">
+            <h3 class="text-md font-medium text-gray-600 mb-2">Plano Terapêutico / Conduta</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="plano_terapeutico" 
+                      rows="3" 
+                      placeholder="Descreva a conduta ou plano terapêutico"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Frequência Cardíaca</label>
-            <input class="w-full p-2 border border-gray-300 rounded" 
-                   formControlName="frequencia_cardiaca" 
-                   placeholder="Ex: 72 bpm">
+            <h3 class="text-md font-medium text-gray-600 mb-2">Medicamentos Prescritos</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="medicamentos_prescritos" 
+                      rows="4" 
+                      placeholder="Ex: Dipirona 500mg - 1 comprimido de 6/6h por 3 dias"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Temperatura</label>
-            <input class="w-full p-2 border border-gray-300 rounded" 
-                   formControlName="temperatura" 
-                   placeholder="Ex: 36.5°C">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Saturação O2</label>
-            <input class="w-full p-2 border border-gray-300 rounded" 
-                   formControlName="saturacao_oxigenio" 
-                   placeholder="Ex: 98%">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Frequência Respiratória</label>
-            <input class="w-full p-2 border border-gray-300 rounded" 
-                   formControlName="frequencia_respiratoria" 
-                   placeholder="Ex: 16 irpm">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Peso</label>
-            <input class="w-full p-2 border border-gray-300 rounded" 
-                   formControlName="peso" 
-                   placeholder="Ex: 70 kg">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Altura</label>
-            <input class="w-full p-2 border border-gray-300 rounded" 
-                   formControlName="altura" 
-                   placeholder="Ex: 1.70 m">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Glicemia</label>
-            <input class="w-full p-2 border border-gray-300 rounded" 
-                   formControlName="glicemia" 
-                   placeholder="Ex: 90 mg/dL">
+            <h3 class="text-md font-medium text-gray-600 mb-2">Medicamentos para Ambulatório</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="medicamentos_ambulatorio" 
+                      rows="3" 
+                      placeholder="Ex: Soro fisiológico 500ml EV, Dipirona 1ml IM"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
         </div>
       </mat-expansion-panel>
 
-      <!-- Avaliação Médica (dados do atendimento médico) -->
-      <mat-expansion-panel>
+      <!-- 2. Dados da Triagem - MINIMIZADO -->
+      <mat-expansion-panel [expanded]="false">
         <mat-expansion-panel-header>
-          <mat-panel-title>Avaliação Médica (Dados do Atendimento Médico)</mat-panel-title>
+          <mat-panel-title>Dados da Triagem</mat-panel-title>
         </mat-expansion-panel-header>
-        <div class="p-4 space-y-4">
+        <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Queixa Principal</label>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Queixa Principal</h3>
             <textarea class="w-full p-2 border border-gray-300 rounded" 
                       formControlName="queixa_principal" 
                       rows="2"
-                      placeholder="Queixa principal do paciente"></textarea>
+                      placeholder="Digite a queixa principal"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">História da Doença Atual</label>
+            <h3 class="text-md font-medium text-gray-600 mb-2">História da Doença Atual</h3>
             <textarea class="w-full p-2 border border-gray-300 rounded" 
                       formControlName="historia_doenca_atual" 
-                      rows="3"
-                      placeholder="História detalhada da doença atual"></textarea>
+                      rows="3" 
+                      placeholder="Descreva a história da doença atual"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Exame Físico</label>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Sinais Vitais</h3>
+            <div class="grid grid-cols-3 gap-4">
+              <input class="w-full p-2 border border-gray-300 rounded" 
+                     formControlName="pressao_arterial" 
+                     placeholder="Pressão Arterial"
+                     [readonly]="!modoEdicao">
+              <input class="w-full p-2 border border-gray-300 rounded" 
+                     type="number" 
+                     formControlName="temperatura" 
+                     placeholder="Temperatura (°C)"
+                     [readonly]="!modoEdicao">
+              <input class="w-full p-2 border border-gray-300 rounded" 
+                     type="number" 
+                     formControlName="frequencia_cardiaca" 
+                     placeholder="Freq. Cardíaca"
+                     [readonly]="!modoEdicao">
+              <input class="w-full p-2 border border-gray-300 rounded" 
+                     type="number" 
+                     formControlName="saturacao_oxigenio" 
+                     placeholder="Saturação O2 (%)"
+                     [readonly]="!modoEdicao">
+              <input class="w-full p-2 border border-gray-300 rounded" 
+                     type="number" 
+                     formControlName="frequencia_respiratoria" 
+                     placeholder="Freq. Respiratória"
+                     [readonly]="!modoEdicao">
+              <input class="w-full p-2 border border-gray-300 rounded" 
+                     type="number" 
+                     formControlName="peso" 
+                     placeholder="Peso (kg)"
+                     [readonly]="!modoEdicao">
+              <input class="w-full p-2 border border-gray-300 rounded" 
+                     type="number" 
+                     formControlName="altura" 
+                     placeholder="Altura (cm)"
+                     [readonly]="!modoEdicao">
+              <input class="w-full p-2 border border-gray-300 rounded" 
+                     type="number" 
+                     formControlName="glicemia" 
+                     placeholder="Glicemia (mg/dL)"
+                     [readonly]="!modoEdicao">
+            </div>
+          </div>
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Exame Físico</h3>
             <textarea class="w-full p-2 border border-gray-300 rounded" 
                       formControlName="exame_fisico" 
-                      rows="3"
-                      placeholder="Achados do exame físico"></textarea>
+                      rows="3" 
+                      placeholder="Descreva os achados do exame físico"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Hipótese Diagnóstica</label>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Hipótese Diagnóstica</h3>
             <textarea class="w-full p-2 border border-gray-300 rounded" 
                       formControlName="hipotese_diagnostica" 
-                      rows="2"
-                      placeholder="Hipótese diagnóstica médica"></textarea>
+                      rows="2" 
+                      placeholder="Descreva a hipótese diagnóstica"
+                      [readonly]="!modoEdicao"></textarea>
+          </div>
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Diagnóstico Principal</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="diagnostico_principal" 
+                      rows="2" 
+                      placeholder="Descreva o diagnóstico principal"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
         </div>
       </mat-expansion-panel>
 
-      <!-- Atendimento Ambulatorial -->
-      <mat-expansion-panel [expanded]="true">
+      <!-- 3. Observação Médica - MINIMIZADO -->
+      <mat-expansion-panel [expanded]="false">
         <mat-expansion-panel-header>
-          <mat-panel-title>Atendimento Ambulatorial</mat-panel-title>
+          <mat-panel-title>Observação Médica</mat-panel-title>
         </mat-expansion-panel-header>
-        <div class="p-4 space-y-4">
+        <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Plano Terapêutico</label>
-            <textarea class="w-full p-2 border border-gray-300 rounded" 
-                      formControlName="plano_terapeutico" 
-                      rows="4"
-                      placeholder="Plano de tratamento e intervenções ambulatoriais"></textarea>
+            <mat-checkbox formControlName="necessita_observacao" [disabled]="!modoEdicao">
+              Necessita Observação Médica
+            </mat-checkbox>
+          </div>
+          <div *ngIf="atendimentoForm.get('necessita_observacao')?.value">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <h4 class="text-sm font-medium text-gray-500 mb-2">Tempo de Observação (horas)</h4>
+                <input class="w-full p-2 border border-gray-300 rounded" 
+                       type="number" 
+                       formControlName="tempo_observacao_horas" 
+                       placeholder="Ex: 4"
+                       [readonly]="!modoEdicao">
+              </div>
+            </div>
+            <div>
+              <h4 class="text-sm font-medium text-gray-500 mb-2">Motivo da Observação</h4>
+              <textarea class="w-full p-2 border border-gray-300 rounded" 
+                        formControlName="motivo_observacao" 
+                        rows="3" 
+                        placeholder="Descreva o motivo da observação médica"
+                        [readonly]="!modoEdicao"></textarea>
+            </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Medicamentos Prescritos</label>
-            <textarea class="w-full p-2 border border-gray-300 rounded" 
-                      formControlName="medicamentos_prescritos" 
-                      rows="4"
-                      placeholder="Lista de medicamentos prescritos com posologia"></textarea>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Orientações Gerais</label>
-            <textarea class="w-full p-2 border border-gray-300 rounded" 
-                      formControlName="orientacoes_gerais" 
-                      rows="3"
-                      placeholder="Orientações gerais para o paciente"></textarea>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Observações Gerais</h3>
             <textarea class="w-full p-2 border border-gray-300 rounded" 
                       formControlName="observacoes" 
-                      rows="3"
-                      placeholder="Observações adicionais"></textarea>
+                      rows="4" 
+                      placeholder="Observações médicas gerais"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
         </div>
       </mat-expansion-panel>
 
-      <!-- Encaminhamento -->
-      <mat-expansion-panel>
+      <!-- 4. Exames e Procedimentos - MINIMIZADO -->
+      <mat-expansion-panel [expanded]="false">
         <mat-expansion-panel-header>
-          <mat-panel-title>Encaminhamento e Alta</mat-panel-title>
+          <mat-panel-title>Exames e Procedimentos</mat-panel-title>
         </mat-expansion-panel-header>
-        <div class="p-4 space-y-4">
+        <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Status de Destino</label>
-            <select class="w-full p-2 border border-gray-300 rounded" 
-                    formControlName="status_destino">
-              <option value="">Selecione o destino</option>
-              <option value="alta ambulatorial">Alta Ambulatorial</option>
-              <option value="encaminhado para especialista">Encaminhado para Especialista</option>
-              <option value="encaminhado para internação">Encaminhado para Internação</option>
-              <option value="retorno ambulatorial">Retorno Ambulatorial</option>
-              <option value="encaminhado para exames">Encaminhado para Exames</option>
-            </select>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Exames Solicitados</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="exames_solicitados" 
+                      rows="4" 
+                      placeholder="Ex: Hemograma completo, Radiografia de tórax"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Observações do Destino</label>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Procedimentos Realizados</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="procedimentos_realizados" 
+                      rows="4" 
+                      placeholder="Descreva os procedimentos realizados"
+                      [readonly]="!modoEdicao"></textarea>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- 5. Informações Complementares - MINIMIZADO -->
+      <mat-expansion-panel [expanded]="false">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Informações Complementares</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="space-y-4">
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Orientações Gerais</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="orientacoes_gerais" 
+                      rows="3" 
+                      placeholder="Orientações gerais ao paciente"
+                      [readonly]="!modoEdicao"></textarea>
+          </div>
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Status/Destino</h3>
+            <input class="w-full p-2 border border-gray-300 rounded" 
+                   formControlName="status_destino" 
+                   placeholder="Ex: Alta, Internação, Transferência"
+                   [readonly]="!modoEdicao">
+          </div>
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Observações do Destino</h3>
             <textarea class="w-full p-2 border border-gray-300 rounded" 
                       formControlName="observacoes_destino" 
-                      rows="3"
-                      placeholder="Observações sobre o encaminhamento ou alta"></textarea>
+                      rows="3" 
+                      placeholder="Observações sobre o destino do paciente"
+                      [readonly]="!modoEdicao"></textarea>
+          </div>
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Alergias Identificadas</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="alergias_identificadas" 
+                      rows="2" 
+                      placeholder="Lista de alergias conhecidas"
+                      [readonly]="!modoEdicao"></textarea>
+          </div>
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Histórico Familiar Relevante</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="historico_familiar_relevante" 
+                      rows="2" 
+                      placeholder="Histórico familiar de doenças relevantes"
+                      [readonly]="!modoEdicao"></textarea>
+          </div>
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Detalhes do Destino</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="detalhes_destino" 
+                      rows="2" 
+                      placeholder="Detalhes específicos do destino"
+                      [readonly]="!modoEdicao"></textarea>
+          </div>
+          <div>
+            <h3 class="text-md font-medium text-gray-600 mb-2">Orientações ao Paciente</h3>
+            <textarea class="w-full p-2 border border-gray-300 rounded" 
+                      formControlName="orientacoes_paciente" 
+                      rows="3" 
+                      placeholder="Orientações específicas ao paciente e familiares"
+                      [readonly]="!modoEdicao"></textarea>
           </div>
         </div>
       </mat-expansion-panel>
+
     </mat-accordion>
 
-    <!-- Botões de Ação -->
-    <div class="flex gap-4 mt-6">
-      <button
-        type="button"
-        class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-        (click)="cancelarAtendimento()">
-        Cancelar
+    <!-- Botões de ação -->
+    <div class="flex justify-between mt-8 gap-4">
+      <button type="button" (click)="voltar()" 
+              class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+        Voltar
       </button>
       
-      <button
-        type="submit"
-        class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-        [disabled]="salvando">
-        <mat-spinner diameter="20" *ngIf="salvando"></mat-spinner>
-        <mat-icon *ngIf="!salvando">{{ modoVisualizacao ? 'check' : 'save' }}</mat-icon>
-        {{ salvando ? 'Salvando...' : labelBotao }}
+      <button type="submit" 
+              [disabled]="!modoEdicao || atendimentoForm.invalid"
+              class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        Salvar Atendimento
       </button>
     </div>
   </form>
