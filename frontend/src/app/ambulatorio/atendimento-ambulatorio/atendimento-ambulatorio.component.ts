@@ -40,11 +40,14 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
       this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'atendimento_concluido').subscribe();
     } else if (valor === 'retornar_atendimento_medico') {
       this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'encaminhado para sala médica').subscribe();
+    } else if (valor === 'em_observacao') {
+      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'em_observacao').subscribe();
     }
   }
   opcoesDestino: { label: string, value: string }[] = [
     { label: 'Alta Ambulatorial', value: 'alta_ambulatorial' },
-    { label: 'Encaminhar para Atendimento Médico Novamente', value: 'retornar_atendimento_medico' }
+    { label: 'Encaminhar para Atendimento Médico Novamente', value: 'retornar_atendimento_medico' },
+    { label: 'Em Observação', value: 'em_observacao' }
   ];
 
   get opcoesDestinoFiltradas() {

@@ -126,11 +126,15 @@ router.post('/consulta/:id', async (req, res) => {
     // APENAS atualizar status se o status_destino for diferente de 'em_atendimento_ambulatorial'
     // Isso significa que o paciente está sendo encaminhado para outro setor ou recebendo alta
     if (status_destino && status_destino !== 'em_atendimento_ambulatorial') {
+      let statusToSave = status_destino;
+      if (statusToSave === 'em_observacao' || statusToSave === 'Em Observação') {
+        statusToSave = 'em_observacao';
+      }
       await knex('atendimentos')
         .where('id', req.params.id)
         .update({ 
-          status: status_destino || 'alta_ambulatorial',
-          status_destino: status_destino || 'alta_ambulatorial'
+          status: statusToSave || 'alta_ambulatorial',
+          status_destino: statusToSave || 'alta_ambulatorial'
         });
     }
 
