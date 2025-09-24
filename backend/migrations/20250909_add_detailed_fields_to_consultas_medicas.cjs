@@ -2,52 +2,46 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
-  return knex.schema.alterTable('consultas_medicas', function(table) {
-    // Medicamentos prescritos
-    table.text('medicamentos_prescritos').nullable().comment('Lista de medicamentos prescritos pelo médico');
-    table.text('medicamentos_ambulatorio').nullable().comment('Medicamentos para aplicação/administração no ambulatório');
-    
-    // Atestado médico
-    table.boolean('atestado_emitido').defaultTo(false).comment('Se foi emitido atestado médico');
-    table.string('atestado_cid', 20).nullable().comment('CID do atestado médico');
-    table.text('atestado_detalhes').nullable().comment('Detalhes e observações do atestado');
-    table.integer('atestado_dias').nullable().comment('Número de dias do atestado');
-    
-    // Observação e internação
-    table.boolean('necessita_observacao').defaultTo(false).comment('Se o paciente necessita observação');
-    table.integer('tempo_observacao_horas').nullable().comment('Tempo de observação em horas');
-    table.text('motivo_observacao').nullable().comment('Motivo da observação');
-    
-    // Exames solicitados
-    table.text('exames_solicitados').nullable().comment('Lista de exames solicitados');
-    table.text('orientacoes_paciente').nullable().comment('Orientações gerais para o paciente');
-    
-    // Retorno e acompanhamento
-    table.boolean('retorno_agendado').defaultTo(false).comment('Se foi agendado retorno');
-    table.date('data_retorno').nullable().comment('Data do retorno agendado');
-    table.text('observacoes_retorno').nullable().comment('Observações sobre o retorno');
-    
-    // Procedimentos realizados
-    table.text('procedimentos_realizados').nullable().comment('Procedimentos médicos realizados durante o atendimento');
-    
-    // Status detalhado do destino
-    table.text('detalhes_destino').nullable().comment('Detalhes sobre o destino do paciente (alta, transferência, etc.)');
-    
-    // Informações adicionais
-    table.text('alergias_identificadas').nullable().comment('Alergias identificadas durante o atendimento');
-    table.text('historico_familiar_relevante').nullable().comment('Histórico familiar relevante identificado');
-    
-    // Campos de auditoria médica
-    table.timestamp('data_prescricao').nullable().comment('Data e hora da prescrição');
-    table.integer('medico_supervisor_id').nullable().comment('ID do médico supervisor (se aplicável)');
-    
-    // Índices para melhor performance
-    table.index(['atestado_emitido']);
-    table.index(['necessita_observacao']);
-    table.index(['retorno_agendado']);
-    table.index(['data_retorno']);
-  });
+exports.up = async function(knex) {
+  const colunas = [
+    { nome: 'medicamentos_prescritos', tipo: t => t.text('medicamentos_prescritos').nullable().comment('Lista de medicamentos prescritos pelo médico') },
+    { nome: 'medicamentos_ambulatorio', tipo: t => t.text('medicamentos_ambulatorio').nullable().comment('Medicamentos para aplicação/administração no ambulatório') },
+    { nome: 'atestado_emitido', tipo: t => t.boolean('atestado_emitido').defaultTo(false).comment('Se foi emitido atestado médico') },
+    { nome: 'atestado_cid', tipo: t => t.string('atestado_cid', 20).nullable().comment('CID do atestado médico') },
+    { nome: 'atestado_detalhes', tipo: t => t.text('atestado_detalhes').nullable().comment('Detalhes e observações do atestado') },
+    { nome: 'atestado_dias', tipo: t => t.integer('atestado_dias').nullable().comment('Número de dias do atestado') },
+    { nome: 'necessita_observacao', tipo: t => t.boolean('necessita_observacao').defaultTo(false).comment('Se o paciente necessita observação') },
+    { nome: 'tempo_observacao_horas', tipo: t => t.integer('tempo_observacao_horas').nullable().comment('Tempo de observação em horas') },
+    { nome: 'motivo_observacao', tipo: t => t.text('motivo_observacao').nullable().comment('Motivo da observação') },
+    { nome: 'exames_solicitados', tipo: t => t.text('exames_solicitados').nullable().comment('Lista de exames solicitados') },
+    { nome: 'orientacoes_paciente', tipo: t => t.text('orientacoes_paciente').nullable().comment('Orientações gerais para o paciente') },
+    { nome: 'retorno_agendado', tipo: t => t.boolean('retorno_agendado').defaultTo(false).comment('Se foi agendado retorno') },
+    { nome: 'data_retorno', tipo: t => t.date('data_retorno').nullable().comment('Data do retorno agendado') },
+    { nome: 'observacoes_retorno', tipo: t => t.text('observacoes_retorno').nullable().comment('Observações sobre o retorno') },
+    { nome: 'procedimentos_realizados', tipo: t => t.text('procedimentos_realizados').nullable().comment('Procedimentos médicos realizados durante o atendimento') },
+    { nome: 'detalhes_destino', tipo: t => t.text('detalhes_destino').nullable().comment('Detalhes sobre o destino do paciente (alta, transferência, etc.)') },
+    { nome: 'alergias_identificadas', tipo: t => t.text('alergias_identificadas').nullable().comment('Alergias identificadas durante o atendimento') },
+    { nome: 'historico_familiar_relevante', tipo: t => t.text('historico_familiar_relevante').nullable().comment('Histórico familiar relevante identificado') },
+    { nome: 'data_prescricao', tipo: t => t.timestamp('data_prescricao').nullable().comment('Data e hora da prescrição') },
+    { nome: 'medico_supervisor_id', tipo: t => t.integer('medico_supervisor_id').nullable().comment('ID do médico supervisor (se aplicável)') }
+  ];
+  for (const col of colunas) {
+    const exists = await knex.schema.hasColumn('consultas_medicas', col.nome);
+    if (!exists) {
+      await knex.schema.alterTable('consultas_medicas', col.tipo);
+      console.log(`✅ Coluna ${col.nome} adicionada à tabela consultas_medicas`);
+    } else {
+      console.log(`ℹ️  Coluna ${col.nome} já existe - pulando`);
+    }
+  }
+
+  // Índices para melhor performance (tenta criar, ignora erro se já existe)
+  const indices = ['atestado_emitido', 'necessita_observacao', 'retorno_agendado', 'data_retorno'];
+  for (const idx of indices) {
+    try {
+      await knex.schema.alterTable('consultas_medicas', t => t.index(idx));
+    } catch (e) {}
+  }
 };
 
 /**
