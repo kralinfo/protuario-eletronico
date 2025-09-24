@@ -92,72 +92,47 @@
           </div>
           <div>
             <h3 class="text-md font-medium text-gray-600 mb-2">Sinais Vitais</h3>
-            <div class="grid grid-cols-3 gap-4">
-              <input class="w-full p-2 border border-gray-300 rounded"
-                     formControlName="pressao_arterial"
-                     placeholder="Pressão Arterial"
-                     [readonly]="!modoEdicao">
-              <input class="w-full p-2 border border-gray-300 rounded"
-                     type="number"
-                     formControlName="temperatura"
-                     placeholder="Temperatura (°C)"
-                     [readonly]="!modoEdicao">
-              <input class="w-full p-2 border border-gray-300 rounded"
-                     type="number"
-                     formControlName="frequencia_cardiaca"
-                     placeholder="Freq. Cardíaca"
-                     [readonly]="!modoEdicao">
-              <input class="w-full p-2 border border-gray-300 rounded"
-                     type="number"
-                     formControlName="saturacao_oxigenio"
-                     placeholder="Saturação O2 (%)"
-                     [readonly]="!modoEdicao">
-              <input class="w-full p-2 border border-gray-300 rounded"
-                     type="number"
-                     formControlName="frequencia_respiratoria"
-                     placeholder="Freq. Respiratória"
-                     [readonly]="!modoEdicao">
-              <input class="w-full p-2 border border-gray-300 rounded"
-                     type="number"
-                     formControlName="peso"
-                     placeholder="Peso (kg)"
-                     [readonly]="!modoEdicao">
-              <input class="w-full p-2 border border-gray-300 rounded"
-                     type="number"
-                     formControlName="altura"
-                     placeholder="Altura (cm)"
-                     [readonly]="!modoEdicao">
-              <input class="w-full p-2 border border-gray-300 rounded"
-                     type="number"
-                     formControlName="glicemia"
-                     placeholder="Glicemia (mg/dL)"
-                     [readonly]="!modoEdicao">
-            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Pressão Arterial</label>
+                <input class="w-full p-2 border border-gray-300 rounded"
+                  formControlName="pressao_arterial"
+                  placeholder="Ex: 120/80"
+                  [readonly]="!modoEdicao">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Temperatura (°C)</label>
+                <input class="w-full p-2 border border-gray-300 rounded"
+                  type="number"
+                  formControlName="temperatura"
+                  placeholder="Ex: 36.5"
+                  [readonly]="!modoEdicao">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Saturação O₂ (%)</label>
+                <input class="w-full p-2 border border-gray-300 rounded"
+                  type="number"
+                  formControlName="saturacao_oxigenio"
+                  placeholder="Ex: 98"
+                  [readonly]="!modoEdicao">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Frequência Cardíaca</label>
+                <input class="w-full p-2 border border-gray-300 rounded"
+                  type="number"
+                  formControlName="frequencia_cardiaca"
+                  placeholder="Ex: 80"
+                  [readonly]="!modoEdicao">
+              </div>
+            </div> <!-- fecha grid de sinais vitais -->
           </div>
-          <div>
-            <h3 class="text-md font-medium text-gray-600 mb-2">Exame Físico</h3>
-            <textarea class="w-full p-2 border border-gray-300 rounded"
-                      formControlName="exame_fisico"
-                      rows="3"
-                      placeholder="Descreva os achados do exame físico"
-                      [readonly]="!modoEdicao"></textarea>
-          </div>
-          <div>
-            <h3 class="text-md font-medium text-gray-600 mb-2">Hipótese Diagnóstica</h3>
-            <textarea class="w-full p-2 border border-gray-300 rounded"
-                      formControlName="hipotese_diagnostica"
-                      rows="2"
-                      placeholder="Descreva a hipótese diagnóstica"
-                      [readonly]="!modoEdicao"></textarea>
-          </div>
-          <div>
-            <h3 class="text-md font-medium text-gray-600 mb-2">Diagnóstico Principal</h3>
-            <textarea class="w-full p-2 border border-gray-300 rounded"
-                      formControlName="diagnostico_principal"
-                      rows="2"
-                      placeholder="Descreva o diagnóstico principal"
-                      [readonly]="!modoEdicao"></textarea>
-          </div>
+        </div> <!-- fecha space-y-4 da triagem -->
+        <!-- Botão Salvar Triagem -->
+        <div class="flex justify-end mt-4" *ngIf="modoEdicao">
+          <button mat-raised-button color="primary" (click)="salvarTriagem()" type="button">
+            <mat-icon>save</mat-icon>
+            Salvar Triagem
+          </button>
         </div>
       </mat-expansion-panel>
 

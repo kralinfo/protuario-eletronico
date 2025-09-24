@@ -33,6 +33,7 @@ import { AuthService } from '../../auth/auth.service';
   styleUrl: './atendimento-ambulatorio.component.scss'
 })
 export class AtendimentoAmbulatorioComponent implements OnInit {
+  private dadosTriagemOriginais: any = {};
   // Atualiza o status do atendimento conforme o destino selecionado
   onDestinoChange(valor: string) {
     if (!this.atendimentoId) return;
@@ -114,52 +115,25 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
         console.log('Dados da triagem:', triagemData);
         console.log('Dados da consulta:', consultaData);
 
-        this.atendimentoForm.patchValue({
-          // Dados da triagem (prioridade para carregar primeiro)
-          queixa_principal: triagemData.queixa_principal || consultaData.queixa_principal || '',
-          historia_doenca_atual: triagemData.historia_atual || consultaData.historia_atual || '',
+        // Salva os dados originais da triagem para comparação posterior
+        this.dadosTriagemOriginais = {
+          queixa_principal: triagemData.queixa_principal || '',
+          historia_atual: triagemData.historia_atual || '',
           pressao_arterial: triagemData.pressao_arterial || '',
           temperatura: triagemData.temperatura || '',
-          frequencia_cardiaca: triagemData.frequencia_cardiaca || '',
           saturacao_oxigenio: triagemData.saturacao_oxigenio || '',
-          frequencia_respiratoria: triagemData.frequencia_respiratoria || '',
-          peso: triagemData.peso || '',
-          altura: triagemData.altura || '',
-          glicemia: triagemData.glicemia || '',
-          exame_fisico: consultaData.exame_fisico || '',
-          hipotese_diagnostica: consultaData.hipotese_diagnostica || '',
-          diagnostico_principal: consultaData.diagnostico_principal || '',
-
-          // Conduta e Medicamentos
-          plano_terapeutico: consultaData.plano_terapeutico || consultaData.conduta_prescricao || '',
-          medicamentos_prescritos: consultaData.medicamentos_prescritos || '',
-
-          // Observação Médica
-          necessita_observacao: consultaData.necessita_observacao || false,
-          tempo_observacao_horas: consultaData.tempo_observacao_horas || '',
-          motivo_observacao: consultaData.motivo_observacao || '',
-          observacoes: triagemData.observacoes_triagem || triagemData.observacoes || consultaData.observacoes || '',
-
-          // Exames e Procedimentos
-          exames_solicitados: consultaData.exames_solicitados || '',
-          procedimentos_realizados: consultaData.procedimentos_realizados || '',
-
-          // Informações Complementares
-          orientacoes_gerais: consultaData.orientacoes_gerais || consultaData.orientacoes_paciente || '',
-          status_destino: triagemData.status_destino || consultaData.status_destino || '',
-          observacoes_destino: consultaData.observacoes_destino || '',
-
-          // Campos específicos do ambulatório
-          medicamentos_ambulatorio: consultaData.medicamentos_ambulatorio || '',
-          alergias_identificadas: consultaData.alergias_identificadas || triagemData.alergias || '',
-          historico_familiar_relevante: consultaData.historico_familiar_relevante || '',
-          detalhes_destino: consultaData.detalhes_destino || '',
-          orientacoes_paciente: consultaData.orientacoes_paciente || ''
+          frequencia_cardiaca: triagemData.frequencia_cardiaca || '',
+          classificacao_risco: triagemData.classificacao_risco || ''
+        };
+        this.atendimentoForm.patchValue({
+          queixa_principal: this.dadosTriagemOriginais.queixa_principal,
+          historia_doenca_atual: this.dadosTriagemOriginais.historia_atual,
+          pressao_arterial: this.dadosTriagemOriginais.pressao_arterial,
+          temperatura: this.dadosTriagemOriginais.temperatura,
+          saturacao_oxigenio: this.dadosTriagemOriginais.saturacao_oxigenio,
+          frequencia_cardiaca: this.dadosTriagemOriginais.frequencia_cardiaca,
         });
-
         this.atendimentoForm.updateValueAndValidity();
-
-        // Nome do paciente vem dos dados da triagem
         this.nomePaciente = triagemData.paciente_nome || 'Paciente';
       }
     });
@@ -172,19 +146,13 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
       historia_doenca_atual: [''],
       pressao_arterial: [''],
       temperatura: [''],
-      frequencia_cardiaca: [''],
       saturacao_oxigenio: [''],
-      frequencia_respiratoria: [''],
-      peso: [''],
-      altura: [''],
-      glicemia: [''],
-      exame_fisico: [''],
-      hipotese_diagnostica: [''],
-      diagnostico_principal: [''],
+      frequencia_cardiaca: [''],
 
       // Conduta e Medicamentos
       plano_terapeutico: [''],
       medicamentos_prescritos: [''],
+      medicamentos_ambulatorio: [''],
 
       // Observação Médica
       necessita_observacao: [false],
@@ -200,18 +168,45 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
       orientacoes_gerais: [''],
       status_destino: [''],
       observacoes_destino: [''],
-
-      // Campos específicos do ambulatório
-      medicamentos_ambulatorio: [''],
       alergias_identificadas: [''],
       historico_familiar_relevante: [''],
       detalhes_destino: [''],
       orientacoes_paciente: ['']
+
+      // (removido duplicidade dos campos do formGroup)
     });
   }
 
   alternarEdicao() {
     this.modoEdicao = !this.modoEdicao;
+  }
+
+  salvarTriagem() {
+    if (!this.atendimentoId) return;
+    const form = this.atendimentoForm.value;
+    const payload: any = {};
+    // Só envia campos que mudaram
+    if (form.queixa_principal !== this.dadosTriagemOriginais.queixa_principal) payload.queixa_principal = form.queixa_principal;
+    if (form.historia_doenca_atual !== this.dadosTriagemOriginais.historia_atual) payload.historia_atual = form.historia_doenca_atual;
+    if (form.pressao_arterial !== this.dadosTriagemOriginais.pressao_arterial) payload.pressao_arterial = form.pressao_arterial;
+    if (form.temperatura !== this.dadosTriagemOriginais.temperatura) payload.temperatura = form.temperatura;
+    if (form.saturacao_oxigenio !== this.dadosTriagemOriginais.saturacao_oxigenio) payload.saturacao_oxigenio = form.saturacao_oxigenio;
+    if (form.frequencia_cardiaca !== this.dadosTriagemOriginais.frequencia_cardiaca) payload.frequencia_cardiaca = form.frequencia_cardiaca;
+    // Sempre preserva classificação de risco se existir
+    if (this.dadosTriagemOriginais.classificacao_risco) payload.classificacao_risco = this.dadosTriagemOriginais.classificacao_risco;
+    if (Object.keys(payload).length === 0) {
+      this.snackBar.open('Nenhuma alteração para salvar.', 'Fechar', { duration: 3000 });
+      return;
+    }
+    this.ambulatorioService.salvarAtendimentoAmbulatorio(this.atendimentoId, payload).subscribe({
+      next: () => {
+        this.snackBar.open('Dados da triagem salvos com sucesso!', 'Fechar', { duration: 3000 });
+      },
+      error: (error: any) => {
+        this.snackBar.open('Erro ao salvar dados da triagem.', 'Fechar', { duration: 5000 });
+        console.error('Erro ao salvar triagem:', error);
+      }
+    });
   }
 
   voltar() {
@@ -223,12 +218,10 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
       const dadosAtendimento = this.atendimentoForm.value;
       // Mapeamento input -> coluna do banco (apenas campos editáveis na tela)
       const mapeamento: { [key: string]: string } = {
-        plano_terapeutico: 'conduta_prescricao',
-        medicamentos_prescritos: 'medicamentos_prescritos',
-        medicamentos_ambulatorio: 'medicamentos_ambulatorio',
-        exame_fisico: 'exame_fisico',
-        hipotese_diagnostica: 'hipotese_diagnostica',
-        necessita_observacao: 'necessita_observacao',
+  plano_terapeutico: 'conduta_prescricao',
+  medicamentos_prescritos: 'medicamentos_prescritos',
+  medicamentos_ambulatorio: 'medicamentos_ambulatorio',
+  necessita_observacao: 'necessita_observacao',
         tempo_observacao_horas: 'tempo_observacao_horas',
         motivo_observacao: 'motivo_observacao',
         observacoes: 'observacoes',

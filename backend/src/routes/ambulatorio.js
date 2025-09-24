@@ -230,8 +230,9 @@ router.put('/atendimento/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const dados = req.body;
-    // Lista de campos válidos para consultas_medicas (apenas os que têm input na tela)
-    const camposValidos = [
+
+    // Campos de consulta (consultas_medicas)
+    const camposConsulta = [
       'conduta_prescricao',
       'medicamentos_prescritos',
       'medicamentos_ambulatorio',
@@ -251,26 +252,54 @@ router.put('/atendimento/:id', async (req, res) => {
       'historico_familiar_relevante',
       'detalhes_destino'
     ];
-    // Monta objeto de update apenas com campos válidos presentes no payload
-    const updateData = {};
-    camposValidos.forEach(campo => {
+    // Campos de triagem (atendimentos)
+    const camposTriagem = [
+      'pressao_arterial',
+      'temperatura',
+      'saturacao_oxigenio',
+      'frequencia_cardiaca',
+      'queixa_principal',
+      'historia_atual',
+      'exame_fisico',
+      'hipotese_diagnostica',
+      'classificacao_risco'
+    ];
+
+    // Monta objeto de update para consultas_medicas
+    const updateConsulta = {};
+    camposConsulta.forEach(campo => {
       if (dados[campo] !== undefined) {
-        updateData[campo] = dados[campo];
+        updateConsulta[campo] = dados[campo];
       }
     });
-    // Atualiza apenas se houver campos válidos
-    if (Object.keys(updateData).length > 0) {
+    // Monta objeto de update para atendimentos
+    const updateTriagem = {};
+    camposTriagem.forEach(campo => {
+      if (dados[campo] !== undefined) {
+        updateTriagem[campo] = dados[campo];
+      }
+    });
+
+    // Atualiza consultas_medicas
+    if (Object.keys(updateConsulta).length > 0) {
       const consultaExistente = await knex('consultas_medicas')
         .where('atendimento_id', id)
         .first();
       if (consultaExistente) {
         await knex('consultas_medicas')
           .where('atendimento_id', id)
-          .update(updateData);
+          .update(updateConsulta);
       } else {
-        updateData.atendimento_id = id;
-        await knex('consultas_medicas').insert(updateData);
+        updateConsulta.atendimento_id = id;
+        await knex('consultas_medicas').insert(updateConsulta);
       }
+    }
+
+    // Atualiza atendimentos (triagem)
+    if (Object.keys(updateTriagem).length > 0) {
+      await knex('atendimentos')
+        .where('id', id)
+        .update(updateTriagem);
     }
 
     // Atualizar o status na tabela atendimentos se necessário
