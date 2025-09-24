@@ -54,6 +54,7 @@ export class DashboardAmbulatorioComponent implements OnInit {
   consultasPreview: any[] = [];
   consultasEncaminhadas: number = 0;
   consultasEmAtendimento: number = 0;
+  consultasEmObservacao: number = 0;
   alertasCriticos: any[] = [];
   alertasAtencao: any[] = [];
 
@@ -91,6 +92,26 @@ export class DashboardAmbulatorioComponent implements OnInit {
     this.carregarEstatisticas();
     this.carregarAlertasTempo();
     this.carregarFilaAmbulatorio();
+    this.carregarConsultasObservacao();
+  }
+
+  carregarConsultasObservacao() {
+    this.ambulatorioService.getTodosAtendimentos().subscribe((atendimentos: any[]) => {
+      const agora = new Date();
+      const atendimentos24h = (atendimentos || []).filter(a => {
+        let campoData = a.created_at || a.data_hora_atendimento;
+        if (!campoData) return false;
+        const dataAtendimento = new Date(campoData);
+        const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+        return diffHoras <= 24;
+      });
+      // Filtrar atendimentos com status 'em_observacao'
+      const emObservacao = atendimentos24h.filter(a => (a.status || '').toLowerCase() === 'em_observacao');
+      emObservacao.forEach(p => {
+        p.tempo_espera = this.calcularTempoDecorrido(p);
+      });
+      this.consultasPreview = this.ordenarPorClassificacaoETempo(emObservacao).slice(0, 5);
+    });
   }
 
   carregarFilaAmbulatorio() {
@@ -119,19 +140,23 @@ export class DashboardAmbulatorioComponent implements OnInit {
       });
       this.filaDisponiveisPreview = this.ordenarPorClassificacaoETempo(filaAtendimento).slice(0, 5);
 
-      // Contador "Encaminhados" (esquerda) - apenas "encaminhado para ambulatório"
+      // Contador "Atendimentos com Alta" (status: atendimento_concluido)
       this.consultasEncaminhadas = atendimentos24h.filter(a => {
         const status = (a.status || '').toLowerCase();
-        return status === 'encaminhado para ambulatório' ||
-               status === '5 - encaminhado para ambulatório' ||
-               status === 'encaminhado_para_ambulatorio';
+        return status === 'atendimento_concluido';
       }).length;
 
-      // Contador "Em Atendimento" (direita) - apenas "em atendimento ambulatorial"
+      // Contador "Em Atendimento" (status: encaminhado para ambulatório, em atendimento ambulatorial)
       this.consultasEmAtendimento = atendimentos24h.filter(a => {
         const status = (a.status || '').toLowerCase();
-        return status === 'em atendimento ambulatorial' ||
-               status === 'em_atendimento_ambulatorial';
+        return status === 'encaminhado para ambulatório' ||
+               status === 'em atendimento ambulatorial';
+      }).length;
+
+      // Contador "Em Observação" (status: em_observacao)
+      this.consultasEmObservacao = atendimentos24h.filter(a => {
+        const status = (a.status || '').toLowerCase();
+        return status === 'em_observacao';
       }).length;
     });
   }
@@ -342,7 +367,7 @@ export class DashboardAmbulatorioComponent implements OnInit {
     }
 
     console.log('🔄 Navegando para atendimento ambulatorial:', item.id);
-    
+
     // Navegar para a tela de atendimento ambulatorial
     this.router.navigate(['/ambulatorio/atendimento', item.id]);
   }
