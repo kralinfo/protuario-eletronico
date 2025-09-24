@@ -89,6 +89,10 @@ export class DashboardAmbulatorioComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.atualizarDashboard();
+  }
+
+  atualizarDashboard() {
     this.carregarEstatisticas();
     this.carregarAlertasTempo();
     this.carregarFilaAmbulatorio();
@@ -372,11 +376,7 @@ export class DashboardAmbulatorioComponent implements OnInit {
     this.router.navigate(['/ambulatorio/atendimento', item.id]);
   }
 
-  atualizarDashboard() {
-    this.carregarEstatisticas();
-    this.carregarAlertasTempo();
-    this.carregarFilaAmbulatorio();
-  }
+  // ...existing code...
 
   abrirItemConsulta(item: any) {
     // Abrir detalhes da consulta
