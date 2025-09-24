@@ -8,41 +8,48 @@
  */
 
 exports.up = async function(knex) {
-  await knex.schema.alterTable('atendimentos', function(table) {
-    // === SINAIS VITAIS ===
-    table.string('pressao_arterial', 20).nullable().comment('Pressão arterial - formato: 120/80');
-    table.decimal('temperatura', 4, 1).nullable().comment('Temperatura corporal em graus Celsius');
-    table.integer('frequencia_cardiaca').nullable().comment('Frequência cardíaca em BPM');
-    table.integer('frequencia_respiratoria').nullable().comment('Frequência respiratória em RPM');
-    table.integer('saturacao_oxigenio').nullable().comment('Saturação de oxigênio em %');
-    table.decimal('peso', 5, 2).nullable().comment('Peso em kg');
-    table.integer('altura').nullable().comment('Altura em cm');
-    
-    // === CLASSIFICAÇÃO DE RISCO ===
-    table.string('classificacao_risco', 20).nullable().comment('Cor do protocolo: vermelho, laranja, amarelo, verde, azul');
-    table.integer('prioridade').nullable().comment('Prioridade numérica: 1=emergência, 5=não urgente');
-    
-    // === DADOS CLÍNICOS ===
-    table.text('queixa_principal').nullable().comment('Queixa principal do paciente');
-    table.text('historia_atual').nullable().comment('História da doença atual');
-    table.text('alergias').nullable().comment('Alergias conhecidas');
-    table.text('medicamentos_uso').nullable().comment('Medicamentos em uso');
-    table.text('observacoes_triagem').nullable().comment('Observações gerais da triagem');
-    
-    // === CONTROLE DE TRIAGEM ===
-    table.integer('triagem_realizada_por').nullable()
-      .references('id').inTable('usuarios')
-      .comment('ID do profissional que realizou a triagem');
-    table.timestamp('data_inicio_triagem').nullable().comment('Data/hora de início da triagem');
-    table.timestamp('data_fim_triagem').nullable().comment('Data/hora de conclusão da triagem');
-    
-    // === ÍNDICES PARA PERFORMANCE ===
-    table.index('classificacao_risco');
-    table.index('prioridade');
-    table.index('triagem_realizada_por');
-  });
-  
-  console.log('✅ Campos de triagem adicionados à tabela atendimentos');
+  // Adiciona cada coluna apenas se não existir
+  const colunas = [
+    { nome: 'pressao_arterial', tipo: t => t.string('pressao_arterial', 20).nullable().comment('Pressão arterial - formato: 120/80') },
+    { nome: 'temperatura', tipo: t => t.decimal('temperatura', 4, 1).nullable().comment('Temperatura corporal em graus Celsius') },
+    { nome: 'frequencia_cardiaca', tipo: t => t.integer('frequencia_cardiaca').nullable().comment('Frequência cardíaca em BPM') },
+    { nome: 'frequencia_respiratoria', tipo: t => t.integer('frequencia_respiratoria').nullable().comment('Frequência respiratória em RPM') },
+    { nome: 'saturacao_oxigenio', tipo: t => t.integer('saturacao_oxigenio').nullable().comment('Saturação de oxigênio em %') },
+    { nome: 'peso', tipo: t => t.decimal('peso', 5, 2).nullable().comment('Peso em kg') },
+    { nome: 'altura', tipo: t => t.integer('altura').nullable().comment('Altura em cm') },
+    { nome: 'classificacao_risco', tipo: t => t.string('classificacao_risco', 20).nullable().comment('Cor do protocolo: vermelho, laranja, amarelo, verde, azul') },
+    { nome: 'prioridade', tipo: t => t.integer('prioridade').nullable().comment('Prioridade numérica: 1=emergência, 5=não urgente') },
+    { nome: 'queixa_principal', tipo: t => t.text('queixa_principal').nullable().comment('Queixa principal do paciente') },
+    { nome: 'historia_atual', tipo: t => t.text('historia_atual').nullable().comment('História da doença atual') },
+    { nome: 'alergias', tipo: t => t.text('alergias').nullable().comment('Alergias conhecidas') },
+    { nome: 'medicamentos_uso', tipo: t => t.text('medicamentos_uso').nullable().comment('Medicamentos em uso') },
+    { nome: 'observacoes_triagem', tipo: t => t.text('observacoes_triagem').nullable().comment('Observações gerais da triagem') },
+    { nome: 'triagem_realizada_por', tipo: t => t.integer('triagem_realizada_por').nullable().references('id').inTable('usuarios').comment('ID do profissional que realizou a triagem') },
+    { nome: 'data_inicio_triagem', tipo: t => t.timestamp('data_inicio_triagem').nullable().comment('Data/hora de início da triagem') },
+    { nome: 'data_fim_triagem', tipo: t => t.timestamp('data_fim_triagem').nullable().comment('Data/hora de conclusão da triagem') }
+  ];
+
+  for (const col of colunas) {
+    const exists = await knex.schema.hasColumn('atendimentos', col.nome);
+    if (!exists) {
+      await knex.schema.alterTable('atendimentos', col.tipo);
+      console.log(`✅ Coluna ${col.nome} adicionada à tabela atendimentos`);
+    } else {
+      console.log(`ℹ️  Coluna ${col.nome} já existe - pulando`);
+    }
+  }
+
+  // Índices para performance (só cria se não existir)
+  const indices = ['classificacao_risco', 'prioridade', 'triagem_realizada_por'];
+  for (const idx of indices) {
+    try {
+      await knex.schema.alterTable('atendimentos', t => t.index(idx));
+    } catch (e) {
+      // ignora erro se índice já existe
+    }
+  }
+
+  console.log('✅ Campos de triagem adicionados à tabela atendimentos (safe)');
 };
 
 exports.down = async function(knex) {

@@ -43,6 +43,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     }
   };
 
+  totalPosTriagem: number = 0;
+
   usuarioLogado: any;
   horaAtual = new Date();
   private destroy$ = new Subject<void>();
@@ -107,11 +109,17 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Carregar dados imediatamente
     this.carregarEstatisticas();
     this.carregarFilaDisponiveis();
     this.carregarFilaEmTriagem();
     this.carregarPosTriagemPreview();
     this.carregarAlertasTempo();
+
+    // Força atualização do card por classificação após carregar dados iniciais
+    setTimeout(() => {
+      this.atualizarCardPorClassificacao();
+    }, 500);
 
     // Escutar notificações de atualização
     this.triagemEventService.atualizarDashboard$
@@ -147,6 +155,14 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     interval(60000)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.horaAtual = new Date());
+
+    // Escutar quando a página fica visível novamente (volta de outra tela)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        console.log('Dashboard: Página ficou visível - atualizando card classificação');
+        this.atualizarCardPorClassificacao();
+      }
+    });
   }
 
   private readonly LIMITES_RISCO: Record<string, number> = {
@@ -160,11 +176,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   private readonly STATUS_ALERTAS = new Set<string>([
     'encaminhado para triagem', '1 - Encaminhado para triagem', 'encaminhado_para_triagem',
     'em triagem', '2 - Em triagem', 'em_triagem',
-    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-    'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-    'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-    'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-    'aguardando exames'
+    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
   ]);
 
   private classificacaoOrder(risco: string): number {
@@ -248,12 +260,94 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     this.triagemService.obterEstatisticasTriagem().subscribe({
       next: (stats: any) => {
         console.log('Dashboard: Estatísticas recebidas:', stats);
+        // Preserva as estatísticas por classificação calculadas localmente
+        const porClassificacaoAnterior = this.estatisticas.por_classificacao;
         this.estatisticas = stats;
+        // Se as estatísticas da API não incluem por_classificacao ou estão zeradas, mantém as calculadas
+        if (!stats.por_classificacao || this.isEstatisticasZeradas(stats.por_classificacao)) {
+          this.estatisticas.por_classificacao = porClassificacaoAnterior;
+        }
+        // Atualiza o total pós-triagem logo após carregar estatísticas
+        this.totalPosTriagem = this.estatisticas.triagens_concluidas;
       },
       error: (error: any) => {
         console.error('Dashboard: Erro ao carregar estatísticas:', error);
       }
     });
+  }
+
+  // Verifica se todas as estatísticas por classificação estão zeradas
+  private isEstatisticasZeradas(porClassificacao: any): boolean {
+    if (!porClassificacao) return true;
+    return porClassificacao.vermelho === 0 &&
+           porClassificacao.laranja === 0 &&
+           porClassificacao.amarelo === 0 &&
+           porClassificacao.verde === 0 &&
+           porClassificacao.azul === 0;
+  }
+
+  atualizarCompleto() {
+    console.log('🔄 Dashboard: Iniciando atualização completa (simula reload)...');
+
+    // Carregar todos os dados como no ngOnInit
+    this.carregarEstatisticas();
+    this.carregarFilaDisponiveis();
+    this.carregarFilaEmTriagem();
+    this.carregarPosTriagemPreview();
+    this.carregarAlertasTempo();
+
+    // Força atualização do card por classificação após um pequeno delay
+    // para garantir que os dados das estatísticas sejam carregados primeiro
+    setTimeout(() => {
+      this.atualizarCardPorClassificacao();
+    }, 800);
+
+    console.log('✅ Dashboard: Atualização completa finalizada');
+  }
+
+  atualizarCardPorClassificacao() {
+    console.log('🎯 Atualizando card por classificação...');
+    this.triagemService.listarTodosAtendimentosDia().subscribe({
+      next: (data: any[]) => {
+        console.log('📦 Dados recebidos para classificação:', data?.length, 'atendimentos');
+        const novasEstatisticas = this.calcularEstatisticasPorClassificacao(data);
+        console.log('🧮 Estatísticas calculadas:', novasEstatisticas);
+        this.estatisticas.por_classificacao = novasEstatisticas;
+        console.log('✅ Card por classificação atualizado:', this.estatisticas.por_classificacao);
+      },
+      error: (error: any) => {
+        console.error('❌ Erro ao atualizar card por classificação:', error);
+      }
+    });
+  }
+
+  calcularEstatisticasPorClassificacao(data: any[]) {
+    const agora = new Date();
+    const por_classificacao = {
+      vermelho: 0,
+      laranja: 0,
+      amarelo: 0,
+      verde: 0,
+      azul: 0
+    };
+    for (const p of data || []) {
+      let campoData = p.created_at || p.data_hora_atendimento;
+      if (!campoData) continue;
+      const dataAtendimento = new Date(campoData);
+      const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+      if (diffHoras > 24) continue;
+      const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
+      switch (risco) {
+        case 'vermelho':
+        case 'laranja':
+        case 'amarelo':
+        case 'verde':
+        case 'azul':
+          por_classificacao[risco as keyof typeof por_classificacao]++;
+          break;
+      }
+    }
+    return por_classificacao;
   }
 
   carregarFilaDisponiveis() {
@@ -273,31 +367,24 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   carregarPosTriagemPreview() {
-    const POS_TRIAGEM = new Set([
-      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-      'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-      'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-      'em atendimento ambulatorial', '6 - Em atendimento ambulatorial', 'em_atendimento_ambulatorial',
-      'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-      'aguardando exames', 'exames concluídos', 'alta médica', 'transferido', 'óbito'
-    ]);
-    
     this.triagemService.listarTodosAtendimentosDia().subscribe({
       next: (pacientes: PacienteTriagem[]) => {
         const agora = new Date().getTime();
         const lista = (pacientes || [])
           .filter(p => {
-            if (!p || !POS_TRIAGEM.has(p.status)) return false;
+            if (!p) return false;
+            // Considera pós-triagem qualquer atendimento que tenha classificacao_risco preenchido
+            if (!p.classificacao_risco) return false;
             const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
             return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
           });
-        
+
         this.posTriagemPreview = this.ordenarPorClassificacaoETempo(lista).slice(0, 5);
 
-        // Contadores para o card de pós-triagem
-        const all = lista;
-        this.posEncaminhados = all.filter(p => p && this.STATUS.ENCAMINHADOS.has(p.status)).length;
-        this.posEmAtendimento = all.filter(p => p && this.STATUS.EM_ATENDIMENTO.has(p.status)).length;
+  // Contador total de pós-triagem igual ao de triagens concluídas hoje
+  this.totalPosTriagem = this.estatisticas.triagens_concluidas;
+        this.posEncaminhados = lista.filter(p => p && this.STATUS.ENCAMINHADOS.has(p.status)).length;
+        this.posEmAtendimento = lista.filter(p => p && this.STATUS.EM_ATENDIMENTO.has(p.status)).length;
       },
       error: (err) => console.error('❌ Dashboard: Erro ao carregar pós-triagem preview:', err)
     });

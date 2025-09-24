@@ -3,6 +3,7 @@ import authRoutes from './auth.js';
 import pacientesRoutes from './pacientes.js';
 import usuariosRoutes from './usuarios.js';
 import medicoRoutes from './medico.js';
+import ambulatorioRoutes from './ambulatorio.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
@@ -79,4 +80,5 @@ router.get('/protected', authenticateToken, (req, res) => {
 });
 
 router.use('/medico', medicoRoutes);
+router.use('/ambulatorio', ambulatorioRoutes);
 export default router;

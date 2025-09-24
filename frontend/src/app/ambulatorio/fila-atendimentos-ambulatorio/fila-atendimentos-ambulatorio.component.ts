@@ -10,6 +10,8 @@ import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
+import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 
 interface PacienteAmbulatorio {
   id: number;
@@ -37,7 +39,7 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
   filtroStatus = '';
   carregando = false;
 
-  estatisticas: { 
+  estatisticas: {
   por_classificacao: Record<string, number>,
   tempo_medio_espera: number
 } = {
@@ -56,7 +58,8 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
   constructor(
     private ambulatorioService: AmbulatorioService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -206,5 +209,22 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
 
   verDetalhes(paciente: PacienteAmbulatorio) {
     this.router.navigate(['/ambulatorio/paciente', paciente.id]);
+  }
+
+  abrirClassificacaoRisco(paciente: PacienteAmbulatorio) {
+    // Chama o modal de classificação de risco
+    this.ambulatorioService.showModal('classificacao-risco', { paciente });
+  }
+
+  abrirDialogClassificacao() {
+    console.log('Abrindo modal de classificação de risco...');
+    this.dialog.open(ClassificacaoDialogComponent, {
+      panelClass: ['p-0', 'max-w-3xl', 'w-full']
+    });
+  }
+
+  testarClique() {
+    console.log('Botão do ícone assessment foi clicado!');
+    this.abrirDialogClassificacao();
   }
 }

@@ -1,0 +1,265 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { AmbulatorioService } from '../ambulatorio.service';
+import { AuthService } from '../../auth/auth.service';
+
+@Component({
+  selector: 'app-atendimento-ambulatorio',
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatExpansionModule,
+    MatIconModule,
+  MatCheckboxModule,
+  MatSnackBarModule
+  ],
+  templateUrl: './atendimento-ambulatorio.component.html',
+  styleUrl: './atendimento-ambulatorio.component.scss'
+})
+export class AtendimentoAmbulatorioComponent implements OnInit {
+  private dadosTriagemOriginais: any = {};
+  // Atualiza o status do atendimento conforme o destino selecionado
+  onDestinoChange(valor: string) {
+    if (!this.atendimentoId) return;
+    if (valor === 'alta_ambulatorial') {
+      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'atendimento_concluido').subscribe();
+    } else if (valor === 'retornar_atendimento_medico') {
+      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'encaminhado para sala médica').subscribe();
+    } else if (valor === 'em_observacao') {
+      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'em_observacao').subscribe();
+    }
+  }
+  opcoesDestino: { label: string, value: string }[] = [
+    { label: 'Alta Ambulatorial', value: 'alta_ambulatorial' },
+    { label: 'Encaminhar para Atendimento Médico Novamente', value: 'retornar_atendimento_medico' },
+    { label: 'Em Observação', value: 'em_observacao' }
+  ];
+
+  get opcoesDestinoFiltradas() {
+    // Se necessita_observacao está marcado, mostra as opções de encaminhamento
+    if (this.atendimentoForm?.get('necessita_observacao')?.value) {
+      return this.opcoesDestino;
+    }
+    // Caso contrário, só mostra alta
+    return [this.opcoesDestino[0]];
+  }
+  atendimentoForm!: FormGroup;
+  atendimentoId: number;
+  nomePaciente: string = '';
+  modoEdicao: boolean = true; // Padrão em edição
+
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private router: Router,
+    private ambulatorioService: AmbulatorioService,
+    private authService: AuthService,
+    private snackBar: MatSnackBar
+  ) {
+    this.atendimentoId = +this.route.snapshot.params['id'] || 0;
+    this.atendimentoForm = this.criarFormulario();
+    // Se vier ?visualizar=1, inicia em modo visualização
+    this.route.queryParams.subscribe(params => {
+      if (params['visualizar'] === '1' || params['visualizar'] === 1) {
+        this.modoEdicao = false;
+      }
+    });
+  }
+
+  ngOnInit() {
+    if (this.atendimentoId) {
+      this.carregarDadosAtendimento();
+      // Atualiza status para 'em atendimento ambulatorial' se necessário
+      this.ambulatorioService.getAtendimento(this.atendimentoId).subscribe((data: any) => {
+        const statusAtual = data?.triagem?.status || data?.status;
+        if (statusAtual !== 'em atendimento ambulatorial') {
+          this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'em atendimento ambulatorial').subscribe({
+            next: () => {
+              // Opcional: recarregar dados após atualização
+              this.carregarDadosAtendimento();
+            }
+          });
+        }
+      });
+    }
+  }
+
+  carregarDadosAtendimento() {
+    // Busca os dados do atendimento usando o mesmo endpoint do médico
+    this.ambulatorioService.getAtendimento(this.atendimentoId).subscribe((data: any) => {
+      if (data) {
+        console.log('Dados recebidos do backend (ambulatório):', data);
+
+        // Dados da consulta médica (se existir)
+        const consultaData = data.consulta || {};
+
+        // Dados da triagem (sempre existem se o atendimento passou pela triagem)
+        const triagemData = data.triagem || {};
+
+        console.log('Dados da triagem:', triagemData);
+        console.log('Dados da consulta:', consultaData);
+
+        // Salva os dados originais da triagem para comparação posterior
+        this.dadosTriagemOriginais = {
+          queixa_principal: triagemData.queixa_principal || '',
+          historia_atual: triagemData.historia_atual || '',
+          pressao_arterial: triagemData.pressao_arterial || '',
+          temperatura: triagemData.temperatura || '',
+          saturacao_oxigenio: triagemData.saturacao_oxigenio || '',
+          frequencia_cardiaca: triagemData.frequencia_cardiaca || '',
+          classificacao_risco: triagemData.classificacao_risco || ''
+        };
+        this.atendimentoForm.patchValue({
+          queixa_principal: this.dadosTriagemOriginais.queixa_principal,
+          historia_doenca_atual: this.dadosTriagemOriginais.historia_atual,
+          pressao_arterial: this.dadosTriagemOriginais.pressao_arterial,
+          temperatura: this.dadosTriagemOriginais.temperatura,
+          saturacao_oxigenio: this.dadosTriagemOriginais.saturacao_oxigenio,
+          frequencia_cardiaca: this.dadosTriagemOriginais.frequencia_cardiaca,
+        });
+        this.atendimentoForm.updateValueAndValidity();
+        this.nomePaciente = triagemData.paciente_nome || 'Paciente';
+      }
+    });
+  }
+
+  criarFormulario(): FormGroup {
+    return this.fb.group({
+      // Dados da Triagem
+      queixa_principal: [''],
+      historia_doenca_atual: [''],
+      pressao_arterial: [''],
+      temperatura: [''],
+      saturacao_oxigenio: [''],
+      frequencia_cardiaca: [''],
+
+      // Conduta e Medicamentos
+      plano_terapeutico: [''],
+      medicamentos_prescritos: [''],
+      medicamentos_ambulatorio: [''],
+
+      // Observação Médica
+      necessita_observacao: [false],
+      tempo_observacao_horas: [''],
+      motivo_observacao: [''],
+      observacoes: [''],
+
+      // Exames e Procedimentos
+      exames_solicitados: [''],
+      procedimentos_realizados: [''],
+
+      // Informações Complementares
+      orientacoes_gerais: [''],
+      status_destino: [''],
+      observacoes_destino: [''],
+      alergias_identificadas: [''],
+      historico_familiar_relevante: [''],
+      detalhes_destino: [''],
+      orientacoes_paciente: ['']
+
+      // (removido duplicidade dos campos do formGroup)
+    });
+  }
+
+  alternarEdicao() {
+    this.modoEdicao = !this.modoEdicao;
+  }
+
+  salvarTriagem() {
+    if (!this.atendimentoId) return;
+    const form = this.atendimentoForm.value;
+    const payload: any = {};
+    // Só envia campos que mudaram
+    if (form.queixa_principal !== this.dadosTriagemOriginais.queixa_principal) payload.queixa_principal = form.queixa_principal;
+    if (form.historia_doenca_atual !== this.dadosTriagemOriginais.historia_atual) payload.historia_atual = form.historia_doenca_atual;
+    if (form.pressao_arterial !== this.dadosTriagemOriginais.pressao_arterial) payload.pressao_arterial = form.pressao_arterial;
+    if (form.temperatura !== this.dadosTriagemOriginais.temperatura) payload.temperatura = form.temperatura;
+    if (form.saturacao_oxigenio !== this.dadosTriagemOriginais.saturacao_oxigenio) payload.saturacao_oxigenio = form.saturacao_oxigenio;
+    if (form.frequencia_cardiaca !== this.dadosTriagemOriginais.frequencia_cardiaca) payload.frequencia_cardiaca = form.frequencia_cardiaca;
+    // Sempre preserva classificação de risco se existir
+    if (this.dadosTriagemOriginais.classificacao_risco) payload.classificacao_risco = this.dadosTriagemOriginais.classificacao_risco;
+    if (Object.keys(payload).length === 0) {
+      this.snackBar.open('Nenhuma alteração para salvar.', 'Fechar', { duration: 3000 });
+      return;
+    }
+    this.ambulatorioService.salvarAtendimentoAmbulatorio(this.atendimentoId, payload).subscribe({
+      next: () => {
+        this.snackBar.open('Dados da triagem salvos com sucesso!', 'Fechar', { duration: 3000 });
+      },
+      error: (error: any) => {
+        this.snackBar.open('Erro ao salvar dados da triagem.', 'Fechar', { duration: 5000 });
+        console.error('Erro ao salvar triagem:', error);
+      }
+    });
+  }
+
+  voltar() {
+    this.router.navigate(['/ambulatorio']);
+  }
+
+  salvar() {
+    if (this.atendimentoForm.valid && this.atendimentoId) {
+      const dadosAtendimento = this.atendimentoForm.value;
+      // Mapeamento input -> coluna do banco (apenas campos editáveis na tela)
+      const mapeamento: { [key: string]: string } = {
+  plano_terapeutico: 'conduta_prescricao',
+  medicamentos_prescritos: 'medicamentos_prescritos',
+  medicamentos_ambulatorio: 'medicamentos_ambulatorio',
+  necessita_observacao: 'necessita_observacao',
+        tempo_observacao_horas: 'tempo_observacao_horas',
+        motivo_observacao: 'motivo_observacao',
+        observacoes: 'observacoes',
+        exames_solicitados: 'exames_solicitados',
+        procedimentos_realizados: 'procedimentos_realizados',
+        orientacoes_gerais: 'orientacoes_paciente',
+        status_destino: 'status_destino',
+        observacoes_destino: 'observacoes_destino',
+        alergias_identificadas: 'alergias_identificadas',
+        historico_familiar_relevante: 'historico_familiar_relevante',
+        detalhes_destino: 'detalhes_destino',
+        orientacoes_paciente: 'orientacoes_paciente'
+      };
+      const payload: any = { id: this.atendimentoId };
+      Object.keys(mapeamento).forEach(input => {
+        const coluna = mapeamento[input];
+        const valor = dadosAtendimento[input];
+        if (
+          valor !== undefined &&
+          valor !== null &&
+          !(typeof valor === 'string' && valor.trim() === '')
+        ) {
+          // Se for orientacoes_gerais e orientacoes_paciente já estiver preenchido, não sobrescreve
+          if (input === 'orientacoes_gerais' && dadosAtendimento['orientacoes_paciente']) return;
+          payload[coluna] = valor;
+        }
+      });
+      this.ambulatorioService.salvarAtendimento(this.atendimentoId, payload).subscribe({
+        next: () => {
+          this.snackBar.open('Atendimento ambulatorial salvo com sucesso!', 'Fechar', { duration: 3000 });
+          this.modoEdicao = false;
+          this.router.navigate(['/ambulatorio']);
+        },
+        error: (error: any) => {
+          this.snackBar.open('Erro ao salvar atendimento ambulatorial.', 'Fechar', { duration: 5000 });
+          console.error('Erro ao salvar atendimento ambulatorial:', error);
+        }
+      });
+    }
+  }
+}

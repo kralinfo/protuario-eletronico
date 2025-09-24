@@ -6,7 +6,7 @@
         <mat-icon class="mr-3 text-blue-600">medical_services</mat-icon>
         Ambulatório
       </h1>
-      <button mat-stroked-button color="primary" (click)="carregarEstatisticas()">
+  <button mat-stroked-button color="primary" (click)="atualizarDashboard()">
         <mat-icon>refresh</mat-icon>
         Atualizar
       </button>
@@ -47,7 +47,7 @@
             <p class="text-sm font-medium text-gray-600">Por Classificação</p>
           </div>
           <div class="bg-purple-100 rounded-full flex items-center justify-center">
-            <button mat-icon-button aria-label="Informações" matTooltip="Ver detalhes da classificação" matTooltipPosition="above" class="w-full h-full flex items-center justify-center">
+            <button mat-icon-button aria-label="Informações" matTooltip="Ver detalhes da classificação" matTooltipPosition="above" class="w-full h-full flex items-center justify-center" (click)="abrirDialogClassificacao()">
               <mat-icon class="text-purple-500">assessment</mat-icon>
             </button>
           </div>
@@ -111,8 +111,27 @@
           </div>
           <ul class="space-y-2">
             <li *ngFor="let p of filaDisponiveisPreview" (click)="abrirItemFila(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-              <div class="flex items-center gap-2 truncate mr-3">
-                <span class="inline-block w-4 h-4 rounded-full border border-gray-300 mr-2" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+              <div class="flex items-center truncate mr-3">
+                <div class="w-3 h-3 rounded-full mr-2" [style.background-color]="getCorClassificacaoRisco(p.classificacao_risco)"></div>
+                <div>
+                  <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
+                  <div class="text-xs text-blue-100 truncate" *ngIf="p.status !== 'encaminhado para atendimento' && p.status !== 'encaminhado_para_atendimento' && p.status !== '1 - Encaminhado para atendimento'">{{ getDescricaoStatus(p.status) }}</div>
+                </div>
+              </div>
+              <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
+            </li>
+          </ul>
+        </div>
+        <!-- Preview de itens em atendimento -->
+        <div class="mt-4 bg-white/10 rounded p-3" *ngIf="filaEmAtendimentoPreview && filaEmAtendimentoPreview.length">
+          <div class="text-sm text-blue-100 mb-2 flex items-center">
+            <mat-icon class="mr-2">edit</mat-icon>
+            Em atendimento (top {{ filaEmAtendimentoPreview.length }})
+          </div>
+          <ul class="space-y-2">
+            <li *ngFor="let p of filaEmAtendimentoPreview" (click)="abrirItemFila(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
+              <div class="flex items-center truncate mr-3">
+                <div class="w-3 h-3 rounded-full mr-2" [style.background-color]="getCorClassificacaoRisco(p.classificacao_risco)"></div>
                 <div>
                   <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
                   <div class="text-xs text-blue-100 truncate">{{ getDescricaoStatus(p.status) }}</div>
@@ -129,22 +148,22 @@
         <div class="mb-4">
           <h3 class="text-lg font-bold mb-2 flex items-center">
             <mat-icon class="mr-2">assignment</mat-icon>
-            Consultas
+            Atendimentos
           </h3>
-          <p class="text-purple-100 text-sm">Acompanhe pacientes em consulta</p>
+          <p class="text-purple-100 text-sm">Acompanhe pacientes em Atendimento>
         </div>
         <div class="flex justify-between mb-4">
           <div class="text-center">
             <p class="text-2xl font-bold">{{ consultasEncaminhadas }}</p>
-            <p class="text-xs text-purple-100">Encaminhadas</p>
+            <p class="text-xs text-purple-100">Atendimentos com alta</p>
           </div>
           <div class="text-center">
             <p class="text-2xl font-bold">{{ consultasEmAtendimento }}</p>
             <p class="text-xs text-purple-100">Em Atendimento</p>
           </div>
           <div class="text-center">
-            <p class="text-2xl font-bold">{{ consultasEncaminhadas + consultasEmAtendimento }}</p>
-            <p class="text-xs text-purple-100">Total Consultas</p>
+            <p class="text-2xl font-bold">{{ consultasEmObservacao }}</p>
+            <p class="text-xs text-purple-100">Em Observação</p>
           </div>
         </div>
         <button (click)="irParaConsultas()" class="w-full bg-white text-purple-600 px-4 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center justify-center">
@@ -158,8 +177,8 @@
           </div>
           <ul class="space-y-2">
             <li *ngFor="let p of consultasPreview" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-              <div class="flex items-center gap-2 truncate mr-3">
-                <span class="inline-block w-4 h-4 rounded-full border border-gray-300 mr-2" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+              <div class="flex items-center truncate mr-3">
+                <div class="w-3 h-3 rounded-full mr-2" [style.background-color]="getCorClassificacaoRisco(p.classificacao_risco)"></div>
                 <div>
                   <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
                   <div class="text-xs text-purple-100 truncate" *ngIf="p.status !== 'encaminhado para consulta' && p.status !== 'encaminhado_para_consulta' && p.status !== '1 - Encaminhado para consulta'">{{ getDescricaoStatus(p.status) }}</div>
@@ -192,14 +211,14 @@
             </div>
             <ul class="space-y-2">
               <li *ngFor="let p of alertasCriticos" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-                <div class="flex items-center gap-2 truncate mr-3">
-                  <span class="inline-block w-4 h-4 rounded-full border border-gray-300" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                <div class="flex items-center truncate mr-3">
+                  <div class="w-4 h-4 rounded-full mr-2 flex-shrink-0" [style.background-color]="getCorClassificacaoRisco(p.classificacao_risco)"></div>
                   <div>
                     <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
                     <div class="text-xs text-red-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
                   </div>
                 </div>
-                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
+                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(calcularTempoDecorrido(p)) }}</div>
               </li>
             </ul>
           </div>
@@ -211,14 +230,14 @@
             </div>
             <ul class="space-y-2">
               <li *ngFor="let p of alertasAtencao" (click)="abrirItemConsulta(p)" class="flex items-center justify-between bg-white/20 rounded px-3 py-2 cursor-pointer hover:bg-white/30 transition-colors">
-                <div class="flex items-center gap-2 truncate mr-3">
-                  <span class="inline-block w-4 h-4 rounded-full border border-gray-300" [ngStyle]="{'background': getCorClassificacao(p.classificacao_risco)}"></span>
+                <div class="flex items-center truncate mr-3">
+                  <div class="w-4 h-4 rounded-full mr-2 flex-shrink-0" [style.background-color]="getCorClassificacaoRisco(p.classificacao_risco)"></div>
                   <div>
                     <div class="text-sm font-semibold truncate">{{ p.paciente_nome }}</div>
                     <div class="text-xs text-orange-100 truncate">{{ getDescricaoStatus(p.status) }} • {{ p.classificacao_risco | titlecase }}</div>
                   </div>
                 </div>
-                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(p.tempo_espera) }}</div>
+                <div class="text-xs font-semibold px-2 py-1 rounded" [style.background-color]="getCorStatus(p.status)" style="color: white">{{ formatarTempo(calcularTempoDecorrido(p)) }}</div>
               </li>
             </ul>
           </div>

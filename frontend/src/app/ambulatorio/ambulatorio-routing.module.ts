@@ -36,6 +36,17 @@ const routes: Routes = [
       icon: 'queue',
       title: 'Fila de Consultas Ambulatorio'
     }
+  },
+  {
+    path: 'atendimento/:id',
+    loadComponent: () => import('../ambulatorio/atendimento-ambulatorio/atendimento-ambulatorio.component').then(m => m.AtendimentoAmbulatorioComponent),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'ambulatorio',
+      breadcrumb: 'Atendimento Ambulatório',
+      icon: 'medical_services',
+      title: 'Atendimento Ambulatório'
+    }
   }
 
 ];

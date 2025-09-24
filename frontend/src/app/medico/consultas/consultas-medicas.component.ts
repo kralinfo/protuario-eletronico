@@ -82,21 +82,22 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
 
           // Incluir todos os status que representam consultas realizadas (mesma lógica do dashboard)
           const status = (consulta.status || '').toLowerCase();
-          const statusValido = status.includes('atendimento_concluido') ||
-                 status.includes('atendimento concluido') ||
-                 status.includes('atendimento concluído') ||
-                 status.includes('alta_medica') ||
-                 status.includes('alta médica') ||
-                 status.includes('alta medica') ||
-                 status.includes('encaminhado_para_ambulatorio') ||
-                 status.includes('encaminhado para ambulatório') ||
-                 status.includes('encaminhado para ambulatorio') ||
-                 status.includes('encaminhado_para_exames') ||
-                 status.includes('encaminhado para exame') ||
-                 status.includes('encaminhado para exames') ||
-                 status.includes('transferido') ||
-                 status.includes('óbito') ||
-                 status.includes('obito');
+     const statusValido = status.includes('atendimento_concluido') ||
+       status.includes('atendimento concluido') ||
+       status.includes('atendimento concluído') ||
+       status.includes('alta_medica') ||
+       status.includes('alta médica') ||
+       status.includes('alta medica') ||
+       status.includes('encaminhado_para_ambulatorio') ||
+       status.includes('encaminhado para ambulatório') ||
+       status.includes('encaminhado para ambulatorio') ||
+       status.includes('encaminhado_para_exames') ||
+       status.includes('encaminhado para exame') ||
+       status.includes('encaminhado para exames') ||
+       status.includes('transferido') ||
+       status.includes('óbito') ||
+       status.includes('obito') ||
+       status.includes('retornar_atendimento_medico');
 
           if (!statusValido) {
             console.log(`❌ Status inválido para consulta ${consulta.id}: "${consulta.status}"`);
@@ -202,6 +203,9 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
       }
       if (filtro === 'óbito') {
         return status.includes('óbito') || status.includes('obito');
+      }
+      if (filtro === 'reencaminhado para sala médica') {
+        return status.includes('retornar_atendimento_medico');
       }
 
       // Fallback: busca genérica

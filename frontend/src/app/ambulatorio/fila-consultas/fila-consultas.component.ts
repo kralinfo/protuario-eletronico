@@ -43,22 +43,22 @@ interface ConsultaAmbulatorial {
 })
 export class FilaConsultasComponent implements OnInit, OnDestroy {
   consultas: ConsultaAmbulatorial[] = [];
-  filtroStatus = '';
+  filtroStatus = 'encaminhados'; // valor padrão: Encaminhados para ambulatorio
   carregando = false;
 
-    estatisticas: { 
-  por_classificacao: Record<string, number>,
-  tempo_medio_espera: number
-} = {
-  por_classificacao: {
-    vermelho: 0,
-    laranja: 0,
-    amarelo: 0,
-    verde: 0,
-    azul: 0
-  },
-  tempo_medio_espera: 0
-};
+  estatisticas: { 
+    por_classificacao: Record<string, number>,
+    tempo_medio_espera: number
+  } = {
+    por_classificacao: {
+      vermelho: 0,
+      laranja: 0,
+      amarelo: 0,
+      verde: 0,
+      azul: 0
+    },
+    tempo_medio_espera: 0
+  };
   private subs = new Subscription();
 
   constructor(
@@ -78,15 +78,67 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
 
   carregarDados() {
     this.carregando = true;
-
     this.subs.add(
-      this.ambulatorioService.getConsultasAmbulatorio().subscribe({
-        next: (resp) => {
-          this.consultas = this.filtroStatus
-            ? resp.filter((c: any) => c.status === this.filtroStatus)
-            : resp;
+      this.ambulatorioService.getTodosAtendimentos().subscribe({
+        next: (atendimentos: any[]) => {
+          const agora = new Date();
+          // Filtrar apenas últimas 24h
+          const atendimentos24h = (atendimentos || []).filter(a => {
+            let campoData = a.created_at || a.data_hora_atendimento;
+            if (!campoData) return false;
+            const dataAtendimento = new Date(campoData);
+            const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+            return diffHoras <= 24;
+          });
 
-          this.atualizarEstatisticas();
+          let filtrados: any[] = [];
+          switch (this.filtroStatus) {
+            case 'todos':
+              filtrados = atendimentos24h;
+              break;
+            case 'encaminhados':
+              filtrados = atendimentos24h.filter(a => {
+                const status = (a.status || '').toLowerCase();
+                return status.includes('encaminhado para ambulatório') ||
+                       status.includes('encaminhado_para_ambulatorio') ||
+                       status === '5 - encaminhado para ambulatório';
+              });
+              break;
+            case 'em_atendimento':
+              filtrados = atendimentos24h.filter(a => {
+                const status = (a.status || '').toLowerCase();
+                return status === 'em atendimento ambulatorial' || status === 'em_atendimento_ambulatorial';
+              });
+              break;
+            case 'em_observacao':
+              filtrados = atendimentos24h.filter(a => (a.status || '').toLowerCase() === 'em_observacao');
+              break;
+            case 'alta':
+              filtrados = atendimentos24h.filter(a => (a.status || '').toLowerCase() === 'atendimento_concluido');
+              break;
+            case 'reencaminhado':
+              filtrados = atendimentos24h.filter(a => (a.status || '').toLowerCase() === 'retornar_atendimento_medico');
+              break;
+            default:
+              filtrados = atendimentos24h;
+          }
+
+          this.consultas = filtrados;
+          this.atualizarEstatisticas(filtrados);
+
+          // Calcular tempo médio de espera dos filtrados
+          if (filtrados.length > 0) {
+            const tempos = filtrados.map(a => {
+              const inicio = a.data_hora_atendimento || a.created_at;
+              if (!inicio) return 0;
+              const dataInicio = new Date(inicio);
+              return Math.floor((agora.getTime() - dataInicio.getTime()) / 60000); // minutos
+            });
+            this.estatisticas.tempo_medio_espera = Math.round(tempos.reduce((a, b) => a + b, 0) / tempos.length);
+          } else {
+            this.estatisticas.tempo_medio_espera = 0;
+          }
+
           this.carregando = false;
         },
         error: () => {
@@ -95,26 +147,25 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
         }
       })
     );
-
-    this.subs.add(
-      this.ambulatorioService.getEstatisticasConsultas().subscribe({
-        next: (resp) => {
-          if (resp.tempo_medio_espera !== undefined) {
-            this.estatisticas.tempo_medio_espera = resp.tempo_medio_espera;
-          }
-          if (resp.total_aguardando !== undefined) {
-            this.estatisticas.por_classificacao['vermelho'] = resp.total_aguardando;
-          }
-        },
-        error: () => {
-          this.snackBar.open('Erro ao carregar estatísticas', 'Fechar', { duration: 3000 });
-        }
-      })
-    );
   }
 
-  atualizarEstatisticas() {
-    this.estatisticas.por_classificacao['vermelho'] = this.consultas.filter(c => c.status === 'agendada').length;
+  atualizarEstatisticas(aguardando: any[]) {
+    // Zera contadores
+    this.estatisticas.por_classificacao = {
+      vermelho: 0,
+      laranja: 0,
+      amarelo: 0,
+      verde: 0,
+      azul: 0
+    };
+    for (const atendimento of aguardando) {
+      const risco = typeof atendimento.classificacao_risco === 'string'
+        ? atendimento.classificacao_risco.toLowerCase()
+        : '';
+      if (this.estatisticas.por_classificacao.hasOwnProperty(risco)) {
+        this.estatisticas.por_classificacao[risco as keyof typeof this.estatisticas.por_classificacao]++;
+      }
+    }
   }
 
   getCorEspecialidade(especialidade?: string): string {
@@ -177,7 +228,8 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   }
 
   contarPacientesAguardando(): number {
-    return this.consultas.filter(c => c.status === 'agendada').length;
+    // O array this.consultas já está filtrado para aguardando consulta
+    return this.consultas.length;
   }
 
   isStatusEmConsulta(status: string): boolean {
@@ -189,7 +241,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   }
 
   verDetalhes(consulta: ConsultaAmbulatorial) {
-    this.router.navigate(['/ambulatorio/consultas', consulta.id, 'detalhes']);
+    this.router.navigate(['/ambulatorio/atendimento', consulta.id], { queryParams: { visualizar: 1 } });
   }
 
 }

@@ -75,43 +75,41 @@ class Atendimento {
 
   static async listarTodosAtendimentosDia() {
     const result = await db.query(
-      `SELECT a.id, a.created_at, a.data_hora_atendimento, a.status, a.prioridade,
-              a.classificacao_risco, a.queixa_principal,
-              p.nome as paciente_nome, p.nascimento as paciente_nascimento,
-              p.sexo as paciente_sexo
-       FROM atendimentos a
-       JOIN pacientes p ON p.id = a.paciente_id
-       WHERE (
-         -- Itens dos últimos 2 dias (mais flexível para testes)
-         (DATE(a.data_hora_atendimento) >= CURRENT_DATE - INTERVAL '1 day' AND a.status IN (
-           'encaminhado para triagem',
-           'encaminhado para sala médica',
-           'encaminhado para ambulatório', 
-           'encaminhado_para_ambulatorio',
-           'encaminhado para exames',
-           'encaminhado_para_exames',
-           'em atendimento médico',
-           'aguardando exames',
-           'exames concluídos',
-           'alta médica',
-           'transferido',
-           'óbito'
-         ))
-         OR
-         -- Em triagem (pode ter iniciado em dia anterior, manter visível)
-         a.status = 'em_triagem'
-       )
-       ORDER BY 
-         CASE 
-           WHEN a.status = 'encaminhado para triagem' THEN 1
-           WHEN a.status = 'em_triagem' THEN 2
-           ELSE 3
-         END,
-         a.prioridade ASC NULLS LAST,
-         a.created_at ASC`
-    );
-    return result.rows;
-  }
+          `SELECT a.id, a.created_at, a.data_hora_atendimento, a.status, a.prioridade,
+                  a.classificacao_risco, a.queixa_principal,
+                  p.nome as paciente_nome, p.nascimento as paciente_nascimento,
+                  p.sexo as paciente_sexo
+           FROM atendimentos a
+           JOIN pacientes p ON p.id = a.paciente_id
+           WHERE (
+             -- Itens dos últimos 24h que já passaram pela triagem (classificacao_risco preenchida)
+             a.classificacao_risco IS NOT NULL
+             AND a.data_hora_atendimento >= NOW() - INTERVAL '24 hours'
+           )
+           OR (
+             -- Itens disponíveis para triagem (mantém lógica anterior para o card de disponíveis)
+             a.status IN (
+               'encaminhado para triagem',
+               'encaminhado_para_triagem',
+               '1 - Encaminhado para triagem',
+               'em_triagem',
+               'em triagem',
+               '2 - Em triagem',
+               '2 - Em Triagem'
+             )
+             AND a.data_hora_atendimento >= NOW() - INTERVAL '24 hours'
+           )
+           ORDER BY 
+             CASE 
+               WHEN a.status = 'encaminhado para triagem' THEN 1
+               WHEN a.status = 'em_triagem' THEN 2
+               ELSE 3
+             END,
+             a.prioridade ASC NULLS LAST,
+             a.created_at ASC`
+        );
+        return result.rows;
+      }
 
   static async iniciarTriagem(id, usuarioId) {
     const result = await db.query(
@@ -135,28 +133,61 @@ class Atendimento {
       temperatura,
       frequencia_cardiaca,
       saturacao_oxigenio,
+      classificacao_risco,
       queixa_principal,
       historia_atual,
       observacoes_triagem
     } = dadosTriagem;
 
+    // Montar query dinamicamente para não sobrescrever classificacao_risco se não vier
+    let queryFields = [];
+    let queryValues = [id];
+    let valueIndex = 2;
+
+    if (pressao_arterial !== undefined) {
+      queryFields.push(`pressao_arterial = $${valueIndex++}`);
+      queryValues.push(pressao_arterial);
+    }
+    if (temperatura !== undefined) {
+      queryFields.push(`temperatura = $${valueIndex++}`);
+      queryValues.push(parseNum(temperatura));
+    }
+    if (frequencia_cardiaca !== undefined) {
+      queryFields.push(`frequencia_cardiaca = $${valueIndex++}`);
+      queryValues.push(parseNum(frequencia_cardiaca));
+    }
+    if (saturacao_oxigenio !== undefined) {
+      queryFields.push(`saturacao_oxigenio = $${valueIndex++}`);
+      queryValues.push(parseNum(saturacao_oxigenio));
+    }
+    if (classificacao_risco !== undefined) {
+      queryFields.push(`classificacao_risco = $${valueIndex++}`);
+      queryValues.push(classificacao_risco);
+    }
+    if (queixa_principal !== undefined) {
+      queryFields.push(`queixa_principal = $${valueIndex++}`);
+      queryValues.push(queixa_principal);
+    }
+    if (historia_atual !== undefined) {
+      queryFields.push(`historia_atual = $${valueIndex++}`);
+      queryValues.push(historia_atual);
+    }
+    if (observacoes_triagem !== undefined) {
+      queryFields.push(`observacoes_triagem = $${valueIndex++}`);
+      queryValues.push(observacoes_triagem);
+    }
+
+    if (queryFields.length === 0) {
+      // Se não há campos para atualizar, apenas retorna o atendimento atual
+      const result = await db.query('SELECT * FROM atendimentos WHERE id = $1', [id]);
+      return result.rows[0];
+    }
+
+    queryFields.push(`updated_at = CURRENT_TIMESTAMP`);
+
     const result = await db.query(
-      `UPDATE atendimentos 
-       SET pressao_arterial = $2, temperatura = $3, frequencia_cardiaca = $4,
-           saturacao_oxigenio = $5, queixa_principal = $6,
-           historia_atual = $7, observacoes_triagem = $8, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1
-       RETURNING *`,
-      [
-        id,
-        pressao_arterial,
-        parseNum(temperatura),
-        parseNum(frequencia_cardiaca),
-        parseNum(saturacao_oxigenio),
-        queixa_principal,
-        historia_atual,
-        observacoes_triagem
-      ]
+      `UPDATE atendimentos SET ${queryFields.join(', ')} WHERE id = $1 RETURNING *`,
+      queryValues
     );
     return result.rows[0];
   }

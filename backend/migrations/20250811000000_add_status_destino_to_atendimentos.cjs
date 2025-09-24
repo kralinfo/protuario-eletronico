@@ -7,7 +7,7 @@
  * criada por script separado (add-status-destino-field.cjs)
  */
 
-export const up = async function(knex) {
+module.exports.up = async function(knex) {
   // Verificar se a coluna já existe
   const hasColumn = await knex.schema.hasColumn('atendimentos', 'status_destino');
   
@@ -29,7 +29,7 @@ export const up = async function(knex) {
   }
 };
 
-export const down = async function(knex) {
+module.exports.down = async function(knex) {
   const hasColumn = await knex.schema.hasColumn('atendimentos', 'status_destino');
   
   if (hasColumn) {

@@ -1,0 +1,188 @@
+<div class="container mx-auto p-6 bg-gray-50 rounded-lg shadow-md max-w-4xl max-h-[90vh] overflow-y-auto">
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">
+      Atendimento Ambulatorial - {{ atendimento.paciente_nome }}
+    </h1>
+
+    <!-- Botão para alternar edição -->
+    <div class="ml-auto">
+      <button
+        class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+        [ngClass]="modoVisualizacao ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-orange-500 text-white hover:bg-orange-600'"
+        (click)="habilitarEdicao()"
+        *ngIf="modoVisualizacao">
+        <mat-icon>edit</mat-icon>
+        Habilitar Edição
+      </button>
+      <button mat-icon-button (click)="cancelar()" class="text-gray-500">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Indicador do modo atual -->
+  <div class="mb-4 p-3 rounded-lg"
+       [ngClass]="modoVisualizacao ? 'bg-blue-100 border border-blue-300' : 'bg-orange-100 border border-orange-300'">
+    <div class="flex items-center gap-2">
+      <mat-icon [ngClass]="modoVisualizacao ? 'text-blue-600' : 'text-orange-600'">
+        {{ modoVisualizacao ? 'visibility' : 'edit' }}
+      </mat-icon>
+      <span [ngClass]="modoVisualizacao ? 'text-blue-800' : 'text-orange-800'" class="font-medium">
+        {{ modoVisualizacao ? 'Modo Visualização' : 'Modo Edição Ativado' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <mat-accordion>
+    <!-- Dados da Triagem -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Dados da Triagem</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Classificação de Risco</h3>
+          <div class="flex items-center gap-2 p-2 border border-gray-300 rounded bg-gray-50">
+            <span
+              class="w-4 h-4 rounded-full inline-block"
+              [style.background-color]="getCorClassificacao(dadosTriagem.classificacao_risco)"
+            ></span>
+            <span class="capitalize">{{ dadosTriagem.classificacao_risco || 'Não informado' }}</span>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Queixa Principal</h3>
+          <textarea class="w-full p-2 border border-gray-300 rounded bg-gray-50"
+                    [value]="dadosTriagem.queixa_principal || 'Não informado'"
+                    readonly rows="2"></textarea>
+        </div>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Sinais Vitais</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <input class="w-full p-2 border border-gray-300 rounded bg-gray-50"
+                   [value]="dadosTriagem.pressao_arterial || '-'"
+                   placeholder="Pressão Arterial" readonly>
+            <input class="w-full p-2 border border-gray-300 rounded bg-gray-50"
+                   [value]="dadosTriagem.temperatura || '-'"
+                   placeholder="Temperatura (°C)" readonly>
+            <input class="w-full p-2 border border-gray-300 rounded bg-gray-50"
+                   [value]="dadosTriagem.frequencia_cardiaca || '-'"
+                   placeholder="Frequência Cardíaca" readonly>
+            <input class="w-full p-2 border border-gray-300 rounded bg-gray-50"
+                   [value]="dadosTriagem.saturacao || '-'"
+                   placeholder="Saturação O2 (%)" readonly>
+          </div>
+        </div>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Conduta e Medicamentos -->
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>Conduta e Medicamentos</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Conduta Ambulatorial</h3>
+          <textarea
+            class="w-full p-2 border border-gray-300 rounded"
+            [ngClass]="modoVisualizacao ? 'bg-gray-50' : 'bg-white'"
+            [(ngModel)]="condutaMedicamentos.conduta"
+            [readonly]="modoVisualizacao"
+            rows="4"
+            placeholder="Descreva a conduta ambulatorial..."
+          ></textarea>
+        </div>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Medicamentos Prescritos</h3>
+          <textarea
+            class="w-full p-2 border border-gray-300 rounded"
+            [ngClass]="modoVisualizacao ? 'bg-gray-50' : 'bg-white'"
+            [(ngModel)]="condutaMedicamentos.medicamentos"
+            [readonly]="modoVisualizacao"
+            rows="3"
+            placeholder="Liste os medicamentos prescritos..."
+          ></textarea>
+        </div>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Observação Médica -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Observação Médica</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div>
+        <h3 class="text-md font-medium text-gray-600 mb-2">Observações do Médico</h3>
+        <textarea
+          class="w-full p-2 border border-gray-300 rounded bg-gray-50"
+          [value]="observacaoMedica || 'Não informado'"
+          readonly
+          rows="4"
+          placeholder="Observações do atendimento médico..."
+        ></textarea>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Exames e Procedimentos -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Exames e Procedimentos</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Exames Solicitados</h3>
+          <textarea
+            class="w-full p-2 border border-gray-300 rounded"
+            [ngClass]="modoVisualizacao ? 'bg-gray-50' : 'bg-white'"
+            [(ngModel)]="examesProcedimentos.exames"
+            [readonly]="modoVisualizacao"
+            rows="3"
+            placeholder="Liste os exames solicitados..."
+          ></textarea>
+        </div>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Procedimentos Realizados</h3>
+          <textarea
+            class="w-full p-2 border border-gray-300 rounded"
+            [ngClass]="modoVisualizacao ? 'bg-gray-50' : 'bg-white'"
+            [(ngModel)]="examesProcedimentos.procedimentos"
+            [readonly]="modoVisualizacao"
+            rows="3"
+            placeholder="Descreva os procedimentos realizados..."
+          ></textarea>
+        </div>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Informações Complementares -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Informações Complementares</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div>
+        <h3 class="text-md font-medium text-gray-600 mb-2">Informações Adicionais</h3>
+        <textarea
+          class="w-full p-2 border border-gray-300 rounded"
+          [ngClass]="modoVisualizacao ? 'bg-gray-50' : 'bg-white'"
+          [(ngModel)]="informacoesComplementares"
+          [readonly]="modoVisualizacao"
+          rows="4"
+          placeholder="Informações complementares do atendimento..."
+        ></textarea>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <!-- Footer -->
+  <div class="flex justify-end gap-3 mt-6" *ngIf="!modoVisualizacao">
+    <button class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600" (click)="cancelar()">
+      Cancelar
+    </button>
+    <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" (click)="salvar()">
+      Salvar Atendimento
+    </button>
+  </div>
+</div>
