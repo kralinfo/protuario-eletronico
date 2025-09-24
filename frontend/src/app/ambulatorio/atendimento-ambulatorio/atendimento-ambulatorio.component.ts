@@ -73,6 +73,12 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   ) {
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
+    // Se vier ?visualizar=1, inicia em modo visualização
+    this.route.queryParams.subscribe(params => {
+      if (params['visualizar'] === '1' || params['visualizar'] === 1) {
+        this.modoEdicao = false;
+      }
+    });
   }
 
   ngOnInit() {

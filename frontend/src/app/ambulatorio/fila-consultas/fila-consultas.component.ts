@@ -241,7 +241,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   }
 
   verDetalhes(consulta: ConsultaAmbulatorial) {
-    this.router.navigate(['/ambulatorio/consultas', consulta.id, 'detalhes']);
+    this.router.navigate(['/ambulatorio/atendimento', consulta.id], { queryParams: { visualizar: 1 } });
   }
 
 }
