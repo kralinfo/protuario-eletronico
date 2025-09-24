@@ -460,40 +460,42 @@ export class DashboardMedicoComponent implements OnInit {
     this.medicoService.getTodosAtendimentos().subscribe((atendimentos: any[]) => {
         console.log('🔍 Total atendimentos recebidos:', atendimentos?.length || 0);
 
-        const agora = new Date();
 
-        // Filtrar atendimentos das últimas 24h que passaram por consulta médica
-        const consultasRealizadas = (atendimentos || []).filter(atendimento => {
-            const campoData = atendimento.created_at || atendimento.data_hora_atendimento;
-            if (!campoData) return false;
+    const agora = new Date();
 
-            const dataAtendimento = new Date(campoData);
-            const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
-            if (diffHoras > 24) return false;
+    // Filtrar atendimentos das últimas 24h que passaram por consulta médica
+    const consultasRealizadas = (atendimentos || []).filter(atendimento => {
+      const campoData = atendimento.created_at || atendimento.data_hora_atendimento;
+      if (!campoData) return false;
 
-            // Verificar se passou por consulta médica:
-            // 1. Campo hipotese_diagnostica preenchido OU
-            // 2. Status indica que já foi atendido pelo médico
-            const temConsultaRealizada = (atendimento.hipotese_diagnostica &&
-                                        atendimento.hipotese_diagnostica.trim() !== '');
+      const dataAtendimento = new Date(campoData);
+      const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+      if (diffHoras > 24) return false;
 
-            const status = (atendimento.status || '').toLowerCase();
-            const statusPosConsulta = status === 'encaminhado_para_ambulatorio' ||
-                                    status === 'encaminhado para ambulatório' ||
-                                    status === 'em atendimento ambulatorial' ||
-                                    status === 'em_atendimento_ambulatorial' ||
-                                    status === 'encaminhado_para_exames' ||
-                                    status === 'atendimento_concluido' ||
-                                    status === 'alta_medica' ||
-                                    status === 'alta médica' ||
-                                    status === 'transferido';
+      // Verificar se passou por consulta médica:
+      // 1. Campo hipotese_diagnostica preenchido OU
+      // 2. Status indica que já foi atendido pelo médico
+      const temConsultaRealizada = (atendimento.hipotese_diagnostica &&
+                    atendimento.hipotese_diagnostica.trim() !== '');
 
-            return temConsultaRealizada || statusPosConsulta;
-        }).map(consulta => {
-            // Calcular e atribuir o tempo decorrido para cada consulta
-            consulta.tempo_espera = this.calcularTempoDecorrido(consulta);
-            return consulta;
-        });
+      const status = (atendimento.status || '').toLowerCase();
+      const statusPosConsulta = status === 'encaminhado_para_ambulatorio' ||
+                  status === 'encaminhado para ambulatório' ||
+                  status === 'em atendimento ambulatorial' ||
+                  status === 'em_atendimento_ambulatorial' ||
+                  status === 'encaminhado_para_exames' ||
+                  status === 'atendimento_concluido' ||
+                  status === 'alta_medica' ||
+                  status === 'alta médica' ||
+                  status === 'transferido' ||
+                  status === 'em_observacao';
+
+      return temConsultaRealizada || statusPosConsulta;
+    }).map(consulta => {
+      // Calcular e atribuir o tempo decorrido para cada consulta
+      consulta.tempo_espera = this.calcularTempoDecorrido(consulta);
+      return consulta;
+    });
 
         // Calcular contadores específicos
         this.calcularContadoresConsultas(consultasRealizadas);
@@ -511,11 +513,23 @@ export class DashboardMedicoComponent implements OnInit {
 
     // Encaminhadas - atendimentos com status "encaminhado_para_exames" ou "encaminhado_para_ambulatorio"
     this.consultasEncaminhadas = consultasRealizadas.filter(consulta => {
-        const status = (consulta.status || '').toLowerCase();
-        return status === 'encaminhado_para_exames' || status === 'encaminhado_para_ambulatorio';
+      const status = (consulta.status || '').toLowerCase();
+      return status === 'encaminhado_para_exames' || status === 'encaminhado_para_ambulatorio';
     }).length;
 
-    console.log(`📊 Contadores - Total: ${this.consultasRealizadasTotal}, Encaminhadas: ${this.consultasEncaminhadas}`);
+    // Em Observação - atendimentos com status "em_observacao" nas últimas 24h
+    const agora = new Date();
+    this.consultasEmAtendimento = consultasRealizadas.filter(consulta => {
+      const status = (consulta.status || '').toLowerCase();
+      if (status !== 'em_observacao') return false;
+      const campoData = consulta.created_at || consulta.data_hora_atendimento;
+      if (!campoData) return false;
+      const dataAtendimento = new Date(campoData);
+      const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+      return diffHoras <= 24;
+    }).length;
+
+    console.log(`📊 Contadores - Total: ${this.consultasRealizadasTotal}, Encaminhadas: ${this.consultasEncaminhadas}, Em Observação: ${this.consultasEmAtendimento}`);
   }
 
   private classificacaoOrder(risco: string): number {
