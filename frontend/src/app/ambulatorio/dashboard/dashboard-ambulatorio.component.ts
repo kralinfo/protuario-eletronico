@@ -392,17 +392,29 @@ export class DashboardAmbulatorioComponent implements OnInit {
       return;
     }
 
-    console.log('🔄 Navegando para atendimento ambulatorial:', item.id);
-
-    // Navegar para a tela de atendimento ambulatorial
-    this.router.navigate(['/ambulatorio/atendimento', item.id]);
+    console.log('🔄 Atualizando status para "em atendimento ambulatorial" e navegando:', item.id);
+    // Atualiza status antes de navegar
+    this.ambulatorioService.atualizarStatusAtendimento(item.id, 'em atendimento ambulatorial').subscribe({
+      next: () => {
+        this.router.navigate(['/ambulatorio/atendimento', item.id]);
+      },
+      error: (err) => {
+        console.error('Erro ao atualizar status:', err);
+        // Mesmo com erro, navega para garantir acesso
+        this.router.navigate(['/ambulatorio/atendimento', item.id]);
+      }
+    });
   }
 
   // ...existing code...
 
   abrirItemConsulta(item: any) {
-    // Abrir detalhes da consulta
-    // Exemplo: abrir modal ou navegar para detalhes
+    console.log('[DashboardAmbulatorio] Item de consulta clicado:', item);
+    if (item?.id) {
+      this.router.navigate(['/ambulatorio/atendimento', item.id]);
+    } else {
+      console.warn('[DashboardAmbulatorio] Item de consulta sem id:', item);
+    }
   }
 
 

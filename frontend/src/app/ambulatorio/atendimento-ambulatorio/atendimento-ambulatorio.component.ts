@@ -90,20 +90,7 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   ngOnInit() {
     if (this.atendimentoId) {
       this.carregarDadosAtendimento();
-      // Só altera status se NÃO estiver em modo visualização
-      if (this.modoEdicao) {
-        this.ambulatorioService.getAtendimento(this.atendimentoId).subscribe((data: any) => {
-          const statusAtual = data?.triagem?.status || data?.status;
-          if (statusAtual !== 'em atendimento ambulatorial') {
-            this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'em atendimento ambulatorial').subscribe({
-              next: () => {
-                // Opcional: recarregar dados após atualização
-                this.carregarDadosAtendimento();
-              }
-            });
-          }
-        });
-      }
+      // Não altera status automaticamente ao abrir. O status só será alterado ao salvar ou mudar destino.
     }
   }
 
