@@ -104,18 +104,10 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
     // Busca os dados do atendimento usando o mesmo endpoint do médico
     this.ambulatorioService.getAtendimento(this.atendimentoId).subscribe((data: any) => {
       if (data) {
-        console.log('Dados recebidos do backend (ambulatório):', data);
-
-        // Dados da consulta médica (se existir)
+        // ...existing code...
         const consultaData = data.consulta || {};
-
-        // Dados da triagem (sempre existem se o atendimento passou pela triagem)
         const triagemData = data.triagem || {};
-
-        console.log('Dados da triagem:', triagemData);
-        console.log('Dados da consulta:', consultaData);
-
-        // Salva os dados originais da triagem para comparação posterior
+        // ...existing code...
         this.dadosTriagemOriginais = {
           queixa_principal: triagemData.queixa_principal || '',
           historia_atual: triagemData.historia_atual || '',
@@ -126,12 +118,7 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
           classificacao_risco: triagemData.classificacao_risco || ''
         };
         this.atendimentoForm.patchValue({
-          queixa_principal: this.dadosTriagemOriginais.queixa_principal,
-          historia_doenca_atual: this.dadosTriagemOriginais.historia_atual,
-          pressao_arterial: this.dadosTriagemOriginais.pressao_arterial,
-          temperatura: this.dadosTriagemOriginais.temperatura,
-          saturacao_oxigenio: this.dadosTriagemOriginais.saturacao_oxigenio,
-          frequencia_cardiaca: this.dadosTriagemOriginais.frequencia_cardiaca,
+          // ...existing code...
         });
         this.atendimentoForm.updateValueAndValidity();
         this.nomePaciente = triagemData.paciente_nome || 'Paciente';

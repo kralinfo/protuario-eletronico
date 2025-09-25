@@ -52,6 +52,28 @@ export class DashboardAmbulatorioComponent implements OnInit {
   filaDisponiveisPreview: any[] = [];
   filaEmAtendimentoPreview: any[] = [];
   consultasPreview: any[] = [];
+  // Lista filtrada (exemplo)
+  listaFiltrada: any[] = [];
+  /**
+   * Recalcula o tempo_espera de todos os itens da lista informada
+   */
+  atualizarTempoEspera(lista: any[]) {
+    if (!lista) return;
+    lista.forEach(p => {
+      p.tempo_espera = this.calcularTempoDecorrido(p);
+    });
+  }
+  /**
+   * Exemplo de método de filtro que garante tempo_espera atualizado
+   */
+  aplicarFiltro(filtro: string) {
+    // Exemplo: filtra por nome do paciente
+    this.listaFiltrada = this.filaDisponiveisPreview.filter(p =>
+      p.paciente_nome?.toLowerCase().includes(filtro.toLowerCase())
+    );
+    // Recalcula tempo_espera para todos os itens filtrados
+    this.atualizarTempoEspera(this.listaFiltrada);
+  }
   consultasEncaminhadas: number = 0;
   consultasEmAtendimento: number = 0;
   consultasEmObservacao: number = 0;
