@@ -33,6 +33,7 @@ import { AuthService } from '../../auth/auth.service';
   styleUrl: './atendimento-ambulatorio.component.scss'
 })
 export class AtendimentoAmbulatorioComponent implements OnInit {
+  bloqueiaAlternancia: boolean = false;
   private dadosTriagemOriginais: any = {};
   // Atualiza o status do atendimento conforme o destino selecionado
   onDestinoChange(valor: string) {
@@ -74,10 +75,14 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   ) {
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
-    // Se vier ?visualizar=1, inicia em modo visualização
+    // Se vier ?visualizar=1, inicia em modo visualização, mas permite alternar para edição
     this.route.queryParams.subscribe(params => {
       if (params['visualizar'] === '1' || params['visualizar'] === 1) {
         this.modoEdicao = false;
+        this.bloqueiaAlternancia = true;
+      } else {
+        this.modoEdicao = true;
+        this.bloqueiaAlternancia = false;
       }
     });
   }
@@ -192,8 +197,6 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   }
 
   alternarEdicao() {
-    // Não permite alternar para edição se estiver em modo visualização
-    if (!this.modoEdicao) return;
     this.modoEdicao = !this.modoEdicao;
   }
 

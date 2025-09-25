@@ -11,9 +11,9 @@
     <div class="ml-auto">
       <button
         class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-        [ngClass]="!modoEdicao ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-orange-500 text-white hover:bg-orange-600'"
-        [disabled]="!modoEdicao"
-        matTooltip="Modo visualização não permite edição"
+        [ngClass]="bloqueiaAlternancia ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : (modoEdicao ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-blue-100 text-blue-800 hover:bg-blue-200')"
+        [disabled]="bloqueiaAlternancia"
+        [attr.title]="bloqueiaAlternancia ? 'Modo visualização não permite edição' : null"
         (click)="alternarEdicao()">
         <mat-icon>{{ modoEdicao ? 'visibility' : 'edit' }}</mat-icon>
         {{ modoEdicao ? 'Modo Visualização' : 'Modo Edição' }}
