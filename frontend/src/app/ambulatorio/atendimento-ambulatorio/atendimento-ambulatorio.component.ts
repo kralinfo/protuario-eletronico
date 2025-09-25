@@ -217,7 +217,51 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
     // Não permite salvar se estiver em modo visualização
     if (!this.modoEdicao) return;
     if (this.atendimentoForm.valid && this.atendimentoId) {
-      // ...existing code...
+      const dadosAtendimento = this.atendimentoForm.value;
+      // Mapeamento input -> coluna do banco (apenas campos editáveis na tela)
+      const mapeamento: { [key: string]: string } = {
+        plano_terapeutico: 'conduta_prescricao',
+        medicamentos_prescritos: 'medicamentos_prescritos',
+        medicamentos_ambulatorio: 'medicamentos_ambulatorio',
+        necessita_observacao: 'necessita_observacao',
+        tempo_observacao_horas: 'tempo_observacao_horas',
+        motivo_observacao: 'motivo_observacao',
+        observacoes: 'observacoes',
+        exames_solicitados: 'exames_solicitados',
+        procedimentos_realizados: 'procedimentos_realizados',
+        orientacoes_gerais: 'orientacoes_paciente',
+        status_destino: 'status_destino',
+        observacoes_destino: 'observacoes_destino',
+        alergias_identificadas: 'alergias_identificadas',
+        historico_familiar_relevante: 'historico_familiar_relevante',
+        detalhes_destino: 'detalhes_destino',
+        orientacoes_paciente: 'orientacoes_paciente'
+      };
+      const payload: any = { id: this.atendimentoId };
+      Object.keys(mapeamento).forEach(input => {
+        const coluna = mapeamento[input];
+        const valor = dadosAtendimento[input];
+        if (
+          valor !== undefined &&
+          valor !== null &&
+          !(typeof valor === 'string' && valor.trim() === '')
+        ) {
+          // Se for orientacoes_gerais e orientacoes_paciente já estiver preenchido, não sobrescreve
+          if (input === 'orientacoes_gerais' && dadosAtendimento['orientacoes_paciente']) return;
+          payload[coluna] = valor;
+        }
+      });
+      this.ambulatorioService.salvarAtendimento(this.atendimentoId, payload).subscribe({
+        next: () => {
+          this.snackBar.open('Atendimento ambulatorial salvo com sucesso!', 'Fechar', { duration: 3000 });
+          this.modoEdicao = false;
+          this.router.navigate(['/ambulatorio']);
+        },
+        error: (error: any) => {
+          this.snackBar.open('Erro ao salvar atendimento ambulatorial.', 'Fechar', { duration: 5000 });
+          console.error('Erro ao salvar atendimento ambulatorial:', error);
+        }
+      });
     }
   }
 }
