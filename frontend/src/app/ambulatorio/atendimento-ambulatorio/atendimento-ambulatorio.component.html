@@ -11,7 +11,9 @@
     <div class="ml-auto">
       <button
         class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-        [ngClass]="modoEdicao ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-green-500 text-white hover:bg-green-600'"
+        [ngClass]="!modoEdicao ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-orange-500 text-white hover:bg-orange-600'"
+        [disabled]="!modoEdicao"
+        matTooltip="Modo visualização não permite edição"
         (click)="alternarEdicao()">
         <mat-icon>{{ modoEdicao ? 'visibility' : 'edit' }}</mat-icon>
         {{ modoEdicao ? 'Modo Visualização' : 'Modo Edição' }}
@@ -275,6 +277,7 @@
     <div class="flex justify-end gap-4 mt-8">
       <!-- Botão Salvar -->
       <button
+        *ngIf="modoEdicao"
         type="submit"
         [disabled]="!modoEdicao || atendimentoForm.invalid"
         class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
