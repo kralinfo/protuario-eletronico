@@ -1,6 +1,7 @@
 // Relatório avançado de atendimentos
 const reports = async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const { dataInicial, dataFinal } = req.query;
     let query = `SELECT a.id, a.created_at as data_criacao, p.nome as paciente_nome, a.data_hora_atendimento, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, a.abandonado, a.data_abandono, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
       FROM atendimentos a
