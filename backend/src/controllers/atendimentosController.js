@@ -10,12 +10,12 @@ const reports = async (req, res) => {
     const params = [];
     let idx = 1;
     if (dataInicial) {
-      query += ` AND a.created_at >= $${idx}`;
+      query += ` AND a.data_hora_atendimento >= $${idx}`;
       params.push(new Date(dataInicial + 'T00:00:00'));
       idx++;
     }
     if (dataFinal) {
-      query += ` AND a.created_at <= $${idx}`;
+      query += ` AND a.data_hora_atendimento <= $${idx}`;
       params.push(new Date(dataFinal + 'T23:59:59'));
       idx++;
     }
