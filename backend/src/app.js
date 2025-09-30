@@ -27,6 +27,7 @@ import historicoRouter from './routes/historico.routes.js';
 class App {
   constructor() {
     this.app = express();
+    this.app.disable('etag'); // Desabilita ETag para evitar 304
     this.port = config.PORT; // Usar porta do .env para compatibilidade com produção
     this.setupMiddleware();
     this.setupRoutes();
