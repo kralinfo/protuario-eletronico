@@ -58,11 +58,6 @@ router.get('/atendimentos', async (req, res) => {
 // Detalhes de uma consulta médica
 router.get('/consulta/:id', async (req, res) => {
   try {
-    const consulta = await knex('consultas_medicas')
-      .where('atendimento_id', req.params.id)
-      .orderBy('id', 'desc')
-      .first();
-
     const atendimento = await knex('atendimentos as a')
       .leftJoin('pacientes as p', 'a.paciente_id', 'p.id')
       .select(
@@ -91,7 +86,19 @@ router.get('/consulta/:id', async (req, res) => {
       .where('a.id', req.params.id)
       .first();
 
-    res.json({ consulta: consulta || {}, triagem: atendimento || {} });
+    if (!atendimento) {
+      return res.status(404).json({ error: 'Atendimento não encontrado.' });
+    }
+
+    const consulta = await knex('consultas_medicas')
+      .where('atendimento_id', req.params.id)
+      .orderBy('id', 'desc')
+      .first();
+
+    res.json({
+      consulta: consulta || null,
+      triagem: atendimento
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
