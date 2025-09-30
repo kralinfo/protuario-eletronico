@@ -52,6 +52,28 @@ export class DashboardAmbulatorioComponent implements OnInit {
   filaDisponiveisPreview: any[] = [];
   filaEmAtendimentoPreview: any[] = [];
   consultasPreview: any[] = [];
+  // Lista filtrada (exemplo)
+  listaFiltrada: any[] = [];
+  /**
+   * Recalcula o tempo_espera de todos os itens da lista informada
+   */
+  atualizarTempoEspera(lista: any[]) {
+    if (!lista) return;
+    lista.forEach(p => {
+      p.tempo_espera = this.calcularTempoDecorrido(p);
+    });
+  }
+  /**
+   * Exemplo de método de filtro que garante tempo_espera atualizado
+   */
+  aplicarFiltro(filtro: string) {
+    // Exemplo: filtra por nome do paciente
+    this.listaFiltrada = this.filaDisponiveisPreview.filter(p =>
+      p.paciente_nome?.toLowerCase().includes(filtro.toLowerCase())
+    );
+    // Recalcula tempo_espera para todos os itens filtrados
+    this.atualizarTempoEspera(this.listaFiltrada);
+  }
   consultasEncaminhadas: number = 0;
   consultasEmAtendimento: number = 0;
   consultasEmObservacao: number = 0;
@@ -370,17 +392,29 @@ export class DashboardAmbulatorioComponent implements OnInit {
       return;
     }
 
-    console.log('🔄 Navegando para atendimento ambulatorial:', item.id);
-
-    // Navegar para a tela de atendimento ambulatorial
-    this.router.navigate(['/ambulatorio/atendimento', item.id]);
+    console.log('🔄 Atualizando status para "em atendimento ambulatorial" e navegando:', item.id);
+    // Atualiza status antes de navegar
+    this.ambulatorioService.atualizarStatusAtendimento(item.id, 'em atendimento ambulatorial').subscribe({
+      next: () => {
+        this.router.navigate(['/ambulatorio/atendimento', item.id]);
+      },
+      error: (err) => {
+        console.error('Erro ao atualizar status:', err);
+        // Mesmo com erro, navega para garantir acesso
+        this.router.navigate(['/ambulatorio/atendimento', item.id]);
+      }
+    });
   }
 
   // ...existing code...
 
   abrirItemConsulta(item: any) {
-    // Abrir detalhes da consulta
-    // Exemplo: abrir modal ou navegar para detalhes
+    console.log('[DashboardAmbulatorio] Item de consulta clicado:', item);
+    if (item?.id) {
+      this.router.navigate(['/ambulatorio/atendimento', item.id]);
+    } else {
+      console.warn('[DashboardAmbulatorio] Item de consulta sem id:', item);
+    }
   }
 
 

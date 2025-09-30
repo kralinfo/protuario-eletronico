@@ -33,6 +33,7 @@ import { AuthService } from '../../auth/auth.service';
   styleUrl: './atendimento-ambulatorio.component.scss'
 })
 export class AtendimentoAmbulatorioComponent implements OnInit {
+  bloqueiaAlternancia: boolean = false;
   private dadosTriagemOriginais: any = {};
   // Atualiza o status do atendimento conforme o destino selecionado
   onDestinoChange(valor: string) {
@@ -74,10 +75,14 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   ) {
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
-    // Se vier ?visualizar=1, inicia em modo visualização
+    // Se vier ?visualizar=1, inicia em modo visualização, mas permite alternar para edição
     this.route.queryParams.subscribe(params => {
       if (params['visualizar'] === '1' || params['visualizar'] === 1) {
         this.modoEdicao = false;
+        this.bloqueiaAlternancia = true;
+      } else {
+        this.modoEdicao = true;
+        this.bloqueiaAlternancia = false;
       }
     });
   }
@@ -85,18 +90,7 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   ngOnInit() {
     if (this.atendimentoId) {
       this.carregarDadosAtendimento();
-      // Atualiza status para 'em atendimento ambulatorial' se necessário
-      this.ambulatorioService.getAtendimento(this.atendimentoId).subscribe((data: any) => {
-        const statusAtual = data?.triagem?.status || data?.status;
-        if (statusAtual !== 'em atendimento ambulatorial') {
-          this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'em atendimento ambulatorial').subscribe({
-            next: () => {
-              // Opcional: recarregar dados após atualização
-              this.carregarDadosAtendimento();
-            }
-          });
-        }
-      });
+      // Não altera status automaticamente ao abrir. O status só será alterado ao salvar ou mudar destino.
     }
   }
 
@@ -104,18 +98,10 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
     // Busca os dados do atendimento usando o mesmo endpoint do médico
     this.ambulatorioService.getAtendimento(this.atendimentoId).subscribe((data: any) => {
       if (data) {
-        console.log('Dados recebidos do backend (ambulatório):', data);
-
-        // Dados da consulta médica (se existir)
+        // ...existing code...
         const consultaData = data.consulta || {};
-
-        // Dados da triagem (sempre existem se o atendimento passou pela triagem)
         const triagemData = data.triagem || {};
-
-        console.log('Dados da triagem:', triagemData);
-        console.log('Dados da consulta:', consultaData);
-
-        // Salva os dados originais da triagem para comparação posterior
+        // ...existing code...
         this.dadosTriagemOriginais = {
           queixa_principal: triagemData.queixa_principal || '',
           historia_atual: triagemData.historia_atual || '',
@@ -126,12 +112,32 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
           classificacao_risco: triagemData.classificacao_risco || ''
         };
         this.atendimentoForm.patchValue({
-          queixa_principal: this.dadosTriagemOriginais.queixa_principal,
-          historia_doenca_atual: this.dadosTriagemOriginais.historia_atual,
-          pressao_arterial: this.dadosTriagemOriginais.pressao_arterial,
-          temperatura: this.dadosTriagemOriginais.temperatura,
-          saturacao_oxigenio: this.dadosTriagemOriginais.saturacao_oxigenio,
-          frequencia_cardiaca: this.dadosTriagemOriginais.frequencia_cardiaca,
+          // Triagem
+          queixa_principal: triagemData.queixa_principal || '',
+          historia_doenca_atual: triagemData.historia_atual || '',
+          pressao_arterial: triagemData.pressao_arterial || '',
+          temperatura: triagemData.temperatura || '',
+          saturacao_oxigenio: triagemData.saturacao_oxigenio || '',
+          frequencia_cardiaca: triagemData.frequencia_cardiaca || '',
+
+          // Consulta médica
+          plano_terapeutico: consultaData.conduta_prescricao || consultaData.plano_terapeutico || '',
+          medicamentos_prescritos: consultaData.medicamentos_prescritos || '',
+          medicamentos_ambulatorio: consultaData.medicamentos_ambulatorio || '',
+          hipotese_diagnostica: consultaData.hipotese_diagnostica || '',
+          necessita_observacao: consultaData.necessita_observacao || false,
+          tempo_observacao_horas: consultaData.tempo_observacao_horas || '',
+          motivo_observacao: consultaData.motivo_observacao || '',
+          observacoes: consultaData.observacoes || triagemData.observacoes || '',
+          exames_solicitados: consultaData.exames_solicitados || '',
+          procedimentos_realizados: consultaData.procedimentos_realizados || '',
+          orientacoes_gerais: consultaData.orientacoes_gerais || consultaData.orientacoes_paciente || '',
+          status_destino: consultaData.status_destino || triagemData.status_destino || '',
+          observacoes_destino: consultaData.observacoes_destino || '',
+          alergias_identificadas: consultaData.alergias_identificadas || triagemData.alergias || '',
+          historico_familiar_relevante: consultaData.historico_familiar_relevante || '',
+          detalhes_destino: consultaData.detalhes_destino || '',
+          orientacoes_paciente: consultaData.orientacoes_paciente || '',
         });
         this.atendimentoForm.updateValueAndValidity();
         this.nomePaciente = triagemData.paciente_nome || 'Paciente';
@@ -182,31 +188,12 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   }
 
   salvarTriagem() {
+    // Não permite salvar se estiver em modo visualização
+    if (!this.modoEdicao) return;
     if (!this.atendimentoId) return;
     const form = this.atendimentoForm.value;
     const payload: any = {};
-    // Só envia campos que mudaram
-    if (form.queixa_principal !== this.dadosTriagemOriginais.queixa_principal) payload.queixa_principal = form.queixa_principal;
-    if (form.historia_doenca_atual !== this.dadosTriagemOriginais.historia_atual) payload.historia_atual = form.historia_doenca_atual;
-    if (form.pressao_arterial !== this.dadosTriagemOriginais.pressao_arterial) payload.pressao_arterial = form.pressao_arterial;
-    if (form.temperatura !== this.dadosTriagemOriginais.temperatura) payload.temperatura = form.temperatura;
-    if (form.saturacao_oxigenio !== this.dadosTriagemOriginais.saturacao_oxigenio) payload.saturacao_oxigenio = form.saturacao_oxigenio;
-    if (form.frequencia_cardiaca !== this.dadosTriagemOriginais.frequencia_cardiaca) payload.frequencia_cardiaca = form.frequencia_cardiaca;
-    // Sempre preserva classificação de risco se existir
-    if (this.dadosTriagemOriginais.classificacao_risco) payload.classificacao_risco = this.dadosTriagemOriginais.classificacao_risco;
-    if (Object.keys(payload).length === 0) {
-      this.snackBar.open('Nenhuma alteração para salvar.', 'Fechar', { duration: 3000 });
-      return;
-    }
-    this.ambulatorioService.salvarAtendimentoAmbulatorio(this.atendimentoId, payload).subscribe({
-      next: () => {
-        this.snackBar.open('Dados da triagem salvos com sucesso!', 'Fechar', { duration: 3000 });
-      },
-      error: (error: any) => {
-        this.snackBar.open('Erro ao salvar dados da triagem.', 'Fechar', { duration: 5000 });
-        console.error('Erro ao salvar triagem:', error);
-      }
-    });
+    // ...existing code...
   }
 
   voltar() {
@@ -214,14 +201,16 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   }
 
   salvar() {
+    // Não permite salvar se estiver em modo visualização
+    if (!this.modoEdicao) return;
     if (this.atendimentoForm.valid && this.atendimentoId) {
       const dadosAtendimento = this.atendimentoForm.value;
       // Mapeamento input -> coluna do banco (apenas campos editáveis na tela)
       const mapeamento: { [key: string]: string } = {
-  plano_terapeutico: 'conduta_prescricao',
-  medicamentos_prescritos: 'medicamentos_prescritos',
-  medicamentos_ambulatorio: 'medicamentos_ambulatorio',
-  necessita_observacao: 'necessita_observacao',
+        plano_terapeutico: 'conduta_prescricao',
+        medicamentos_prescritos: 'medicamentos_prescritos',
+        medicamentos_ambulatorio: 'medicamentos_ambulatorio',
+        necessita_observacao: 'necessita_observacao',
         tempo_observacao_horas: 'tempo_observacao_horas',
         motivo_observacao: 'motivo_observacao',
         observacoes: 'observacoes',

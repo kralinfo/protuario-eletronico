@@ -123,17 +123,22 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
               filtrados = atendimentos24h;
           }
 
+          // Corrige tempo_espera de cada consulta
+          filtrados.forEach(a => {
+            const inicio = a.data_hora_atendimento || a.created_at;
+            if (!inicio) {
+              a.tempo_espera = 0;
+            } else {
+              const dataInicio = new Date(inicio);
+              a.tempo_espera = Math.floor((agora.getTime() - dataInicio.getTime()) / 60000); // minutos
+            }
+          });
           this.consultas = filtrados;
           this.atualizarEstatisticas(filtrados);
 
           // Calcular tempo médio de espera dos filtrados
           if (filtrados.length > 0) {
-            const tempos = filtrados.map(a => {
-              const inicio = a.data_hora_atendimento || a.created_at;
-              if (!inicio) return 0;
-              const dataInicio = new Date(inicio);
-              return Math.floor((agora.getTime() - dataInicio.getTime()) / 60000); // minutos
-            });
+            const tempos = filtrados.map(a => a.tempo_espera ?? 0);
             this.estatisticas.tempo_medio_espera = Math.round(tempos.reduce((a, b) => a + b, 0) / tempos.length);
           } else {
             this.estatisticas.tempo_medio_espera = 0;
