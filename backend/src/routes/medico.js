@@ -58,31 +58,38 @@ router.get('/atendimentos', async (req, res) => {
 // Detalhes de uma consulta médica
 router.get('/consulta/:id', async (req, res) => {
   try {
+    // Buscar todos os campos relevantes de triagem e paciente
     const atendimento = await knex('atendimentos as a')
       .leftJoin('pacientes as p', 'a.paciente_id', 'p.id')
-      .select(
-        'a.motivo as motivo',
-        'a.observacoes as observacoes',
-        'a.pressao_arterial as pressao_arterial',
-        'a.temperatura as temperatura',
-        'a.frequencia_cardiaca as frequencia_cardiaca',
-        'a.frequencia_respiratoria as frequencia_respiratoria',
-        'a.saturacao_oxigenio as saturacao_oxigenio',
-        'a.peso as peso',
-        'a.altura as altura',
-        'a.classificacao_risco as classificacao_risco',
-        'a.prioridade as prioridade',
-        'a.queixa_principal as queixa_principal',
-        'a.historia_atual as historia_atual',
-        'a.alergias as alergias',
-        'a.medicamentos_uso as medicamentos_uso',
-        'a.observacoes_triagem as observacoes_triagem',
-        'a.status_destino as status_destino',
+      .select([
+        'a.id as atendimento_id',
+        'a.paciente_id',
+        'a.data_hora_atendimento',
+        'a.classificacao_risco',
+        'a.peso',
+        'a.altura',
+        'a.pressao_arterial',
+        'a.temperatura',
+        'a.frequencia_cardiaca',
+        'a.frequencia_respiratoria',
+        'a.saturacao_oxigenio',
+        'a.triagem_realizada_por',
+        'a.data_inicio_triagem',
+        'a.data_fim_triagem',
+        'a.motivo',
+        'a.observacoes',
+        'a.status',
+        'a.observacoes_triagem',
+        'a.status_destino',
+        'a.queixa_principal',
+        'a.historia_atual',
+        'a.alergias',
+        'a.medicamentos_uso',
         'p.nome as paciente_nome',
         'p.nascimento as paciente_nascimento',
         'p.sexo as paciente_sexo',
         'p.sus as paciente_sus'
-      )
+      ])
       .where('a.id', req.params.id)
       .first();
 
@@ -90,6 +97,7 @@ router.get('/consulta/:id', async (req, res) => {
       return res.status(404).json({ error: 'Atendimento não encontrado.' });
     }
 
+    // Buscar consulta médica vinculada, se houver
     const consulta = await knex('consultas_medicas')
       .where('atendimento_id', req.params.id)
       .orderBy('id', 'desc')
