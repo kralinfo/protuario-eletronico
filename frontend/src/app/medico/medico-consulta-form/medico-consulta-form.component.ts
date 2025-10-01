@@ -12,6 +12,7 @@ import { MedicoService } from 'src/app/medico/medico.service';
 })
 export class MedicoConsultaFormComponent implements OnInit {
   consulta: any = {};
+  triagem: any = {};
   atendimentoId: string = '';
 
   constructor(private route: ActivatedRoute, private medicoService: MedicoService) {}
@@ -19,7 +20,8 @@ export class MedicoConsultaFormComponent implements OnInit {
   ngOnInit() {
     this.atendimentoId = this.route.snapshot.paramMap.get('id') || '';
     this.medicoService.getConsulta(this.atendimentoId).subscribe((data: any) => {
-      this.consulta = data || {};
+      this.consulta = data?.consulta || {};
+      this.triagem = data?.triagem || {};
     });
   }
 
