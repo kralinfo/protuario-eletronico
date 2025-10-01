@@ -18,10 +18,18 @@ export class MedicoConsultaFormComponent implements OnInit {
   constructor(private route: ActivatedRoute, private medicoService: MedicoService) {}
 
   ngOnInit() {
+    console.log('[MedicoConsultaForm] ngOnInit chamado!');
     this.atendimentoId = this.route.snapshot.paramMap.get('id') || '';
-    this.medicoService.getConsulta(this.atendimentoId).subscribe((data: any) => {
-      this.consulta = data?.consulta || {};
-      this.triagem = data?.triagem || {};
+    console.log('[MedicoConsultaForm] atendimentoId:', this.atendimentoId);
+    this.medicoService.getConsulta(this.atendimentoId).subscribe({
+      next: (data: any) => {
+        console.log('[MedicoConsultaForm] Dados recebidos da API:', data);
+        this.consulta = data?.consulta || {};
+        this.triagem = data?.triagem || {};
+      },
+      error: (err) => {
+        console.error('[MedicoConsultaForm] Erro ao carregar consulta:', err);
+      }
     });
   }
 
