@@ -58,6 +58,7 @@ router.get('/atendimentos', async (req, res) => {
 // Detalhes de uma consulta médica
 router.get('/consulta/:id', async (req, res) => {
   try {
+    console.log('[API] GET /medico/consulta/:id', req.params.id);
     // Buscar todos os campos relevantes de triagem e paciente
     const atendimento = await knex('atendimentos as a')
       .leftJoin('pacientes as p', 'a.paciente_id', 'p.id')
@@ -93,7 +94,10 @@ router.get('/consulta/:id', async (req, res) => {
       .where('a.id', req.params.id)
       .first();
 
+    console.log('[API] Atendimento encontrado:', atendimento);
+
     if (!atendimento) {
+      console.log('[API] Atendimento não encontrado para id:', req.params.id);
       return res.status(404).json({ error: 'Atendimento não encontrado.' });
     }
 
@@ -103,11 +107,14 @@ router.get('/consulta/:id', async (req, res) => {
       .orderBy('id', 'desc')
       .first();
 
+    console.log('[API] Consulta médica encontrada:', consulta);
+
     res.json({
       consulta: consulta || null,
       triagem: atendimento
     });
   } catch (err) {
+    console.error('[API] Erro ao buscar consulta/triagem:', err);
     res.status(500).json({ error: err.message });
   }
 });
