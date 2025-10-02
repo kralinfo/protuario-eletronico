@@ -48,7 +48,8 @@ export class RelatorioAtendimentosComponent implements OnInit {
       dataInicial: ['', [dataMaxHojeValidator]],
       dataFinal: ['', [dataMaxHojeValidator]],
       status: [''],
-      nomePaciente: ['']
+      nomePaciente: [''],
+      observacoes: ['']
     }, { validators: datasInicioFimValidator });
   }
 
@@ -85,10 +86,12 @@ export class RelatorioAtendimentosComponent implements OnInit {
   }
 
   // Novos métodos para contadores de status específicos
-  getAtendimentosTriagemPendente(): number {
+  getAtendimentosEncaminhadosTriagem(): number {
     return this.relatorio.filter(a => 
       a.status === 'triagem pendente' || 
-      a.status === 'encaminhado para triagem'
+      a.status === 'triagem_pendente' ||
+      a.status === 'encaminhado para triagem' ||
+      a.status === 'encaminhado_para_triagem'
     ).length;
   }
 
@@ -96,6 +99,13 @@ export class RelatorioAtendimentosComponent implements OnInit {
     return this.relatorio.filter(a => 
       a.status === 'em_triagem' || 
       a.status === 'em triagem'
+    ).length;
+  }
+
+  getAtendimentosEmObservacao(): number {
+    return this.relatorio.filter(a => 
+      a.status === 'em observação' || 
+      a.status === 'em_observacao'
     ).length;
   }
 
@@ -200,11 +210,44 @@ export class RelatorioAtendimentosComponent implements OnInit {
           filtrados = filtrados.filter((a: any) => new Date(a.created_at) <= dataFim);
         }
         if (filtros.status) {
-          filtrados = filtrados.filter((a: any) => (a.status || 'Sem status') === filtros.status);
+          filtrados = filtrados.filter((a: any) => {
+            const status = a.status || '';
+            const statusSelecionado = filtros.status;
+            
+            // Mapeia o status selecionado para todas suas variações
+            switch(statusSelecionado) {
+              case 'encaminhado_para_triagem':
+                return status === 'encaminhado para triagem' || status === 'encaminhado_para_triagem' || status === 'triagem pendente' || status === 'triagem_pendente';
+              case 'em_triagem':
+                return status === 'em triagem' || status === 'em_triagem';
+              case 'encaminhado_para_sala_medica':
+                return status === 'encaminhado para sala médica' || status === 'encaminhado_para_sala_medica';
+              case 'em_atendimento_medico':
+                return status === 'em atendimento médico' || status === 'em_atendimento_medico';
+              case 'encaminhado_para_ambulatorio':
+                return status === 'encaminhado para ambulatório' || status === 'encaminhado_para_ambulatorio';
+              case 'em_observacao':
+                return status === 'em observação' || status === 'em_observacao';
+              case 'atendimento_concluido':
+                return status === 'atendimento concluido' || status === 'atendimento_concluido';
+              case 'encaminhado_para_exames':
+                return status === 'encaminhado para exames' || status === 'encaminhado_para_exames';
+              case 'interrompido':
+                return status === 'interrompido';
+              case 'abandonado':
+                return status === 'abandonado';
+              default:
+                return status === statusSelecionado;
+            }
+          });
         }
         if (filtros.nomePaciente) {
           const nomePacienteLower = filtros.nomePaciente.toLowerCase();
           filtrados = filtrados.filter((a: any) => (a.paciente_nome || '').toLowerCase().includes(nomePacienteLower));
+        }
+        if (filtros.observacoes) {
+          const observacoesLower = filtros.observacoes.toLowerCase();
+          filtrados = filtrados.filter((a: any) => (a.observacoes || '').toLowerCase().includes(observacoesLower));
         }
         this.relatorio = filtrados.map((a: any) => ({
           data: a.created_at ? new Date(a.created_at) : new Date(),

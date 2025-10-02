@@ -20,20 +20,14 @@
             <label class="block text-sm font-medium text-gray-700">Status</label>
             <select class="w-full max-w-[200px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="status">
               <option value="">Todos</option>
-              <option value="triagem pendente">Triagem Pendente</option>
-              <option value="encaminhado para triagem">Encaminhado para Triagem</option>
-              <option value="em triagem">Em Triagem</option>
-              <option value="encaminhado para sala médica">Encaminhado para Sala Médica</option>
-              <option value="aguardando">Aguardando</option>
-              <option value="aguardando atendimento">Aguardando Atendimento</option>
-              <option value="em atendimento médico">Em Atendimento Médico</option>
-              <option value="em atendimento">Em Atendimento</option>
-              <option value="em atendimento ambulatorial">Em Atendimento Ambulatorial</option>
-              <option value="encaminhado para ambulatório">Encaminhado para Ambulatório</option>
-              <option value="atendimento concluido">Atendimento Concluído</option>
-              <option value="finalizado">Finalizado</option>
-              <option value="alta_ambulatorial">Alta Ambulatorial</option>
-              <option value="encaminhado para exames">Encaminhado para Exames</option>
+              <option value="encaminhado_para_triagem">Encaminhado para Triagem</option>
+              <option value="em_triagem">Em Triagem</option>
+              <option value="encaminhado_para_sala_medica">Encaminhado para Sala Médica</option>
+              <option value="em_atendimento_medico">Em Atendimento Médico</option>
+              <option value="encaminhado_para_ambulatorio">Encaminhado para Ambulatório</option>
+              <option value="em_observacao">Em Observação</option>
+              <option value="atendimento_concluido">Atendimento Concluído</option>
+              <option value="encaminhado_para_exames">Encaminhado para Exames</option>
               <option value="interrompido">Interrompido</option>
               <option value="abandonado">Abandonado</option>
             </select>
@@ -41,6 +35,10 @@
           <div class="space-y-0">
             <label class="block text-sm font-medium text-gray-700">Nome do Paciente</label>
             <input type="text" style="width: 300px;" class="px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="nomePaciente">
+          </div>
+          <div class="space-y-0">
+            <label class="block text-sm font-medium text-gray-700">Observações</label>
+            <input type="text" style="width: 300px;" class="px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="observacoes" placeholder="Filtrar por observações">
           </div>
         </div>
         <div class="flex gap-2 justify-end">
@@ -57,8 +55,8 @@
         <!-- Cards de Totalização -->
     <div *ngIf="relatorio.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
       <div class="bg-blue-100 p-3 sm:p-4 rounded-lg flex flex-col items-center justify-center min-w-[120px] shadow-lg">
-        <div class="text-xl sm:text-2xl font-bold text-blue-700 leading-tight">{{ getAtendimentosTriagemPendente() }}</div>
-        <div class="text-xs sm:text-sm text-blue-800 leading-tight text-center">Triagem Pendente</div>
+        <div class="text-xl sm:text-2xl font-bold text-blue-700 leading-tight">{{ getAtendimentosEncaminhadosTriagem() }}</div>
+        <div class="text-xs sm:text-sm text-blue-800 leading-tight text-center">Encaminhados para Triagem</div>
       </div>
       <div class="bg-yellow-100 p-3 sm:p-4 rounded-lg flex flex-col items-center justify-center min-w-[120px] shadow-lg">
         <div class="text-xl sm:text-2xl font-bold text-yellow-700 leading-tight">{{ getAtendimentosEmTriagem() }}</div>
@@ -71,6 +69,10 @@
       <div class="bg-green-100 p-3 sm:p-4 rounded-lg flex flex-col items-center justify-center min-w-[120px] shadow-lg">
         <div class="text-xl sm:text-2xl font-bold text-green-700 leading-tight">{{ getAtendimentosEmAtendimento() }}</div>
         <div class="text-xs sm:text-sm text-green-800 leading-tight text-center">Em Atendimento</div>
+      </div>
+      <div class="bg-purple-100 p-3 sm:p-4 rounded-lg flex flex-col items-center justify-center min-w-[120px] shadow-lg">
+        <div class="text-xl sm:text-2xl font-bold text-purple-700 leading-tight">{{ getAtendimentosEmObservacao() }}</div>
+        <div class="text-xs sm:text-sm text-purple-800 leading-tight text-center">Em Observação</div>
       </div>
       <div class="bg-emerald-100 p-3 sm:p-4 rounded-lg flex flex-col items-center justify-center min-w-[120px] shadow-lg">
         <div class="text-xl sm:text-2xl font-bold text-emerald-700 leading-tight">{{ getAtendimentosFinalizados() }}</div>
