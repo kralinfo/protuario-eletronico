@@ -47,6 +47,7 @@ export class RelatoriosComponent implements OnInit {
   filtrosForm: FormGroup;
   pacientes: Paciente[] = [];
   pacientesFiltrados: Paciente[] = [];
+  atendimentos: any[] = []; // Adiciona array para atendimentos
   carregando = false;
   acessoNegado = false;
 
@@ -133,28 +134,41 @@ export class RelatoriosComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Permitir acesso apenas se o módulo selecionado for 'relatorios', 'medico' ou 'ambulatorio'
-    const modulo = this.authService.getSelectedModule();
-    if (!modulo || !['relatorios', 'medico', 'ambulatorio', 'recepcao'].includes(modulo)) {
-      this.acessoNegado = true;
-      return;
-    }
+    // Acesso liberado para todos os usuários autenticados
+    this.acessoNegado = false;
     this.carregarPacientes();
   }
 
   carregarPacientes() {
     this.carregando = true;
     const token = this.authService.getToken();
-    this.http.get<any>(`${environment.apiUrl}/pacientes/reports`, {
+    
+    // Carrega dados de atendimentos para os contadores de status
+    this.http.get<any>(`${environment.apiUrl}/atendimentos/reports`, {
       headers: { 'Authorization': `Bearer ${token}` }
     }).subscribe({
       next: (response) => {
-        this.pacientes = response.data || [];
-        this.aplicarFiltros();
-        this.carregando = false;
+        // A resposta deve conter os atendimentos
+        this.atendimentos = response.data || response || [];
+        console.log('Atendimentos carregados:', this.atendimentos.length);
+        
+        // Carrega pacientes para o relatório
+        this.http.get<any>(`${environment.apiUrl}/pacientes/reports`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).subscribe({
+          next: (response) => {
+            this.pacientes = response.data || [];
+            this.aplicarFiltros();
+            this.carregando = false;
+          },
+          error: (error) => {
+            console.error('Erro ao carregar pacientes:', error);
+            this.carregando = false;
+          }
+        });
       },
       error: (error) => {
-        console.error('Erro ao carregar pacientes:', error);
+        console.error('Erro ao carregar atendimentos:', error);
         this.carregando = false;
       }
     });
@@ -354,6 +368,60 @@ export class RelatoriosComponent implements OnInit {
 
   getQuantidadeMunicipios(): number {
     return new Set(this.pacientesFiltrados.map(p => p.municipio)).size;
+  }
+
+  // Novos métodos para contadores de status de atendimentos
+  getAtendimentosTriagemPendente(): number {
+    return this.atendimentos.filter(a => 
+      a.status === 'triagem pendente' || 
+      a.status === 'encaminhado para triagem'
+    ).length;
+  }
+
+  getAtendimentosEmTriagem(): number {
+    return this.atendimentos.filter(a => 
+      a.status === 'em_triagem' || 
+      a.status === 'em triagem'
+    ).length;
+  }
+
+  getAtendimentosAguardandoMedico(): number {
+    return this.atendimentos.filter(a => 
+      a.status === 'encaminhado_para_sala_medica' || 
+      a.status === 'encaminhado para sala médica' ||
+      a.status === 'aguardando' ||
+      a.status === 'aguardando_atendimento' ||
+      a.status === 'aguardando atendimento'
+    ).length;
+  }
+
+  getAtendimentosEmAtendimento(): number {
+    return this.atendimentos.filter(a => 
+      a.status === 'em_atendimento_medico' || 
+      a.status === 'em atendimento médico' ||
+      a.status === 'em_atendimento' ||
+      a.status === 'em atendimento' ||
+      a.status === 'em_atendimento_ambulatorial' ||
+      a.status === 'em atendimento ambulatorial'
+    ).length;
+  }
+
+  getAtendimentosFinalizados(): number {
+    return this.atendimentos.filter(a => 
+      a.status === 'atendimento_concluido' || 
+      a.status === 'atendimento concluido' ||
+      a.status === 'finalizado' ||
+      a.status === 'alta_ambulatorial' ||
+      a.status === 'encaminhado_para_exames' ||
+      a.status === 'encaminhado para exames'
+    ).length;
+  }
+
+  getAtendimentosInterrompidos(): number {
+    return this.atendimentos.filter(a => 
+      a.status === 'interrompido' ||
+      a.status === 'abandonado'
+    ).length;
   }
 
   private gerarHtmlResumo(): string {

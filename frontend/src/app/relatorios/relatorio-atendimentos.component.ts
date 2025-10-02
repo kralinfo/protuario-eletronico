@@ -83,6 +83,60 @@ export class RelatorioAtendimentosComponent implements OnInit {
   getTotalStatus(): number {
     return this.relatorio.length;
   }
+
+  // Novos métodos para contadores de status específicos
+  getAtendimentosTriagemPendente(): number {
+    return this.relatorio.filter(a => 
+      a.status === 'triagem pendente' || 
+      a.status === 'encaminhado para triagem'
+    ).length;
+  }
+
+  getAtendimentosEmTriagem(): number {
+    return this.relatorio.filter(a => 
+      a.status === 'em_triagem' || 
+      a.status === 'em triagem'
+    ).length;
+  }
+
+  getAtendimentosAguardandoMedico(): number {
+    return this.relatorio.filter(a => 
+      a.status === 'encaminhado_para_sala_medica' || 
+      a.status === 'encaminhado para sala médica' ||
+      a.status === 'aguardando' ||
+      a.status === 'aguardando_atendimento' ||
+      a.status === 'aguardando atendimento'
+    ).length;
+  }
+
+  getAtendimentosEmAtendimento(): number {
+    return this.relatorio.filter(a => 
+      a.status === 'em_atendimento_medico' || 
+      a.status === 'em atendimento médico' ||
+      a.status === 'em_atendimento' ||
+      a.status === 'em atendimento' ||
+      a.status === 'em_atendimento_ambulatorial' ||
+      a.status === 'em atendimento ambulatorial'
+    ).length;
+  }
+
+  getAtendimentosFinalizados(): number {
+    return this.relatorio.filter(a => 
+      a.status === 'atendimento_concluido' || 
+      a.status === 'atendimento concluido' ||
+      a.status === 'finalizado' ||
+      a.status === 'alta_ambulatorial' ||
+      a.status === 'encaminhado_para_exames' ||
+      a.status === 'encaminhado para exames'
+    ).length;
+  }
+
+  getAtendimentosInterrompidos(): number {
+    return this.relatorio.filter(a => 
+      a.status === 'interrompido' ||
+      a.status === 'abandonado'
+    ).length;
+  }
   getStatusList(): { status: string, total: number }[] {
     // Status possíveis conforme cadastro
     const statusPossiveis = [
