@@ -160,8 +160,17 @@ router.get('/todos', async (req, res) => {
       )
       .orderBy('a.data_hora_atendimento', 'desc');
     
+    // Log para debug dos status em produção
+    console.log('📊 [AMBULATORIO DEBUG] Status únicos encontrados:');
+    const statusUnicos = [...new Set(atendimentos.map(a => a.status).filter(s => s))];
+    statusUnicos.forEach(status => {
+      const count = atendimentos.filter(a => a.status === status).length;
+      console.log(`  - "${status}": ${count} atendimentos`);
+    });
+    
     res.json(atendimentos);
   } catch (err) {
+    console.error('❌ [AMBULATORIO] Erro ao buscar todos os atendimentos:', err);
     res.status(500).json({ error: err.message });
   }
 });

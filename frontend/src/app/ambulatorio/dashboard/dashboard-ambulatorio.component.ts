@@ -153,13 +153,24 @@ export class DashboardAmbulatorioComponent implements OnInit {
 
       // Filtrar atendimentos para fila: "em atendimento ambulatorial" + "encaminhado para ambulatório"
       const filaAtendimento = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
-        return status === 'em atendimento ambulatorial' ||
+        const status = (a.status || '').toLowerCase().trim();
+        const isFilaStatus = status === 'em atendimento ambulatorial' ||
                status === 'encaminhado para ambulatório' ||
                status === '5 - encaminhado para ambulatório' ||
                status === 'encaminhado_para_ambulatorio' ||
-               status === 'em_atendimento_ambulatorial';
+               status === 'em_atendimento_ambulatorial' ||
+               status.includes('encaminhado') && status.includes('ambulatório') ||
+               status.includes('encaminhado') && status.includes('ambulatorio') ||
+               status.includes('atendimento') && status.includes('ambulatorial');
+        
+        if (isFilaStatus) {
+          console.log(`🏥 Paciente na fila: ID=${a.id}, status="${a.status}"`);
+        }
+        
+        return isFilaStatus;
       });
+      
+      console.log(`📊 Total na fila de atendimento: ${filaAtendimento.length} pacientes`);
       // Corrigir tempo_espera para cada paciente da fila
       filaAtendimento.forEach(p => {
         p.tempo_espera = this.calcularTempoDecorrido(p);
@@ -174,9 +185,14 @@ export class DashboardAmbulatorioComponent implements OnInit {
 
       // Contador "Em Atendimento" (status: encaminhado para ambulatório, em atendimento ambulatorial)
       this.consultasEmAtendimento = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
+        const status = (a.status || '').toLowerCase().trim();
         return status === 'encaminhado para ambulatório' ||
-               status === 'em atendimento ambulatorial';
+               status === 'em atendimento ambulatorial' ||
+               status === 'encaminhado_para_ambulatorio' ||
+               status === 'em_atendimento_ambulatorial' ||
+               status.includes('encaminhado') && status.includes('ambulatório') ||
+               status.includes('encaminhado') && status.includes('ambulatorio') ||
+               status.includes('atendimento') && status.includes('ambulatorial');
       }).length;
 
       // Contador "Em Observação" (status: em_observacao)
@@ -282,31 +298,37 @@ export class DashboardAmbulatorioComponent implements OnInit {
 
       // Calcular pacientes aguardando (encaminhados para ambulatório)
       const aguardando = atendimentosUltimas24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
+        const status = (a.status || '').toLowerCase().trim();
         return status.includes('encaminhado_para_ambulatorio') ||
                status.includes('encaminhado para ambulatório') ||
-               status === '5 - encaminhado para ambulatório';
+               status === '5 - encaminhado para ambulatório' ||
+               (status.includes('encaminhado') && status.includes('ambulatório')) ||
+               (status.includes('encaminhado') && status.includes('ambulatorio'));
       });
 
       // Calcular pacientes em atendimento ambulatorial
       const emAtendimento = atendimentosUltimas24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
+        const status = (a.status || '').toLowerCase().trim();
         return status.includes('em atendimento ambulatorial') ||
-               status.includes('em_atendimento_ambulatorial');
+               status.includes('em_atendimento_ambulatorial') ||
+               (status.includes('atendimento') && status.includes('ambulatorial'));
       });
 
       // Calcular consultas concluídas (que saíram do ambulatório)
       const concluidasUltimas24h = atendimentosUltimas24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
+        const status = (a.status || '').toLowerCase().trim();
         return status.includes('alta_ambulatorial') ||
                status.includes('alta ambulatorial') ||
                status.includes('encaminhado_para_exames') ||
                status.includes('encaminhado para exames') ||
                status.includes('encaminhado_para_internacao') ||
                status.includes('encaminhado para internação') ||
+               status.includes('atendimento_concluido') ||
+               status.includes('atendimento concluido') ||
                status.includes('transferido') ||
                status.includes('óbito') ||
-               status.includes('obito');
+               status.includes('obito') ||
+               (status.includes('alta') && status.includes('ambulatorial'));
       });
 
       // Calcular estatísticas por classificação de risco (últimas 24h)
