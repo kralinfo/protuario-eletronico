@@ -490,18 +490,77 @@ class Paciente {
         paramIndex++;
       }
 
-      // Filtro por estado civil
+      // Filtro por estado civil (considerando variações)
       if (estadoCivil) {
-        query += ` AND estado_civil = $${paramIndex}`;
-        params.push(estadoCivil);
-        paramIndex++;
+        let estadoCivilCondition = '';
+        switch(estadoCivil.toLowerCase()) {
+          case 'solteiro':
+            estadoCivilCondition = `(estado_civil ILIKE 'solteiro%' OR estado_civil ILIKE 'solteira%')`;
+            break;
+          case 'casado':
+            estadoCivilCondition = `(estado_civil ILIKE 'casado%' OR estado_civil ILIKE 'casada%')`;
+            break;
+          case 'divorciado':
+            estadoCivilCondition = `(estado_civil ILIKE 'divorciado%' OR estado_civil ILIKE 'divorciada%')`;
+            break;
+          case 'viuvo':
+            estadoCivilCondition = `(estado_civil ILIKE 'viúvo%' OR estado_civil ILIKE 'viúva%' OR estado_civil ILIKE 'viuvo%' OR estado_civil ILIKE 'viuva%')`;
+            break;
+          case 'uniao_estavel':
+            estadoCivilCondition = `(estado_civil ILIKE '%união%estável%' OR estado_civil ILIKE '%uniao%estavel%')`;
+            break;
+          default:
+            estadoCivilCondition = `estado_civil ILIKE $${paramIndex}`;
+            params.push(`%${estadoCivil}%`);
+            paramIndex++;
+        }
+        
+        if (estadoCivilCondition && !estadoCivilCondition.includes('$')) {
+          query += ` AND ${estadoCivilCondition}`;
+        } else if (estadoCivilCondition.includes('$')) {
+          query += ` AND ${estadoCivilCondition}`;
+        }
       }
 
-      // Filtro por escolaridade
+      // Filtro por escolaridade (considerando variações)
       if (escolaridade) {
-        query += ` AND escolaridade = $${paramIndex}`;
-        params.push(escolaridade);
-        paramIndex++;
+        let escolaridadeCondition = '';
+        switch(escolaridade.toLowerCase()) {
+          case 'analfabeto':
+            escolaridadeCondition = `(escolaridade ILIKE '%analfabeto%' OR escolaridade ILIKE '%analfabeta%')`;
+            break;
+          case 'fundamental_incompleto':
+            escolaridadeCondition = `(escolaridade ILIKE '%fundamental%incompleto%' OR escolaridade ILIKE '%fundamental%incompl%' OR escolaridade ILIKE '%elementar%incompleto%')`;
+            break;
+          case 'fundamental_completo':
+            escolaridadeCondition = `(escolaridade ILIKE '%fundamental%completo%' OR escolaridade ILIKE '%fundamental%compl%' OR escolaridade ILIKE '%elementar%completo%')`;
+            break;
+          case 'medio_incompleto':
+            escolaridadeCondition = `(escolaridade ILIKE '%médio%incompleto%' OR escolaridade ILIKE '%medio%incompleto%' OR escolaridade ILIKE '%médio%incompl%' OR escolaridade ILIKE '%medio%incompl%')`;
+            break;
+          case 'medio_completo':
+            escolaridadeCondition = `(escolaridade ILIKE '%médio%completo%' OR escolaridade ILIKE '%medio%completo%' OR escolaridade ILIKE '%médio%compl%' OR escolaridade ILIKE '%medio%compl%' OR escolaridade ILIKE 'medio' OR escolaridade ILIKE 'médio')`;
+            break;
+          case 'superior_incompleto':
+            escolaridadeCondition = `(escolaridade ILIKE '%superior%incompleto%' OR escolaridade ILIKE '%superior%incompl%' OR escolaridade ILIKE '%universitário%incompleto%' OR escolaridade ILIKE '%universitario%incompleto%')`;
+            break;
+          case 'superior_completo':
+            escolaridadeCondition = `(escolaridade ILIKE '%superior%completo%' OR escolaridade ILIKE '%superior%compl%' OR escolaridade ILIKE '%universitário%completo%' OR escolaridade ILIKE '%universitario%completo%' OR escolaridade ILIKE 'superior')`;
+            break;
+          case 'pos_graduacao':
+            escolaridadeCondition = `(escolaridade ILIKE '%pós%graduação%' OR escolaridade ILIKE '%pos%graduacao%' OR escolaridade ILIKE '%mestrado%' OR escolaridade ILIKE '%doutorado%' OR escolaridade ILIKE '%especialização%' OR escolaridade ILIKE '%especializacao%')`;
+            break;
+          default:
+            escolaridadeCondition = `escolaridade ILIKE $${paramIndex}`;
+            params.push(`%${escolaridade}%`);
+            paramIndex++;
+        }
+        
+        if (escolaridadeCondition && !escolaridadeCondition.includes('$')) {
+          query += ` AND ${escolaridadeCondition}`;
+        } else if (escolaridadeCondition.includes('$')) {
+          query += ` AND ${escolaridadeCondition}`;
+        }
       }
 
       // Ordenação
@@ -520,6 +579,44 @@ class Paciente {
     } catch (error) {
       console.error('❌ [PACIENTE] Erro ao buscar pacientes para relatórios:', error);
       throw new Error(`Erro ao buscar pacientes para relatórios: ${error.message}`);
+    }
+  }
+
+  // Buscar estados civis únicos no banco
+  static async getDistinctEstadosCivis() {
+    try {
+      const query = `
+        SELECT DISTINCT estado_civil 
+        FROM pacientes 
+        WHERE estado_civil IS NOT NULL 
+        AND estado_civil != '' 
+        ORDER BY estado_civil
+      `;
+      
+      const result = await database.query(query);
+      return result.rows.map(row => row.estado_civil);
+    } catch (error) {
+      console.error('❌ [PACIENTE] Erro ao buscar estados civis:', error);
+      throw new Error(`Erro ao buscar estados civis: ${error.message}`);
+    }
+  }
+
+  // Buscar escolaridades únicas no banco
+  static async getDistinctEscolaridades() {
+    try {
+      const query = `
+        SELECT DISTINCT escolaridade 
+        FROM pacientes 
+        WHERE escolaridade IS NOT NULL 
+        AND escolaridade != '' 
+        ORDER BY escolaridade
+      `;
+      
+      const result = await database.query(query);
+      return result.rows.map(row => row.escolaridade);
+    } catch (error) {
+      console.error('❌ [PACIENTE] Erro ao buscar escolaridades:', error);
+      throw new Error(`Erro ao buscar escolaridades: ${error.message}`);
     }
   }
 }

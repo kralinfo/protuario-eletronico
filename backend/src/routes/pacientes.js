@@ -37,6 +37,20 @@ router.get('/search', PacientesController.search);
 router.get('/reports', PacientesController.reports);
 
 /**
+ * @route GET /api/pacientes/estados-civis
+ * @desc Buscar estados civis únicos para filtros
+ * @access Private
+ */
+router.get('/estados-civis', PacientesController.getEstadosCivis);
+
+/**
+ * @route GET /api/pacientes/escolaridades
+ * @desc Buscar escolaridades únicas para filtros
+ * @access Private
+ */
+router.get('/escolaridades', PacientesController.getEscolaridades);
+
+/**
  * @route GET /api/pacientes/statistics
  * @desc Obter estatísticas dos pacientes
  * @access Private

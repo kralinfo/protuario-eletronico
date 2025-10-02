@@ -98,23 +98,23 @@ export class RelatoriosComponent implements OnInit {
 
   opcoesEstadoCivil = [
     { value: '', label: 'Todos' },
-    { value: 'Solteiro(a)', label: 'Solteiro(a)' },
-    { value: 'Casado(a)', label: 'Casado(a)' },
-    { value: 'Divorciado(a)', label: 'Divorciado(a)' },
-    { value: 'Viúvo(a)', label: 'Viúvo(a)' },
-    { value: 'União Estável', label: 'União Estável' }
+    { value: 'solteiro', label: 'Solteiro(a)' },
+    { value: 'casado', label: 'Casado(a)' },
+    { value: 'divorciado', label: 'Divorciado(a)' },
+    { value: 'viuvo', label: 'Viúvo(a)' },
+    { value: 'uniao_estavel', label: 'União Estável' }
   ];
 
   opcoesEscolaridade = [
     { value: '', label: 'Todos' },
-    { value: 'Analfabeto', label: 'Analfabeto' },
-    { value: 'Ensino Fundamental Incompleto', label: 'Ensino Fundamental Incompleto' },
-    { value: 'Ensino Fundamental Completo', label: 'Ensino Fundamental Completo' },
-    { value: 'Ensino Médio Incompleto', label: 'Ensino Médio Incompleto' },
-    { value: 'Ensino Médio Completo', label: 'Ensino Médio Completo' },
-    { value: 'Ensino Superior Incompleto', label: 'Ensino Superior Incompleto' },
-    { value: 'Ensino Superior Completo', label: 'Ensino Superior Completo' },
-    { value: 'Pós-graduação', label: 'Pós-graduação' }
+    { value: 'analfabeto', label: 'Analfabeto(a)' },
+    { value: 'fundamental_incompleto', label: 'Ensino Fundamental Incompleto' },
+    { value: 'fundamental_completo', label: 'Ensino Fundamental Completo' },
+    { value: 'medio_incompleto', label: 'Ensino Médio Incompleto' },
+    { value: 'medio_completo', label: 'Ensino Médio Completo' },
+    { value: 'superior_incompleto', label: 'Ensino Superior Incompleto' },
+    { value: 'superior_completo', label: 'Ensino Superior Completo' },
+    { value: 'pos_graduacao', label: 'Pós-graduação' }
   ];
 
   constructor(
@@ -136,7 +136,128 @@ export class RelatoriosComponent implements OnInit {
   ngOnInit() {
     // Acesso liberado para todos os usuários autenticados
     this.acessoNegado = false;
+    this.carregarEstadosCivisDoBanco();
+    this.carregarEscolaridadesDoBanco();
     this.carregarPacientes();
+  }
+
+  carregarEstadosCivisDoBanco() {
+    const token = this.authService.getToken();
+    this.http.get<any>(`${environment.apiUrl}/pacientes/estados-civis`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).subscribe({
+      next: (response) => {
+        const estadosCivisDoBanco = response.data || [];
+        // Atualizar as opções baseado nos dados reais do banco
+        this.atualizarOpcoesEstadoCivil(estadosCivisDoBanco);
+      },
+      error: (error) => {
+        console.error('Erro ao carregar estados civis:', error);
+        // Manter as opções padrão em caso de erro
+      }
+    });
+  }
+
+  carregarEscolaridadesDoBanco() {
+    const token = this.authService.getToken();
+    this.http.get<any>(`${environment.apiUrl}/pacientes/escolaridades`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).subscribe({
+      next: (response) => {
+        const escolaridadesDoBanco = response.data || [];
+        // Atualizar as opções baseado nos dados reais do banco
+        this.atualizarOpcoesEscolaridade(escolaridadesDoBanco);
+      },
+      error: (error) => {
+        console.error('Erro ao carregar escolaridades:', error);
+        // Manter as opções padrão em caso de erro
+      }
+    });
+  }
+
+  atualizarOpcoesEstadoCivil(estadosDoBanco: string[]) {
+    // Manter a opção "Todos"
+    let novasOpcoes = [{ value: '', label: 'Todos' }];
+    
+    // Mapear estados do banco para opções padronizadas
+    const estadosUnicos = [...new Set(estadosDoBanco.filter(e => e && e.trim()))];
+    
+    estadosUnicos.forEach(estado => {
+      const estadoLower = estado.toLowerCase();
+      if (estadoLower.includes('solteiro')) {
+        if (!novasOpcoes.find(o => o.value === 'solteiro')) {
+          novasOpcoes.push({ value: 'solteiro', label: 'Solteiro(a)' });
+        }
+      } else if (estadoLower.includes('casad')) {
+        if (!novasOpcoes.find(o => o.value === 'casado')) {
+          novasOpcoes.push({ value: 'casado', label: 'Casado(a)' });
+        }
+      } else if (estadoLower.includes('divorciado')) {
+        if (!novasOpcoes.find(o => o.value === 'divorciado')) {
+          novasOpcoes.push({ value: 'divorciado', label: 'Divorciado(a)' });
+        }
+      } else if (estadoLower.includes('viúv') || estadoLower.includes('viuv')) {
+        if (!novasOpcoes.find(o => o.value === 'viuvo')) {
+          novasOpcoes.push({ value: 'viuvo', label: 'Viúvo(a)' });
+        }
+      } else if (estadoLower.includes('união') || estadoLower.includes('uniao')) {
+        if (!novasOpcoes.find(o => o.value === 'uniao_estavel')) {
+          novasOpcoes.push({ value: 'uniao_estavel', label: 'União Estável' });
+        }
+      }
+    });
+    
+    this.opcoesEstadoCivil = novasOpcoes;
+    console.log('Opções de estado civil atualizadas:', this.opcoesEstadoCivil);
+  }
+
+  atualizarOpcoesEscolaridade(escolaridadesDoBanco: string[]) {
+    // Manter a opção "Todos"
+    let novasOpcoes = [{ value: '', label: 'Todos' }];
+    
+    // Mapear escolaridades do banco para opções padronizadas
+    const escolaridadesUnicas = [...new Set(escolaridadesDoBanco.filter(e => e && e.trim()))];
+    
+    escolaridadesUnicas.forEach(escolaridade => {
+      const escolaridadeLower = escolaridade.toLowerCase();
+      
+      if (escolaridadeLower.includes('analfabet')) {
+        if (!novasOpcoes.find(o => o.value === 'analfabeto')) {
+          novasOpcoes.push({ value: 'analfabeto', label: 'Analfabeto(a)' });
+        }
+      } else if (escolaridadeLower.includes('fundamental') && escolaridadeLower.includes('incompleto')) {
+        if (!novasOpcoes.find(o => o.value === 'fundamental_incompleto')) {
+          novasOpcoes.push({ value: 'fundamental_incompleto', label: 'Ensino Fundamental Incompleto' });
+        }
+      } else if (escolaridadeLower.includes('fundamental') && (escolaridadeLower.includes('completo') || escolaridadeLower.includes('compl'))) {
+        if (!novasOpcoes.find(o => o.value === 'fundamental_completo')) {
+          novasOpcoes.push({ value: 'fundamental_completo', label: 'Ensino Fundamental Completo' });
+        }
+      } else if ((escolaridadeLower.includes('médio') || escolaridadeLower.includes('medio')) && escolaridadeLower.includes('incompleto')) {
+        if (!novasOpcoes.find(o => o.value === 'medio_incompleto')) {
+          novasOpcoes.push({ value: 'medio_incompleto', label: 'Ensino Médio Incompleto' });
+        }
+      } else if ((escolaridadeLower.includes('médio') || escolaridadeLower.includes('medio')) && (escolaridadeLower.includes('completo') || escolaridadeLower.includes('compl') || escolaridadeLower === 'medio' || escolaridadeLower === 'médio')) {
+        if (!novasOpcoes.find(o => o.value === 'medio_completo')) {
+          novasOpcoes.push({ value: 'medio_completo', label: 'Ensino Médio Completo' });
+        }
+      } else if (escolaridadeLower.includes('superior') && escolaridadeLower.includes('incompleto')) {
+        if (!novasOpcoes.find(o => o.value === 'superior_incompleto')) {
+          novasOpcoes.push({ value: 'superior_incompleto', label: 'Ensino Superior Incompleto' });
+        }
+      } else if ((escolaridadeLower.includes('superior') && (escolaridadeLower.includes('completo') || escolaridadeLower.includes('compl'))) || escolaridadeLower === 'superior') {
+        if (!novasOpcoes.find(o => o.value === 'superior_completo')) {
+          novasOpcoes.push({ value: 'superior_completo', label: 'Ensino Superior Completo' });
+        }
+      } else if (escolaridadeLower.includes('pós') || escolaridadeLower.includes('pos') || escolaridadeLower.includes('mestrado') || escolaridadeLower.includes('doutorado')) {
+        if (!novasOpcoes.find(o => o.value === 'pos_graduacao')) {
+          novasOpcoes.push({ value: 'pos_graduacao', label: 'Pós-graduação' });
+        }
+      }
+    });
+    
+    this.opcoesEscolaridade = novasOpcoes;
+    console.log('Opções de escolaridade atualizadas:', this.opcoesEscolaridade);
   }
 
   carregarPacientes() {

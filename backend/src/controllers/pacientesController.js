@@ -526,6 +526,46 @@ class PacientesController {
       });
     }
   }
+
+  // Buscar estados civis únicos para o filtro de relatórios
+  static async getEstadosCivis(req, res) {
+    try {
+      const estadosCivis = await Paciente.getDistinctEstadosCivis();
+      
+      res.json({
+        success: true,
+        data: estadosCivis,
+        message: 'Estados civis carregados com sucesso'
+      });
+    } catch (error) {
+      console.error('❌ [ESTADOS CIVIS] Erro ao buscar estados civis:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+        code: 'ESTADOS_CIVIS_ERROR'
+      });
+    }
+  }
+
+  // Buscar escolaridades únicas para o filtro de relatórios
+  static async getEscolaridades(req, res) {
+    try {
+      const escolaridades = await Paciente.getDistinctEscolaridades();
+      
+      res.json({
+        success: true,
+        data: escolaridades,
+        message: 'Escolaridades carregadas com sucesso'
+      });
+    } catch (error) {
+      console.error('❌ [ESCOLARIDADES] Erro ao buscar escolaridades:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
+        code: 'ESCOLARIDADES_ERROR'
+      });
+    }
+  }
 }
 
 export default PacientesController;
