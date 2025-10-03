@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,6 +16,25 @@ import { MedicoService } from '../medico.service';
 import { AuthService } from '../../auth/auth.service';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { LOCALE_ID } from '@angular/core';
+
+// Formato personalizado para data brasileira
+export const MY_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'DD/MM/YYYY',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'LL',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
+
+// Registrar locale brasileiro
+registerLocaleData(localePt);
 
 @Component({
   selector: 'app-realizar-atendimento-medico',
@@ -33,7 +53,14 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatProgressSpinnerModule,
     MatDividerModule,
     MatExpansionModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatDatepickerModule,
+    MatNativeDateModule
+  ],
+  providers: [
+    { provide: MAT_DATE_LOCALE, useValue: 'pt-BR' },
+    { provide: LOCALE_ID, useValue: 'pt-BR' },
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
   ],
   templateUrl: './realizar-atendimento-medico.component.html',
   styleUrls: ['./realizar-atendimento-medico.component.scss']
@@ -50,6 +77,8 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   modoVisualizacao = false; // Controla se é modo visualizacao
   consultaRealizada = false; // Controla se é uma consulta já realizada
   edicaoHabilitada = false; // Controla se a edição foi habilitada pelo usuário
+  podeEditarPorStatus = true; // Controla se o status permite edição (do dashboard)
+  origemCard = ''; // De qual card veio a navegação
 
   constructor(
     private fb: FormBuilder,
@@ -57,8 +86,12 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar,
     private medicoService: MedicoService,
-  private authService: AuthService // ajuste para injetar AuthService corretamente
+    private authService: AuthService, // ajuste para injetar AuthService corretamente
+    private dateAdapter: DateAdapter<Date>
   ) {
+    // Configurar o locale para português brasileiro
+    this.dateAdapter.setLocale('pt-BR');
+    
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
 
@@ -67,6 +100,15 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     if (navigation?.extras?.state) {
       this.modoVisualizacao = navigation.extras.state['modoVisualizacao'] || false;
       this.consultaRealizada = navigation.extras.state['consultaRealizada'] || false;
+      this.podeEditarPorStatus = navigation.extras.state['podeEditarPorStatus'] !== false; // default true
+      this.origemCard = navigation.extras.state['origemCard'] || '';
+      
+      console.log('📍 Navegação recebida:', {
+        modoVisualizacao: this.modoVisualizacao,
+        consultaRealizada: this.consultaRealizada,
+        podeEditarPorStatus: this.podeEditarPorStatus,
+        origemCard: this.origemCard
+      });
     }
   }
 
@@ -74,13 +116,27 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     // Ajustar estados de visualização e edição
     if (this.modoVisualizacao || this.consultaRealizada) {
       this.consultaRealizada = true;
-      this.podeEditar = false;
-      this.edicaoHabilitada = false;
-      console.log('Modo visualização ativado - consulta realizada em modo somente leitura');
+      
+      // Se veio do card de consultas, verificar se o status permite edição
+      if (this.origemCard === 'consultas') {
+        this.podeEditar = this.podeEditarPorStatus;
+        this.edicaoHabilitada = this.podeEditarPorStatus;
+        
+        if (this.podeEditarPorStatus) {
+          console.log('📝 Card consultas: Status permite edição - modo edição habilitado');
+        } else {
+          console.log('👁️ Card consultas: Status não permite edição - apenas visualização');
+        }
+      } else {
+        // Para outras origens, manter comportamento anterior
+        this.podeEditar = false;
+        this.edicaoHabilitada = false;
+        console.log('👁️ Modo visualização ativado - consulta realizada em modo somente leitura');
+      }
     } else {
       this.podeEditar = true;
       this.edicaoHabilitada = true;
-      console.log('Modo edição ativado - consulta em andamento');
+      console.log('📝 Modo edição ativado - consulta em andamento');
     }
 
     // Se for uma consulta realizada, não alterar o status automaticamente
@@ -122,12 +178,12 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
         const retornoAgendado = consultaData.retorno_agendado === true || consultaData.retorno_agendado === 'true' || consultaData.retorno_agendado === 1;
         console.log('Retorno agendado processado:', retornoAgendado);
 
-        // Formatar data_retorno para o formato correto do input date (YYYY-MM-DD)
-        let dataRetornoFormatada = '';
+        // Processar data_retorno para o MatDatepicker (precisa ser objeto Date)
+        let dataRetornoFormatada: Date | null = null;
         if (consultaData.data_retorno) {
           const dataRetorno = new Date(consultaData.data_retorno);
           if (!isNaN(dataRetorno.getTime())) {
-            dataRetornoFormatada = dataRetorno.toISOString().split('T')[0];
+            dataRetornoFormatada = dataRetorno;
             console.log('Data retorno formatada:', dataRetornoFormatada);
           }
         }
@@ -184,12 +240,23 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
         // Nome do paciente vem dos dados da triagem
         this.nomePaciente = triagemData.paciente_nome || 'Paciente';
 
-        // Se for consulta realizada, desabilitar edição inicialmente
+        // Se for consulta realizada, aplicar lógica de edição baseada no status
         if (this.consultaRealizada) {
-          this.podeEditar = false;
-          this.labelBotao = 'Consulta Finalizada';
-          this.atendimentoForm.disable(); // Desabilita todo o formulário
-          console.log('🔒 Formulário desabilitado - modo visualização');
+          if (this.origemCard === 'consultas' && this.podeEditarPorStatus) {
+            // Do card consultas com status que permite edição
+            this.podeEditar = true;
+            this.edicaoHabilitada = true;
+            this.labelBotao = 'Salvar Modificações';
+            this.atendimentoForm.enable();
+            console.log('📝 Card consultas: Formulário habilitado para edição baseado no status');
+          } else {
+            // Outros casos: apenas visualização
+            this.podeEditar = false;
+            this.edicaoHabilitada = false;
+            this.labelBotao = this.podeEditarPorStatus ? 'Consulta Finalizada' : 'Apenas Visualização';
+            this.atendimentoForm.disable();
+            console.log('�️ Formulário desabilitado - modo visualização');
+          }
         } else {
           // Se já existe atendimento médico preenchido, habilita edição e altera label do botão
           if (consultaData.exame_fisico || consultaData.hipotese_diagnostica || consultaData.conduta_prescricao || consultaData.motivo_consulta) {
@@ -217,7 +284,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       temperatura: [''],
       frequencia_cardiaca: [''],
       saturacao_oxigenio: [''],
-      status_destino: ['', Validators.required],
+      status_destino: ['encaminhado para ambulatório', Validators.required],
 
       // Novos campos detalhados
       medicamentos_prescritos: [''],

@@ -7,8 +7,8 @@
       Atendimento Médico - {{nomePaciente}}
     </h1>
 
-    <!-- Botão para alternar edição -->
-    <div class="ml-auto" *ngIf="consultaRealizada">
+    <!-- Botão para alternar edição - só aparece se o status permitir edição -->
+    <div class="ml-auto" *ngIf="consultaRealizada && podeEditarPorStatus">
       <button
         class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
         [ngClass]="edicaoHabilitada ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-green-500 text-white hover:bg-green-600'"
@@ -21,13 +21,13 @@
 
   <!-- Indicador do modo atual -->
   <div *ngIf="consultaRealizada" class="mb-4 p-3 rounded-lg"
-       [ngClass]="edicaoHabilitada ? 'bg-orange-100 border border-orange-300' : 'bg-blue-100 border border-blue-300'">
+       [ngClass]="edicaoHabilitada ? 'bg-orange-100 border border-orange-300' : (!podeEditarPorStatus ? 'bg-red-100 border border-red-300' : 'bg-blue-100 border border-blue-300')">
     <div class="flex items-center gap-2">
-      <mat-icon [ngClass]="edicaoHabilitada ? 'text-orange-600' : 'text-blue-600'">
-        {{ edicaoHabilitada ? 'edit' : 'visibility' }}
+      <mat-icon [ngClass]="edicaoHabilitada ? 'text-orange-600' : (!podeEditarPorStatus ? 'text-red-600' : 'text-blue-600')">
+        {{ edicaoHabilitada ? 'edit' : (!podeEditarPorStatus ? 'block' : 'visibility') }}
       </mat-icon>
-      <span [ngClass]="edicaoHabilitada ? 'text-orange-800' : 'text-blue-800'" class="font-medium">
-        {{ edicaoHabilitada ? 'Modo Edição Ativado' : 'Modo Visualização' }}
+      <span [ngClass]="edicaoHabilitada ? 'text-orange-800' : (!podeEditarPorStatus ? 'text-red-800' : 'text-blue-800')" class="font-medium">
+        {{ edicaoHabilitada ? 'Modo Edição Ativado' : (!podeEditarPorStatus ? 'Consulta Bloqueada para Edição - Status não permite alterações' : 'Modo Visualização') }}
       </span>
     </div>
   </div>
@@ -218,7 +218,10 @@
             <div class="form-row">
               <mat-form-field>
                 <mat-label>Data do Retorno</mat-label>
-                <input matInput type="date" formControlName="data_retorno">
+                <input matInput [matDatepicker]="picker" formControlName="data_retorno" placeholder="dd/mm/aaaa">
+                <mat-hint>Formato: dd/mm/aaaa</mat-hint>
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker startView="month"></mat-datepicker>
               </mat-form-field>
             </div>
 

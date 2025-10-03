@@ -294,11 +294,31 @@ export class DashboardMedicoComponent implements OnInit {
   abrirConsultaRealizada(consulta: any) {
     if (!consulta || !consulta.id) return;
 
-    console.log('🔍 Abrindo consulta realizada:', consulta.id);
+    console.log('🔍 Abrindo consulta realizada:', consulta.id, 'Status:', consulta.status);
 
-    // Navegar para a tela de atendimento médico em modo de visualização/edição
+    // Status que permitem edição no card de consultas
+    const statusPermiteEdicao = [
+      'em atendimento médico',
+      'em_atendimento_medico', 
+      'encaminhado para atendimento médico',
+      'encaminhado_para_atendimento_medico',
+      'retorno para atendimento médico',
+      'retornar_atendimento_medico',
+      'retorno_atendimento_medico'
+    ];
+
+    const podeEditar = statusPermiteEdicao.includes(consulta.status?.toLowerCase().trim());
+    
+    console.log('🔍 Status permite edição:', podeEditar);
+
+    // Navegar para a tela de atendimento médico 
     this.router.navigate(['/medico/atendimento', consulta.id], {
-      state: { modoVisualizacao: true, podeEditar: true }
+      state: { 
+        modoVisualizacao: true, 
+        consultaRealizada: true,
+        podeEditarPorStatus: podeEditar,
+        origemCard: 'consultas'
+      }
     });
   }
 
