@@ -122,6 +122,8 @@ router.get('/consulta/:id', async (req, res) => {
 // Criar nova consulta médica
 router.post('/consulta', async (req, res) => {
   try {
+    console.log('[CONSULTA POST] Payload recebido:', JSON.stringify(req.body, null, 2));
+    
     const payload = { ...req.body };
     if (!payload.data_hora_inicio) {
       payload.data_hora_inicio = new Date();
@@ -131,6 +133,30 @@ router.post('/consulta', async (req, res) => {
     if (!payload.data_prescricao) {
       payload.data_prescricao = new Date();
     }
+    
+    // Limpar campos numéricos que podem estar com string vazia
+    const camposNumericos = [
+      'atestado_dias', 
+      'tempo_observacao_horas', 
+      'medico_supervisor_id',
+      'medico_id'
+    ];
+    
+    camposNumericos.forEach(campo => {
+      if (payload[campo] === '' || payload[campo] === null || payload[campo] === undefined) {
+        payload[campo] = null;
+      } else if (typeof payload[campo] === 'string') {
+        const numero = parseInt(payload[campo]);
+        payload[campo] = isNaN(numero) ? null : numero;
+      }
+    });
+    
+    // Limpar campos de data vazios
+    if (payload.data_retorno === '') {
+      payload.data_retorno = null;
+    }
+    
+    console.log('[CONSULTA POST] Payload processado:', JSON.stringify(payload, null, 2));
     
     // APENAS atualizar status se o status_destino for diferente de 'em_atendimento_medico'
     // Isso significa que o paciente está sendo encaminhado para outro setor
@@ -153,9 +179,13 @@ router.post('/consulta', async (req, res) => {
         .update({ status: statusToSave, status_destino: statusToSave });
     }
     
+    console.log('[CONSULTA POST] Executando insert...');
     const novaConsulta = await knex('consultas_medicas').insert(payload).returning('*');
+    console.log('[CONSULTA POST] Consulta criada com sucesso:', novaConsulta[0]);
     res.json(novaConsulta[0]);
   } catch (err) {
+    console.error('[CONSULTA POST] ERRO:', err.message);
+    console.error('[CONSULTA POST] Stack:', err.stack);
     res.status(500).json({ error: err.message });
   }
 });
@@ -163,15 +193,39 @@ router.post('/consulta', async (req, res) => {
 // Atualizar consulta médica
 router.put('/consulta/:id', async (req, res) => {
   try {
+    const payload = { ...req.body };
+    
+    // Limpar campos numéricos que podem estar com string vazia
+    const camposNumericos = [
+      'atestado_dias', 
+      'tempo_observacao_horas', 
+      'medico_supervisor_id',
+      'medico_id'
+    ];
+    
+    camposNumericos.forEach(campo => {
+      if (payload[campo] === '' || payload[campo] === null || payload[campo] === undefined) {
+        payload[campo] = null;
+      } else if (typeof payload[campo] === 'string') {
+        const numero = parseInt(payload[campo]);
+        payload[campo] = isNaN(numero) ? null : numero;
+      }
+    });
+    
+    // Limpar campos de data vazios
+    if (payload.data_retorno === '') {
+      payload.data_retorno = null;
+    }
+    
     await knex('consultas_medicas')
       .where('id', req.params.id)
-      .update(req.body);
+      .update(payload);
       
     // APENAS atualizar status se o status_destino for diferente de 'em_atendimento_medico'
     // Isso significa que o paciente está sendo encaminhado para outro setor
-    if (req.body.atendimento_id && req.body.status_destino && req.body.status_destino !== 'em_atendimento_medico') {
+    if (payload.atendimento_id && payload.status_destino && payload.status_destino !== 'em_atendimento_medico') {
       // Normaliza status para ambulatorio
-      let statusToSave = req.body.status_destino;
+      let statusToSave = payload.status_destino;
       if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
         statusToSave = 'encaminhado_para_ambulatorio';
       }
@@ -184,7 +238,7 @@ router.put('/consulta/:id', async (req, res) => {
       
       // Atualizar apenas quando o paciente está sendo encaminhado/finalizado
       await knex('atendimentos')
-        .where('id', req.body.atendimento_id)
+        .where('id', payload.atendimento_id)
         .update({ status: statusToSave, status_destino: statusToSave });
     }
     

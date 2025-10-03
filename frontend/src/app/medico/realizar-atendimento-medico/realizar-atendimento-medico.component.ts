@@ -115,6 +115,22 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
 
         console.log('Dados da triagem:', triagemData);
         console.log('Dados da consulta:', consultaData);
+        console.log('Retorno agendado (raw):', consultaData.retorno_agendado, typeof consultaData.retorno_agendado);
+        console.log('Data retorno (raw):', consultaData.data_retorno, typeof consultaData.data_retorno);
+
+        // Processar retorno_agendado
+        const retornoAgendado = consultaData.retorno_agendado === true || consultaData.retorno_agendado === 'true' || consultaData.retorno_agendado === 1;
+        console.log('Retorno agendado processado:', retornoAgendado);
+
+        // Formatar data_retorno para o formato correto do input date (YYYY-MM-DD)
+        let dataRetornoFormatada = '';
+        if (consultaData.data_retorno) {
+          const dataRetorno = new Date(consultaData.data_retorno);
+          if (!isNaN(dataRetorno.getTime())) {
+            dataRetornoFormatada = dataRetorno.toISOString().split('T')[0];
+            console.log('Data retorno formatada:', dataRetornoFormatada);
+          }
+        }
 
         this.atendimentoForm.patchValue({
           // Dados da triagem (prioridade para carregar primeiro)
@@ -134,17 +150,17 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
           // Novos campos detalhados (principalmente da consulta)
           medicamentos_prescritos: consultaData.medicamentos_prescritos || '',
           medicamentos_ambulatorio: consultaData.medicamentos_ambulatorio || '',
-          atestado_emitido: consultaData.atestado_emitido || false,
+          atestado_emitido: consultaData.atestado_emitido === true || consultaData.atestado_emitido === 'true',
           atestado_cid: consultaData.atestado_cid || '',
           atestado_detalhes: consultaData.atestado_detalhes || '',
           atestado_dias: consultaData.atestado_dias || '',
-          necessita_observacao: consultaData.necessita_observacao || false,
+          necessita_observacao: consultaData.necessita_observacao === true || consultaData.necessita_observacao === 'true',
           tempo_observacao_horas: consultaData.tempo_observacao_horas || '',
           motivo_observacao: consultaData.motivo_observacao || '',
           exames_solicitados: consultaData.exames_solicitados || '',
           orientacoes_paciente: consultaData.orientacoes_paciente || '',
-          retorno_agendado: consultaData.retorno_agendado || false,
-          data_retorno: consultaData.data_retorno || '',
+          retorno_agendado: retornoAgendado,
+          data_retorno: dataRetornoFormatada,
           observacoes_retorno: consultaData.observacoes_retorno || '',
           procedimentos_realizados: consultaData.procedimentos_realizados || '',
           detalhes_destino: consultaData.detalhes_destino || '',
@@ -152,6 +168,18 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
           historico_familiar_relevante: consultaData.historico_familiar_relevante || ''
         });
         this.atendimentoForm.updateValueAndValidity();
+
+        // Debug: verificar valores finais no formulário
+        console.log('Valores finais no formulário:');
+        console.log('- retorno_agendado:', this.atendimentoForm.get('retorno_agendado')?.value);
+        console.log('- data_retorno:', this.atendimentoForm.get('data_retorno')?.value);
+
+        // Forçar detecção de mudança para campos condicionais
+        setTimeout(() => {
+          console.log('Verificação após timeout:');
+          console.log('- retorno_agendado após timeout:', this.atendimentoForm.get('retorno_agendado')?.value);
+          console.log('- data_retorno após timeout:', this.atendimentoForm.get('data_retorno')?.value);
+        }, 100);
 
         // Nome do paciente vem dos dados da triagem
         this.nomePaciente = triagemData.paciente_nome || 'Paciente';
@@ -180,9 +208,9 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     return this.fb.group({
       queixa_principal: [''],
       historia_clinica: [''], // será preenchido com histórico atual
-      motivo_consulta: ['', Validators.required],
+      motivo_consulta: [''],
       exame_fisico: [''],
-      hipotese_diagnostica: [''],
+      hipotese_diagnostica: ['', Validators.required],
       conduta_prescricao: [''],
       observacoes: [''],
       pressao_arterial: [''],

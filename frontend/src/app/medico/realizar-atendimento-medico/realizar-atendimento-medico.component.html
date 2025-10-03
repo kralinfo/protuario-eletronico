@@ -36,7 +36,24 @@
     <!-- Campo de Motivo da Consulta como primeiro campo da tela -->
     <div class="mt-6 bg-white p-4 rounded-lg shadow mb-6">
       <h3 class="text-md font-medium text-gray-600 mb-2">Motivo da Consulta</h3>
-      <input class="w-full p-2 border border-gray-300 rounded" formControlName="motivo_consulta" placeholder="Digite o motivo da consulta" required>
+      <input class="w-full p-2 border border-gray-300 rounded" formControlName="motivo_consulta" placeholder="Digite o motivo da consulta">
+    </div>
+
+    <!-- Campo de Hipótese Diagnóstica como campo principal obrigatório -->
+    <div class="bg-yellow-50 border border-yellow-300 p-4 rounded-lg shadow mb-6">
+      <h3 class="text-md font-medium text-gray-700 mb-2 flex items-center gap-2">
+        <mat-icon class="text-red-500">medical_services</mat-icon>
+        Hipótese Diagnóstica <span class="text-red-500">*</span>
+      </h3>
+      <textarea class="w-full p-3 border border-gray-300 rounded focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500" 
+                formControlName="hipotese_diagnostica" 
+                rows="3" 
+                placeholder="Descreva a hipótese diagnóstica (campo obrigatório)"
+                required></textarea>
+      <div *ngIf="atendimentoForm.get('hipotese_diagnostica')?.invalid && atendimentoForm.get('hipotese_diagnostica')?.touched" 
+           class="text-red-500 text-sm mt-1">
+        Hipótese diagnóstica é obrigatória
+      </div>
     </div>
 
     <mat-accordion>
@@ -68,21 +85,7 @@
         </div>
       </mat-expansion-panel>
 
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>Exame Físico e Diagnóstico</mat-panel-title>
-        </mat-expansion-panel-header>
-        <div>
-          <h3 class="text-md font-medium text-gray-600 mb-2">Exame Físico</h3>
-          <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="exame_fisico" rows="3" placeholder="Descreva o exame físico"></textarea>
-        </div>
-        <div>
-          <h3 class="text-md font-medium text-gray-600 mb-2">Hipótese Diagnóstica</h3>
-          <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="hipotese_diagnostica" rows="2" placeholder="Descreva a hipótese diagnóstica"></textarea>
-        </div>
-      </mat-expansion-panel>
-
-      <mat-expansion-panel>
+      <mat-expansion-panel expanded="true">
         <mat-expansion-panel-header>
           <mat-panel-title>Conduta e Medicamentos</mat-panel-title>
         </mat-expansion-panel-header>
@@ -102,6 +105,16 @@
               <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="medicamentos_ambulatorio" rows="3" placeholder="Ex: Soro fisiológico 500ml EV, Dipirona 1ml IM"></textarea>
             </div>
           </div>
+        </div>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Exame Físico e Diagnóstico</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div>
+          <h3 class="text-md font-medium text-gray-600 mb-2">Exame Físico</h3>
+          <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="exame_fisico" rows="3" placeholder="Descreva o exame físico"></textarea>
         </div>
       </mat-expansion-panel>
 
