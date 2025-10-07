@@ -2,6 +2,8 @@
   "dependencies": {
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
+    "chart.js": "^4.5.0",
+    "ng2-charts": "^8.0.0",
     "ngx-mask": "^19.0.7"
   },
   "devDependencies": {

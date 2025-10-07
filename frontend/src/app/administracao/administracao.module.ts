@@ -15,7 +15,6 @@ const routes: Routes = [
   imports: [
     CommonModule,
     RouterModule.forChild(routes),
-    DashboardAdministracaoComponent,
     MatIconModule
   ]
 })
