@@ -231,7 +231,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     const email = this.loginForm.value.user_email;
     const senha = this.loginForm.value.user_senha;
-    const moduloSelecionado = this.loginForm.get('modulo')?.value;
+  const moduloSelecionado = this.loginForm.get('modulo')?.value;
+  console.log('DEBUG moduloSelecionado:', moduloSelecionado);
 
     // O botão de entrar só será habilitado se o campo módulo estiver preenchido (form válido)
     this.loading = true;
@@ -245,6 +246,8 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.router.navigate(['/ambulatorio']);
         } else if (moduloSelecionado === 'recepcao') {
           this.router.navigate(['/']);
+        } else if (moduloSelecionado && moduloSelecionado.toLowerCase().includes('admin')) {
+          this.router.navigate(['/administracao']);
         } else if (moduloSelecionado) {
           this.router.navigate(['/' + moduloSelecionado]);
         } else {

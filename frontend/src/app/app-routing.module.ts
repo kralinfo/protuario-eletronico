@@ -48,6 +48,15 @@ const routes: Routes = [
     }
   },
   {
+    path: 'administracao',
+    loadChildren: () => import('./administracao/administracao.module').then(m => m.AdministracaoModule),
+    canActivate: [AuthGuard, ModuloGuard],
+    data: {
+      modulo: 'administracao'
+      // Não define breadcrumb para rota raiz do módulo administração
+    }
+  },
+  {
     path: 'login',
     component: LoginComponent,
     data: {

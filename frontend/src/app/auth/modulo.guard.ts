@@ -34,7 +34,7 @@ export class ModuloGuard implements CanActivate {
       'triagem': ['triagem', 'pacientes', 'atendimentos', 'relatorios', 'usuarios'],
       'medico': ['medico', 'pacientes', 'atendimentos', 'relatorios'],
       'ambulatorio': ['ambulatorio'],
-      'admin': ['admin', 'usuarios', 'pacientes', 'atendimentos', 'triagem', 'relatorios', 'medico', 'ambulatorio'],
+      'admin': ['admin', 'administracao', 'usuarios', 'pacientes', 'atendimentos', 'triagem', 'relatorios', 'medico', 'ambulatorio'],
     };
 
     // Verifica se o módulo selecionado tem permissão para acessar o módulo requerido

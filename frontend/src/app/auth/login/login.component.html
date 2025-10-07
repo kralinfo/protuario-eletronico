@@ -105,7 +105,7 @@
                [disabled]="!loginForm.get('senha')?.valid"
             >
               <option value="" *ngIf="availableModules.length > 1">Selecione</option>
-              <option *ngFor="let modulo of availableModules" [value]="modulo">{{ modulo | titlecase }}</option>
+              <option *ngFor="let modulo of availableModules" [value]="modulo === 'Admin' ? 'administracao' : modulo">{{ modulo | titlecase }}</option>
             </select>
           </div>
 
