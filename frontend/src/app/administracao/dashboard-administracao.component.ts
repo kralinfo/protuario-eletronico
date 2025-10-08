@@ -26,7 +26,8 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     { label: 'Azul', value: 10, color: '#1e88e5' }
   ];
 
-  tempoMedioEspera = 32; // minutos
+  tempoMedioEsperaSemana = 32; // minutos
+  tempoMedioEsperaAno = 45; // minutos
 
   sexoDistribuicao = [
     { label: 'Masculino', value: 55, color: '#42a5f5' },
@@ -101,6 +102,10 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.atualizarGraficoClassificacaoRisco();
       this.lastPeriodoSelecionado = this.periodoSelecionado;
     }
+  }
+
+  get tempoMedioEsperaAtual(): number {
+    return this.periodoSelecionado === 'semana' ? this.tempoMedioEsperaSemana : this.tempoMedioEsperaAno;
   }
 
   renderBarChartSemana() {
