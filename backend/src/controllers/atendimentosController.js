@@ -248,8 +248,25 @@ const listarDoDia = async (req, res) => {
       whereClauses.push(`a.paciente_id = $${idx++}`);
       params.push(pacienteIdNum);
     }
-    // ...continuação da função listarDoDia...
-    // (restante do código da função listarDoDia)
+    if (data) {
+      whereClauses.push(`a.data_hora_atendimento::date = $${idx++}`);
+      params.push(new Date(data).toISOString().split('T')[0]);
+    }
+    if (status) {
+      whereClauses.push(`a.status = $${idx++}`);
+      params.push(status);
+    }
+    
+    const whereClause = whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : '';
+    const query = `
+      SELECT a.*, p.nome as paciente_nome, p.telefone as paciente_telefone
+      FROM atendimentos a
+      JOIN pacientes p ON p.id = a.paciente_id
+      ${whereClause}
+      ORDER BY a.data_hora_atendimento DESC
+    `;
+    const result = await db.query(query, params);
+    res.json(result.rows);
   } catch (error) {
     console.error('Erro ao listar atendimentos do dia:', error);
     res.status(500).json({ error: 'Erro interno do servidor ao buscar atendimentos do dia.' });
@@ -461,4 +478,127 @@ const buscarPorId = async (req, res) => {
   }
 };
 
-export default { registrar, listarPorPaciente, listarDoDia, listarTodos, atualizarStatus, registrarAbandono, atualizar, remover, reports, buscarPorId, salvarDadosMedico, salvarAlteracoesTriagem };
+// Atendimentos por semana
+export const atendimentosPorSemana = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/atendimentos/por-semana');
+    const hoje = new Date();
+    const diaSemanaHoje = hoje.getDay(); // 0=Domingo, 1=Segunda, 2=Terça, 3=Quarta...
+    console.log('Hoje é:', hoje.toISOString(), 'Dia da semana:', diaSemanaHoje);
+    
+    const segunda = new Date(hoje);
+    segunda.setDate(hoje.getDate() - ((diaSemanaHoje + 6) % 7));
+    segunda.setHours(0,0,0,0);
+    
+    // Ajustar para incluir todo o dia de hoje
+    const fimHoje = new Date(hoje);
+    fimHoje.setHours(23,59,59,999);
+    
+    console.log('Intervalo:', segunda.toISOString(), 'até', fimHoje.toISOString());
+    
+    // Query com mais debug
+    const queryDebug = `SELECT 
+      data_hora_atendimento,
+      EXTRACT(DOW FROM data_hora_atendimento) AS dow,
+      TO_CHAR(data_hora_atendimento, 'YYYY-MM-DD HH24:MI:SS') as data_formatada
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      ORDER BY data_hora_atendimento`;
+    
+    const debugResult = await db.query(queryDebug, [segunda, fimHoje]);
+    console.log('=== DEBUG: Todos os atendimentos do período ===');
+    debugResult.rows.forEach(row => {
+      console.log(`Data: ${row.data_formatada}, DOW: ${row.dow}`);
+    });
+    
+    const query = `SELECT EXTRACT(DOW FROM data_hora_atendimento) AS dow, COUNT(*) AS total
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      GROUP BY dow
+      ORDER BY dow`;
+    const params = [segunda, fimHoje];
+    const result = await db.query(query, params);
+    console.log('Resultado SQL agregado:', result.rows);
+    
+    const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    const hojeIdx = ((diaSemanaHoje + 6) % 7); // Converter domingo=0 para nossa indexação segunda=0
+    console.log('Hoje é índice:', hojeIdx, '(' + dias[hojeIdx] + ')');
+    
+    let counts = Array(7).fill(0);
+    result.rows.forEach(row => {
+      // PostgreSQL DOW: 0=Domingo, 1=Segunda, 2=Terça, 3=Quarta, 4=Quinta, 5=Sexta, 6=Sábado
+      // Nossa indexação: 0=Segunda, 1=Terça, 2=Quarta, 3=Quinta, 4=Sexta, 5=Sábado, 6=Domingo
+      let idx;
+      if (row.dow == 0) { // Domingo
+        idx = 6;
+      } else { // Segunda=1 vira 0, Terça=2 vira 1, etc
+        idx = row.dow - 1;
+      }
+      
+      console.log(`DOW ${row.dow} -> Índice ${idx} (${dias[idx]}) = ${row.total} atendimentos`);
+      if (idx <= hojeIdx) counts[idx] = parseInt(row.total);
+    });
+    
+    // Zerar dias futuros
+    for (let i = hojeIdx + 1; i < 7; i++) counts[i] = 0;
+    
+    const diasRetorno = dias.slice(0, hojeIdx + 1);
+    const countsRetorno = counts.slice(0, hojeIdx + 1);
+    
+    console.log('=== RESULTADO FINAL ===');
+    console.log('Dias:', diasRetorno);
+    console.log('Counts:', countsRetorno);
+    
+    res.json({ dias: diasRetorno, counts: countsRetorno });
+  } catch (err) {
+    console.error('Erro atendimentosPorSemana:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Atendimentos por ano
+export const atendimentosPorAno = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/atendimentos/por-ano');
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const inicioAno = new Date(hoje.getFullYear(), 0, 1);
+    console.log('Intervalo:', inicioAno, hoje);
+    const query = `SELECT EXTRACT(MONTH FROM data_hora_atendimento) AS mes, COUNT(*) AS total
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      GROUP BY mes`;
+    const params = [inicioAno, hoje];
+    const result = await db.query(query, params);
+    console.log('Resultado SQL:', result.rows);
+    let counts = Array(12).fill(0);
+    result.rows.forEach(row => {
+      const idx = row.mes - 1;
+      if (idx <= mesAtual) counts[idx] = parseInt(row.total);
+    });
+    for (let i = mesAtual + 1; i < 12; i++) counts[i] = 0;
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    console.log('Meses:', meses.slice(0, mesAtual + 1), 'Counts:', counts.slice(0, mesAtual + 1));
+    res.json({ meses: meses.slice(0, mesAtual + 1), counts: counts.slice(0, mesAtual + 1) });
+  } catch (err) {
+    console.error('Erro atendimentosPorAno:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export default {
+  registrar,
+  listarPorPaciente,
+  listarDoDia,
+  listarTodos,
+  atualizarStatus,
+  registrarAbandono,
+  atualizar,
+  remover,
+  reports,
+  buscarPorId,
+  salvarDadosMedico,
+  salvarAlteracoesTriagem,
+  atendimentosPorSemana,
+  atendimentosPorAno
+};

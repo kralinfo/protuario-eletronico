@@ -3,13 +3,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
+import { DashboardAdministracaoService } from './dashboard-administracao.service';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard-administracao',
   templateUrl: './dashboard-administracao.component.html',
   styleUrls: ['./dashboard-administracao.component.scss'],
   standalone: true,
-  imports: [MatIconModule, CommonModule, FormsModule]
+  imports: [MatIconModule, CommonModule, FormsModule, HttpClientModule]
 })
 export class DashboardAdministracaoComponent implements AfterViewInit, AfterViewChecked {
   // Dados mock para gráficos
@@ -63,9 +65,81 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   ageChartAnoInstance: Chart | null = null;
 
   private lastPeriodoSelecionado: 'semana' | 'ano' = 'semana';
+  private isLoading = false;
+  private dadosCarregados = false;
 
-  constructor() {
+  // Adicione variáveis para labels vindos do backend
+  semanaLabels: string[] = [];
+  anoLabels: string[] = [];
+
+  constructor(private dashboardService: DashboardAdministracaoService) {
     Chart.register(...registerables);
+  }
+
+  fetchAtendimentosPorPeriodo() {
+    console.log(`🚀 [COMPONENT] Iniciando fetch para período: ${this.periodoSelecionado}`);
+    
+    // Evita múltiplas chamadas simultâneas
+    if (this.isLoading) {
+      console.log('⚠️ [COMPONENT] Já carregando dados, ignorando nova chamada');
+      return;
+    }
+
+    this.isLoading = true;
+    
+    if (this.periodoSelecionado === 'semana') {
+      console.log('📅 [COMPONENT] Buscando dados por SEMANA...');
+      this.dashboardService.getAtendimentosPorSemana().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Dados REAIS da semana recebidos:', data);
+          this.atendimentosPorPeriodo.semana = data.counts;
+          this.semanaLabels = data.dias;
+          console.log('🔄 [COMPONENT] Atualizando gráfico de barras...');
+          this.isLoading = false;
+          this.dadosCarregados = true;
+          setTimeout(() => this.atualizarGraficoBarra(), 100);
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar dados da semana:', error);
+          console.error('❌ [COMPONENT] Status:', error.status);
+          console.error('❌ [COMPONENT] Message:', error.message);
+          console.error('❌ [COMPONENT] URL:', error.url);
+          // Usar dados zerados se a requisição falhar
+          this.atendimentosPorPeriodo.semana = [0, 0, 0, 0];
+          this.semanaLabels = ['Seg', 'Ter', 'Qua', 'Qui'];
+          console.log('🔄 [COMPONENT] Usando dados MOCK da semana devido ao erro');
+          this.isLoading = false;
+          this.dadosCarregados = true;
+          setTimeout(() => this.atualizarGraficoBarra(), 100);
+        }
+      });
+    } else {
+      console.log('📅 [COMPONENT] Buscando dados por ANO...');
+      this.dashboardService.getAtendimentosPorAno().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Dados REAIS do ano recebidos:', data);
+          this.atendimentosPorPeriodo.ano = data.counts;
+          this.anoLabels = data.meses;
+          console.log('🔄 [COMPONENT] Atualizando gráfico de barras...');
+          this.isLoading = false;
+          this.dadosCarregados = true;
+          setTimeout(() => this.atualizarGraficoBarra(), 100);
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar dados do ano:', error);
+          console.error('❌ [COMPONENT] Status:', error.status);
+          console.error('❌ [COMPONENT] Message:', error.message);
+          console.error('❌ [COMPONENT] URL:', error.url);
+          // Usar dados zerados se a requisição falhar
+          this.atendimentosPorPeriodo.ano = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+          this.anoLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out'];
+          console.log('🔄 [COMPONENT] Usando dados MOCK do ano devido ao erro');
+          this.isLoading = false;
+          this.dadosCarregados = true;
+          setTimeout(() => this.atualizarGraficoBarra(), 100);
+        }
+      });
+    }
   }
 
   atualizarGraficoBarra() {
@@ -136,7 +210,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
 
   ngAfterViewInit() {
     setTimeout(() => {
-      this.atualizarGraficoBarra();
+      this.fetchAtendimentosPorPeriodo();
       this.atualizarGraficoClassificacaoRisco();
       this.atualizarGraficoDistribuicaoSexo();
       this.atualizarGraficoFaixaEtaria();
@@ -145,11 +219,29 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
 
   ngAfterViewChecked(): void {
     if (this.lastPeriodoSelecionado !== this.periodoSelecionado) {
-      this.atualizarGraficoBarra();
+      console.log(`🔄 [COMPONENT] Mudança de período: ${this.lastPeriodoSelecionado} → ${this.periodoSelecionado}`);
+      this.fetchAtendimentosPorPeriodo();
       this.atualizarGraficoClassificacaoRisco();
       this.atualizarGraficoDistribuicaoSexo();
       this.atualizarGraficoFaixaEtaria();
       this.lastPeriodoSelecionado = this.periodoSelecionado;
+    }
+    
+    // Só renderiza gráficos uma vez quando os dados foram carregados
+    if (this.dadosCarregados && !this.isLoading) {
+      setTimeout(() => {
+        if (this.periodoSelecionado === 'semana') {
+          const ctx = document.getElementById('barChartSemana') as HTMLCanvasElement;
+          if (ctx && this.semanaLabels.length && this.atendimentosPorPeriodo.semana.length && !this.barChartSemanaInstance) {
+            this.atualizarGraficoBarra();
+          }
+        } else {
+          const ctx = document.getElementById('barChartAno') as HTMLCanvasElement;
+          if (ctx && this.anoLabels.length && this.atendimentosPorPeriodo.ano.length && !this.barChartAnoInstance) {
+            this.atualizarGraficoBarra();
+          }
+        }
+      }, 50);
     }
   }
 
@@ -163,7 +255,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.barChartSemanaInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+          labels: this.semanaLabels.length ? this.semanaLabels : ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
           datasets: [{
             label: 'Atendimentos',
             data: this.atendimentosPorPeriodo.semana,
@@ -188,7 +280,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.barChartAnoInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+          labels: this.anoLabels.length ? this.anoLabels : ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
           datasets: [{
             label: 'Atendimentos',
             data: this.atendimentosPorPeriodo.ano,
