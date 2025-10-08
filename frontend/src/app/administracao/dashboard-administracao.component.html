@@ -37,12 +37,14 @@
       <!-- Distribuição por Sexo -->
       <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
         <div class="text-lg text-gray-700 mb-2">Distribuição por sexo</div>
-        <canvas id="donutChart" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'semana'" id="donutChartSemana" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'ano'" id="donutChartAno" width="400" height="200"></canvas>
       </div>
       <!-- Gráfico por Faixa Etária -->
       <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
         <div class="text-lg text-gray-700 mb-2">Distribuição por faixa etária</div>
-        <canvas id="ageChart" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'semana'" id="ageChartSemana" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'ano'" id="ageChartAno" width="400" height="200"></canvas>
       </div>
     </div>
   </div>

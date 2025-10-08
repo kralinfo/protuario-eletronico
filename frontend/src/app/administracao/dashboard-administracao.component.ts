@@ -29,23 +29,38 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   tempoMedioEsperaSemana = 32; // minutos
   tempoMedioEsperaAno = 45; // minutos
 
-  sexoDistribuicao = [
+  sexoDistribuicaoSemana = [
     { label: 'Masculino', value: 55, color: '#42a5f5' },
     { label: 'Feminino', value: 45, color: '#ec407a' }
   ];
+  sexoDistribuicaoAno = [
+    { label: 'Masculino', value: 60, color: '#42a5f5' },
+    { label: 'Feminino', value: 40, color: '#ec407a' }
+  ];
 
-  faixaEtaria = [
+  faixaEtariaSemana = [
     { faixa: '0-12', value: 15 },
     { faixa: '13-18', value: 10 },
     { faixa: '19-35', value: 30 },
     { faixa: '36-60', value: 25 },
     { faixa: '60+', value: 20 }
   ];
+  faixaEtariaAno = [
+    { faixa: '0-12', value: 20 },
+    { faixa: '13-18', value: 15 },
+    { faixa: '19-35', value: 35 },
+    { faixa: '36-60', value: 30 },
+    { faixa: '60+', value: 25 }
+  ];
 
   barChartSemanaInstance: Chart | null = null;
   barChartAnoInstance: Chart | null = null;
   pieChartSemanaInstance: Chart | null = null;
   pieChartAnoInstance: Chart | null = null;
+  donutChartSemanaInstance: Chart | null = null;
+  donutChartAnoInstance: Chart | null = null;
+  ageChartSemanaInstance: Chart | null = null;
+  ageChartAnoInstance: Chart | null = null;
 
   private lastPeriodoSelecionado: 'semana' | 'ano' = 'semana';
 
@@ -87,12 +102,44 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     }
   }
 
+  atualizarGraficoDistribuicaoSexo() {
+    if (this.donutChartSemanaInstance) {
+      this.donutChartSemanaInstance.destroy();
+      this.donutChartSemanaInstance = null;
+    }
+    if (this.donutChartAnoInstance) {
+      this.donutChartAnoInstance.destroy();
+      this.donutChartAnoInstance = null;
+    }
+    if (this.periodoSelecionado === 'semana') {
+      this.renderDonutChartSemana();
+    } else {
+      this.renderDonutChartAno();
+    }
+  }
+
+  atualizarGraficoFaixaEtaria() {
+    if (this.ageChartSemanaInstance) {
+      this.ageChartSemanaInstance.destroy();
+      this.ageChartSemanaInstance = null;
+    }
+    if (this.ageChartAnoInstance) {
+      this.ageChartAnoInstance.destroy();
+      this.ageChartAnoInstance = null;
+    }
+    if (this.periodoSelecionado === 'semana') {
+      this.renderAgeChartSemana();
+    } else {
+      this.renderAgeChartAno();
+    }
+  }
+
   ngAfterViewInit() {
     setTimeout(() => {
       this.atualizarGraficoBarra();
       this.atualizarGraficoClassificacaoRisco();
-      this.renderDonutChart();
-      this.renderAgeChart();
+      this.atualizarGraficoDistribuicaoSexo();
+      this.atualizarGraficoFaixaEtaria();
     }, 100);
   }
 
@@ -100,6 +147,8 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     if (this.lastPeriodoSelecionado !== this.periodoSelecionado) {
       this.atualizarGraficoBarra();
       this.atualizarGraficoClassificacaoRisco();
+      this.atualizarGraficoDistribuicaoSexo();
+      this.atualizarGraficoFaixaEtaria();
       this.lastPeriodoSelecionado = this.periodoSelecionado;
     }
   }
@@ -211,56 +260,105 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     }
   }
 
-  renderDonutChart() {
-    const ctx = document.getElementById('donutChart') as HTMLCanvasElement;
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: this.sexoDistribuicao.map(s => s.label),
-        datasets: [{
-          data: this.sexoDistribuicao.map(s => s.value),
-          backgroundColor: this.sexoDistribuicao.map(s => s.color)
-        }]
-      },
-      options: {
-        responsive: false,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom'
+  renderDonutChartSemana() {
+    const ctx = document.getElementById('donutChartSemana') as HTMLCanvasElement;
+    if (ctx) {
+      this.donutChartSemanaInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: this.sexoDistribuicaoSemana.map(s => s.label),
+          datasets: [{
+            data: this.sexoDistribuicaoSemana.map(s => s.value),
+            backgroundColor: this.sexoDistribuicaoSemana.map(s => s.color)
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom'
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
 
-  renderAgeChart() {
-    const ctx = document.getElementById('ageChart') as HTMLCanvasElement;
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: this.faixaEtaria.map(f => f.faixa),
-        datasets: [{
-          label: 'Pacientes',
-          data: this.faixaEtaria.map(f => f.value),
-          backgroundColor: '#22c55e'
-        }]
-      },
-      options: {
-        responsive: false,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            display: false
-          }
+  renderDonutChartAno() {
+    const ctx = document.getElementById('donutChartAno') as HTMLCanvasElement;
+    if (ctx) {
+      this.donutChartAnoInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: this.sexoDistribuicaoAno.map(s => s.label),
+          datasets: [{
+            data: this.sexoDistribuicaoAno.map(s => s.value),
+            backgroundColor: this.sexoDistribuicaoAno.map(s => s.color)
+          }]
         },
-        scales: {
-          y: {
-            beginAtZero: true
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom'
+            }
           }
         }
-      }
-    });
+      });
+    }
+  }
+
+  renderAgeChartSemana() {
+    const ctx = document.getElementById('ageChartSemana') as HTMLCanvasElement;
+    if (ctx) {
+      this.ageChartSemanaInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: this.faixaEtariaSemana.map(f => f.faixa),
+          datasets: [{
+            label: 'Pacientes',
+            data: this.faixaEtariaSemana.map(f => f.value),
+            backgroundColor: '#22c55e'
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+  }
+
+  renderAgeChartAno() {
+    const ctx = document.getElementById('ageChartAno') as HTMLCanvasElement;
+    if (ctx) {
+      this.ageChartAnoInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: this.faixaEtariaAno.map(f => f.faixa),
+          datasets: [{
+            label: 'Pacientes',
+            data: this.faixaEtariaAno.map(f => f.value),
+            backgroundColor: '#22c55e'
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
   }
 }
