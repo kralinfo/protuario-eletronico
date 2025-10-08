@@ -29,7 +29,8 @@
       <!-- Gráfico Circular Classificação de Risco -->
       <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
         <div class="text-lg text-gray-700 mb-2">Classificação de risco (%)</div>
-        <canvas id="pieChart" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'semana'" id="pieChartSemana" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'ano'" id="pieChartAno" width="400" height="200"></canvas>
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">

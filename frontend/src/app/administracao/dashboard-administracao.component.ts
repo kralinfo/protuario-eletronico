@@ -43,6 +43,8 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
 
   barChartSemanaInstance: Chart | null = null;
   barChartAnoInstance: Chart | null = null;
+  pieChartSemanaInstance: Chart | null = null;
+  pieChartAnoInstance: Chart | null = null;
 
   private lastPeriodoSelecionado: 'semana' | 'ano' = 'semana';
 
@@ -68,10 +70,26 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     }
   }
 
+  atualizarGraficoClassificacaoRisco() {
+    if (this.pieChartSemanaInstance) {
+      this.pieChartSemanaInstance.destroy();
+      this.pieChartSemanaInstance = null;
+    }
+    if (this.pieChartAnoInstance) {
+      this.pieChartAnoInstance.destroy();
+      this.pieChartAnoInstance = null;
+    }
+    if (this.periodoSelecionado === 'semana') {
+      this.renderPieChartSemana();
+    } else {
+      this.renderPieChartAno();
+    }
+  }
+
   ngAfterViewInit() {
     setTimeout(() => {
       this.atualizarGraficoBarra();
-      this.renderPieChart();
+      this.atualizarGraficoClassificacaoRisco();
       this.renderDonutChart();
       this.renderAgeChart();
     }, 100);
@@ -80,6 +98,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   ngAfterViewChecked(): void {
     if (this.lastPeriodoSelecionado !== this.periodoSelecionado) {
       this.atualizarGraficoBarra();
+      this.atualizarGraficoClassificacaoRisco();
       this.lastPeriodoSelecionado = this.periodoSelecionado;
     }
   }
@@ -134,28 +153,57 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     }
   }
 
-  renderPieChart() {
-    const ctx = document.getElementById('pieChart') as HTMLCanvasElement;
-    new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: this.classificacaoRisco.map(r => r.label),
-        datasets: [{
-          data: this.classificacaoRisco.map(r => r.value),
-          backgroundColor: this.classificacaoRisco.map(r => r.color)
-        }]
-      },
-      options: {
-        responsive: false,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom'
+  renderPieChartSemana() {
+    const ctx = document.getElementById('pieChartSemana') as HTMLCanvasElement;
+    if (ctx) {
+      this.pieChartSemanaInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: this.classificacaoRisco.map(r => r.label),
+          datasets: [{
+            data: this.classificacaoRisco.map(r => r.value),
+            backgroundColor: this.classificacaoRisco.map(r => r.color)
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom'
+            }
           }
         }
-      }
-    });
+      });
+    }
+  }
+
+  renderPieChartAno() {
+    const ctx = document.getElementById('pieChartAno') as HTMLCanvasElement;
+    if (ctx) {
+      // Exemplo de dados mockados para o ano
+      this.pieChartAnoInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: this.classificacaoRisco.map(r => r.label),
+          datasets: [{
+            data: this.classificacaoRisco.map(r => r.value + 10), // Exemplo: valores diferentes para o ano
+            backgroundColor: this.classificacaoRisco.map(r => r.color)
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
   }
 
   renderDonutChart() {
