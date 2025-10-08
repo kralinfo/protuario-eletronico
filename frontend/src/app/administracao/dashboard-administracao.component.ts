@@ -1,4 +1,4 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, AfterViewChecked } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +11,7 @@ import { Chart, registerables } from 'chart.js';
   standalone: true,
   imports: [MatIconModule, CommonModule, FormsModule]
 })
-export class DashboardAdministracaoComponent implements AfterViewInit {
+export class DashboardAdministracaoComponent implements AfterViewInit, AfterViewChecked {
   // Dados mock para gráficos
   atendimentosPorPeriodo = {
     semana: [12, 18, 9, 15, 22, 17, 10],
@@ -41,46 +41,97 @@ export class DashboardAdministracaoComponent implements AfterViewInit {
     { faixa: '60+', value: 20 }
   ];
 
+  barChartSemanaInstance: Chart | null = null;
+  barChartAnoInstance: Chart | null = null;
+
+  private lastPeriodoSelecionado: 'semana' | 'ano' = 'semana';
+
   constructor() {
     Chart.register(...registerables);
   }
 
+  atualizarGraficoBarra() {
+    // Destroi gráficos anteriores se existirem
+    if (this.barChartSemanaInstance) {
+      this.barChartSemanaInstance.destroy();
+      this.barChartSemanaInstance = null;
+    }
+    if (this.barChartAnoInstance) {
+      this.barChartAnoInstance.destroy();
+      this.barChartAnoInstance = null;
+    }
+    // Renderiza o gráfico correto
+    if (this.periodoSelecionado === 'semana') {
+      this.renderBarChartSemana();
+    } else {
+      this.renderBarChartAno();
+    }
+  }
+
   ngAfterViewInit() {
     setTimeout(() => {
-      this.renderBarChart();
+      this.atualizarGraficoBarra();
       this.renderPieChart();
       this.renderDonutChart();
       this.renderAgeChart();
     }, 100);
   }
 
-  renderBarChart() {
-    const ctx = document.getElementById('barChart') as HTMLCanvasElement;
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: this.periodoSelecionado === 'semana' ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] : ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-        datasets: [{
-          label: 'Atendimentos',
-          data: this.periodoSelecionado === 'semana' ? this.atendimentosPorPeriodo.semana : this.atendimentosPorPeriodo.ano,
-          backgroundColor: '#42a5f5'
-        }]
-      },
-      options: {
-        responsive: false,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            display: false
-          }
+  ngAfterViewChecked(): void {
+    if (this.lastPeriodoSelecionado !== this.periodoSelecionado) {
+      this.atualizarGraficoBarra();
+      this.lastPeriodoSelecionado = this.periodoSelecionado;
+    }
+  }
+
+  renderBarChartSemana() {
+    const ctx = document.getElementById('barChartSemana') as HTMLCanvasElement;
+    if (ctx) {
+      this.barChartSemanaInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+          datasets: [{
+            label: 'Atendimentos',
+            data: this.atendimentosPorPeriodo.semana,
+            backgroundColor: '#42a5f5'
+          }]
         },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: { y: { beginAtZero: true } }
         }
-      }
-    });
+      });
+    }
+  }
+
+  renderBarChartAno() {
+    const ctx = document.getElementById('barChartAno') as HTMLCanvasElement;
+    if (ctx) {
+      this.barChartAnoInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+          datasets: [{
+            label: 'Atendimentos',
+            data: this.atendimentosPorPeriodo.ano,
+            backgroundColor: '#42a5f5'
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
   }
 
   renderPieChart() {
