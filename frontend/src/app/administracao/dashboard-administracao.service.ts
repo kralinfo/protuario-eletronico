@@ -33,6 +33,31 @@ export class DashboardAdministracaoService {
     );
   }
 
+  getAtendimentosPorMes(): Observable<{ dias: string[], counts: number[] }> {
+    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/por-mes');
+    console.log('🔍 [SERVICE] Base URL do browser:', window.location.origin);
+    
+    return this.http.get<{ dias: string[], counts: number[] }>('http://localhost:3001/api/atendimentos/por-mes').pipe(
+      tap(data => {
+        console.log('✅ [SERVICE] Dados REAIS recebidos por mês:', data);
+      }),
+      catchError(error => {
+        console.error('❌ [SERVICE] ERRO ao buscar dados por mês:', error);
+        console.error('❌ [SERVICE] Status:', error.status);
+        console.error('❌ [SERVICE] Message:', error.message);
+        console.error('❌ [SERVICE] URL completa tentada:', 'http://localhost:3001/api/atendimentos/por-mes');
+        
+        // Retorna dados mock em caso de erro
+        const mockData = { 
+          dias: ['1', '2', '3', '4', '5', '6', '7', '8', '9'], 
+          counts: [2, 5, 1, 3, 7, 4, 2, 6, 1] 
+        };
+        console.log('🔄 [SERVICE] Retornando dados MOCK por mês:', mockData);
+        return of(mockData);
+      })
+    );
+  }
+
   getAtendimentosPorAno(): Observable<{ meses: string[], counts: number[] }> {
     console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/por-ano');
     console.log('🔍 [SERVICE] Base URL do browser:', window.location.origin);

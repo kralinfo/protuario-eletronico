@@ -1,7 +1,7 @@
 import express from 'express';
 import controller from '../controllers/atendimentosController.js';
 import knex from '../db.js';
-import { atendimentosPorSemana, atendimentosPorAno } from '../controllers/atendimentosController.js';
+import { atendimentosPorSemana, atendimentosPorMes, atendimentosPorAno } from '../controllers/atendimentosController.js';
 
 const router = express.Router();
 
@@ -39,8 +39,9 @@ router.get('/por-status', async (req, res) => {
 	}
 });
 
-// Novos endpoints para listar atendimentos por semana e por ano (ANTES das rotas paramétricas)
+// Novos endpoints para listar atendimentos por semana, mês e por ano (ANTES das rotas paramétricas)
 router.get('/por-semana', atendimentosPorSemana);
+router.get('/por-mes', atendimentosPorMes);
 router.get('/por-ano', atendimentosPorAno);
 
 router.post('/', controller.registrar);

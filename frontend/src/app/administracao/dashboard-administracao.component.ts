@@ -17,9 +17,10 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   // Dados mock para gráficos
   atendimentosPorPeriodo = {
     semana: [12, 18, 9, 15, 22, 17, 10],
+    mes: [5, 8, 12, 6, 9, 15, 11, 7, 14, 10, 13, 8, 16, 9, 11, 18, 7, 12, 14, 6, 10, 15, 9, 13, 8, 11, 17, 12, 7, 14, 9],
     ano: [120, 98, 150, 130, 170, 160, 140, 180, 200, 190, 210, 220]
   };
-  periodoSelecionado: 'semana' | 'ano' = 'semana';
+  periodoSelecionado: 'semana' | 'mes' | 'ano' = 'semana';
 
   classificacaoRisco = [
     { label: 'Vermelha', value: 40, color: '#e53935' },
@@ -29,11 +30,16 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   ];
 
   tempoMedioEsperaSemana = 32; // minutos
+  tempoMedioEsperaMes = 38; // minutos
   tempoMedioEsperaAno = 45; // minutos
 
   sexoDistribuicaoSemana = [
     { label: 'Masculino', value: 55, color: '#42a5f5' },
     { label: 'Feminino', value: 45, color: '#ec407a' }
+  ];
+  sexoDistribuicaoMes = [
+    { label: 'Masculino', value: 58, color: '#42a5f5' },
+    { label: 'Feminino', value: 42, color: '#ec407a' }
   ];
   sexoDistribuicaoAno = [
     { label: 'Masculino', value: 60, color: '#42a5f5' },
@@ -47,6 +53,13 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     { faixa: '36-60', value: 25 },
     { faixa: '60+', value: 20 }
   ];
+  faixaEtariaMes = [
+    { faixa: '0-12', value: 18 },
+    { faixa: '13-18', value: 12 },
+    { faixa: '19-35', value: 32 },
+    { faixa: '36-60', value: 28 },
+    { faixa: '60+', value: 22 }
+  ];
   faixaEtariaAno = [
     { faixa: '0-12', value: 20 },
     { faixa: '13-18', value: 15 },
@@ -56,20 +69,25 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   ];
 
   barChartSemanaInstance: Chart | null = null;
+  barChartMesInstance: Chart | null = null;
   barChartAnoInstance: Chart | null = null;
   pieChartSemanaInstance: Chart | null = null;
+  pieChartMesInstance: Chart | null = null;
   pieChartAnoInstance: Chart | null = null;
   donutChartSemanaInstance: Chart | null = null;
+  donutChartMesInstance: Chart | null = null;
   donutChartAnoInstance: Chart | null = null;
   ageChartSemanaInstance: Chart | null = null;
+  ageChartMesInstance: Chart | null = null;
   ageChartAnoInstance: Chart | null = null;
 
-  private lastPeriodoSelecionado: 'semana' | 'ano' = 'semana';
+  private lastPeriodoSelecionado: 'semana' | 'mes' | 'ano' = 'semana';
   private isLoading = false;
   private dadosCarregados = false;
 
   // Adicione variáveis para labels vindos do backend
   semanaLabels: string[] = [];
+  mesLabels: string[] = [];
   anoLabels: string[] = [];
 
   constructor(private dashboardService: DashboardAdministracaoService) {
@@ -113,6 +131,32 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           setTimeout(() => this.atualizarGraficoBarra(), 100);
         }
       });
+    } else if (this.periodoSelecionado === 'mes') {
+      console.log('📅 [COMPONENT] Buscando dados por MÊS...');
+      this.dashboardService.getAtendimentosPorMes().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Dados REAIS do mês recebidos:', data);
+          this.atendimentosPorPeriodo.mes = data.counts;
+          this.mesLabels = data.dias;
+          console.log('🔄 [COMPONENT] Atualizando gráfico de barras...');
+          this.isLoading = false;
+          this.dadosCarregados = true;
+          setTimeout(() => this.atualizarGraficoBarra(), 100);
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar dados do mês:', error);
+          console.error('❌ [COMPONENT] Status:', error.status);
+          console.error('❌ [COMPONENT] Message:', error.message);
+          console.error('❌ [COMPONENT] URL:', error.url);
+          // Usar dados zerados se a requisição falhar
+          this.atendimentosPorPeriodo.mes = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+          this.mesLabels = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+          console.log('🔄 [COMPONENT] Usando dados MOCK do mês devido ao erro');
+          this.isLoading = false;
+          this.dadosCarregados = true;
+          setTimeout(() => this.atualizarGraficoBarra(), 100);
+        }
+      });
     } else {
       console.log('📅 [COMPONENT] Buscando dados por ANO...');
       this.dashboardService.getAtendimentosPorAno().subscribe({
@@ -148,6 +192,10 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.barChartSemanaInstance.destroy();
       this.barChartSemanaInstance = null;
     }
+    if (this.barChartMesInstance) {
+      this.barChartMesInstance.destroy();
+      this.barChartMesInstance = null;
+    }
     if (this.barChartAnoInstance) {
       this.barChartAnoInstance.destroy();
       this.barChartAnoInstance = null;
@@ -155,6 +203,8 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     // Renderiza o gráfico correto
     if (this.periodoSelecionado === 'semana') {
       this.renderBarChartSemana();
+    } else if (this.periodoSelecionado === 'mes') {
+      this.renderBarChartMes();
     } else {
       this.renderBarChartAno();
     }
@@ -165,12 +215,18 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.pieChartSemanaInstance.destroy();
       this.pieChartSemanaInstance = null;
     }
+    if (this.pieChartMesInstance) {
+      this.pieChartMesInstance.destroy();
+      this.pieChartMesInstance = null;
+    }
     if (this.pieChartAnoInstance) {
       this.pieChartAnoInstance.destroy();
       this.pieChartAnoInstance = null;
     }
     if (this.periodoSelecionado === 'semana') {
       this.renderPieChartSemana();
+    } else if (this.periodoSelecionado === 'mes') {
+      this.renderPieChartMes();
     } else {
       this.renderPieChartAno();
     }
@@ -181,12 +237,18 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.donutChartSemanaInstance.destroy();
       this.donutChartSemanaInstance = null;
     }
+    if (this.donutChartMesInstance) {
+      this.donutChartMesInstance.destroy();
+      this.donutChartMesInstance = null;
+    }
     if (this.donutChartAnoInstance) {
       this.donutChartAnoInstance.destroy();
       this.donutChartAnoInstance = null;
     }
     if (this.periodoSelecionado === 'semana') {
       this.renderDonutChartSemana();
+    } else if (this.periodoSelecionado === 'mes') {
+      this.renderDonutChartMes();
     } else {
       this.renderDonutChartAno();
     }
@@ -197,12 +259,18 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.ageChartSemanaInstance.destroy();
       this.ageChartSemanaInstance = null;
     }
+    if (this.ageChartMesInstance) {
+      this.ageChartMesInstance.destroy();
+      this.ageChartMesInstance = null;
+    }
     if (this.ageChartAnoInstance) {
       this.ageChartAnoInstance.destroy();
       this.ageChartAnoInstance = null;
     }
     if (this.periodoSelecionado === 'semana') {
       this.renderAgeChartSemana();
+    } else if (this.periodoSelecionado === 'mes') {
+      this.renderAgeChartMes();
     } else {
       this.renderAgeChartAno();
     }
@@ -235,6 +303,11 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           if (ctx && this.semanaLabels.length && this.atendimentosPorPeriodo.semana.length && !this.barChartSemanaInstance) {
             this.atualizarGraficoBarra();
           }
+        } else if (this.periodoSelecionado === 'mes') {
+          const ctx = document.getElementById('barChartMes') as HTMLCanvasElement;
+          if (ctx && this.mesLabels.length && this.atendimentosPorPeriodo.mes.length && !this.barChartMesInstance) {
+            this.atualizarGraficoBarra();
+          }
         } else {
           const ctx = document.getElementById('barChartAno') as HTMLCanvasElement;
           if (ctx && this.anoLabels.length && this.atendimentosPorPeriodo.ano.length && !this.barChartAnoInstance) {
@@ -246,7 +319,9 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   }
 
   get tempoMedioEsperaAtual(): number {
-    return this.periodoSelecionado === 'semana' ? this.tempoMedioEsperaSemana : this.tempoMedioEsperaAno;
+    return this.periodoSelecionado === 'semana' ? this.tempoMedioEsperaSemana : 
+           this.periodoSelecionado === 'mes' ? this.tempoMedioEsperaSemana : 
+           this.tempoMedioEsperaAno;
   }
 
   renderBarChartSemana() {
@@ -259,6 +334,31 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           datasets: [{
             label: 'Atendimentos',
             data: this.atendimentosPorPeriodo.semana,
+            backgroundColor: '#42a5f5'
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+  }
+
+  renderBarChartMes() {
+    const ctx = document.getElementById('barChartMes') as HTMLCanvasElement;
+    if (ctx) {
+      this.barChartMesInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: this.mesLabels.length ? this.mesLabels : ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+          datasets: [{
+            label: 'Atendimentos',
+            data: this.atendimentosPorPeriodo.mes,
             backgroundColor: '#42a5f5'
           }]
         },
@@ -303,6 +403,32 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     const ctx = document.getElementById('pieChartSemana') as HTMLCanvasElement;
     if (ctx) {
       this.pieChartSemanaInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: this.classificacaoRisco.map(r => r.label),
+          datasets: [{
+            data: this.classificacaoRisco.map(r => r.value),
+            backgroundColor: this.classificacaoRisco.map(r => r.color)
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+  }
+
+  renderPieChartMes() {
+    const ctx = document.getElementById('pieChartMes') as HTMLCanvasElement;
+    if (ctx) {
+      this.pieChartMesInstance = new Chart(ctx, {
         type: 'pie',
         data: {
           labels: this.classificacaoRisco.map(r => r.label),
@@ -378,6 +504,32 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     }
   }
 
+  renderDonutChartMes() {
+    const ctx = document.getElementById('donutChartMes') as HTMLCanvasElement;
+    if (ctx) {
+      this.donutChartMesInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: this.sexoDistribuicaoSemana.map(s => s.label),
+          datasets: [{
+            data: this.sexoDistribuicaoSemana.map(s => s.value),
+            backgroundColor: this.sexoDistribuicaoSemana.map(s => s.color)
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+  }
+
   renderDonutChartAno() {
     const ctx = document.getElementById('donutChartAno') as HTMLCanvasElement;
     if (ctx) {
@@ -408,6 +560,31 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     const ctx = document.getElementById('ageChartSemana') as HTMLCanvasElement;
     if (ctx) {
       this.ageChartSemanaInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: this.faixaEtariaSemana.map(f => f.faixa),
+          datasets: [{
+            label: 'Pacientes',
+            data: this.faixaEtariaSemana.map(f => f.value),
+            backgroundColor: '#22c55e'
+          }]
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+  }
+
+  renderAgeChartMes() {
+    const ctx = document.getElementById('ageChartMes') as HTMLCanvasElement;
+    if (ctx) {
+      this.ageChartMesInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: this.faixaEtariaSemana.map(f => f.faixa),

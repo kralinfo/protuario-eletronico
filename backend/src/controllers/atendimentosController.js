@@ -556,6 +556,73 @@ export const atendimentosPorSemana = async (req, res) => {
   }
 };
 
+// Atendimentos por mês
+export const atendimentosPorMes = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/atendimentos/por-mes');
+    const hoje = new Date();
+    const diaAtual = hoje.getDate();
+    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    
+    // Ajustar para incluir todo o dia de hoje
+    const fimHoje = new Date(hoje);
+    fimHoje.setHours(23,59,59,999);
+    
+    console.log('Hoje é:', hoje.toISOString(), 'Dia do mês:', diaAtual);
+    console.log('Intervalo:', inicioMes.toISOString(), 'até', fimHoje.toISOString());
+    
+    // Query com debug
+    const queryDebug = `SELECT 
+      data_hora_atendimento,
+      EXTRACT(DAY FROM data_hora_atendimento) AS dia,
+      TO_CHAR(data_hora_atendimento, 'YYYY-MM-DD HH24:MI:SS') as data_formatada
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      ORDER BY data_hora_atendimento`;
+    
+    const debugResult = await db.query(queryDebug, [inicioMes, fimHoje]);
+    console.log('=== DEBUG: Todos os atendimentos do mês ===');
+    debugResult.rows.forEach(row => {
+      console.log(`Data: ${row.data_formatada}, Dia: ${row.dia}`);
+    });
+    
+    const query = `SELECT EXTRACT(DAY FROM data_hora_atendimento) AS dia, COUNT(*) AS total
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      GROUP BY dia
+      ORDER BY dia`;
+    const params = [inicioMes, fimHoje];
+    const result = await db.query(query, params);
+    console.log('Resultado SQL agregado:', result.rows);
+    
+    // Criar array de dias de 1 até hoje
+    const dias = [];
+    const counts = [];
+    for (let i = 1; i <= diaAtual; i++) {
+      dias.push(i.toString());
+      counts.push(0);
+    }
+    
+    result.rows.forEach(row => {
+      const dia = parseInt(row.dia);
+      const idx = dia - 1; // dia 1 = índice 0
+      console.log(`Dia ${dia} -> Índice ${idx} = ${row.total} atendimentos`);
+      if (idx >= 0 && idx < counts.length) {
+        counts[idx] = parseInt(row.total);
+      }
+    });
+    
+    console.log('=== RESULTADO FINAL ===');
+    console.log('Dias:', dias);
+    console.log('Counts:', counts);
+    
+    res.json({ dias, counts });
+  } catch (err) {
+    console.error('Erro atendimentosPorMes:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Atendimentos por ano
 export const atendimentosPorAno = async (req, res) => {
   try {
@@ -600,5 +667,6 @@ export default {
   salvarDadosMedico,
   salvarAlteracoesTriagem,
   atendimentosPorSemana,
+  atendimentosPorMes,
   atendimentosPorAno
 };
