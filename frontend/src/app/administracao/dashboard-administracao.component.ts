@@ -22,6 +22,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   };
   periodoSelecionado: 'semana' | 'mes' | 'ano' = 'semana';
 
+  // Dados que serão carregados dos endpoints
   classificacaoRisco = [
     { label: 'Vermelha', value: 40, color: '#e53935' },
     { label: 'Amarela', value: 30, color: '#fbc02d' },
@@ -29,9 +30,30 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     { label: 'Azul', value: 10, color: '#1e88e5' }
   ];
 
+  // Dados reais de tempo médio (serão atualizados pelos endpoints)
   tempoMedioEsperaSemana = 32; // minutos
   tempoMedioEsperaMes = 38; // minutos
   tempoMedioEsperaAno = 45; // minutos
+
+  // Dados reais de classificação de risco (serão atualizados pelos endpoints)
+  classificacaoRiscoSemana = [
+    { label: 'Vermelha', value: 40, color: '#e53935' },
+    { label: 'Amarela', value: 30, color: '#fbc02d' },
+    { label: 'Verde', value: 20, color: '#43a047' },
+    { label: 'Azul', value: 10, color: '#1e88e5' }
+  ];
+  classificacaoRiscoMes = [
+    { label: 'Vermelha', value: 45, color: '#e53935' },
+    { label: 'Amarela', value: 35, color: '#fbc02d' },
+    { label: 'Verde', value: 15, color: '#43a047' },
+    { label: 'Azul', value: 5, color: '#1e88e5' }
+  ];
+  classificacaoRiscoAno = [
+    { label: 'Vermelha', value: 50, color: '#e53935' },
+    { label: 'Amarela', value: 25, color: '#fbc02d' },
+    { label: 'Verde', value: 15, color: '#43a047' },
+    { label: 'Azul', value: 10, color: '#1e88e5' }
+  ];
 
   sexoDistribuicaoSemana = [
     { label: 'Masculino', value: 55, color: '#42a5f5' },
@@ -96,7 +118,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
 
   fetchAtendimentosPorPeriodo() {
     console.log(`🚀 [COMPONENT] Iniciando fetch para período: ${this.periodoSelecionado}`);
-    
+
     // Evita múltiplas chamadas simultâneas
     if (this.isLoading) {
       console.log('⚠️ [COMPONENT] Já carregando dados, ignorando nova chamada');
@@ -104,7 +126,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     }
 
     this.isLoading = true;
-    
+
     if (this.periodoSelecionado === 'semana') {
       console.log('📅 [COMPONENT] Buscando dados por SEMANA...');
       this.dashboardService.getAtendimentosPorSemana().subscribe({
@@ -181,6 +203,90 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           this.isLoading = false;
           this.dadosCarregados = true;
           setTimeout(() => this.atualizarGraficoBarra(), 100);
+        }
+      });
+    }
+  }
+
+  fetchTempoMedioPorPeriodo() {
+    console.log(`🚀 [COMPONENT] Buscando tempo médio para período: ${this.periodoSelecionado}`);
+
+    if (this.periodoSelecionado === 'semana') {
+      this.dashboardService.getTempoMedioPorSemana().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Tempo médio REAL da semana recebido:', data);
+          this.tempoMedioEsperaSemana = data.tempoMedioMinutos;
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar tempo médio da semana:', error);
+          this.tempoMedioEsperaSemana = 32; // valor padrão
+        }
+      });
+    } else if (this.periodoSelecionado === 'mes') {
+      this.dashboardService.getTempoMedioPorMes().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Tempo médio REAL do mês recebido:', data);
+          this.tempoMedioEsperaMes = data.tempoMedioMinutos;
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar tempo médio do mês:', error);
+          this.tempoMedioEsperaMes = 38; // valor padrão
+        }
+      });
+    } else {
+      this.dashboardService.getTempoMedioPorAno().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Tempo médio REAL do ano recebido:', data);
+          this.tempoMedioEsperaAno = data.tempoMedioMinutos;
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar tempo médio do ano:', error);
+          this.tempoMedioEsperaAno = 45; // valor padrão
+        }
+      });
+    }
+  }
+
+  fetchClassificacaoRiscoPorPeriodo() {
+    console.log(`🚀 [COMPONENT] Buscando classificação de risco para período: ${this.periodoSelecionado}`);
+
+    if (this.periodoSelecionado === 'semana') {
+      this.dashboardService.getClassificacaoRiscoPorSemana().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Classificação de risco REAL da semana recebida:', data);
+          this.classificacaoRiscoSemana = data.classificacoes;
+          setTimeout(() => this.atualizarGraficoClassificacaoRisco(), 100);
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar classificação de risco da semana:', error);
+          // usa dados padrão
+          setTimeout(() => this.atualizarGraficoClassificacaoRisco(), 100);
+        }
+      });
+    } else if (this.periodoSelecionado === 'mes') {
+      this.dashboardService.getClassificacaoRiscoPorMes().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Classificação de risco REAL do mês recebida:', data);
+          this.classificacaoRiscoMes = data.classificacoes;
+          setTimeout(() => this.atualizarGraficoClassificacaoRisco(), 100);
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar classificação de risco do mês:', error);
+          // usa dados padrão
+          setTimeout(() => this.atualizarGraficoClassificacaoRisco(), 100);
+        }
+      });
+    } else {
+      this.dashboardService.getClassificacaoRiscoPorAno().subscribe({
+        next: (data) => {
+          console.log('✅ [COMPONENT] Classificação de risco REAL do ano recebida:', data);
+          this.classificacaoRiscoAno = data.classificacoes;
+          setTimeout(() => this.atualizarGraficoClassificacaoRisco(), 100);
+        },
+        error: (error) => {
+          console.error('❌ [COMPONENT] ERRO ao buscar classificação de risco do ano:', error);
+          // usa dados padrão
+          setTimeout(() => this.atualizarGraficoClassificacaoRisco(), 100);
         }
       });
     }
@@ -279,7 +385,8 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   ngAfterViewInit() {
     setTimeout(() => {
       this.fetchAtendimentosPorPeriodo();
-      this.atualizarGraficoClassificacaoRisco();
+      this.fetchTempoMedioPorPeriodo();
+      this.fetchClassificacaoRiscoPorPeriodo();
       this.atualizarGraficoDistribuicaoSexo();
       this.atualizarGraficoFaixaEtaria();
     }, 100);
@@ -289,12 +396,13 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     if (this.lastPeriodoSelecionado !== this.periodoSelecionado) {
       console.log(`🔄 [COMPONENT] Mudança de período: ${this.lastPeriodoSelecionado} → ${this.periodoSelecionado}`);
       this.fetchAtendimentosPorPeriodo();
-      this.atualizarGraficoClassificacaoRisco();
+      this.fetchTempoMedioPorPeriodo();
+      this.fetchClassificacaoRiscoPorPeriodo();
       this.atualizarGraficoDistribuicaoSexo();
       this.atualizarGraficoFaixaEtaria();
       this.lastPeriodoSelecionado = this.periodoSelecionado;
     }
-    
+
     // Só renderiza gráficos uma vez quando os dados foram carregados
     if (this.dadosCarregados && !this.isLoading) {
       setTimeout(() => {
@@ -319,8 +427,8 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   }
 
   get tempoMedioEsperaAtual(): number {
-    return this.periodoSelecionado === 'semana' ? this.tempoMedioEsperaSemana : 
-           this.periodoSelecionado === 'mes' ? this.tempoMedioEsperaSemana : 
+    return this.periodoSelecionado === 'semana' ? this.tempoMedioEsperaSemana :
+           this.periodoSelecionado === 'mes' ? this.tempoMedioEsperaMes :
            this.tempoMedioEsperaAno;
   }
 
@@ -405,10 +513,10 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.pieChartSemanaInstance = new Chart(ctx, {
         type: 'pie',
         data: {
-          labels: this.classificacaoRisco.map(r => r.label),
+          labels: this.classificacaoRiscoSemana.map(r => r.label),
           datasets: [{
-            data: this.classificacaoRisco.map(r => r.value),
-            backgroundColor: this.classificacaoRisco.map(r => r.color)
+            data: this.classificacaoRiscoSemana.map(r => r.value),
+            backgroundColor: this.classificacaoRiscoSemana.map(r => r.color)
           }]
         },
         options: {
@@ -431,10 +539,10 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.pieChartMesInstance = new Chart(ctx, {
         type: 'pie',
         data: {
-          labels: this.classificacaoRisco.map(r => r.label),
+          labels: this.classificacaoRiscoMes.map(r => r.label),
           datasets: [{
-            data: this.classificacaoRisco.map(r => r.value),
-            backgroundColor: this.classificacaoRisco.map(r => r.color)
+            data: this.classificacaoRiscoMes.map(r => r.value),
+            backgroundColor: this.classificacaoRiscoMes.map(r => r.color)
           }]
         },
         options: {
@@ -454,14 +562,13 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   renderPieChartAno() {
     const ctx = document.getElementById('pieChartAno') as HTMLCanvasElement;
     if (ctx) {
-      // Exemplo de dados mockados para o ano
       this.pieChartAnoInstance = new Chart(ctx, {
         type: 'pie',
         data: {
-          labels: this.classificacaoRisco.map(r => r.label),
+          labels: this.classificacaoRiscoAno.map(r => r.label),
           datasets: [{
-            data: this.classificacaoRisco.map(r => r.value + 10), // Exemplo: valores diferentes para o ano
-            backgroundColor: this.classificacaoRisco.map(r => r.color)
+            data: this.classificacaoRiscoAno.map(r => r.value),
+            backgroundColor: this.classificacaoRiscoAno.map(r => r.color)
           }]
         },
         options: {

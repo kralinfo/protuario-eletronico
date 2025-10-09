@@ -1,7 +1,17 @@
 import express from 'express';
 import controller from '../controllers/atendimentosController.js';
 import knex from '../db.js';
-import { atendimentosPorSemana, atendimentosPorMes, atendimentosPorAno } from '../controllers/atendimentosController.js';
+import { 
+  atendimentosPorSemana, 
+  atendimentosPorMes, 
+  atendimentosPorAno,
+  tempoMedioPorSemana,
+  tempoMedioPorMes,
+  tempoMedioPorAno,
+  classificacaoRiscoPorSemana,
+  classificacaoRiscoPorMes,
+  classificacaoRiscoPorAno
+} from '../controllers/atendimentosController.js';
 
 const router = express.Router();
 
@@ -43,6 +53,16 @@ router.get('/por-status', async (req, res) => {
 router.get('/por-semana', atendimentosPorSemana);
 router.get('/por-mes', atendimentosPorMes);
 router.get('/por-ano', atendimentosPorAno);
+
+// Endpoints para tempo médio de espera
+router.get('/tempo-medio/semana', tempoMedioPorSemana);
+router.get('/tempo-medio/mes', tempoMedioPorMes);
+router.get('/tempo-medio/ano', tempoMedioPorAno);
+
+// Endpoints para classificação de risco
+router.get('/classificacao-risco/semana', classificacaoRiscoPorSemana);
+router.get('/classificacao-risco/mes', classificacaoRiscoPorMes);
+router.get('/classificacao-risco/ano', classificacaoRiscoPorAno);
 
 router.post('/', controller.registrar);
 router.get('/', controller.listarDoDia); // Novo endpoint para atendimentos do dia

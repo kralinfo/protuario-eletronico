@@ -653,6 +653,310 @@ export const atendimentosPorAno = async (req, res) => {
   }
 };
 
+// Endpoints para tempo médio de espera
+export const tempoMedioPorSemana = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/tempo-medio/semana');
+    const hoje = new Date();
+    const diaAtual = hoje.getDay();
+    
+    const inicioSemana = new Date(hoje);
+    inicioSemana.setDate(hoje.getDate() - (diaAtual === 0 ? 6 : diaAtual - 1));
+    inicioSemana.setHours(0, 0, 0, 0);
+    
+    const fimHoje = new Date(hoje);
+    fimHoje.setHours(23, 59, 59, 999);
+    
+    console.log('Calculando tempo médio de espera da semana até hoje');
+    console.log('Intervalo:', inicioSemana.toISOString(), 'até', fimHoje.toISOString());
+    
+    const query = `
+      SELECT AVG(
+        CASE 
+          WHEN data_inicio_triagem IS NOT NULL THEN 
+            EXTRACT(EPOCH FROM (data_inicio_triagem - data_hora_atendimento))/60
+          WHEN status = 'encaminhado para triagem' THEN 
+            EXTRACT(EPOCH FROM (NOW() - data_hora_atendimento))/60
+          ELSE NULL
+        END
+      ) as tempo_medio_minutos
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      AND data_hora_atendimento IS NOT NULL
+    `;
+    
+    const result = await db.query(query, [inicioSemana, fimHoje]);
+    const tempoMedio = Math.round(result.rows[0]?.tempo_medio_minutos || 0);
+    
+    console.log('Tempo médio de espera calculado:', tempoMedio, 'minutos');
+    res.json({ tempoMedioMinutos: tempoMedio });
+  } catch (err) {
+    console.error('Erro tempoMedioPorSemana:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const tempoMedioPorMes = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/tempo-medio/mes');
+    const hoje = new Date();
+    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    
+    const fimHoje = new Date(hoje);
+    fimHoje.setHours(23, 59, 59, 999);
+    
+    console.log('Calculando tempo médio de espera do mês até hoje');
+    console.log('Intervalo:', inicioMes.toISOString(), 'até', fimHoje.toISOString());
+    
+    const query = `
+      SELECT AVG(
+        CASE 
+          WHEN data_inicio_triagem IS NOT NULL THEN 
+            EXTRACT(EPOCH FROM (data_inicio_triagem - data_hora_atendimento))/60
+          WHEN status = 'encaminhado para triagem' THEN 
+            EXTRACT(EPOCH FROM (NOW() - data_hora_atendimento))/60
+          ELSE NULL
+        END
+      ) as tempo_medio_minutos
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      AND data_hora_atendimento IS NOT NULL
+    `;
+    
+    const result = await db.query(query, [inicioMes, fimHoje]);
+    const tempoMedio = Math.round(result.rows[0]?.tempo_medio_minutos || 0);
+    
+    console.log('Tempo médio de espera calculado:', tempoMedio, 'minutos');
+    res.json({ tempoMedioMinutos: tempoMedio });
+  } catch (err) {
+    console.error('Erro tempoMedioPorMes:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const tempoMedioPorAno = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/tempo-medio/ano');
+    const hoje = new Date();
+    const inicioAno = new Date(hoje.getFullYear(), 0, 1);
+    
+    const fimHoje = new Date(hoje);
+    fimHoje.setHours(23, 59, 59, 999);
+    
+    console.log('Calculando tempo médio de espera do ano até hoje');
+    console.log('Intervalo:', inicioAno.toISOString(), 'até', fimHoje.toISOString());
+    
+    const query = `
+      SELECT AVG(
+        CASE 
+          WHEN data_inicio_triagem IS NOT NULL THEN 
+            EXTRACT(EPOCH FROM (data_inicio_triagem - data_hora_atendimento))/60
+          WHEN status = 'encaminhado para triagem' THEN 
+            EXTRACT(EPOCH FROM (NOW() - data_hora_atendimento))/60
+          ELSE NULL
+        END
+      ) as tempo_medio_minutos
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      AND data_hora_atendimento IS NOT NULL
+    `;
+    
+    const result = await db.query(query, [inicioAno, fimHoje]);
+    const tempoMedio = Math.round(result.rows[0]?.tempo_medio_minutos || 0);
+    
+    console.log('Tempo médio de espera calculado:', tempoMedio, 'minutos');
+    res.json({ tempoMedioMinutos: tempoMedio });
+  } catch (err) {
+    console.error('Erro tempoMedioPorAno:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Endpoints para classificação de risco
+export const classificacaoRiscoPorSemana = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/classificacao-risco/semana');
+    const hoje = new Date();
+    const diaAtual = hoje.getDay();
+    
+    const inicioSemana = new Date(hoje);
+    inicioSemana.setDate(hoje.getDate() - (diaAtual === 0 ? 6 : diaAtual - 1));
+    inicioSemana.setHours(0, 0, 0, 0);
+    
+    const fimHoje = new Date(hoje);
+    fimHoje.setHours(23, 59, 59, 999);
+    
+    console.log('Calculando classificação de risco para a semana');
+    console.log('Intervalo:', inicioSemana.toISOString(), 'até', fimHoje.toISOString());
+    
+    const query = `
+      SELECT 
+        COALESCE(classificacao_risco, 'nao_classificado') as classificacao,
+        COUNT(*) as quantidade
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      GROUP BY classificacao_risco
+      ORDER BY quantidade DESC
+    `;
+    
+    const result = await db.query(query, [inicioSemana, fimHoje]);
+    
+    // Mapear os valores do banco para o formato esperado pelo frontend
+    const classificacoes = {
+      'Vermelha': 0,
+      'Laranja': 0,
+      'Amarela': 0,
+      'Verde': 0,
+      'Azul': 0,
+      'Não classificado': 0
+    };
+    
+    result.rows.forEach(row => {
+      const cor = row.classificacao;
+      if (cor === 'vermelho') classificacoes['Vermelha'] = parseInt(row.quantidade);
+      else if (cor === 'laranja') classificacoes['Laranja'] = parseInt(row.quantidade);
+      else if (cor === 'amarelo') classificacoes['Amarela'] = parseInt(row.quantidade);
+      else if (cor === 'verde') classificacoes['Verde'] = parseInt(row.quantidade);
+      else if (cor === 'azul') classificacoes['Azul'] = parseInt(row.quantidade);
+      else if (cor === 'nao_classificado') classificacoes['Não classificado'] = parseInt(row.quantidade);
+    });
+    
+    const dados = Object.entries(classificacoes).map(([label, value]) => ({
+      label,
+      value,
+      color: label === 'Vermelha' ? '#e53935' :
+             label === 'Laranja' ? '#ff9800' :
+             label === 'Amarela' ? '#fbc02d' :
+             label === 'Verde' ? '#43a047' : 
+             label === 'Azul' ? '#1e88e5' : '#757575'
+    }));
+    
+    console.log('Classificação de risco calculada:', dados);
+    res.json({ classificacoes: dados });
+  } catch (err) {
+    console.error('Erro classificacaoRiscoPorSemana:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const classificacaoRiscoPorMes = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/classificacao-risco/mes');
+    const hoje = new Date();
+    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    
+    const fimHoje = new Date(hoje);
+    fimHoje.setHours(23, 59, 59, 999);
+    
+    console.log('Calculando classificação de risco para o mês');
+    console.log('Intervalo:', inicioMes.toISOString(), 'até', fimHoje.toISOString());
+    
+    const query = `
+      SELECT 
+        COALESCE(classificacao_risco, 'nao_classificado') as classificacao,
+        COUNT(*) as quantidade
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      GROUP BY classificacao_risco
+      ORDER BY quantidade DESC
+    `;
+    
+    const result = await db.query(query, [inicioMes, fimHoje]);
+    
+    // Mapear os valores do banco para o formato esperado pelo frontend
+    const classificacoes = {
+      'Vermelha': 0,
+      'Laranja': 0,
+      'Amarela': 0,
+      'Verde': 0,
+      'Azul': 0
+    };
+    
+    result.rows.forEach(row => {
+      const cor = row.classificacao;
+      if (cor === 'vermelho') classificacoes['Vermelha'] = parseInt(row.quantidade);
+      else if (cor === 'laranja') classificacoes['Laranja'] = parseInt(row.quantidade);
+      else if (cor === 'amarelo') classificacoes['Amarela'] = parseInt(row.quantidade);
+      else if (cor === 'verde') classificacoes['Verde'] = parseInt(row.quantidade);
+      else if (cor === 'azul') classificacoes['Azul'] = parseInt(row.quantidade);
+    });
+    
+    const dados = Object.entries(classificacoes).map(([label, value]) => ({
+      label,
+      value,
+      color: label === 'Vermelha' ? '#e53935' :
+             label === 'Laranja' ? '#ff9800' :
+             label === 'Amarela' ? '#fbc02d' :
+             label === 'Verde' ? '#43a047' : '#1e88e5'
+    }));
+    
+    console.log('Classificação de risco calculada:', dados);
+    res.json({ classificacoes: dados });
+  } catch (err) {
+    console.error('Erro classificacaoRiscoPorMes:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const classificacaoRiscoPorAno = async (req, res) => {
+  try {
+    console.log('Recebida requisição GET /api/classificacao-risco/ano');
+    const hoje = new Date();
+    const inicioAno = new Date(hoje.getFullYear(), 0, 1);
+    
+    const fimHoje = new Date(hoje);
+    fimHoje.setHours(23, 59, 59, 999);
+    
+    console.log('Calculando classificação de risco para o ano');
+    console.log('Intervalo:', inicioAno.toISOString(), 'até', fimHoje.toISOString());
+    
+    const query = `
+      SELECT 
+        COALESCE(classificacao_risco, 'nao_classificado') as classificacao,
+        COUNT(*) as quantidade
+      FROM atendimentos
+      WHERE data_hora_atendimento >= $1 AND data_hora_atendimento <= $2
+      GROUP BY classificacao_risco
+      ORDER BY quantidade DESC
+    `;
+    
+    const result = await db.query(query, [inicioAno, fimHoje]);
+    
+    // Mapear os valores do banco para o formato esperado pelo frontend
+    const classificacoes = {
+      'Vermelha': 0,
+      'Laranja': 0,
+      'Amarela': 0,
+      'Verde': 0,
+      'Azul': 0
+    };
+    
+    result.rows.forEach(row => {
+      const cor = row.classificacao;
+      if (cor === 'vermelho') classificacoes['Vermelha'] = parseInt(row.quantidade);
+      else if (cor === 'laranja') classificacoes['Laranja'] = parseInt(row.quantidade);
+      else if (cor === 'amarelo') classificacoes['Amarela'] = parseInt(row.quantidade);
+      else if (cor === 'verde') classificacoes['Verde'] = parseInt(row.quantidade);
+      else if (cor === 'azul') classificacoes['Azul'] = parseInt(row.quantidade);
+    });
+    
+    const dados = Object.entries(classificacoes).map(([label, value]) => ({
+      label,
+      value,
+      color: label === 'Vermelha' ? '#e53935' :
+             label === 'Laranja' ? '#ff9800' :
+             label === 'Amarela' ? '#fbc02d' :
+             label === 'Verde' ? '#43a047' : '#1e88e5'
+    }));
+    
+    console.log('Classificação de risco calculada:', dados);
+    res.json({ classificacoes: dados });
+  } catch (err) {
+    console.error('Erro classificacaoRiscoPorAno:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export default {
   registrar,
   listarPorPaciente,
@@ -668,5 +972,11 @@ export default {
   salvarAlteracoesTriagem,
   atendimentosPorSemana,
   atendimentosPorMes,
-  atendimentosPorAno
+  atendimentosPorAno,
+  tempoMedioPorSemana,
+  tempoMedioPorMes,
+  tempoMedioPorAno,
+  classificacaoRiscoPorSemana,
+  classificacaoRiscoPorMes,
+  classificacaoRiscoPorAno
 };
