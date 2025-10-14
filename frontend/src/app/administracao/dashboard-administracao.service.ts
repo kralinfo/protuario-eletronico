@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -209,6 +209,50 @@ export class DashboardAdministracaoService {
           ]
         };
         console.log('🔄 [SERVICE] Retornando classificação de risco MOCK por ano:', mockData);
+        return of(mockData);
+      })
+    );
+  }
+
+  getDistribuicaoPorSexo(periodo: 'semana' | 'mes' | 'ano'): Observable<any> {
+    const url = `http://localhost:3001/api/pacientes/distribuicao-por-sexo?filtro=${periodo}`;
+    console.log(`🔍 [SERVICE] Fazendo requisição GET para ${url}`);
+
+    return this.http.get<any>(url).pipe(
+      tap(data => {
+        console.log('✅ [SERVICE] Dados recebidos da distribuição por sexo:', data);
+      }),
+      map(response => {
+        // Verificar dados reais (aceita zeros para deixar gráfico em branco)
+        const masculino = response.data?.masculino || response.data?.M || 0;
+        const feminino = response.data?.feminino || response.data?.F || 0;
+        const total = masculino + feminino;
+
+        console.log(`📊 [SERVICE] Dados do backend: M=${masculino}, F=${feminino}, Total=${total}`);
+
+        // Sempre usar dados reais, mesmo que sejam zero (gráfico fica em branco como outros)
+        console.log('✅ [SERVICE] Usando dados reais do backend (zeros resultam em gráfico vazio)');
+        return {
+          status: 'SUCCESS',
+          data: { masculino, feminino },
+          real: true
+        };
+      }),
+      catchError(error => {
+        console.error('❌ [SERVICE] Erro ao buscar distribuição por sexo:', error);
+        console.error('❌ [SERVICE] Status:', error.status);
+        console.error('❌ [SERVICE] Message:', error.message);
+
+        // Em caso de erro, retorna dados mock como fallback
+        console.log('🔄 [SERVICE] Retornando dados MOCK devido a erro');
+        const mockData = {
+          status: 'SUCCESS',
+          data: periodo === 'semana' ? { masculino: 15, feminino: 12 } :
+                periodo === 'mes' ? { masculino: 45, feminino: 38 } :
+                { masculino: 120, feminino: 98 },
+          fallback: true,
+          error: true
+        };
         return of(mockData);
       })
     );

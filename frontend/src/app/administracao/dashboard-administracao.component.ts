@@ -21,6 +21,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     ano: [120, 98, 150, 130, 170, 160, 140, 180, 200, 190, 210, 220]
   };
   periodoSelecionado: 'semana' | 'mes' | 'ano' = 'semana';
+  updating = false; // Flag para evitar atualizações múltiplas
 
   // Dados que serão carregados dos endpoints
   classificacaoRisco = [
@@ -292,6 +293,63 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     }
   }
 
+  ngOnInit() {
+    // Renderiza inicialmente com dados mock e, em seguida, atualiza com dados reais do backend
+    this.atualizarGraficoDonut();
+    this.atualizarGraficoDistribuicaoSexo();
+  }
+
+  atualizarGraficoDonut() {
+    // Evita atualizações múltiplas rapidamente
+    if (this.updating) {
+      return;
+    }
+    this.updating = true;
+
+    // Destroi instâncias existentes
+    if (this.donutChartSemanaInstance) {
+      this.donutChartSemanaInstance.destroy();
+      this.donutChartSemanaInstance = null;
+    }
+    if (this.donutChartMesInstance) {
+      this.donutChartMesInstance.destroy();
+      this.donutChartMesInstance = null;
+    }
+    if (this.donutChartAnoInstance) {
+      this.donutChartAnoInstance.destroy();
+      this.donutChartAnoInstance = null;
+    }
+
+    // Recria apenas o gráfico visível conforme o período selecionado
+    setTimeout(() => {
+      try {
+        if (this.periodoSelecionado === 'semana') {
+          this.renderDonutChartSemana();
+        } else if (this.periodoSelecionado === 'mes') {
+          this.renderDonutChartMes();
+        } else {
+          this.renderDonutChartAno();
+        }
+      } catch (error) {
+        console.error('❌ [COMPONENT] Erro ao renderizar gráfico donut:', error);
+      } finally {
+        this.updating = false;
+      }
+    }, 100);
+  }
+
+  fetchDistribuicaoPorSexo() {
+    console.log(`🚀 [COMPONENT] Buscando distribuição por sexo para o período: ${this.periodoSelecionado}`);
+    this.dashboardService.getDistribuicaoPorSexo(this.periodoSelecionado).subscribe(
+      (data) => {
+        console.log('📊 [COMPONENT] Resultado da distribuição por sexo:', data);
+      },
+      (error) => {
+        console.error('❌ [COMPONENT] Erro ao buscar distribuição por sexo:', error);
+      }
+    );
+  }
+
   atualizarGraficoBarra() {
     // Destroi gráficos anteriores se existirem
     if (this.barChartSemanaInstance) {
@@ -314,6 +372,9 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     } else {
       this.renderBarChartAno();
     }
+
+    // Atualiza também o gráfico de distribuição por sexo
+    this.atualizarGraficoDistribuicaoSexo();
   }
 
   atualizarGraficoClassificacaoRisco() {
@@ -339,25 +400,62 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   }
 
   atualizarGraficoDistribuicaoSexo() {
-    if (this.donutChartSemanaInstance) {
-      this.donutChartSemanaInstance.destroy();
-      this.donutChartSemanaInstance = null;
-    }
-    if (this.donutChartMesInstance) {
-      this.donutChartMesInstance.destroy();
-      this.donutChartMesInstance = null;
-    }
-    if (this.donutChartAnoInstance) {
-      this.donutChartAnoInstance.destroy();
-      this.donutChartAnoInstance = null;
-    }
-    if (this.periodoSelecionado === 'semana') {
-      this.renderDonutChartSemana();
-    } else if (this.periodoSelecionado === 'mes') {
-      this.renderDonutChartMes();
-    } else {
-      this.renderDonutChartAno();
-    }
+    console.log(`🚀 [COMPONENT] Buscando distribuição por sexo para período: ${this.periodoSelecionado}`);
+
+    this.dashboardService.getDistribuicaoPorSexo(this.periodoSelecionado).subscribe(
+      (response) => {
+        console.log('📊 [COMPONENT] Resposta recebida da distribuição por sexo:', response);
+
+        // Verifica se a resposta tem o formato correto
+        if (!response || !response.data) {
+          console.error('❌ [COMPONENT] Formato de resposta inválido:', response);
+          this.atualizarGraficoDonut();
+          return;
+        }
+
+        // Backend retorna masculino/feminino, mas também aceita M/F para compatibilidade
+        const masculino = response.data.masculino || response.data.M || 0;
+        const feminino = response.data.feminino || response.data.F || 0;
+        const total = masculino + feminino;
+
+        // Log informativo sobre o tipo de dados
+        if (response.real) {
+          console.log(`📈 [COMPONENT] 🎯 DADOS REAIS: M=${masculino}, F=${feminino}, Total=${total} para período ${this.periodoSelecionado}`);
+        } else if (response.fallback) {
+          console.log(`📈 [COMPONENT] 🔄 DADOS MOCK (fallback): M=${masculino}, F=${feminino} para período ${this.periodoSelecionado}`);
+        } else {
+          console.log(`📈 [COMPONENT] Dados obtidos: M=${masculino}, F=${feminino} para período ${this.periodoSelecionado}`);
+        }
+
+        // Atualiza apenas o array do período atual
+        const distribuicaoAtualizada = [
+          { label: 'Masculino', value: masculino, color: '#42a5f5' },
+          { label: 'Feminino', value: feminino, color: '#ec407a' }
+        ];
+
+        if (this.periodoSelecionado === 'semana') {
+          this.sexoDistribuicaoSemana = distribuicaoAtualizada;
+        } else if (this.periodoSelecionado === 'mes') {
+          this.sexoDistribuicaoMes = distribuicaoAtualizada;
+        } else {
+          this.sexoDistribuicaoAno = distribuicaoAtualizada;
+        }
+
+        // Reconstrói apenas o gráfico do período atual
+        // Se total = 0, o gráfico ficará em branco (como outros gráficos do dashboard)
+        if (total === 0) {
+          console.log('ℹ️ [COMPONENT] Total = 0, gráfico ficará em branco');
+        }
+        this.atualizarGraficoDonut();
+      },
+      (error) => {
+        console.error('❌ [COMPONENT] Erro ao buscar distribuição por sexo:', error);
+        console.error('❌ [COMPONENT] Detalhes do erro:', error.error || error.message);
+
+        // Ainda assim renderiza o gráfico para não ficar em branco
+        this.atualizarGraficoDonut();
+      }
+    );
   }
 
   atualizarGraficoFaixaEtaria() {
@@ -389,6 +487,8 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.fetchClassificacaoRiscoPorPeriodo();
       this.atualizarGraficoDistribuicaoSexo();
       this.atualizarGraficoFaixaEtaria();
+      // Garante render inicial do donut após o DOM estar pronto
+      this.atualizarGraficoDonut();
     }, 100);
   }
 
@@ -588,26 +688,37 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   renderDonutChartSemana() {
     const ctx = document.getElementById('donutChartSemana') as HTMLCanvasElement;
     if (ctx) {
-      this.donutChartSemanaInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: this.sexoDistribuicaoSemana.map(s => s.label),
-          datasets: [{
-            data: this.sexoDistribuicaoSemana.map(s => s.value),
-            backgroundColor: this.sexoDistribuicaoSemana.map(s => s.color)
-          }]
-        },
-        options: {
-          responsive: false,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: {
-              display: true,
-              position: 'bottom'
+      try {
+        // Destruir instância existente se houver
+        if (this.donutChartSemanaInstance) {
+          this.donutChartSemanaInstance.destroy();
+          this.donutChartSemanaInstance = null;
+        }
+
+        this.donutChartSemanaInstance = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: this.sexoDistribuicaoSemana.map(s => s.label),
+            datasets: [{
+              data: this.sexoDistribuicaoSemana.map(s => s.value),
+              backgroundColor: this.sexoDistribuicaoSemana.map(s => s.color)
+            }]
+          },
+          options: {
+            responsive: false,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom'
+              }
             }
           }
-        }
-      });
+        });
+        console.log('✅ [COMPONENT] Gráfico donut semana renderizado com sucesso');
+      } catch (error) {
+        console.error('❌ [COMPONENT] Erro ao renderizar gráfico donut semana:', error);
+      }
     }
   }
 
@@ -617,10 +728,10 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.donutChartMesInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: this.sexoDistribuicaoSemana.map(s => s.label),
+          labels: this.sexoDistribuicaoMes.map(s => s.label),
           datasets: [{
-            data: this.sexoDistribuicaoSemana.map(s => s.value),
-            backgroundColor: this.sexoDistribuicaoSemana.map(s => s.color)
+            data: this.sexoDistribuicaoMes.map(s => s.value),
+            backgroundColor: this.sexoDistribuicaoMes.map(s => s.color)
           }]
         },
         options: {

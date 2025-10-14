@@ -5,6 +5,7 @@ import usuariosRoutes from './usuarios.js';
 import medicoRoutes from './medico.js';
 import ambulatorioRoutes from './ambulatorio.js';
 import { authenticateToken } from '../middleware/auth.js';
+import PacientesController from '../controllers/pacientesController.js';
 
 const router = Router();
 
@@ -19,6 +20,39 @@ router.get('/health', (req, res) => {
     uptime: process.uptime(),
     version: process.env.npm_package_version || '1.0.0'
   });
+});
+
+/**
+ * Endpoint de teste para distribuição por sexo (SEM AUTENTICAÇÃO)
+ */
+router.get('/test-distribuicao', (req, res) => {
+  console.log('🧪 [TEST] Endpoint de teste chamado - distribuição por sexo');
+  try {
+    const { filtro = 'semana' } = req.query;
+    
+    // Dados mock para teste rápido
+    const dadosMock = {
+      semana: { masculino: 15, feminino: 12 },
+      mes: { masculino: 45, feminino: 38 },
+      ano: { masculino: 180, feminino: 165 }
+    };
+    
+    const dados = dadosMock[filtro] || dadosMock.semana;
+    
+    res.json({
+      status: 'SUCCESS',
+      data: dados,
+      filtro,
+      message: 'Dados de teste retornados com sucesso'
+    });
+  } catch (error) {
+    console.error('❌ [TEST] Erro:', error);
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'Erro no endpoint de teste',
+      error: error.message
+    });
+  }
 });
 
 /**
@@ -48,6 +82,14 @@ router.get('/info', (req, res) => {
       'Rate limiting'
     ]
   });
+});
+
+/**
+ * Endpoint de teste para distribuição por sexo (SEM AUTENTICAÇÃO)
+ */
+router.get('/pacientes/test-distribuicao', (req, res) => {
+  console.log('🧪 [TEST] Endpoint de teste chamado - distribuição por sexo');
+  PacientesController.getDistribuicaoPorSexo(req, res);
 });
 
 /**
