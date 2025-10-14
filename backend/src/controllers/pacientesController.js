@@ -735,11 +735,6 @@ class PacientesController {
           else if (sexo === 'F') distribuicao.F++;
         });
 
-        // TESTE: Se você disse que há 5 pacientes (3M, 2F), vou simular isso temporariamente
-        if (distribuicao.M === 0 && distribuicao.F === 0 && pacientes.length === 0) {
-          console.log('🧪 [TESTE] Simulando dados reais: 3M, 2F');
-          distribuicao = { M: 3, F: 2 };
-        }
 
       } catch (dbError) {
         console.error('❌ [DISTRIBUIÇÃO] Erro ao buscar pacientes:', dbError);
@@ -757,16 +752,7 @@ class PacientesController {
 
       const total = distribuicao.M + distribuicao.F;
       
-      // Se não há dados reais, usar mock para não deixar gráfico vazio
-      if (total === 0) {
-        console.log('ℹ️ [DISTRIBUIÇÃO] Nenhum paciente encontrado. Usando dados mock.');
-        const dadosMock = {
-          semana: { M: 15, F: 12 },
-          mes: { M: 45, F: 38 },
-          ano: { M: 180, F: 165 }
-        };
-        distribuicao = dadosMock[filtro];
-      }
+      // Se não há dados reais, retorna os dados reais (gráfico ficará em branco)
 
       const totalFinal = distribuicao.M + distribuicao.F;
       
