@@ -486,10 +486,43 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.fetchTempoMedioPorPeriodo();
       this.fetchClassificacaoRiscoPorPeriodo();
       this.atualizarGraficoDistribuicaoSexo();
-      this.atualizarGraficoFaixaEtaria();
+        this.fetchDistribuicaoPorFaixaEtaria();
       // Garante render inicial do donut após o DOM estar pronto
       this.atualizarGraficoDonut();
     }, 100);
+  }
+  fetchDistribuicaoPorFaixaEtaria() {
+    console.log(`🚀 [COMPONENT] Buscando distribuição por faixa etária para período: ${this.periodoSelecionado}`);
+    this.dashboardService.getDistribuicaoPorFaixaEtaria(this.periodoSelecionado).subscribe(
+      (response) => {
+        console.log('📊 [COMPONENT] Resposta recebida da distribuição por faixa etária:', response);
+        if (!response || !response.data) {
+          console.error('❌ [COMPONENT] Formato de resposta inválido:', response);
+          this.atualizarGraficoFaixaEtaria();
+          return;
+        }
+        // Mapeia dados para array de faixas
+        const faixas = [
+          { faixa: '0-12', value: response.data['0-12'] || 0 },
+          { faixa: '13-18', value: response.data['13-18'] || 0 },
+          { faixa: '19-35', value: response.data['19-35'] || 0 },
+          { faixa: '36-60', value: response.data['36-60'] || 0 },
+          { faixa: '60+', value: response.data['60+'] || 0 }
+        ];
+        if (this.periodoSelecionado === 'semana') {
+          this.faixaEtariaSemana = faixas;
+        } else if (this.periodoSelecionado === 'mes') {
+          this.faixaEtariaMes = faixas;
+        } else {
+          this.faixaEtariaAno = faixas;
+        }
+        this.atualizarGraficoFaixaEtaria();
+      },
+      (error) => {
+        console.error('❌ [COMPONENT] Erro ao buscar distribuição por faixa etária:', error);
+        this.atualizarGraficoFaixaEtaria();
+      }
+    );
   }
 
   ngAfterViewChecked(): void {
@@ -499,7 +532,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.fetchTempoMedioPorPeriodo();
       this.fetchClassificacaoRiscoPorPeriodo();
       this.atualizarGraficoDistribuicaoSexo();
-      this.atualizarGraficoFaixaEtaria();
+  this.fetchDistribuicaoPorFaixaEtaria();
       this.lastPeriodoSelecionado = this.periodoSelecionado;
     }
 

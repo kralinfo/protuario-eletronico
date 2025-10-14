@@ -19,6 +19,13 @@ const router = Router();
 router.get('/distribuicao-por-sexo', PacientesController.getDistribuicaoPorSexo);
 
 /**
+ * @route GET /api/pacientes/distribuicao-por-faixa-etaria
+ * @desc Endpoint para distribuição por faixa etária
+ * @access Public/Private
+ */
+router.get('/distribuicao-por-faixa-etaria', PacientesController.getDistribuicaoPorFaixaEtaria);
+
+/**
  * @route GET /api/pacientes/test-sexo
  * @desc Endpoint de teste simples para distribuição por sexo
  * @access Public

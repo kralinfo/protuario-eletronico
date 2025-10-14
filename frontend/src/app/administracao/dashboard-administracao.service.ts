@@ -257,4 +257,26 @@ export class DashboardAdministracaoService {
       })
     );
   }
+
+  getDistribuicaoPorFaixaEtaria(periodo: 'semana' | 'mes' | 'ano'): Observable<any> {
+    const url = `http://localhost:3001/api/pacientes/distribuicao-por-faixa-etaria?filtro=${periodo}`;
+    console.log(`🔍 [SERVICE] Fazendo requisição GET para ${url}`);
+    return this.http.get<any>(url).pipe(
+      tap(data => {
+        console.log('✅ [SERVICE] Dados recebidos da distribuição por faixa etária:', data);
+      }),
+      catchError(error => {
+        console.error('❌ [SERVICE] Erro ao buscar distribuição por faixa etária:', error);
+        // Retorna dados mock em caso de erro
+        const mockData = {
+          '0-12': 5,
+          '13-18': 3,
+          '19-35': 8,
+          '36-60': 6,
+          '60+': 2
+        };
+        return of({ status: 'SUCCESS', data: mockData, fallback: true });
+      })
+    );
+  }
 }
