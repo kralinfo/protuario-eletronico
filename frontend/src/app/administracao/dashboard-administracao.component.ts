@@ -486,6 +486,13 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   }
 
   atualizarGraficoFaixaEtaria() {
+    console.log('📊 [DEBUG - FAIXA ETÁRIA] Atualizando gráfico com os dados:',
+      this.periodoSelecionado === 'semana' ? this.faixaEtariaSemana :
+      this.periodoSelecionado === 'mes' ? this.faixaEtariaMes :
+      this.faixaEtariaAno
+    );
+
+    // Destroi instâncias existentes
     if (this.ageChartSemanaInstance) {
       this.ageChartSemanaInstance.destroy();
       this.ageChartSemanaInstance = null;
@@ -498,13 +505,22 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
       this.ageChartAnoInstance.destroy();
       this.ageChartAnoInstance = null;
     }
-    if (this.periodoSelecionado === 'semana') {
-      this.renderAgeChartSemana();
-    } else if (this.periodoSelecionado === 'mes') {
-      this.renderAgeChartMes();
-    } else {
-      this.renderAgeChartAno();
-    }
+    // Recria apenas o gráfico visível conforme o período selecionado
+    setTimeout(() => {
+      try {
+        if (this.periodoSelecionado === 'semana') {
+          this.renderAgeChartSemana();
+        } else if (this.periodoSelecionado === 'mes') {
+          this.renderAgeChartMes();
+        } else {
+          this.renderAgeChartAno();
+        }
+      } catch (error) {
+        console.error('❌ [COMPONENT] Erro ao renderizar gráfico de faixa etária:', error);
+      } finally {
+        this.updating = false;
+      }
+    }, 100);
   }
 
   ngAfterViewInit() {
@@ -528,6 +544,13 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           this.atualizarGraficoFaixaEtaria();
           return;
         }
+
+        // Log inicial para confirmar execução do método
+        console.log('📊 [DEBUG - FAIXA ETÁRIA] Método fetchDistribuicaoPorFaixaEtaria chamado para o período:', this.periodoSelecionado);
+
+        // Adicionando logs mais específicos para depuração dos dados recebidos para faixa etária
+        console.log('📊 [DEBUG - FAIXA ETÁRIA] Dados recebidos do backend para o período:', this.periodoSelecionado, response.data);
+
         // Mapeia dados para array de faixas
         const faixas = [
           { faixa: '0-12', value: response.data['0-12'] || 0 },
@@ -536,6 +559,9 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           { faixa: '36-60', value: response.data['36-60'] || 0 },
           { faixa: '60+', value: response.data['60+'] || 0 }
         ];
+
+        console.log('📊 [DEBUG - FAIXA ETÁRIA] Dados mapeados para o gráfico:', faixas);
+
         if (this.periodoSelecionado === 'semana') {
           this.faixaEtariaSemana = faixas;
         } else if (this.periodoSelecionado === 'mes') {
@@ -543,6 +569,12 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
         } else {
           this.faixaEtariaAno = faixas;
         }
+
+        console.log(`📊 [DEBUG - FAIXA ETÁRIA] Dados atribuídos ao gráfico para o período ${this.periodoSelecionado}:`,
+          this.periodoSelecionado === 'semana' ? this.faixaEtariaSemana :
+          this.periodoSelecionado === 'mes' ? this.faixaEtariaMes :
+          this.faixaEtariaAno
+        );
         this.atualizarGraficoFaixaEtaria();
       },
       (error) => {
@@ -785,6 +817,12 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   renderDonutChartMes() {
     const ctx = document.getElementById('donutChartMes') as HTMLCanvasElement;
     if (ctx) {
+      // Destruir instância existente antes de criar um novo gráfico
+      if (this.donutChartMesInstance) {
+        this.donutChartMesInstance.destroy();
+        this.donutChartMesInstance = null;
+      }
+
       this.donutChartMesInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -837,6 +875,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   renderAgeChartSemana() {
     const ctx = document.getElementById('ageChartSemana') as HTMLCanvasElement;
     if (ctx) {
+      console.log('📊 [DEBUG - FAIXA ETÁRIA] Dados para o gráfico semanal:', this.faixaEtariaSemana);
       this.ageChartSemanaInstance = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -862,13 +901,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   renderAgeChartMes() {
     const ctx = document.getElementById('ageChartMes') as HTMLCanvasElement;
     if (ctx) {
+      console.log('📊 [DEBUG - FAIXA ETÁRIA] Dados para o gráfico mensal:', this.faixaEtariaMes);
       this.ageChartMesInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: this.faixaEtariaSemana.map(f => f.faixa),
+          labels: this.faixaEtariaMes.map(f => f.faixa),
           datasets: [{
             label: 'Pacientes',
-            data: this.faixaEtariaSemana.map(f => f.value),
+            data: this.faixaEtariaMes.map(f => f.value),
             backgroundColor: '#22c55e'
           }]
         },
@@ -887,6 +927,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   renderAgeChartAno() {
     const ctx = document.getElementById('ageChartAno') as HTMLCanvasElement;
     if (ctx) {
+      console.log('📊 [DEBUG - FAIXA ETÁRIA] Dados para o gráfico anual:', this.faixaEtariaAno);
       this.ageChartAnoInstance = new Chart(ctx, {
         type: 'bar',
         data: {
