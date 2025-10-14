@@ -117,6 +117,33 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     Chart.register(...registerables);
   }
 
+  // Métodos utilitários para verificar se os gráficos estão vazios
+  isSexoDistribuicaoVazia(): boolean {
+    const dados = this.periodoSelecionado === 'semana' ? this.sexoDistribuicaoSemana :
+                  this.periodoSelecionado === 'mes' ? this.sexoDistribuicaoMes :
+                  this.sexoDistribuicaoAno;
+    return dados.every(item => item.value === 0);
+  }
+
+  isFaixaEtariaVazia(): boolean {
+    const dados = this.periodoSelecionado === 'semana' ? this.faixaEtariaSemana :
+                  this.periodoSelecionado === 'mes' ? this.faixaEtariaMes :
+                  this.faixaEtariaAno;
+    return dados.every(item => item.value === 0);
+  }
+
+  isClassificacaoRiscoVazia(): boolean {
+    const dados = this.periodoSelecionado === 'semana' ? this.classificacaoRiscoSemana :
+                  this.periodoSelecionado === 'mes' ? this.classificacaoRiscoMes :
+                  this.classificacaoRiscoAno;
+    return dados.every(item => item.value === 0);
+  }
+
+  isAtendimentosVazio(): boolean {
+    const dados = this.atendimentosPorPeriodo[this.periodoSelecionado];
+    return dados.every(value => value === 0);
+  }
+
   fetchAtendimentosPorPeriodo() {
     console.log(`🚀 [COMPONENT] Iniciando fetch para período: ${this.periodoSelecionado}`);
 
