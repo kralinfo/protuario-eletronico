@@ -8,71 +8,71 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
       <!-- Card Tempo Médio de Espera -->
-      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
-        <mat-icon class="text-purple-600 mb-2" style="font-size: 2.5rem;">timer</mat-icon>
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center" style="overflow: visible !important; padding: 2rem 1.5rem !important; min-height: 280px !important;">
+        <mat-icon class="text-purple-600 mb-2" style="font-size: 2rem; margin: 0 auto 1rem auto !important; padding: 0.5rem !important; overflow: visible !important; display: block !important; text-align: center !important;">timer</mat-icon>
         <div class="text-lg text-gray-700 mb-1">Tempo médio de espera</div>
-        <div class="text-3xl font-bold text-purple-700">{{ tempoMedioEsperaAtual }} min</div>
-        <div class="mt-2 text-sm text-gray-500">Selecione o período:</div>
-        <select class="mt-1 px-2 py-1 border rounded" [(ngModel)]="periodoSelecionado" (ngModelChange)="atualizarGraficoBarra()">
+        <div class="text-2xl font-bold text-purple-700">{{ tempoMedioEsperaAtual }} min</div>
+        <div class="mt-2 text-xs text-gray-500">Selecione o período:</div>
+        <select class="mt-1 px-2 py-1 border rounded text-sm" [(ngModel)]="periodoSelecionado" (ngModelChange)="atualizarGraficoBarra()">
           <option value="semana">Dia da semana</option>
           <option value="mes">Mês atual</option>
           <option value="ano">Ano</option>
         </select>
       </div>
       <!-- Gráfico de Barra -->
-      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
-        <div class="text-lg text-gray-700 mb-2">
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center" style="overflow: visible !important; padding: 2rem 1.5rem !important; min-height: 280px !important;">
+        <div class="text-sm text-gray-700 mb-2">
           {{ periodoSelecionado === 'semana' ? 'Atendimentos por dia da semana' :
              periodoSelecionado === 'mes' ? 'Atendimentos por dia do mês' :
              'Atendimentos por mês do ano' }}
         </div>
-        <div *ngIf="isAtendimentosVazio()" class="text-center text-gray-400 mt-8 mb-8">
-          <mat-icon class="text-4xl mb-2">info_outline</mat-icon><br>
-          Nenhum atendimento registrado neste período.<br>
-          <small>O gráfico está em branco pois não há dados para exibir.</small>
+        <div *ngIf="isAtendimentosVazio()" class="text-center text-gray-400 mt-4 mb-4">
+          <mat-icon class="text-2xl mb-1" style="overflow: visible !important; margin: 0.5rem auto !important; padding: 0.5rem !important; display: block !important; text-align: center !important;">info_outline</mat-icon><br>
+          <small class="text-xs">Nenhum atendimento registrado neste período.</small><br>
+          <small class="text-xs">O gráfico está em branco pois não há dados para exibir.</small>
         </div>
-        <canvas *ngIf="periodoSelecionado === 'semana'" id="barChartSemana" width="400" height="200"></canvas>
-        <canvas *ngIf="periodoSelecionado === 'mes'" id="barChartMes" width="400" height="200"></canvas>
-        <canvas *ngIf="periodoSelecionado === 'ano'" id="barChartAno" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'semana'" id="barChartSemana" width="300" height="150"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'mes'" id="barChartMes" width="300" height="150"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'ano'" id="barChartAno" width="300" height="150"></canvas>
       </div>
       <!-- Gráfico Circular Classificação de Risco -->
-      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
-        <div class="text-lg text-gray-700 mb-2">Classificação de risco (%)</div>
-        <div *ngIf="isClassificacaoRiscoVazia()" class="text-center text-gray-400 mt-8 mb-8">
-          <mat-icon class="text-4xl mb-2">info_outline</mat-icon><br>
-          Nenhuma classificação de risco registrada neste período.<br>
-          <small>O gráfico está em branco pois não há dados para exibir.</small>
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center" style="overflow: visible !important; padding: 2rem 1.5rem !important; min-height: 280px !important;">
+        <div class="text-sm text-gray-700 mb-2">Classificação de risco (%)</div>
+        <div *ngIf="isClassificacaoRiscoVazia()" class="text-center text-gray-400 mt-4 mb-4">
+          <mat-icon class="text-2xl mb-1" style="overflow: visible !important; margin: 0.5rem auto !important; padding: 0.5rem !important; display: block !important; text-align: center !important;">info_outline</mat-icon><br>
+          <small class="text-xs">Nenhuma classificação de risco registrada neste período.</small><br>
+          <small class="text-xs">O gráfico está em branco pois não há dados para exibir.</small>
         </div>
-        <canvas *ngIf="periodoSelecionado === 'semana'" id="pieChartSemana" width="400" height="200"></canvas>
-        <canvas *ngIf="periodoSelecionado === 'mes'" id="pieChartMes" width="400" height="200"></canvas>
-        <canvas *ngIf="periodoSelecionado === 'ano'" id="pieChartAno" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'semana'" id="pieChartSemana" width="300" height="150"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'mes'" id="pieChartMes" width="300" height="150"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'ano'" id="pieChartAno" width="300" height="150"></canvas>
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <!-- Distribuição por Sexo -->
-      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
-        <div class="text-lg text-gray-700 mb-2">Distribuição por sexo</div>
-        <div *ngIf="isSexoDistribuicaoVazia()" class="text-center text-gray-400 mt-8 mb-8">
-          <mat-icon class="text-4xl mb-2">info_outline</mat-icon><br>
-          Nenhum atendimento registrado neste período.<br>
-          <small>O gráfico está em branco pois não há dados para exibir.</small>
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center" style="overflow: visible !important; padding: 2rem 1.5rem !important; min-height: 280px !important;">
+        <div class="text-sm text-gray-700 mb-2">Distribuição por sexo</div>
+        <div *ngIf="isSexoDistribuicaoVazia()" class="text-center text-gray-400 mt-4 mb-4">
+          <mat-icon class="text-2xl mb-1" style="overflow: visible !important; margin: 0.5rem auto !important; padding: 0.5rem !important; display: block !important; text-align: center !important;">info_outline</mat-icon><br>
+          <small class="text-xs">Nenhum paciente registrado neste período.</small><br>
+          <small class="text-xs">O gráfico está em branco pois não há dados para exibir.</small>
         </div>
-        <canvas *ngIf="periodoSelecionado === 'semana'" id="donutChartSemana" width="400" height="200"></canvas>
-        <canvas *ngIf="periodoSelecionado === 'mes'" id="donutChartMes" width="400" height="200"></canvas>
-        <canvas *ngIf="periodoSelecionado === 'ano'" id="donutChartAno" width="400" height="200"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'semana'" id="donutChartSemana" width="300" height="150"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'mes'" id="donutChartMes" width="300" height="150"></canvas>
+        <canvas *ngIf="periodoSelecionado === 'ano'" id="donutChartAno" width="300" height="150"></canvas>
       </div>
       <!-- Gráfico por Faixa Etária -->
-      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
-        <div class="text-lg text-gray-700 mb-2">Distribuição por faixa etária</div>
-        <div *ngIf="isFaixaEtariaVazia()" class="text-center text-gray-400 mt-8 mb-8">
-          <mat-icon class="text-4xl mb-2">info_outline</mat-icon><br>
-          Nenhum atendimento registrado neste período.<br>
-          <small>O gráfico está em branco pois não há dados para exibir.</small>
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center" style="overflow: visible !important; padding: 2rem 1.5rem !important; min-height: 280px !important;">
+        <div class="text-sm text-gray-700 mb-2">Distribuição por faixa etária</div>
+        <div *ngIf="isFaixaEtariaVazia()" class="text-center text-gray-400 mt-4 mb-4">
+          <mat-icon class="text-2xl mb-1" style="overflow: visible !important; margin: 0.5rem auto !important; padding: 0.5rem !important; display: block !important; text-align: center !important;">info_outline</mat-icon><br>
+          <small class="text-xs">Nenhum paciente registrado neste período.</small><br>
+          <small class="text-xs">O gráfico está em branco pois não há dados para exibir.</small>
         </div>
         <div class="w-full max-w-sm mx-auto">
-          <canvas *ngIf="periodoSelecionado === 'semana'" id="ageChartSemana" class="w-full h-40"></canvas>
-          <canvas *ngIf="periodoSelecionado === 'mes'" id="ageChartMes" class="w-full h-40"></canvas>
-          <canvas *ngIf="periodoSelecionado === 'ano'" id="ageChartAno" class="w-full h-40"></canvas>
+          <canvas *ngIf="periodoSelecionado === 'semana'" id="ageChartSemana" class="w-full h-32"></canvas>
+          <canvas *ngIf="periodoSelecionado === 'mes'" id="ageChartMes" class="w-full h-32"></canvas>
+          <canvas *ngIf="periodoSelecionado === 'ano'" id="ageChartAno" class="w-full h-32"></canvas>
         </div>
       </div>
     </div>

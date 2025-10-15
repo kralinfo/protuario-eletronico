@@ -2,6 +2,43 @@
 .dashboard-administracao {
   margin-top: 2rem; /* Ajuste para descer os gráficos */
 
+  // SOLUÇÃO MAIS AGRESSIVA PARA ÍCONES CORTADOS
+  .bg-white.rounded-lg.shadow.p-6 {
+    overflow: visible !important;
+    padding: 2rem 1.5rem !important; /* Espaço adequado mas não excessivo */
+    min-height: 280px !important;
+    
+    // Ícones dentro dos cards - FORÇAR ESPAÇO
+    mat-icon {
+      display: block !important;
+      margin: 0 auto 1rem auto !important; /* Centralizar com espaço menor */
+      padding: 0.5rem !important; /* Padding menor mas suficiente */
+      line-height: 1 !important;
+      overflow: visible !important;
+      font-size: 2rem !important;
+      text-align: center !important;
+      width: auto !important;
+      height: auto !important;
+      box-sizing: content-box !important;
+      position: static !important;
+      transform: none !important;
+      clip: none !important;
+      clip-path: none !important;
+    }
+  }
+
+  // Alternativa para qualquer card branco
+  .bg-white {
+    overflow: visible !important;
+    
+    mat-icon {
+      overflow: visible !important;
+      margin-top: 2rem !important;
+      margin-bottom: 1.5rem !important;
+      padding: 1.5rem 0 !important;
+    }
+  }
+
   .card-hover {
     transition: all 0.3s ease;
     &:hover {
@@ -42,19 +79,12 @@
     }
   }
 
-  .card {
-    max-width: 350px; /* Aumentando um pouco para acomodar melhor os gráficos */
-    margin: 1rem auto; /* Adicionando espaçamento entre os cards */
-    min-height: 350px; /* Altura mínima para os cards */
-    max-height: 400px; /* Altura máxima para evitar crescimento infinito */
-  }
-
   canvas {
-    max-width: 280px !important; /* Largura fixa máxima */
-    max-height: 180px !important; /* Altura fixa máxima */
-    width: 280px !important; /* Largura fixa */
-    height: 180px !important; /* Altura fixa */
-    margin: 1rem auto; /* Centralizando */
+    max-width: 300px !important; /* Dimensões menores */
+    max-height: 150px !important; 
+    width: 300px !important; 
+    height: 150px !important; 
+    margin: 0.5rem auto; /* Menos espaçamento */
     display: block; /* Para centralizar melhor */
   }
 
@@ -64,30 +94,30 @@
   }
 
   @media (max-width: 768px) {
-    .card {
-      max-width: 90%;
-      min-height: 300px;
+    .bg-white.rounded-lg.shadow {
+      padding: 1.5rem 1rem !important;
+      min-height: 240px !important;
     }
     
     canvas {
       max-width: 250px !important;
-      max-height: 150px !important;
+      max-height: 120px !important;
       width: 250px !important;
-      height: 150px !important;
+      height: 120px !important;
     }
   }
 
   @media (max-width: 640px) {
-    .card {
-      padding: 0.5rem;
-      min-height: 280px;
+    .bg-white.rounded-lg.shadow {
+      padding: 1rem 0.5rem !important;
+      min-height: 200px !important;
     }
     
     canvas {
       max-width: 200px !important;
-      max-height: 120px !important;
+      max-height: 100px !important;
       width: 200px !important;
-      height: 120px !important;
+      height: 100px !important;
     }
   }
 }
@@ -122,5 +152,23 @@
     .grid-cols-4 {
       grid-template-columns: repeat(1, minmax(0, 1fr));
     }
+  }
+}
+
+// OVERRIDE GLOBAL PARA GARANTIR QUE ÍCONES NÃO SEJAM CORTADOS
+:host {
+  mat-icon {
+    overflow: visible !important;
+    margin: 1rem auto !important;
+    padding: 1rem !important;
+    display: block !important;
+    text-align: center !important;
+    box-sizing: content-box !important;
+  }
+  
+  .bg-white {
+    overflow: visible !important;
+    padding-top: 3rem !important;
+    min-height: 350px !important;
   }
 }
