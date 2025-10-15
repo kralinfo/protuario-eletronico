@@ -7,11 +7,9 @@ class PacientesController {
    */
   static async getDistribuicaoPorFaixaEtaria(req, res) {
     try {
-      console.log('🔄 [DISTRIBUIÇÃO] Iniciando cálculo da distribuição por faixa etária...');
       const { filtro = 'semana' } = req.query;
 
       if (!['semana', 'mes', 'ano'].includes(filtro)) {
-        console.log(`❌ [DISTRIBUIÇÃO] Filtro inválido recebido: ${filtro}`);
         return res.status(400).json({
           status: 'ERROR',
           message: 'Filtro inválido. Use semana, mes ou ano.'
@@ -247,8 +245,6 @@ class PacientesController {
       // Criar paciente
       const novoPaciente = await Paciente.create(pacienteData);
 
-      console.log(`✅ [PACIENTES] Paciente criado: ${novoPaciente.nome} (ID: ${novoPaciente.id})`);
-
       res.status(201).json({
         status: 'SUCCESS',
         message: 'Paciente criado com sucesso',
@@ -322,8 +318,6 @@ class PacientesController {
         throw new AppError('Erro ao atualizar paciente', 500, 'UPDATE_FAILED');
       }
 
-      console.log(`✅ [PACIENTES] Paciente atualizado: ${pacienteAtualizado.nome} (ID: ${id})`);
-
       res.json({
         status: 'SUCCESS',
         message: 'Paciente atualizado com sucesso',
@@ -378,8 +372,6 @@ class PacientesController {
       if (!deletado) {
         throw new AppError('Erro ao deletar paciente', 500, 'DELETE_FAILED');
       }
-
-      console.log(`✅ [PACIENTES] Paciente deletado: ${paciente.nome} (ID: ${id})`);
 
       res.json({
         status: 'SUCCESS',
@@ -541,8 +533,6 @@ class PacientesController {
         order
       };
 
-      console.log('🔍 [RELATÓRIOS] Filtros aplicados:', filters);
-
       // Buscar pacientes com filtros
       const pacientes = await Paciente.findAllForReports(filters);
       
@@ -551,8 +541,6 @@ class PacientesController {
       const masculino = pacientes.filter(p => p.sexo === 'M').length;
       const feminino = pacientes.filter(p => p.sexo === 'F').length;
       const municipios = [...new Set(pacientes.map(p => p.municipio))].length;
-
-      console.log(`📊 [RELATÓRIOS] ${total} pacientes encontrados`);
 
       res.json({
         status: 'SUCCESS',
@@ -675,19 +663,15 @@ class PacientesController {
    */
   static async getDistribuicaoPorSexo(req, res) {
     try {
-      console.log('🔄 [DISTRIBUIÇÃO] Iniciando cálculo da distribuição por sexo...');
       const { filtro = 'semana' } = req.query;
       
       // Validar filtro
       if (!['semana', 'mes', 'ano'].includes(filtro)) {
-        console.log(`❌ [DISTRIBUIÇÃO] Filtro inválido recebido: ${filtro}`);
         return res.status(400).json({ 
           status: 'ERROR',
           message: 'Filtro inválido. Use semana, mes ou ano.' 
         });
       }
-
-      console.log(`📅 [DISTRIBUIÇÃO] Processando filtro: ${filtro}`);
 
       // Calcular período baseado no filtro
       const hoje = new Date();
@@ -711,8 +695,6 @@ class PacientesController {
       const dataInicioStr = dataInicio.toISOString().split('T')[0];
       const dataFimStr = hoje.toISOString().split('T')[0];
       
-      console.log(`📅 [DISTRIBUIÇÃO] Período: ${dataInicioStr} até ${dataFimStr}`);
-
       // Tentar buscar dados reais primeiro
       let distribuicao = { M: 0, F: 0 };
       
@@ -724,8 +706,6 @@ class PacientesController {
           limit: 1000, // Limite para não sobrecarregar
           offset: 0
         });
-
-        console.log(`📊 [DISTRIBUIÇÃO] ${pacientes.length} pacientes encontrados no período`);
 
         // Contar por sexo
         pacientes.forEach(paciente => {
@@ -746,7 +726,6 @@ class PacientesController {
         };
         
         distribuicao = dadosMock[filtro];
-        console.log('🔄 [DISTRIBUIÇÃO] Usando dados mock como fallback');
       }
 
       const total = distribuicao.M + distribuicao.F;
@@ -755,8 +734,6 @@ class PacientesController {
 
       const totalFinal = distribuicao.M + distribuicao.F;
       
-      console.log(`✅ [DISTRIBUIÇÃO] Resultado final: M=${distribuicao.M}, F=${distribuicao.F}, Total=${totalFinal}`);
-
       res.json({
         status: 'SUCCESS',
         data: {
@@ -799,10 +776,7 @@ class PacientesController {
    */
   static async getPacientesPorSexo(req, res) {
     try {
-      console.log('🔍 [PACIENTES] Iniciando busca por sexo e período...');
       const { sexo, periodo } = req.query;
-
-      console.log('📋 [PACIENTES] Parâmetros recebidos:', { sexo, periodo });
 
       if (!sexo || !['M', 'F'].includes(sexo.toUpperCase())) {
         return res.status(400).json({
@@ -836,8 +810,6 @@ class PacientesController {
       const dataInicioStr = dataInicio.toISOString().split('T')[0];
       const dataFimStr = hoje.toISOString().split('T')[0];
 
-      console.log('📅 [PACIENTES] Buscando pacientes entre:', { dataInicioStr, dataFimStr, sexo: sexo.toUpperCase() });
-
       // Buscar pacientes no período e sexo especificados
       const pacientes = await Paciente.findAll({
         sexo: sexo.toUpperCase(),
@@ -846,19 +818,6 @@ class PacientesController {
         limit: 1000,
         offset: 0
       });
-
-      console.log(`✅ [PACIENTES] ${pacientes.length} pacientes encontrados`);
-
-      // Log temporário para verificar os dados brutos
-      if (pacientes.length > 0) {
-        console.log('🔍 [DEBUG] Primeiro paciente bruto:', {
-          created_at: pacientes[0].created_at,
-          updated_at: pacientes[0].updated_at,
-          id: pacientes[0].id,
-          nome: pacientes[0].nome
-        });
-        console.log('🔍 [DEBUG] Primeiro paciente toJSON():', pacientes[0].toJSON());
-      }
 
       res.json(pacientes.map(p => p.toJSON()));
     } catch (error) {
