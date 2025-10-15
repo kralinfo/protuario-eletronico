@@ -193,7 +193,32 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     this.modalAtendimentos = [];
   }
 
-  fetchAtendimentosPorPeriodo() {
+  abrirModalClassificacaoRisco(classificacao: string): void {
+    console.log(`🔍 [COMPONENT] Abrindo modal para classificação: ${classificacao}, período: ${this.periodoSelecionado}`);
+
+    this.dashboardService.getAtendimentosPorClassificacao(classificacao, this.periodoSelecionado).subscribe(
+      (atendimentos) => {
+        this.modalPeriodo = this.periodoSelecionado;
+        this.modalLabel = `Classificação: ${classificacao}`;
+        this.modalAtendimentos = atendimentos;
+        this.modalVisible = true;
+      },
+      (error) => {
+        console.error('❌ [COMPONENT] Erro ao buscar atendimentos por classificação:', error);
+      }
+    );
+  }
+
+  // Função para mapear labels do frontend para valores do banco
+  private mapearClassificacaoParaBanco(label: string): string {
+    const mapeamento: { [key: string]: string } = {
+      'vermelha': 'vermelho',
+      'amarela': 'amarelo',
+      'verde': 'verde',
+      'azul': 'azul'
+    };
+    return mapeamento[label.toLowerCase()] || label.toLowerCase();
+  }  fetchAtendimentosPorPeriodo() {
     console.log(`🚀 [COMPONENT] Iniciando fetch para período: ${this.periodoSelecionado}`);
 
     // Evita múltiplas chamadas simultâneas
@@ -816,6 +841,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               display: true,
               position: 'bottom'
             }
+          },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const label = this.classificacaoRiscoSemana[index].label;
+              const classificacao = this.mapearClassificacaoParaBanco(label);
+              this.abrirModalClassificacaoRisco(classificacao);
+            }
           }
         }
       });
@@ -842,6 +875,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               display: true,
               position: 'bottom'
             }
+          },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const label = this.classificacaoRiscoMes[index].label;
+              const classificacao = this.mapearClassificacaoParaBanco(label);
+              this.abrirModalClassificacaoRisco(classificacao);
+            }
           }
         }
       });
@@ -867,6 +908,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
             legend: {
               display: true,
               position: 'bottom'
+            }
+          },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const label = this.classificacaoRiscoAno[index].label;
+              const classificacao = this.mapearClassificacaoParaBanco(label);
+              this.abrirModalClassificacaoRisco(classificacao);
             }
           }
         }

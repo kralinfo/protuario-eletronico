@@ -1072,6 +1072,86 @@ export const detalhesAtendimentos = async (req, res) => {
   }
 };
 
+// Função para buscar atendimentos por classificação de risco e período
+export const atendimentosPorClassificacao = async (req, res) => {
+  try {
+    const { classificacao, periodo } = req.query;
+
+    if (!classificacao || !periodo) {
+      return res.status(400).json({ error: 'Classificação e período são obrigatórios.' });
+    }
+
+    const hoje = new Date();
+    let dataInicio, dataFim;
+    
+    switch (periodo) {
+      case 'semana':
+        // Mesma lógica do atendimentosPorSemana
+        const diaSemanaHoje = hoje.getDay(); // 0=Domingo, 1=Segunda, 2=Terça, 3=Quarta...
+        dataInicio = new Date(hoje);
+        dataInicio.setDate(hoje.getDate() - ((diaSemanaHoje + 6) % 7));
+        dataInicio.setHours(0,0,0,0);
+        
+        dataFim = new Date(hoje);
+        dataFim.setHours(23,59,59,999);
+        break;
+        
+      case 'mes':
+        // Mesma lógica do atendimentosPorMes
+        dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        
+        dataFim = new Date(hoje);
+        dataFim.setHours(23,59,59,999);
+        break;
+        
+      case 'ano':
+        // Mesma lógica do atendimentosPorAno
+        dataInicio = new Date(hoje.getFullYear(), 0, 1);
+        
+        dataFim = new Date(hoje);
+        dataFim.setHours(23,59,59,999);
+        break;
+        
+      default:
+        return res.status(400).json({ error: 'Período inválido. Use semana, mes ou ano.' });
+    }
+
+    console.log(`🔍 Buscando atendimentos com classificação: ${classificacao}, período: ${periodo}`);
+    console.log(`📅 Intervalo: ${dataInicio.toISOString()} até ${dataFim.toISOString()}`);
+
+    const query = `
+      SELECT 
+        a.id,
+        p.nome as paciente,
+        a.data_hora_atendimento,
+        a.classificacao_risco,
+        a.status
+      FROM atendimentos a
+      JOIN pacientes p ON a.paciente_id = p.id
+      WHERE a.classificacao_risco = $1
+        AND a.data_hora_atendimento >= $2
+        AND a.data_hora_atendimento <= $3
+      ORDER BY a.data_hora_atendimento DESC
+    `;
+
+    const result = await db.query(query, [classificacao, dataInicio, dataFim]);
+    console.log(`✅ Encontrados ${result.rows.length} atendimentos`);
+    
+    // Debug: vamos ver todas as classificações existentes se não encontrou nada
+    if (result.rows.length === 0) {
+      console.log('🔍 Debug: Nenhum atendimento encontrado, listando todas as classificações no banco...');
+      const debugQuery = `SELECT DISTINCT classificacao_risco FROM atendimentos WHERE classificacao_risco IS NOT NULL`;
+      const debugResult = await db.query(debugQuery);
+      console.log('🔍 Classificações existentes no banco:', debugResult.rows.map(r => r.classificacao_risco));
+    }
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Erro ao buscar atendimentos por classificação:', error);
+    res.status(500).json({ error: 'Erro interno ao buscar atendimentos.' });
+  }
+};
+
 export default {
   registrar,
   listarPorPaciente,
@@ -1094,5 +1174,6 @@ export default {
   classificacaoRiscoPorSemana,
   classificacaoRiscoPorMes,
   classificacaoRiscoPorAno,
-  detalhesAtendimentos
+  detalhesAtendimentos,
+  atendimentosPorClassificacao
 };

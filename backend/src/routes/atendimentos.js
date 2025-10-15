@@ -11,7 +11,8 @@ import {
   classificacaoRiscoPorSemana,
   classificacaoRiscoPorMes,
   classificacaoRiscoPorAno,
-  detalhesAtendimentos
+  detalhesAtendimentos,
+  atendimentosPorClassificacao
 } from '../controllers/atendimentosController.js';
 
 const router = express.Router();
@@ -67,6 +68,22 @@ router.get('/tempo-medio/ano', tempoMedioPorAno);
 router.get('/classificacao-risco/semana', classificacaoRiscoPorSemana);
 router.get('/classificacao-risco/mes', classificacaoRiscoPorMes);
 router.get('/classificacao-risco/ano', classificacaoRiscoPorAno);
+
+// Endpoint para buscar atendimentos por classificação de risco
+router.get('/por-classificacao', atendimentosPorClassificacao);
+
+// Endpoint de debug para listar todas as classificações existentes
+router.get('/debug/classificacoes', async (req, res) => {
+  try {
+    const result = await knex('atendimentos')
+      .select('classificacao_risco')
+      .distinct()
+      .whereNotNull('classificacao_risco');
+    res.json(result.map(r => r.classificacao_risco));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Endpoint para detalhes de atendimentos por período
 router.get('/detalhes-periodo', detalhesAtendimentos);

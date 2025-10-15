@@ -301,4 +301,24 @@ export class DashboardAdministracaoService {
       })
     );
   }
+
+  getAtendimentosPorClassificacao(classificacao: string, periodo: string): Observable<any[]> {
+    const url = `http://localhost:3001/api/atendimentos/por-classificacao?classificacao=${classificacao}&periodo=${periodo}`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
+
+    return this.http.get<any[]>(url).pipe(
+      tap(data => {
+        console.log('✅ [SERVICE] Atendimentos por classificação recebidos:', data);
+        console.log('✅ [SERVICE] Quantidade de atendimentos:', data.length);
+      }),
+      catchError(error => {
+        console.error('❌ [SERVICE] ERRO ao buscar atendimentos por classificação:', error);
+        console.error('❌ [SERVICE] URL completa tentada:', url);
+        console.error('❌ [SERVICE] Status:', error.status);
+        console.error('❌ [SERVICE] Error details:', error.error);
+
+        return of([]);
+      })
+    );
+  }
 }
