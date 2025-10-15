@@ -426,7 +426,9 @@ class Paciente {
       municipio: this.municipio,
       uf: this.uf,
       cep: this.cep,
-      idade: this.getIdade()
+      idade: this.getIdade(),
+      created_at: this.created_at,
+      updated_at: this.updated_at
     };
   }
 

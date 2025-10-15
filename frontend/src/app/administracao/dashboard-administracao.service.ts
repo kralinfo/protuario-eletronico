@@ -321,4 +321,41 @@ export class DashboardAdministracaoService {
       })
     );
   }
+
+  getPacientesPorSexo(sexo: string, periodo: string): Observable<any[]> {
+    const url = `http://localhost:3001/api/pacientes/por-sexo?sexo=${sexo}&periodo=${periodo}`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
+    console.log('🔍 [SERVICE] Sexo solicitado:', sexo, 'Período:', periodo);
+
+    return this.http.get<any[]>(url).pipe(
+      tap(data => {
+        console.log('✅ [SERVICE] Pacientes reais recebidos:', data);
+        console.log('✅ [SERVICE] Quantidade de pacientes:', data.length);
+      }),
+      catchError(error => {
+        console.error('❌ [SERVICE] ERRO ao buscar pacientes por sexo:', error);
+        console.error('❌ [SERVICE] URL completa tentada:', url);
+        console.error('❌ [SERVICE] Status:', error.status);
+        console.error('❌ [SERVICE] Error details:', error.error);
+
+        // Fallback para dados mock em caso de erro
+        console.log('🔄 [SERVICE] Usando dados mock como fallback');
+        let pacientesMock: any[] = [];
+
+        if (sexo.toLowerCase() === 'm' || sexo.toLowerCase() === 'masculino') {
+          pacientesMock = [
+            { id: 1, nome: 'João Silva (Mock)', sexo: 'M', nascimento: '1990-01-01', created_at: '2025-10-10' },
+            { id: 2, nome: 'Pedro Santos (Mock)', sexo: 'M', nascimento: '1985-05-15', created_at: '2025-10-12' }
+          ];
+        } else if (sexo.toLowerCase() === 'f' || sexo.toLowerCase() === 'feminino') {
+          pacientesMock = [
+            { id: 3, nome: 'Maria Oliveira (Mock)', sexo: 'F', nascimento: '1988-03-20', created_at: '2025-10-11' },
+            { id: 4, nome: 'Ana Costa (Mock)', sexo: 'F', nascimento: '1993-07-10', created_at: '2025-10-13' }
+          ];
+        }
+
+        return of(pacientesMock);
+      })
+    );
+  }
 }

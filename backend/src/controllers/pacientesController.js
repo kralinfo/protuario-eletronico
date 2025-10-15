@@ -1,4 +1,3 @@
-
 import Paciente from '../models/Paciente.js';
 import { AppError } from '../middleware/errorHandler.js';
 
@@ -791,6 +790,82 @@ class PacientesController {
         fallback: true,
         error: error.message,
         timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  /**
+   * Listar pacientes por sexo e período
+   */
+  static async getPacientesPorSexo(req, res) {
+    try {
+      console.log('🔍 [PACIENTES] Iniciando busca por sexo e período...');
+      const { sexo, periodo } = req.query;
+
+      console.log('📋 [PACIENTES] Parâmetros recebidos:', { sexo, periodo });
+
+      if (!sexo || !['M', 'F'].includes(sexo.toUpperCase())) {
+        return res.status(400).json({
+          status: 'ERROR',
+          message: 'Sexo inválido. Use M ou F.'
+        });
+      }
+
+      if (!['semana', 'mes', 'ano'].includes(periodo)) {
+        return res.status(400).json({
+          status: 'ERROR',
+          message: 'Período inválido. Use semana, mes ou ano.'
+        });
+      }
+
+      // Calcular período baseado no filtro
+      const hoje = new Date();
+      let dataInicio = new Date();
+      switch (periodo) {
+        case 'semana':
+          dataInicio.setDate(hoje.getDate() - 7);
+          break;
+        case 'mes':
+          dataInicio.setDate(hoje.getDate() - 30);
+          break;
+        case 'ano':
+          dataInicio.setDate(hoje.getDate() - 365);
+          break;
+      }
+
+      const dataInicioStr = dataInicio.toISOString().split('T')[0];
+      const dataFimStr = hoje.toISOString().split('T')[0];
+
+      console.log('📅 [PACIENTES] Buscando pacientes entre:', { dataInicioStr, dataFimStr, sexo: sexo.toUpperCase() });
+
+      // Buscar pacientes no período e sexo especificados
+      const pacientes = await Paciente.findAll({
+        sexo: sexo.toUpperCase(),
+        dataInicio: dataInicioStr,
+        dataFim: dataFimStr,
+        limit: 1000,
+        offset: 0
+      });
+
+      console.log(`✅ [PACIENTES] ${pacientes.length} pacientes encontrados`);
+
+      // Log temporário para verificar os dados brutos
+      if (pacientes.length > 0) {
+        console.log('🔍 [DEBUG] Primeiro paciente bruto:', {
+          created_at: pacientes[0].created_at,
+          updated_at: pacientes[0].updated_at,
+          id: pacientes[0].id,
+          nome: pacientes[0].nome
+        });
+        console.log('🔍 [DEBUG] Primeiro paciente toJSON():', pacientes[0].toJSON());
+      }
+
+      res.json(pacientes.map(p => p.toJSON()));
+    } catch (error) {
+      console.error('❌ [PACIENTES] Erro ao buscar pacientes por sexo:', error);
+      res.status(500).json({
+        status: 'ERROR',
+        message: 'Erro ao buscar pacientes por sexo'
       });
     }
   }

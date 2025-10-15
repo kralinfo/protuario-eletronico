@@ -209,6 +209,36 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     );
   }
 
+  abrirModalPacientesPorSexo(sexo: string): void {
+    console.log(`🔍 [COMPONENT] Abrindo modal para sexo: ${sexo}, período: ${this.periodoSelecionado}`);
+
+    // Mapear o label do frontend para o valor do banco
+    const sexoMapeado = this.mapearSexoParaBanco(sexo);
+    console.log(`🔍 [COMPONENT] Sexo mapeado: ${sexo} -> ${sexoMapeado}`);
+
+    this.dashboardService.getPacientesPorSexo(sexoMapeado, this.periodoSelecionado).subscribe(
+      (pacientes) => {
+        console.log(`✅ [COMPONENT] Pacientes recebidos:`, pacientes);
+        this.modalPeriodo = this.periodoSelecionado;
+        this.modalLabel = `Sexo: ${sexo}`;
+        this.modalAtendimentos = pacientes;
+        this.modalVisible = true;
+      },
+      (error) => {
+        console.error('❌ [COMPONENT] Erro ao buscar pacientes por sexo:', error);
+      }
+    );
+  }
+
+  // Função para mapear labels de sexo do frontend para valores do banco
+  private mapearSexoParaBanco(label: string): string {
+    const mapeamento: { [key: string]: string } = {
+      'masculino': 'M',
+      'feminino': 'F'
+    };
+    return mapeamento[label.toLowerCase()] || label.toUpperCase();
+  }
+
   // Função para mapear labels do frontend para valores do banco
   private mapearClassificacaoParaBanco(label: string): string {
     const mapeamento: { [key: string]: string } = {
@@ -986,6 +1016,13 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               display: true,
               position: 'bottom'
             }
+          },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const label = this.sexoDistribuicaoMes[index].label;
+              this.abrirModalPacientesPorSexo(label);
+            }
           }
         }
       });
@@ -1011,6 +1048,13 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
             legend: {
               display: true,
               position: 'bottom'
+            }
+          },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const label = this.sexoDistribuicaoAno[index].label;
+              this.abrirModalPacientesPorSexo(label);
             }
           }
         }
