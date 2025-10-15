@@ -115,7 +115,11 @@ export class UsuariosComponent implements OnInit, OnDestroy {
   }
 
   // Constantes públicas para template
-  readonly niveisAcesso = NIVEIS_ACESSO;
+  public readonly niveisAcesso = [
+    { value: 'visualizador', label: 'Visualizador' },
+    { value: 'editor', label: 'Editor' },
+    { value: 'administrador', label: 'Administrador' } // Novo nível de acesso adicionado
+  ];
   readonly modulosDisponiveis = MODULOS_DISPONIVEIS;
   readonly paginationConfig = PAGINATION_CONFIG;
 

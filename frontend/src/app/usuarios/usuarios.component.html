@@ -560,7 +560,7 @@
             </button>
           </div>
 
-          <!-- Nível de Acesso -->
+          <!-- Campo Nível de Acesso -->
           <div class="form-group">
             <label
               for="nivel"
@@ -572,13 +572,9 @@
             <select
               id="nivel"
               formControlName="nivel"
-              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-700"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
             >
-              <option
-                *ngFor="let nivel of niveisAcesso"
-                [value]="nivel.value"
-                class="text-gray-700"
-              >
+              <option *ngFor="let nivel of niveisAcesso" [value]="nivel.value">
                 {{ nivel.label }}
               </option>
             </select>
