@@ -69,10 +69,21 @@
           Nenhum atendimento registrado neste período.<br>
           <small>O gráfico está em branco pois não há dados para exibir.</small>
         </div>
-        <canvas *ngIf="periodoSelecionado === 'semana'" id="ageChartSemana" width="400" height="200"></canvas>
-        <canvas *ngIf="periodoSelecionado === 'mes'" id="ageChartMes" width="400" height="200"></canvas>
-        <canvas *ngIf="periodoSelecionado === 'ano'" id="ageChartAno" width="400" height="200"></canvas>
+        <div class="w-full max-w-sm mx-auto">
+          <canvas *ngIf="periodoSelecionado === 'semana'" id="ageChartSemana" class="w-full h-40"></canvas>
+          <canvas *ngIf="periodoSelecionado === 'mes'" id="ageChartMes" class="w-full h-40"></canvas>
+          <canvas *ngIf="periodoSelecionado === 'ano'" id="ageChartAno" class="w-full h-40"></canvas>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Modal de Detalhes dos Atendimentos -->
+<app-detalhes-atendimentos-modal
+  [isVisible]="modalVisible"
+  [periodo]="modalPeriodo"
+  [label]="modalLabel"
+  [atendimentos]="modalAtendimentos"
+  (onClose)="fecharModal()">
+</app-detalhes-atendimentos-modal>

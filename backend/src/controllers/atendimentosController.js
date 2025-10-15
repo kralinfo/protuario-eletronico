@@ -957,6 +957,121 @@ export const classificacaoRiscoPorAno = async (req, res) => {
   }
 };
 
+// Detalhes de atendimentos por período
+export const detalhesAtendimentos = async (req, res) => {
+  try {
+    console.log('🔍 Recebida requisição GET /api/atendimentos/detalhes');
+    console.log('Query params:', req.query);
+    
+    const { periodo, indice } = req.query;
+    
+    if (!periodo || indice === undefined) {
+      return res.status(400).json({ 
+        error: 'Parâmetros período e índice são obrigatórios' 
+      });
+    }
+    
+    let query;
+    let params = [];
+    
+    const hoje = new Date();
+    
+    switch (periodo) {
+      case 'semana':
+        // Para semana, indice representa o dia da semana (0=domingo, 1=segunda, etc.)
+        const inicioSemana = new Date(hoje);
+        inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+        inicioSemana.setHours(0, 0, 0, 0);
+        
+        const diaEspecifico = new Date(inicioSemana);
+        diaEspecifico.setDate(inicioSemana.getDate() + parseInt(indice));
+        
+        const fimDiaEspecifico = new Date(diaEspecifico);
+        fimDiaEspecifico.setHours(23, 59, 59, 999);
+        
+        query = `
+          SELECT 
+            a.id,
+            p.nome as paciente,
+            a.data_hora_atendimento,
+            a.classificacao_risco,
+            a.status
+          FROM atendimentos a
+          LEFT JOIN pacientes p ON a.paciente_id = p.id
+          WHERE a.data_hora_atendimento >= $1 
+            AND a.data_hora_atendimento <= $2
+          ORDER BY a.data_hora_atendimento DESC
+        `;
+        params = [diaEspecifico, fimDiaEspecifico];
+        console.log('📅 Período semana - dia específico:', diaEspecifico.toISOString(), 'até', fimDiaEspecifico.toISOString());
+        break;
+        
+      case 'mes':
+        // Para mês, indice representa o dia do mês (0=dia 1, 1=dia 2, etc.)
+        const diaDoMes = parseInt(indice) + 1; // indice 0 = dia 1, indice 1 = dia 2, etc.
+        const inicioMesDia = new Date(hoje.getFullYear(), hoje.getMonth(), diaDoMes);
+        const fimMesDia = new Date(hoje.getFullYear(), hoje.getMonth(), diaDoMes, 23, 59, 59, 999);
+        
+        query = `
+          SELECT 
+            a.id,
+            p.nome as paciente,
+            a.data_hora_atendimento,
+            a.classificacao_risco,
+            a.status
+          FROM atendimentos a
+          LEFT JOIN pacientes p ON a.paciente_id = p.id
+          WHERE a.data_hora_atendimento >= $1 
+            AND a.data_hora_atendimento <= $2
+          ORDER BY a.data_hora_atendimento DESC
+        `;
+        params = [inicioMesDia, fimMesDia];
+        console.log('📅 Período mês - dia específico:', inicioMesDia.toISOString(), 'até', fimMesDia.toISOString());
+        break;
+        
+      case 'ano':
+        // Para ano, indice representa o mês (0=janeiro, 1=fevereiro, etc.)
+        const mesEspecifico = parseInt(indice); // 0=janeiro, 1=fevereiro, etc.
+        const inicioMesAno = new Date(hoje.getFullYear(), mesEspecifico, 1);
+        const fimMesAno = new Date(hoje.getFullYear(), mesEspecifico + 1, 0, 23, 59, 59, 999);
+        
+        query = `
+          SELECT 
+            a.id,
+            p.nome as paciente,
+            a.data_hora_atendimento,
+            a.classificacao_risco,
+            a.status
+          FROM atendimentos a
+          LEFT JOIN pacientes p ON a.paciente_id = p.id
+          WHERE a.data_hora_atendimento >= $1 
+            AND a.data_hora_atendimento <= $2
+          ORDER BY a.data_hora_atendimento DESC
+        `;
+        params = [inicioMesAno, fimMesAno];
+        console.log('📅 Período ano - mês específico:', inicioMesAno.toISOString(), 'até', fimMesAno.toISOString());
+        break;
+        
+      default:
+        return res.status(400).json({ error: 'Período inválido. Use: semana, mes ou ano' });
+    }
+    
+    console.log('📋 Executando query:', query);
+    console.log('📋 Parâmetros:', params);
+    
+    const result = await db.query(query, params);
+    const atendimentos = result.rows;
+    
+    console.log(`✅ Encontrados ${atendimentos.length} atendimentos para ${periodo} - índice ${indice}`);
+    
+    res.json(atendimentos);
+    
+  } catch (err) {
+    console.error('❌ Erro detalhesAtendimentos:', err);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
 export default {
   registrar,
   listarPorPaciente,
@@ -978,5 +1093,6 @@ export default {
   tempoMedioPorAno,
   classificacaoRiscoPorSemana,
   classificacaoRiscoPorMes,
-  classificacaoRiscoPorAno
+  classificacaoRiscoPorAno,
+  detalhesAtendimentos
 };

@@ -5,13 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { DashboardAdministracaoService } from './dashboard-administracao.service';
 import { HttpClientModule } from '@angular/common/http';
+import { DetalhesAtendimentosModalComponent } from './detalhes-atendimentos-modal.component';
 
 @Component({
   selector: 'app-dashboard-administracao',
   templateUrl: './dashboard-administracao.component.html',
   styleUrls: ['./dashboard-administracao.component.scss'],
   standalone: true,
-  imports: [MatIconModule, CommonModule, FormsModule, HttpClientModule]
+  imports: [MatIconModule, CommonModule, FormsModule, HttpClientModule, DetalhesAtendimentosModalComponent]
 })
 export class DashboardAdministracaoComponent implements AfterViewInit, AfterViewChecked {
   // Dados mock para gráficos
@@ -113,7 +114,15 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   mesLabels: string[] = [];
   anoLabels: string[] = [];
 
-  constructor(private dashboardService: DashboardAdministracaoService) {
+  // Variáveis para o modal
+  modalVisible: boolean = false;
+  modalPeriodo: string = '';
+  modalLabel: string = '';
+  modalAtendimentos: any[] = [];
+
+  constructor(
+    private dashboardService: DashboardAdministracaoService
+  ) {
     Chart.register(...registerables);
   }
 
@@ -142,6 +151,46 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
   isAtendimentosVazio(): boolean {
     const dados = this.atendimentosPorPeriodo[this.periodoSelecionado];
     return dados.every(value => value === 0);
+  }
+
+  abrirDetalhesAtendimentos(indice: number, label: string): void {
+    console.log(`🔍 [COMPONENT] Abrindo detalhes para ${this.periodoSelecionado} - índice: ${indice}, label: ${label}`);
+
+    // Criar título mais descritivo baseado no período
+    let tituloDescritivo = '';
+    switch (this.periodoSelecionado) {
+      case 'semana':
+        const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        tituloDescritivo = `Dia - ${diasSemana[indice]}`;
+        break;
+      case 'mes':
+        tituloDescritivo = `Dia ${indice + 1}`;
+        break;
+      case 'ano':
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        tituloDescritivo = `Mês - ${meses[indice]}`;
+        break;
+    }
+
+    this.dashboardService.getDetalhesAtendimentos(this.periodoSelecionado, indice).subscribe(
+      (atendimentos) => {
+        this.modalPeriodo = this.periodoSelecionado;
+        this.modalLabel = tituloDescritivo;
+        this.modalAtendimentos = atendimentos;
+        this.modalVisible = true;
+      },
+      (error) => {
+        console.error('❌ [COMPONENT] Erro ao buscar detalhes dos atendimentos:', error);
+      }
+    );
+  }
+
+  fecharModal(): void {
+    this.modalVisible = false;
+    this.modalPeriodo = '';
+    this.modalLabel = '';
+    this.modalAtendimentos = [];
   }
 
   fetchAtendimentosPorPeriodo() {
@@ -643,7 +692,41 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           plugins: {
             legend: { display: false }
           },
-          scales: { y: { beginAtZero: true } }
+          scales: { y: { beginAtZero: true } },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              let realIndex = index;
+              let label = '';
+
+              if (this.semanaLabels && this.semanaLabels.length > 0) {
+                // Usar os labels reais retornados pelo backend
+                label = this.semanaLabels[index];
+
+                // Converter o índice do array retornado para o índice real da semana
+                // O backend retorna apenas os dias até hoje, mas o detalhesAtendimentos
+                // espera o índice real do dia da semana (0=domingo, 1=segunda, etc.)
+                const diasMap: Record<string, number> = {
+                  'Seg': 1, 'Ter': 2, 'Qua': 3, 'Qui': 4,
+                  'Sex': 5, 'Sáb': 6, 'Dom': 0
+                };
+                if (label in diasMap) {
+                  realIndex = diasMap[label as keyof typeof diasMap];
+                } else {
+                  realIndex = index;
+                }
+              } else {
+                // Fallback para o array padrão
+                const defaultLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+                label = defaultLabels[index];
+                realIndex = index + 1; // Ajustar porque o array padrão começa com Segunda=0, mas queremos Segunda=1
+                if (realIndex === 7) realIndex = 0; // Domingo
+              }
+
+              console.log(`🔍 [CLICK] Index clicado: ${index}, Label: ${label}, Index real: ${realIndex}`);
+              this.abrirDetalhesAtendimentos(realIndex, label);
+            }
+          }
         }
       });
     }
@@ -668,7 +751,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           plugins: {
             legend: { display: false }
           },
-          scales: { y: { beginAtZero: true } }
+          scales: { y: { beginAtZero: true } },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const label = this.mesLabels.length ? this.mesLabels[index] : ['1', '2', '3', '4', '5', '6', '7', '8', '9'][index];
+              this.abrirDetalhesAtendimentos(index, label);
+            }
+          }
         }
       });
     }
@@ -693,7 +783,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           plugins: {
             legend: { display: false }
           },
-          scales: { y: { beginAtZero: true } }
+          scales: { y: { beginAtZero: true } },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const label = this.anoLabels.length ? this.anoLabels[index] : ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][index];
+              this.abrirDetalhesAtendimentos(index, label);
+            }
+          }
         }
       });
     }

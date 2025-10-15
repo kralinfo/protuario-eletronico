@@ -10,7 +10,8 @@ import {
   tempoMedioPorAno,
   classificacaoRiscoPorSemana,
   classificacaoRiscoPorMes,
-  classificacaoRiscoPorAno
+  classificacaoRiscoPorAno,
+  detalhesAtendimentos
 } from '../controllers/atendimentosController.js';
 
 const router = express.Router();
@@ -49,6 +50,9 @@ router.get('/por-status', async (req, res) => {
 	}
 });
 
+// Endpoint para detalhes de atendimentos (deve ficar bem no início)
+router.get('/drill-down/detalhes', detalhesAtendimentos);
+
 // Novos endpoints para listar atendimentos por semana, mês e por ano (ANTES das rotas paramétricas)
 router.get('/por-semana', atendimentosPorSemana);
 router.get('/por-mes', atendimentosPorMes);
@@ -63,6 +67,9 @@ router.get('/tempo-medio/ano', tempoMedioPorAno);
 router.get('/classificacao-risco/semana', classificacaoRiscoPorSemana);
 router.get('/classificacao-risco/mes', classificacaoRiscoPorMes);
 router.get('/classificacao-risco/ano', classificacaoRiscoPorAno);
+
+// Endpoint para detalhes de atendimentos por período
+router.get('/detalhes-periodo', detalhesAtendimentos);
 
 router.post('/', controller.registrar);
 router.get('/', controller.listarDoDia); // Novo endpoint para atendimentos do dia

@@ -279,4 +279,26 @@ export class DashboardAdministracaoService {
       })
     );
   }
+
+  getDetalhesAtendimentos(periodo: string, indice: number): Observable<any[]> {
+    console.log(`🔍 [SERVICE] Fazendo requisição para detalhes de atendimentos - período: ${periodo}, índice: ${indice}`);
+
+    const url = `http://localhost:3001/api/atendimentos/detalhes-periodo?periodo=${periodo}&indice=${indice}`;
+
+    return this.http.get<any[]>(url).pipe(
+      tap(data => {
+        console.log('✅ [SERVICE] Detalhes dos atendimentos recebidos:', data);
+        console.log('✅ [SERVICE] Quantidade de atendimentos:', data.length);
+      }),
+      catchError(error => {
+        console.error('❌ [SERVICE] ERRO ao buscar detalhes dos atendimentos:', error);
+        console.error('❌ [SERVICE] URL completa tentada:', url);
+        console.error('❌ [SERVICE] Status:', error.status);
+        console.error('❌ [SERVICE] Error details:', error.error);
+
+        // Vamos retornar um array vazio em vez de dados mock para ver se o problema é no backend
+        return of([]);
+      })
+    );
+  }
 }
