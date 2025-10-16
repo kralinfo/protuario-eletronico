@@ -24,10 +24,12 @@ class PacientesController {
           dataInicio.setDate(hoje.getDate() - 7);
           break;
         case 'mes':
-          dataInicio.setDate(hoje.getDate() - 30);
+          // Para "mês", buscar do primeiro dia do mês atual até hoje
+          dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
           break;
         case 'ano':
-          dataInicio.setDate(hoje.getDate() - 365);
+          // Para "ano", buscar do primeiro dia do ano atual até hoje
+          dataInicio = new Date(hoje.getFullYear(), 0, 1);
           break;
       }
       const dataInicioStr = dataInicio.toISOString().split('T')[0];
@@ -683,12 +685,12 @@ class PacientesController {
           dataInicio.setDate(hoje.getDate() - 7);
           break;
         case 'mes':
-          // Último mês (30 dias)
-          dataInicio.setDate(hoje.getDate() - 30);
+          // Para "mês", buscar do primeiro dia do mês atual até hoje
+          dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
           break;
         case 'ano':
-          // Último ano (365 dias)
-          dataInicio.setDate(hoje.getDate() - 365);
+          // Para "ano", buscar do primeiro dia do ano atual até hoje
+          dataInicio = new Date(hoje.getFullYear(), 0, 1);
           break;
       }
 
@@ -800,10 +802,12 @@ class PacientesController {
           dataInicio.setDate(hoje.getDate() - 7);
           break;
         case 'mes':
-          dataInicio.setDate(hoje.getDate() - 30);
+          // Para "mês", buscar do primeiro dia do mês atual até hoje
+          dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
           break;
         case 'ano':
-          dataInicio.setDate(hoje.getDate() - 365);
+          // Para "ano", buscar do primeiro dia do ano atual até hoje
+          dataInicio = new Date(hoje.getFullYear(), 0, 1);
           break;
       }
 
