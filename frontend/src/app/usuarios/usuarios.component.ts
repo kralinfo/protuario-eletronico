@@ -270,6 +270,9 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       modulos: user.modulos || []
     });
 
+    // Atualizar validadores para modo de edição (senha não obrigatória)
+    this.updateFormValidators(true);
+
     this.clearMessages();
   }
 
@@ -380,6 +383,10 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     this.editandoUsuario.set(false);
     this.selectedUser.set(null);
     this.usuarioForm.reset({ nivel: 'visualizador', modulos: ['recepcao'] });
+
+    // Voltar validadores para modo de criação (senha obrigatória)
+    this.updateFormValidators(false);
+
     this.clearMessages();
   }
 
@@ -429,7 +436,13 @@ export class UsuariosComponent implements OnInit, OnDestroy {
   // Métodos privados de apoio
   private saveUsuario(): void {
     this.setLoading(true);
-    const formData = this.usuarioForm.value as UsuarioFormData;
+    let formData = this.usuarioForm.value as UsuarioFormData;
+
+    // Se estiver editando e a senha estiver vazia, remover do objeto
+    if (this.editandoUsuario() && (!formData.senha || formData.senha.trim() === '')) {
+      const { senha, repetirSenha, ...dataWithoutPassword } = formData;
+      formData = dataWithoutPassword as UsuarioFormData;
+    }
 
     const operation = this.editandoUsuario() && this.selectedUser()?.id
       ? this.usuarioService.atualizarUsuario(this.selectedUser()!.id!, formData)
@@ -459,6 +472,10 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     this.usuarioForm.reset({ nivel: 'visualizador', modulos: ['recepcao'] });
     this.editandoUsuario.set(false);
     this.selectedUser.set(null);
+
+    // Voltar validadores para modo de criação (senha obrigatória)
+    this.updateFormValidators(false);
+
     this.clearMessages();
   }
 
