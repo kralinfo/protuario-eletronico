@@ -230,6 +230,23 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     );
   }
 
+  abrirModalPacientesPorFaixaEtaria(faixaEtaria: string): void {
+    console.log(`🔍 [COMPONENT] Abrindo modal para faixa etária: ${faixaEtaria}, período: ${this.periodoSelecionado}`);
+
+    this.dashboardService.getPacientesPorFaixaEtaria(faixaEtaria, this.periodoSelecionado).subscribe(
+      (pacientes) => {
+        console.log(`✅ [COMPONENT] Pacientes recebidos por faixa etária:`, pacientes);
+        this.modalPeriodo = this.periodoSelecionado;
+        this.modalLabel = `Faixa Etária: ${faixaEtaria}`;
+        this.modalAtendimentos = pacientes;
+        this.modalVisible = true;
+      },
+      (error) => {
+        console.error('❌ [COMPONENT] Erro ao buscar pacientes por faixa etária:', error);
+      }
+    );
+  }
+
   // Função para mapear labels de sexo do frontend para valores do banco
   private mapearSexoParaBanco(label: string): string {
     const mapeamento: { [key: string]: string } = {
@@ -1082,7 +1099,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           plugins: {
             legend: { display: false }
           },
-          scales: { y: { beginAtZero: true } }
+          scales: { y: { beginAtZero: true } },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const faixaEtaria = this.faixaEtariaSemana[index].faixa;
+              this.abrirModalPacientesPorFaixaEtaria(faixaEtaria);
+            }
+          }
         }
       });
     }
@@ -1108,7 +1132,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           plugins: {
             legend: { display: false }
           },
-          scales: { y: { beginAtZero: true } }
+          scales: { y: { beginAtZero: true } },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const faixaEtaria = this.faixaEtariaMes[index].faixa;
+              this.abrirModalPacientesPorFaixaEtaria(faixaEtaria);
+            }
+          }
         }
       });
     }
@@ -1134,7 +1165,14 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
           plugins: {
             legend: { display: false }
           },
-          scales: { y: { beginAtZero: true } }
+          scales: { y: { beginAtZero: true } },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const faixaEtaria = this.faixaEtariaAno[index].faixa;
+              this.abrirModalPacientesPorFaixaEtaria(faixaEtaria);
+            }
+          }
         }
       });
     }

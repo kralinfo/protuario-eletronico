@@ -832,6 +832,90 @@ class PacientesController {
       });
     }
   }
+
+  /**
+   * Listar pacientes por faixa etária e período
+   */
+  static async getPacientesPorFaixaEtaria(req, res) {
+    try {
+      const { faixaEtaria, periodo = 'mes' } = req.query;
+
+      if (!faixaEtaria) {
+        return res.status(400).json({
+          status: 'ERROR',
+          message: 'Faixa etária é obrigatória.'
+        });
+      }
+
+      if (!['semana', 'mes', 'ano'].includes(periodo)) {
+        return res.status(400).json({
+          status: 'ERROR',
+          message: 'Período inválido. Use semana, mes ou ano.'
+        });
+      }
+
+      // Calcular período baseado no filtro
+      const hoje = new Date();
+      let dataInicio = new Date();
+      switch (periodo) {
+        case 'semana':
+          dataInicio.setDate(hoje.getDate() - 7);
+          break;
+        case 'mes':
+          // Para "mês", buscar do primeiro dia do mês atual até hoje
+          dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+          break;
+        case 'ano':
+          // Para "ano", buscar do primeiro dia do ano atual até hoje
+          dataInicio = new Date(hoje.getFullYear(), 0, 1);
+          break;
+      }
+
+      const dataInicioStr = dataInicio.toISOString().split('T')[0];
+      const dataFimStr = hoje.toISOString().split('T')[0];
+
+      // Buscar todos os pacientes no período
+      const pacientes = await Paciente.findAll({
+        dataInicio: dataInicioStr,
+        dataFim: dataFimStr,
+        limit: 1000,
+        offset: 0
+      });
+
+      // Filtrar por faixa etária
+      const pacientesFiltrados = pacientes.filter(paciente => {
+        if (!paciente.nascimento) return false;
+        
+        const nascimento = new Date(paciente.nascimento);
+        if (isNaN(nascimento)) return false;
+        
+        const idade = hoje.getFullYear() - nascimento.getFullYear();
+        
+        switch (faixaEtaria) {
+          case '0-12':
+            return idade <= 12;
+          case '13-18':
+            return idade >= 13 && idade <= 18;
+          case '19-35':
+            return idade >= 19 && idade <= 35;
+          case '36-60':
+            return idade >= 36 && idade <= 60;
+          case '60+':
+            return idade > 60;
+          default:
+            return false;
+        }
+      });
+
+      res.json(pacientesFiltrados.map(p => p.toJSON()));
+    } catch (error) {
+      console.error('❌ [PACIENTES] Erro ao buscar pacientes por faixa etária:', error);
+      res.status(500).json({
+        status: 'ERROR',
+        message: 'Erro ao buscar pacientes por faixa etária'
+      });
+    }
+  }
 }
 
 export default PacientesController;

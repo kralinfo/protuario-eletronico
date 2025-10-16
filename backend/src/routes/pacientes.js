@@ -26,6 +26,13 @@ router.get('/distribuicao-por-sexo', PacientesController.getDistribuicaoPorSexo)
 router.get('/distribuicao-por-faixa-etaria', PacientesController.getDistribuicaoPorFaixaEtaria);
 
 /**
+ * @route GET /api/pacientes/por-faixa-etaria
+ * @desc Endpoint para listar pacientes por faixa etária e período
+ * @access Public/Private
+ */
+router.get('/por-faixa-etaria', PacientesController.getPacientesPorFaixaEtaria);
+
+/**
  * @route GET /api/pacientes/por-sexo
  * @desc Endpoint para listar pacientes por sexo e período
  * @access Public/Private

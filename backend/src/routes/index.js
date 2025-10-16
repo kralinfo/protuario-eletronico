@@ -56,6 +56,45 @@ router.get('/test-distribuicao', (req, res) => {
 });
 
 /**
+ * Endpoint de teste para pacientes por faixa etária (SEM AUTENTICAÇÃO)
+ */
+router.get('/test-faixa-etaria', (req, res) => {
+  console.log('🧪 [TEST] Endpoint de teste chamado - pacientes por faixa etária');
+  try {
+    const { faixaEtaria = '19-35', periodo = 'mes' } = req.query;
+    
+    // Dados mock para teste rápido
+    const pacientesMock = [
+      { 
+        id: 1, 
+        nome: `Paciente Teste ${faixaEtaria}`, 
+        faixaEtaria, 
+        nascimento: '1990-01-01', 
+        sexo: 'M',
+        created_at: '2025-10-10T10:00:00.000Z' 
+      },
+      { 
+        id: 2, 
+        nome: `Outro Paciente ${faixaEtaria}`, 
+        faixaEtaria, 
+        nascimento: '1985-05-15', 
+        sexo: 'F',
+        created_at: '2025-10-12T15:30:00.000Z' 
+      }
+    ];
+    
+    res.json(pacientesMock);
+  } catch (error) {
+    console.error('❌ [TEST] Erro:', error);
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'Erro no endpoint de teste de faixa etária',
+      error: error.message
+    });
+  }
+});
+
+/**
  * API Info endpoint
  */
 router.get('/info', (req, res) => {
@@ -90,6 +129,14 @@ router.get('/info', (req, res) => {
 router.get('/pacientes/test-distribuicao', (req, res) => {
   console.log('🧪 [TEST] Endpoint de teste chamado - distribuição por sexo');
   PacientesController.getDistribuicaoPorSexo(req, res);
+});
+
+/**
+ * Endpoint de teste para pacientes por faixa etária (SEM AUTENTICAÇÃO)
+ */
+router.get('/pacientes/test-por-faixa-etaria', (req, res) => {
+  console.log('🧪 [TEST] Endpoint de teste chamado - pacientes por faixa etária');
+  PacientesController.getPacientesPorFaixaEtaria(req, res);
 });
 
 /**

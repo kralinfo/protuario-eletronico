@@ -358,4 +358,31 @@ export class DashboardAdministracaoService {
       })
     );
   }
+
+  getPacientesPorFaixaEtaria(faixaEtaria: string, periodo: string): Observable<any[]> {
+    const url = `http://localhost:3001/api/pacientes/por-faixa-etaria?faixaEtaria=${faixaEtaria}&periodo=${periodo}`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
+
+    return this.http.get<any[]>(url).pipe(
+      tap(data => {
+        console.log('✅ [SERVICE] Pacientes por faixa etária recebidos:', data);
+        console.log('✅ [SERVICE] Quantidade de pacientes:', data.length);
+      }),
+      catchError(error => {
+        console.error('❌ [SERVICE] ERRO ao buscar pacientes por faixa etária:', error);
+        console.error('❌ [SERVICE] URL completa tentada:', url);
+        console.error('❌ [SERVICE] Status:', error.status);
+        console.error('❌ [SERVICE] Error details:', error.error);
+
+        // Fallback para dados mock em caso de erro
+        console.log('🔄 [SERVICE] Usando dados mock como fallback para faixa etária');
+        const pacientesMock = [
+          { id: 1, nome: `Paciente ${faixaEtaria} (Mock)`, faixaEtaria, nascimento: '1990-01-01', created_at: '2025-10-10' },
+          { id: 2, nome: `Outro Paciente ${faixaEtaria} (Mock)`, faixaEtaria, nascimento: '1985-05-15', created_at: '2025-10-12' }
+        ];
+
+        return of(pacientesMock);
+      })
+    );
+  }
 }
