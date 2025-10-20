@@ -3,16 +3,21 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardAdministracaoService {
+  private readonly apiUrl = environment.apiUrl;
+
   constructor(private http: HttpClient) {}
 
   getAtendimentosPorSemana(): Observable<{ dias: string[], counts: number[] }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/por-semana');
+    const url = `${this.apiUrl}/atendimentos/por-semana`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
+    console.log('🔍 [SERVICE] Environment:', environment.production ? 'PRODUCTION' : 'DEVELOPMENT');
     console.log('🔍 [SERVICE] Base URL do browser:', window.location.origin);
 
-    return this.http.get<{ dias: string[], counts: number[] }>('http://localhost:3001/api/atendimentos/por-semana').pipe(
+    return this.http.get<{ dias: string[], counts: number[] }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Dados REAIS recebidos por semana:', data);
       }),
@@ -20,7 +25,7 @@ export class DashboardAdministracaoService {
         console.error('❌ [SERVICE] ERRO ao buscar dados por semana:', error);
         console.error('❌ [SERVICE] Status:', error.status);
         console.error('❌ [SERVICE] Message:', error.message);
-        console.error('❌ [SERVICE] URL completa tentada:', 'http://localhost:3001/api/atendimentos/por-semana');
+        console.error('❌ [SERVICE] URL completa tentada:', url);
 
         // Retorna dados mock em caso de erro
         const mockData = {
@@ -34,10 +39,11 @@ export class DashboardAdministracaoService {
   }
 
   getAtendimentosPorMes(): Observable<{ dias: string[], counts: number[] }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/por-mes');
-    console.log('🔍 [SERVICE] Base URL do browser:', window.location.origin);
+    const url = `${this.apiUrl}/atendimentos/por-mes`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
+    console.log('🔍 [SERVICE] Environment:', environment.production ? 'PRODUCTION' : 'DEVELOPMENT');
 
-    return this.http.get<{ dias: string[], counts: number[] }>('http://localhost:3001/api/atendimentos/por-mes').pipe(
+    return this.http.get<{ dias: string[], counts: number[] }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Dados REAIS recebidos por mês:', data);
       }),
@@ -45,7 +51,7 @@ export class DashboardAdministracaoService {
         console.error('❌ [SERVICE] ERRO ao buscar dados por mês:', error);
         console.error('❌ [SERVICE] Status:', error.status);
         console.error('❌ [SERVICE] Message:', error.message);
-        console.error('❌ [SERVICE] URL completa tentada:', 'http://localhost:3001/api/atendimentos/por-mes');
+        console.error('❌ [SERVICE] URL completa tentada:', url);
 
         // Retorna dados mock em caso de erro
         const mockData = {
@@ -59,10 +65,11 @@ export class DashboardAdministracaoService {
   }
 
   getAtendimentosPorAno(): Observable<{ meses: string[], counts: number[] }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/por-ano');
-    console.log('🔍 [SERVICE] Base URL do browser:', window.location.origin);
+    const url = `${this.apiUrl}/atendimentos/por-ano`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
+    console.log('🔍 [SERVICE] Environment:', environment.production ? 'PRODUCTION' : 'DEVELOPMENT');
 
-    return this.http.get<{ meses: string[], counts: number[] }>('http://localhost:3001/api/atendimentos/por-ano').pipe(
+    return this.http.get<{ meses: string[], counts: number[] }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Dados REAIS recebidos por ano:', data);
       }),
@@ -70,7 +77,7 @@ export class DashboardAdministracaoService {
         console.error('❌ [SERVICE] ERRO ao buscar dados por ano:', error);
         console.error('❌ [SERVICE] Status:', error.status);
         console.error('❌ [SERVICE] Message:', error.message);
-        console.error('❌ [SERVICE] URL completa tentada:', 'http://localhost:3001/api/atendimentos/por-ano');
+        console.error('❌ [SERVICE] URL completa tentada:', url);
 
         // Retorna dados mock em caso de erro
         const mockData = {
@@ -85,9 +92,10 @@ export class DashboardAdministracaoService {
 
   // Métodos para tempo médio de espera
   getTempoMedioPorSemana(): Observable<{ tempoMedioMinutos: number }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/tempo-medio/semana');
+    const url = `${this.apiUrl}/atendimentos/tempo-medio/semana`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
 
-    return this.http.get<{ tempoMedioMinutos: number }>('http://localhost:3001/api/atendimentos/tempo-medio/semana').pipe(
+    return this.http.get<{ tempoMedioMinutos: number }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Tempo médio REAL recebido por semana:', data);
       }),
@@ -103,9 +111,10 @@ export class DashboardAdministracaoService {
   }
 
   getTempoMedioPorMes(): Observable<{ tempoMedioMinutos: number }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/tempo-medio/mes');
+    const url = `${this.apiUrl}/atendimentos/tempo-medio/mes`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
 
-    return this.http.get<{ tempoMedioMinutos: number }>('http://localhost:3001/api/atendimentos/tempo-medio/mes').pipe(
+    return this.http.get<{ tempoMedioMinutos: number }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Tempo médio REAL recebido por mês:', data);
       }),
@@ -121,9 +130,10 @@ export class DashboardAdministracaoService {
   }
 
   getTempoMedioPorAno(): Observable<{ tempoMedioMinutos: number }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/tempo-medio/ano');
+    const url = `${this.apiUrl}/atendimentos/tempo-medio/ano`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
 
-    return this.http.get<{ tempoMedioMinutos: number }>('http://localhost:3001/api/atendimentos/tempo-medio/ano').pipe(
+    return this.http.get<{ tempoMedioMinutos: number }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Tempo médio REAL recebido por ano:', data);
       }),
@@ -140,9 +150,10 @@ export class DashboardAdministracaoService {
 
   // Métodos para classificação de risco
   getClassificacaoRiscoPorSemana(): Observable<{ classificacoes: any[] }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/classificacao-risco/semana');
+    const url = `${this.apiUrl}/atendimentos/classificacao-risco/semana`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
 
-    return this.http.get<{ classificacoes: any[] }>('http://localhost:3001/api/atendimentos/classificacao-risco/semana').pipe(
+    return this.http.get<{ classificacoes: any[] }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Classificação de risco REAL recebida por semana:', data);
       }),
@@ -165,9 +176,10 @@ export class DashboardAdministracaoService {
   }
 
   getClassificacaoRiscoPorMes(): Observable<{ classificacoes: any[] }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/classificacao-risco/mes');
+    const url = `${this.apiUrl}/atendimentos/classificacao-risco/mes`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
 
-    return this.http.get<{ classificacoes: any[] }>('http://localhost:3001/api/atendimentos/classificacao-risco/mes').pipe(
+    return this.http.get<{ classificacoes: any[] }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Classificação de risco REAL recebida por mês:', data);
       }),
@@ -190,9 +202,10 @@ export class DashboardAdministracaoService {
   }
 
   getClassificacaoRiscoPorAno(): Observable<{ classificacoes: any[] }> {
-    console.log('🔍 [SERVICE] Fazendo requisição GET para http://localhost:3001/api/atendimentos/classificacao-risco/ano');
+    const url = `${this.apiUrl}/atendimentos/classificacao-risco/ano`;
+    console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
 
-    return this.http.get<{ classificacoes: any[] }>('http://localhost:3001/api/atendimentos/classificacao-risco/ano').pipe(
+    return this.http.get<{ classificacoes: any[] }>(url).pipe(
       tap(data => {
         console.log('✅ [SERVICE] Classificação de risco REAL recebida por ano:', data);
       }),
@@ -215,7 +228,7 @@ export class DashboardAdministracaoService {
   }
 
   getDistribuicaoPorSexo(periodo: 'semana' | 'mes' | 'ano'): Observable<any> {
-    const url = `http://localhost:3001/api/pacientes/distribuicao-por-sexo?filtro=${periodo}`;
+    const url = `${this.apiUrl}/pacientes/distribuicao-por-sexo?filtro=${periodo}`;
     console.log(`🔍 [SERVICE] Fazendo requisição GET para ${url}`);
 
     return this.http.get<any>(url).pipe(
@@ -259,7 +272,7 @@ export class DashboardAdministracaoService {
   }
 
   getDistribuicaoPorFaixaEtaria(periodo: 'semana' | 'mes' | 'ano'): Observable<any> {
-    const url = `http://localhost:3001/api/pacientes/distribuicao-por-faixa-etaria?filtro=${periodo}`;
+    const url = `${this.apiUrl}/pacientes/distribuicao-por-faixa-etaria?filtro=${periodo}`;
     console.log(`🔍 [SERVICE] Fazendo requisição GET para ${url}`);
     return this.http.get<any>(url).pipe(
       tap(data => {
@@ -283,7 +296,7 @@ export class DashboardAdministracaoService {
   getDetalhesAtendimentos(periodo: string, indice: number): Observable<any[]> {
     console.log(`🔍 [SERVICE] Fazendo requisição para detalhes de atendimentos - período: ${periodo}, índice: ${indice}`);
 
-    const url = `http://localhost:3001/api/atendimentos/detalhes-periodo?periodo=${periodo}&indice=${indice}`;
+    const url = `${this.apiUrl}/atendimentos/detalhes-periodo?periodo=${periodo}&indice=${indice}`;
 
     return this.http.get<any[]>(url).pipe(
       tap(data => {
@@ -303,7 +316,7 @@ export class DashboardAdministracaoService {
   }
 
   getAtendimentosPorClassificacao(classificacao: string, periodo: string): Observable<any[]> {
-    const url = `http://localhost:3001/api/atendimentos/por-classificacao?classificacao=${classificacao}&periodo=${periodo}`;
+    const url = `${this.apiUrl}/atendimentos/por-classificacao?classificacao=${classificacao}&periodo=${periodo}`;
     console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
 
     return this.http.get<any[]>(url).pipe(
@@ -323,7 +336,7 @@ export class DashboardAdministracaoService {
   }
 
   getPacientesPorSexo(sexo: string, periodo: string): Observable<any[]> {
-    const url = `http://localhost:3001/api/pacientes/por-sexo?sexo=${sexo}&periodo=${periodo}`;
+    const url = `${this.apiUrl}/pacientes/por-sexo?sexo=${sexo}&periodo=${periodo}`;
     console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
     console.log('🔍 [SERVICE] Sexo solicitado:', sexo, 'Período:', periodo);
 
@@ -360,7 +373,7 @@ export class DashboardAdministracaoService {
   }
 
   getPacientesPorFaixaEtaria(faixaEtaria: string, periodo: string): Observable<any[]> {
-    const url = `http://localhost:3001/api/pacientes/por-faixa-etaria?faixaEtaria=${faixaEtaria}&periodo=${periodo}`;
+    const url = `${this.apiUrl}/pacientes/por-faixa-etaria?faixaEtaria=${faixaEtaria}&periodo=${periodo}`;
     console.log('🔍 [SERVICE] Fazendo requisição GET para:', url);
 
     return this.http.get<any[]>(url).pipe(
