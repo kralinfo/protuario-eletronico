@@ -219,10 +219,13 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
     this.dashboardService.getPacientesPorSexo(sexoMapeado, this.periodoSelecionado).subscribe(
       (pacientes) => {
         console.log(`✅ [COMPONENT] Pacientes recebidos:`, pacientes);
+        console.log('🔍 [DEBUG] Dados recebidos da API:', pacientes);
+        console.log(`✅ [COMPONENT] Quantidade de pacientes:`, pacientes.length);
         this.modalPeriodo = this.periodoSelecionado;
         this.modalLabel = `Sexo: ${sexo}`;
         this.modalAtendimentos = pacientes;
         this.modalVisible = true;
+        console.log(`✅ [COMPONENT] Modal configurado - Visible: ${this.modalVisible}`);
       },
       (error) => {
         console.error('❌ [COMPONENT] Erro ao buscar pacientes por sexo:', error);
@@ -996,6 +999,17 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               legend: {
                 display: true,
                 position: 'bottom'
+              }
+            },
+            onClick: (event, elements) => {
+              console.log('🔍 [DEBUG] Click detectado no gráfico semana!', elements);
+              if (elements.length > 0) {
+                const index = elements[0].index;
+                const label = this.sexoDistribuicaoSemana[index].label;
+                console.log('🔍 [DEBUG] Label clicado:', label, 'Index:', index);
+                this.abrirModalPacientesPorSexo(label);
+              } else {
+                console.log('🔍 [DEBUG] Nenhum elemento encontrado no click');
               }
             }
           }
