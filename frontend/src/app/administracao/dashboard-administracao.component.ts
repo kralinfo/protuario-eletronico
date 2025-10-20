@@ -2,7 +2,7 @@ import { Component, AfterViewInit, AfterViewChecked } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Chart, registerables } from 'chart.js';
+import { Chart, registerables, ChartEvent, ActiveElement } from 'chart.js';
 import { DashboardAdministracaoService } from './dashboard-administracao.service';
 import { HttpClientModule } from '@angular/common/http';
 import { DetalhesAtendimentosModalComponent } from './detalhes-atendimentos-modal.component';
@@ -768,7 +768,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
             legend: { display: false }
           },
           scales: { y: { beginAtZero: true } },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               let realIndex = index;
@@ -827,7 +827,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
             legend: { display: false }
           },
           scales: { y: { beginAtZero: true } },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const label = this.mesLabels.length ? this.mesLabels[index] : ['1', '2', '3', '4', '5', '6', '7', '8', '9'][index];
@@ -859,7 +859,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
             legend: { display: false }
           },
           scales: { y: { beginAtZero: true } },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const label = this.anoLabels.length ? this.anoLabels[index] : ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][index];
@@ -892,7 +892,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               position: 'bottom'
             }
           },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const label = this.classificacaoRiscoSemana[index].label;
@@ -926,7 +926,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               position: 'bottom'
             }
           },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const label = this.classificacaoRiscoMes[index].label;
@@ -960,7 +960,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               position: 'bottom'
             }
           },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const label = this.classificacaoRiscoAno[index].label;
@@ -1001,7 +1001,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
                 position: 'bottom'
               }
             },
-            onClick: (event, elements) => {
+            onClick: (event: ChartEvent, elements: ActiveElement[]) => {
               console.log('🔍 [DEBUG] Click detectado no gráfico semana!', elements);
               if (elements.length > 0) {
                 const index = elements[0].index;
@@ -1048,7 +1048,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               position: 'bottom'
             }
           },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const label = this.sexoDistribuicaoMes[index].label;
@@ -1081,7 +1081,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
               position: 'bottom'
             }
           },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const label = this.sexoDistribuicaoAno[index].label;
@@ -1114,7 +1114,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
             legend: { display: false }
           },
           scales: { y: { beginAtZero: true } },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const faixaEtaria = this.faixaEtariaSemana[index].faixa;
@@ -1147,7 +1147,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
             legend: { display: false }
           },
           scales: { y: { beginAtZero: true } },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const faixaEtaria = this.faixaEtariaMes[index].faixa;
@@ -1180,7 +1180,7 @@ export class DashboardAdministracaoComponent implements AfterViewInit, AfterView
             legend: { display: false }
           },
           scales: { y: { beginAtZero: true } },
-          onClick: (event, elements) => {
+          onClick: (event: ChartEvent, elements: ActiveElement[]) => {
             if (elements.length > 0) {
               const index = elements[0].index;
               const faixaEtaria = this.faixaEtariaAno[index].faixa;
