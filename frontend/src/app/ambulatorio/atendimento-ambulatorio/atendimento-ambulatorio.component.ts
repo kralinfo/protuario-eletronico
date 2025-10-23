@@ -38,27 +38,46 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   // Atualiza o status do atendimento conforme o destino selecionado
   onDestinoChange(valor: string) {
     if (!this.atendimentoId) return;
-    if (valor === 'alta_ambulatorial') {
-      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'atendimento_concluido').subscribe();
-    } else if (valor === 'retornar_atendimento_medico') {
-      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'encaminhado para sala médica').subscribe();
-    } else if (valor === 'em_observacao') {
-      this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, 'em_observacao').subscribe();
+    // Garante que o form control seja atualizado (o mat-select já faz isso,
+    // mas definimos explicitamente para ambientes que não sincronizem imediatamente).
+    try {
+      this.atendimentoForm.get('status_destino')?.setValue(valor);
+    } catch (e) {
+      console.warn('Falha ao setar status_destino no form:', e);
     }
+
+    // Mensagem informativa quando o usuário escolher reencaminhar para atendimento médico
+    if (valor === 'retornar_atendimento_medico') {
+      this.snackBar.open('Ao salvar, este paciente será reencaminhado para atendimento médico.', 'OK', { duration: 5000 });
+    }
+  }
+
+  private mapDestinoParaStatus(valor: string): string | null {
+    if (!valor) return null;
+    if (valor === 'alta_ambulatorial') return 'atendimento_concluido';
+    // Preservar o status simbólico 'retornar_atendimento_medico' (usado em outros lugares do sistema)
+    if (valor === 'retornar_atendimento_medico') return 'retornar_atendimento_medico';
+    if (valor === 'em_observacao') return 'em_observacao';
+    return null;
   }
   opcoesDestino: { label: string, value: string }[] = [
     { label: 'Alta Ambulatorial', value: 'alta_ambulatorial' },
-    { label: 'Encaminhar para Atendimento Médico Novamente', value: 'retornar_atendimento_medico' },
+    { label: 'Reencaminhar para Atendimento Médico', value: 'retornar_atendimento_medico' },
     { label: 'Em Observação', value: 'em_observacao' }
   ];
 
   get opcoesDestinoFiltradas() {
-    // Se necessita_observacao está marcado, mostra as opções de encaminhamento
-    if (this.atendimentoForm?.get('necessita_observacao')?.value) {
-      return this.opcoesDestino;
+    // Se necessita_observacao está marcado, mostra todas as opções
+    const todas = this.opcoesDestino || [];
+    const precisaObservacao = this.atendimentoForm?.get('necessita_observacao')?.value;
+    if (precisaObservacao) {
+      return todas;
     }
-    // Caso contrário, só mostra alta
-    return [this.opcoesDestino[0]];
+
+    // Caso contrário, mostra todas as opções exceto 'em_observacao'.
+    // Isso garante que a opção 'retornar_atendimento_medico' continue disponível
+    // mesmo quando a observação não foi marcada.
+    return todas.filter(op => op.value !== 'em_observacao');
   }
   atendimentoForm!: FormGroup;
   atendimentoId: number;
@@ -240,9 +259,31 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
       });
       this.ambulatorioService.salvarAtendimento(this.atendimentoId, payload).subscribe({
         next: () => {
-          this.snackBar.open('Atendimento ambulatorial salvo com sucesso!', 'Fechar', { duration: 3000 });
-          this.modoEdicao = false;
-          this.router.navigate(['/ambulatorio']);
+          // Após salvar os dados do atendimento, atualiza o status apenas se o destino foi enviado
+          const destinoSelecionado = this.atendimentoForm.get('status_destino')?.value;
+          const novoStatus = this.mapDestinoParaStatus(destinoSelecionado);
+
+          if (novoStatus) {
+            this.ambulatorioService.atualizarStatusAtendimento(this.atendimentoId, novoStatus).subscribe({
+              next: () => {
+                this.snackBar.open('Atendimento ambulatorial salvo com sucesso!', 'Fechar', { duration: 3000 });
+                this.modoEdicao = false;
+                this.router.navigate(['/ambulatorio']);
+              },
+              error: (err: any) => {
+                console.error('Erro ao atualizar status após salvar:', err);
+                // Mesmo se falhar atualizar o status, informar usuário e navegar
+                this.snackBar.open('Atendimento salvo, mas falha ao atualizar status.', 'Fechar', { duration: 5000 });
+                this.modoEdicao = false;
+                this.router.navigate(['/ambulatorio']);
+              }
+            });
+          } else {
+            // Sem mudança de status mapeada; apenas navega
+            this.snackBar.open('Atendimento ambulatorial salvo com sucesso!', 'Fechar', { duration: 3000 });
+            this.modoEdicao = false;
+            this.router.navigate(['/ambulatorio']);
+          }
         },
         error: (error: any) => {
           this.snackBar.open('Erro ao salvar atendimento ambulatorial.', 'Fechar', { duration: 5000 });

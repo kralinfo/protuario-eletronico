@@ -162,14 +162,14 @@ export class DashboardAmbulatorioComponent implements OnInit {
                status.includes('encaminhado') && status.includes('ambulatório') ||
                status.includes('encaminhado') && status.includes('ambulatorio') ||
                status.includes('atendimento') && status.includes('ambulatorial');
-        
+
         if (isFilaStatus) {
           console.log(`🏥 Paciente na fila: ID=${a.id}, status="${a.status}"`);
         }
-        
+
         return isFilaStatus;
       });
-      
+
       console.log(`📊 Total na fila de atendimento: ${filaAtendimento.length} pacientes`);
       // Corrigir tempo_espera para cada paciente da fila
       filaAtendimento.forEach(p => {
@@ -413,19 +413,11 @@ export class DashboardAmbulatorioComponent implements OnInit {
       console.log('❌ Item inválido:', item);
       return;
     }
-
-    console.log('🔄 Atualizando status para "em atendimento ambulatorial" e navegando:', item.id);
-    // Atualiza status antes de navegar
-    this.ambulatorioService.atualizarStatusAtendimento(item.id, 'em atendimento ambulatorial').subscribe({
-      next: () => {
-        this.router.navigate(['/ambulatorio/atendimento', item.id]);
-      },
-      error: (err) => {
-        console.error('Erro ao atualizar status:', err);
-        // Mesmo com erro, navega para garantir acesso
-        this.router.navigate(['/ambulatorio/atendimento', item.id]);
-      }
-    });
+    // Navega para a tela de atendimento sem alterar o status automaticamente.
+    // A atualização do status deve ocorrer apenas quando o usuário confirmar o início do atendimento
+    // (por exemplo, ao salvar/ao clicar em um botão 'Iniciar Atendimento' dentro do componente de atendimento).
+    console.log('🔄 Navegando para atendimento ambulatorial (sem alterar status):', item.id);
+    this.router.navigate(['/ambulatorio/atendimento', item.id]);
   }
 
   // ...existing code...

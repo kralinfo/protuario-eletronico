@@ -82,9 +82,21 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.ambulatorioService.getAtendimentosAmbulatorio().subscribe({
         next: (resp) => {
-          this.pacientes = this.filtroStatus
+          // Normaliza resposta e remove duplicatas por id para evitar renderizar o mesmo atendimento duas vezes
+          let lista: any[] = this.filtroStatus
             ? resp.filter((p: any) => p.status === this.filtroStatus)
             : resp;
+
+          // Deduplicar por id (mantendo a primeira ocorrência)
+          const vistos = new Set<number>();
+          lista = lista.filter(item => {
+            if (!item || item.id == null) return false;
+            if (vistos.has(item.id)) return false;
+            vistos.add(item.id);
+            return true;
+          });
+
+          this.pacientes = lista;
 
           this.atualizarEstatisticas();
           this.carregando = false;
