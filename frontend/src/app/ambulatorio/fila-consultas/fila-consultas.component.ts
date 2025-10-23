@@ -237,6 +237,12 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
     return this.consultas.length;
   }
 
+  // Retorna 'Atendimento' no singular quando houver 1, e 'Atendimentos' quando maior que 1
+  getAtendimentoLabel(): string {
+    const qtd = this.contarPacientesAguardando();
+    return qtd === 1 ? 'Atendimento' : 'Atendimentos';
+  }
+
   isStatusEmConsulta(status: string): boolean {
     return status === 'em consulta';
   }
