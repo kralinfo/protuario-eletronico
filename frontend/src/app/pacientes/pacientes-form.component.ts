@@ -130,7 +130,7 @@ export class PacientesFormComponent
       estadoCivil: [''],
       profissao: [''],
       escolaridade: [''],
-      telefone: [''], // Adicionado
+  telefone: ['', [Validators.required]], // Adicionado (agora obrigatório)
 
       sus: ['', [], [this.validarSUSDuplicado.bind(this)]],  // Adicionado
       raca: [''],
