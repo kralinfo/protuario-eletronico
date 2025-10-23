@@ -290,11 +290,11 @@ class TriagemController {
       );
       const pacientesEmTriagem = parseInt(emTriagemQuery.rows[0].total) || 0;
       
-      // 3. Triagens concluídas hoje (baseado na data_fim_triagem)
+      // 3. Triagens concluídas nas últimas 24 horas (baseado na data_fim_triagem)
       const concluidasQuery = await db.query(
-        `SELECT COUNT(*) as total FROM atendimentos 
-         WHERE data_fim_triagem IS NOT NULL 
-         AND DATE(data_fim_triagem) = CURRENT_DATE`
+        `SELECT COUNT(*) as total FROM atendimentos
+         WHERE data_fim_triagem IS NOT NULL
+         AND data_fim_triagem >= (NOW() - INTERVAL '24 hours')`
       );
       const triagensConcluidasHoje = parseInt(concluidasQuery.rows[0].total) || 0;
       
@@ -313,10 +313,10 @@ class TriagemController {
       // 5. Por classificação de risco (incluindo triagens concluídas hoje)
       const classificacaoQuery = await db.query(
         `SELECT classificacao_risco, COUNT(*) as total
-         FROM atendimentos 
+         FROM atendimentos
          WHERE (
            status IN ('encaminhado para triagem', 'em_triagem')
-           OR (data_fim_triagem IS NOT NULL AND DATE(data_fim_triagem) = CURRENT_DATE)
+           OR (data_fim_triagem IS NOT NULL AND data_fim_triagem >= (NOW() - INTERVAL '24 hours'))
          )
          AND classificacao_risco IS NOT NULL
          GROUP BY classificacao_risco`
