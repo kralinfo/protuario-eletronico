@@ -199,15 +199,47 @@ export class RelatorioAtendimentosComponent implements OnInit {
     this.atendimentoService.listarTodosAtendimentos().subscribe({
       next: (atendimentos: any[]) => {
         const filtros = this.filtrosForm.value;
-        let filtrados = atendimentos;
-        if (filtros.dataInicial) {
-          const dataIni = new Date(filtros.dataInicial);
-          filtrados = filtrados.filter((a: any) => new Date(a.created_at) >= dataIni);
+
+        // Primeiro normalize os atendimentos para um formato consistente (createdAt: Date)
+        const atendimentosNorm = (atendimentos || []).map(a => ({
+          ...a,
+          createdAt: a.created_at ? new Date(a.created_at) : null,
+          paciente_nome: a.paciente_nome || '',
+          observacoes: a.observacoes || '',
+          status: a.status || ''
+        }));
+
+        let filtrados = atendimentosNorm;
+
+        // Helper: parse date input (string from <input type=date> is YYYY-MM-DD) as local Date (avoid UTC shift)
+        const parseDateInputToLocal = (input: any): Date | null => {
+          if (!input && input !== 0) return null;
+          if (input instanceof Date) return new Date(input.getFullYear(), input.getMonth(), input.getDate());
+          const s = String(input);
+          // common HTML date input format: YYYY-MM-DD
+          const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (m) {
+            const y = Number(m[1]);
+            const mm = Number(m[2]) - 1;
+            const d = Number(m[3]);
+            return new Date(y, mm, d);
+          }
+          // fallback to Date parsing, then normalize to local date
+          const dobj = new Date(s);
+          if (isNaN(dobj.getTime())) return null;
+          return new Date(dobj.getFullYear(), dobj.getMonth(), dobj.getDate());
+        };
+
+        // Converter filtros de data para objetos Date robustamente e aplicar start/end of day
+        const dataInicialLocal = parseDateInputToLocal(filtros.dataInicial);
+        if (dataInicialLocal) {
+          dataInicialLocal.setHours(0, 0, 0, 0);
+          filtrados = filtrados.filter((a: any) => a.createdAt && a.createdAt.getTime() >= dataInicialLocal.getTime());
         }
-        if (filtros.dataFinal) {
-          const dataFim = new Date(filtros.dataFinal);
-          dataFim.setHours(23,59,59,999);
-          filtrados = filtrados.filter((a: any) => new Date(a.created_at) <= dataFim);
+        const dataFinalLocal = parseDateInputToLocal(filtros.dataFinal);
+        if (dataFinalLocal) {
+          dataFinalLocal.setHours(23, 59, 59, 999);
+          filtrados = filtrados.filter((a: any) => a.createdAt && a.createdAt.getTime() <= dataFinalLocal.getTime());
         }
         if (filtros.status) {
           filtrados = filtrados.filter((a: any) => {
@@ -242,18 +274,20 @@ export class RelatorioAtendimentosComponent implements OnInit {
           });
         }
         if (filtros.nomePaciente) {
-          const nomePacienteLower = filtros.nomePaciente.toLowerCase();
+          const nomePacienteLower = String(filtros.nomePaciente).toLowerCase();
           filtrados = filtrados.filter((a: any) => (a.paciente_nome || '').toLowerCase().includes(nomePacienteLower));
         }
         if (filtros.observacoes) {
-          const observacoesLower = filtros.observacoes.toLowerCase();
+          const observacoesLower = String(filtros.observacoes).toLowerCase();
           filtrados = filtrados.filter((a: any) => (a.observacoes || '').toLowerCase().includes(observacoesLower));
         }
+
+        // Mapear para o formato de exibição com a data normalizada
         this.relatorio = filtrados.map((a: any) => ({
-          data: a.created_at ? new Date(a.created_at) : new Date(),
+          data: a.createdAt || (a.created_at ? new Date(a.created_at) : new Date()),
           paciente_nome: a.paciente_nome || '',
           profissional: a.usuario_id || '',
-          procedimento: a.procedencia || '',
+          procedimento: a.procedencia || a.procedimento || '',
           observacoes: a.observacoes || '',
           status: a.status || ''
         }));
@@ -265,6 +299,15 @@ export class RelatorioAtendimentosComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+  
+  limparFiltros() {
+    // Reseta o formulário de filtros e recarrega todos os atendimentos
+    this.filtrosForm.reset({ dataInicial: '', dataFinal: '', status: '', nomePaciente: '', observacoes: '' });
+    this.currentPage = 0;
+    this.relatorio = [];
+    // Recarregar atendimentos sem filtros
+    this.carregarAtendimentosReais();
   }
   gerarRelatorioSimples() {
     const doc = new jsPDF.jsPDF();

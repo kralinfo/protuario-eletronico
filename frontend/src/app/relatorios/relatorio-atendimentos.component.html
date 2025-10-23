@@ -43,6 +43,7 @@
         </div>
         <div class="flex gap-2 justify-end">
           <button type="button" (click)="buscarRelatorio()" class="px-6 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Buscar</button>
+          <button type="button" (click)="limparFiltros()" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors font-medium">Limpar filtros</button>
           <button (click)="gerarRelatorioSimples()" [disabled]="relatorio.length === 0" class="px-6 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Gerar PDF Simples</button>
           <button (click)="gerarRelatorioDetalhado()" [disabled]="relatorio.length === 0" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed">Gerar PDF Detalhado</button>
         </div>
