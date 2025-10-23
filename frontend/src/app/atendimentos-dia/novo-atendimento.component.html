@@ -11,10 +11,11 @@
     <h2 class="text-2xl font-bold text-blue-700 text-center">{{ isEdicao ? 'Editar Atendimento' : 'Novo Atendimento' }}</h2>
   </div>
   <div class="w-full max-w-4xl bg-white rounded-lg shadow p-8">
-    <form (ngSubmit)="registrar()" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <form #atendimentoForm="ngForm" (ngSubmit)="registrar()" class="grid grid-cols-1 md:grid-cols-4 gap-6" novalidate>
       <div class="md:col-span-3 flex flex-col">
-        <label for="paciente" class="block text-sm font-medium text-gray-700 mb-1">Pesquisar paciente</label>
-        <input id="paciente" [(ngModel)]="filtroPaciente" name="filtroPaciente" placeholder="Digite o nome do paciente..." class="border rounded px-3 py-2 w-full disabled-input" style="max-width: 100%;" (ngModelChange)="onFiltroPacienteChange()" />
+        <label for="paciente" class="block text-sm font-medium text-gray-700 mb-1">Pesquisar paciente <span class="text-red-500">*</span></label>
+        <input id="paciente" #filtroPacienteModel="ngModel" [(ngModel)]="filtroPaciente" name="filtroPaciente" placeholder="Digite o nome do paciente..." class="border rounded px-3 py-2 w-full disabled-input" style="max-width: 100%;" (ngModelChange)="onFiltroPacienteChange()" aria-required="true" [attr.aria-invalid]="(atendimentoForm.submitted && !pacienteSelecionado) ? true : null" />
+        <div *ngIf="atendimentoForm.submitted && !pacienteSelecionado" class="mt-2 text-red-600 text-sm">Selecione um paciente para prosseguir.</div>
         <div *ngIf="pacientesFiltrados.length > 0" class="mt-2">
           <div *ngFor="let paciente of pacientesFiltrados" class="border-b py-2 cursor-pointer hover:bg-blue-50" (click)="selecionarPaciente(paciente)">
             {{ paciente.nome }} <span class="text-xs text-gray-500">{{ paciente.nascimento | date:'dd/MM/yyyy' }}</span>
@@ -27,24 +28,28 @@
         </div>
       </div>
       <div class="md:col-span-1 flex flex-col justify-end">
-        <label for="horario" class="block text-sm font-medium text-gray-700 mb-1">Horário do atendimento</label>
-        <input id="horario" name="horario" type="time" class="border rounded px-3 py-2 w-full" [(ngModel)]="horario" required />
+        <label for="horario" class="block text-sm font-medium text-gray-700 mb-1">Horário do atendimento <span class="text-red-500">*</span></label>
+        <input id="horario" #horarioModel="ngModel" name="horario" type="time" class="border rounded px-3 py-2 w-full" [(ngModel)]="horario" required aria-required="true" [attr.aria-invalid]="(horarioModel.invalid && (horarioModel.touched || atendimentoForm.submitted)) ? true : null" />
+        <div *ngIf="horarioModel.invalid && (horarioModel.touched || atendimentoForm.submitted)" class="text-red-600 text-sm mt-1">Horário é obrigatório.</div>
       </div>
       <!-- campo de horário removido, agora está acima -->
       <div>
-        <label for="motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo do atendimento</label>
-        <select id="motivo" [(ngModel)]="motivo" name="motivo" required class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado">
+        <label for="motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo do atendimento <span class="text-red-500">*</span></label>
+        <select id="motivo" #motivoModel="ngModel" [(ngModel)]="motivo" name="motivo" required class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" aria-required="true" [attr.aria-invalid]="(motivoModel.invalid && (motivoModel.touched || atendimentoForm.submitted)) ? true : null">
           <option value="" disabled selected>Selecione o motivo</option>
           <option *ngFor="let m of motivosPossiveis" [value]="m">{{ m }}</option>
         </select>
+        <div *ngIf="motivoModel.invalid && (motivoModel.touched || atendimentoForm.submitted)" class="text-red-600 text-sm mt-1">Motivo é obrigatório.</div>
       </div>
       <div class="md:col-span-2">
-        <label for="acompanhante" class="block text-sm font-medium text-gray-700 mb-1">Acompanhante</label>
-        <input id="acompanhante" [(ngModel)]="acompanhante" name="acompanhante" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" />
+        <label for="acompanhante" class="block text-sm font-medium text-gray-700 mb-1">Acompanhante <span class="text-red-500">*</span></label>
+        <input id="acompanhante" #acompanhanteModel="ngModel" [(ngModel)]="acompanhante" name="acompanhante" required class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" aria-required="true" [attr.aria-invalid]="(acompanhanteModel.invalid && (acompanhanteModel.touched || atendimentoForm.submitted)) ? true : null" />
+        <div *ngIf="acompanhanteModel.invalid && (acompanhanteModel.touched || atendimentoForm.submitted)" class="text-red-600 text-sm mt-1">Informe o acompanhante (se houver).</div>
       </div>
       <div>
-        <label for="procedencia" class="block text-sm font-medium text-gray-700 mb-1">Procedência</label>
-        <input id="procedencia" [(ngModel)]="procedencia" name="procedencia" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" />
+        <label for="procedencia" class="block text-sm font-medium text-gray-700 mb-1">Procedência <span class="text-red-500">*</span></label>
+        <input id="procedencia" #procedenciaModel="ngModel" [(ngModel)]="procedencia" name="procedencia" required class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" aria-required="true" [attr.aria-invalid]="(procedenciaModel.invalid && (procedenciaModel.touched || atendimentoForm.submitted)) ? true : null" />
+        <div *ngIf="procedenciaModel.invalid && (procedenciaModel.touched || atendimentoForm.submitted)" class="text-red-600 text-sm mt-1">Procedência é obrigatória.</div>
       </div>
       <!-- Seção customizada para Status e Observações -->
       <div class="form-row-custom md:col-span-4">
@@ -75,8 +80,9 @@
         <!-- Botão de imprimir removido, permanece apenas ao lado do botão de registrar atendimento -->
       </div>
       <div *ngIf="status === 'interrompido'" class="md:col-span-4">
-        <label for="motivo_interrupcao" class="block text-sm font-medium text-gray-700 mb-1">Motivo da Interrupção</label>
-        <input id="motivo_interrupcao" [(ngModel)]="motivo_interrupcao" name="motivo_interrupcao" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" required />
+        <label for="motivo_interrupcao" class="block text-sm font-medium text-gray-700 mb-1">Motivo da Interrupção <span class="text-red-500">*</span></label>
+        <input id="motivo_interrupcao" #motivoInterrupcaoModel="ngModel" [(ngModel)]="motivo_interrupcao" name="motivo_interrupcao" class="border rounded px-3 py-2 w-full disabled-input" [disabled]="!pacienteSelecionado" required aria-required="true" [attr.aria-invalid]="(motivoInterrupcaoModel.invalid && (motivoInterrupcaoModel.touched || atendimentoForm.submitted)) ? true : null" />
+        <div *ngIf="motivoInterrupcaoModel.invalid && (motivoInterrupcaoModel.touched || atendimentoForm.submitted)" class="text-red-600 text-sm mt-1">Informe o motivo da interrupção.</div>
       </div>
       <style>
         .disabled-input:disabled {
