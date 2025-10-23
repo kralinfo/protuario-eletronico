@@ -71,10 +71,10 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
             console.log('❌ Atendimento sem data:', consulta.id);
             return false;
           }
-          
+
           const dataAtendimento = new Date(campoData);
           const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
-          
+
           if (diffHoras > 24) {
             console.log(`⏰ Atendimento ${consulta.id} fora das 24h: ${diffHoras.toFixed(2)}h - Data: ${dataAtendimento.toLocaleString()}`);
             return false;
@@ -161,7 +161,7 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
 
     for (const consulta of this.consultas) {
       const status = (consulta.status || '').toLowerCase();
-      
+
       if (status.includes('alta_medica') || status.includes('alta médica') || status.includes('alta medica')) {
         this.altasMedicas++;
       } else if (status.includes('encaminhado_para_ambulatorio') || status.includes('encaminhado para ambulatório') || status.includes('encaminhado para ambulatorio')) {
@@ -215,7 +215,16 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
 
   abrirConsulta(consulta: any): void {
     if (consulta?.id) {
-      this.router.navigate(['/medico/atendimento', consulta.id]);
+      // Navegar em modo visualização para evitar que o componente atualize o status automaticamente
+      this.router.navigate(['/medico/atendimento', consulta.id], {
+        state: {
+          modoVisualizacao: true,
+          consultaRealizada: true,
+          // Ao abrir a partir do card 'consultas' não queremos permitir edição por padrão
+          podeEditarPorStatus: false,
+          origemCard: 'consultas'
+        }
+      });
     }
   }
 
