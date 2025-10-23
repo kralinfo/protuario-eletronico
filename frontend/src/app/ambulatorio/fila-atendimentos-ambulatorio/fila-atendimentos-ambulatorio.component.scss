@@ -18,9 +18,14 @@
   color: #2c5282;
 }
 
+/* helper to emulate the utility spacer used in templates (ex: <span class="flex-1"></span>) */
+.page-title .flex-1 {
+  flex: 1 1 auto;
+}
+
 .stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 15px;
   margin-bottom: 20px;
 }
@@ -30,6 +35,21 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-height: 120px;
+  padding: 12px;
+}
+
+/* Specific sizing for the top three stat cards to align visually */
+.stat-card.agurdando-card, .stat-card.tempo-card, .stat-card.classificacao-card {
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.stat-card .stat-number {
+  font-size: 1.8rem;
 }
 
 .stat-number {
@@ -41,6 +61,18 @@
 
 .stat-label {
   color: #666;
+}
+
+/* Filtro de status: manter comportamento similar ao componente médico */
+.status-filter {
+  margin-bottom: 20px;
+  width: 49.5%;
+}
+
+@media (max-width: 600px) {
+  .status-filter {
+    width: 100%;
+  }
 }
 
 .patients-list {

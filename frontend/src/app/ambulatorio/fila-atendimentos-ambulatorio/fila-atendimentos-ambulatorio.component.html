@@ -11,20 +11,20 @@
 
   <!-- Estatísticas -->
   <div class="stats-cards">
-    <mat-card class="stat-card">
+      <mat-card class="stat-card agurdando-card">
       <mat-card-content>
         <div class="stat-number">{{contarPacientesAguardando()}}</div>
         <div class="stat-label">Aguardando Atendimento</div>
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="stat-card">
+      <mat-card class="stat-card tempo-card">
       <mat-card-content>
         <div class="stat-number">{{formatarTempo(estatisticas.tempo_medio_espera)}}</div>
         <div class="stat-label">Tempo Médio de Espera</div>
       </mat-card-content>
     </mat-card>
-    <mat-card class="stat-card">
+      <mat-card class="stat-card classificacao-card">
       <mat-card-content>
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-2">
@@ -84,21 +84,18 @@
     </mat-card>
   </div>
 
-  <!-- Filtro de Status -->
- <div class="status-filter mb-4 w-1/2">
-  <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
-  <select
-    [(ngModel)]="filtroStatus"
-    (change)="carregarDados()"
-    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-    <option value="">Todos os Status</option>
-    <option value="encaminhado para ambulatorio">Encaminhado</option>
-    <option value="em atendimento ambulatorial">Em Atendimento</option>
-    <option value="alta médica">Alta Médica</option>
-    <option value="transferido">Transferido</option>
-    <option value="óbito">Óbito</option>
-  </select>
-</div>
+    <!-- Filtro de Status -->
+    <div class="status-filter">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Status</label>
+  <select [(ngModel)]="filtroStatus" (ngModelChange)="carregarDados()" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        <option value="">Todos os Status</option>
+        <option value="encaminhado para ambulatorio">Encaminhado</option>
+        <option value="em atendimento ambulatorial">Em Atendimento</option>
+        <option value="alta médica">Alta Médica</option>
+        <option value="transferido">Transferido</option>
+        <option value="óbito">Óbito</option>
+      </select>
+    </div>
 
   <!-- Lista de Pacientes -->
   <div class="patients-list" *ngIf="!carregando; else loadingTemplate">

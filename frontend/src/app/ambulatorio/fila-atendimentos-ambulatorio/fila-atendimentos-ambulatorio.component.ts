@@ -77,29 +77,72 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
 
   carregarDados() {
     this.carregando = true;
-
-    // Buscar atendimentos
+    // Buscar atendimentos enriquecidos (inclui dados do paciente) para montar a fila com informações completas
     this.subs.add(
-      this.ambulatorioService.getAtendimentosAmbulatorio().subscribe({
+      this.ambulatorioService.getTodosAtendimentos().subscribe({
         next: (resp) => {
-          // Normaliza resposta e remove duplicatas por id para evitar renderizar o mesmo atendimento duas vezes
-          let lista: any[] = this.filtroStatus
-            ? resp.filter((p: any) => p.status === this.filtroStatus)
-            : resp;
+          try {
+            const agora = new Date();
 
-          // Deduplicar por id (mantendo a primeira ocorrência)
-          const vistos = new Set<number>();
-          lista = lista.filter(item => {
-            if (!item || item.id == null) return false;
-            if (vistos.has(item.id)) return false;
-            vistos.add(item.id);
-            return true;
-          });
+            // Considerar apenas atendimentos das últimas 24 horas para a fila
+            let lista = (resp || []).filter((a: any) => {
+              const campoData = a.created_at || a.data_hora_atendimento;
+              if (!campoData) return false;
+              const dataAtendimento = new Date(campoData);
+              const diffHoras = (agora.getTime() - dataAtendimento.getTime()) / (1000 * 60 * 60);
+              return diffHoras <= 24;
+            });
 
-          this.pacientes = lista;
+            // Filtrar apenas os status que pertencem à fila do ambulatório
+            lista = lista.filter((a: any) => {
+              const status = (a.status || '').toString().toLowerCase();
+              return status === 'encaminhado_para_ambulatorio' ||
+                     status === 'encaminhado para ambulatório' ||
+                     status === '5 - encaminhado para ambulatório' ||
+                     status === 'em atendimento ambulatorial' ||
+                     status === 'em_atendimento_ambulatorial' ||
+                     (status.includes('encaminhado') && status.includes('ambulatorio')) ||
+                     (status.includes('atendimento') && status.includes('ambulatorial'));
+            });
 
-          this.atualizarEstatisticas();
-          this.carregando = false;
+            // Deduplicar por id (mantendo a primeira ocorrência)
+            const vistos = new Set<number>();
+            lista = lista.filter((item: any) => {
+              if (!item || item.id == null) return false;
+              if (vistos.has(item.id)) return false;
+              vistos.add(item.id);
+              return true;
+            });
+
+            // Calcular tempo_espera para cada item
+            lista.forEach((p: any) => {
+              p.tempo_espera = this.calcularTempoDecorrido(p);
+              // normalizar campos de paciente (algumas APIs usam 'nome' em vez de 'paciente_nome')
+              if (!p.paciente_nome && p.nome) p.paciente_nome = p.nome;
+              if (!p.paciente_nascimento && p.nascimento) p.paciente_nascimento = p.nascimento;
+            });
+
+            // Aplicar filtro se houver
+            if (this.filtroStatus) {
+              lista = lista.filter((p: any) => this.matchesFiltroStatus(p.status, this.filtroStatus));
+            }
+
+            // Ordenar por classificação e tempo, e atribuir
+            this.pacientes = lista.sort((a: any, b: any) => {
+              const ordem: Record<string, number> = { vermelho: 1, laranja: 2, amarelo: 3, verde: 4, azul: 5 };
+              const ca = ordem[(a.classificacao_risco || '').toLowerCase() as string] || 99;
+              const cb = ordem[(b.classificacao_risco || '').toLowerCase() as string] || 99;
+              if (ca !== cb) return ca - cb;
+              return (b.tempo_espera || 0) - (a.tempo_espera || 0);
+            });
+
+            // Atualiza estatísticas locais (por_classificacao e tempo medio)
+            this.atualizarEstatisticas();
+            this.carregando = false;
+          } catch (err) {
+            this.carregando = false;
+            this.snackBar.open('Erro ao processar atendimentos', 'Fechar', { duration: 3000 });
+          }
         },
         error: () => {
           this.carregando = false;
@@ -140,6 +183,30 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
         this.estatisticas.por_classificacao[cor]++;
       }
     });
+    // Calcula tempo médio de espera considerando apenas pacientes encaminhados para ambulatório
+    const statusVariants = ['encaminhado_para_ambulatorio', 'encaminhado para ambulatorio', '5 - Encaminhado para ambulatório'];
+    const agora = new Date();
+    const aguardando = this.pacientes.filter(p => {
+      const status = (p.status || '').toString().toLowerCase();
+      // filtra variantes que representam encaminhado para ambulatório
+      const isEncaminhado = statusVariants.some(v => status.includes(v.replace(/_/g, ' ')) || status === v);
+      if (!isEncaminhado) return false;
+      // opcional: considerar só últimos 24h quando data estiver disponível
+      const campoData = (p as any).created_at || p.data_hora_atendimento;
+      if (!campoData) return true; // se não tiver data, incluímos
+      const data = new Date(campoData);
+      const diffHoras = (agora.getTime() - data.getTime()) / (1000 * 60 * 60);
+      return diffHoras <= 24;
+    });
+
+    // calcula média de tempo_espera (em minutos) se disponível
+    const tempos = aguardando.map(p => p.tempo_espera ?? 0).filter(t => t != null && !isNaN(t));
+    if (tempos.length === 0) {
+      this.estatisticas.tempo_medio_espera = 0;
+    } else {
+      const soma = tempos.reduce((s, v) => s + v, 0);
+      this.estatisticas.tempo_medio_espera = Math.round(soma / tempos.length);
+    }
   }
 
   getCor(risco?: string): string {
@@ -204,7 +271,18 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
   }
 
   contarPacientesAguardando(): number {
-    return this.pacientes.filter(p => p.status === 'encaminhado para ambulatorio').length;
+    const statusVariants = ['encaminhado_para_ambulatorio', 'encaminhado para ambulatorio', '5 - Encaminhado para ambulatório'];
+    const agora = new Date();
+    return this.pacientes.filter(a => {
+      const status = (a.status || '').toString().toLowerCase();
+      const isEncaminhado = statusVariants.some(v => status.includes(v.replace(/_/g, ' ')) || status === v);
+      if (!isEncaminhado) return false;
+      const campoData = (a as any).created_at || a.data_hora_atendimento;
+      if (!campoData) return true;
+      const data = new Date(campoData);
+      const diffHoras = (agora.getTime() - data.getTime()) / (1000 * 60 * 60);
+      return diffHoras <= 24;
+    }).length;
   }
 
   isStatusEmAtendimentoAmbulatorial(status: string): boolean {
@@ -238,5 +316,21 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
   testarClique() {
     console.log('Botão do ícone assessment foi clicado!');
     this.abrirDialogClassificacao();
+  }
+
+  calcularTempoDecorrido(p: any): number {
+    const inicio = p.data_hora_atendimento || p.created_at;
+    if (!inicio) return 0;
+    const dataInicio = new Date(inicio);
+    const agora = new Date();
+    const diffMs = agora.getTime() - dataInicio.getTime();
+    return Math.floor(diffMs / 60000); // minutos
+  }
+
+  // Compara status levando em conta variantes (underscores, acentos, maiúsculas)
+  matchesFiltroStatus(status: string | undefined, filtro: string): boolean {
+    if (!status) return false;
+    const normalize = (s: string) => s.toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/_/g, ' ').trim();
+    return normalize(status).includes(normalize(filtro));
   }
 }
