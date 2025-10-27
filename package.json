@@ -1,4 +1,14 @@
 {
+  "name": "protuario-eletronico-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "start": "npm --prefix backend run start",
+    "start:backend": "npm --prefix backend run start",
+    "start:frontend": "npm --prefix frontend run start",
+    "build:frontend": "npm --prefix frontend run build"
+  },
   "dependencies": {
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
