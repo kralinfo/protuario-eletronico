@@ -1,16 +1,31 @@
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 class EmailService {
   constructor() {
     this.transporter = null;
+    this.useSendGrid = false;
     this.init();
   }
 
   async init() {
     try {
-      // Se as variáveis de ambiente estão configuradas, use Gmail
+      // PRIORIDADE 1: Tentar SendGrid se configurado
+      if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY !== 'SG.COLOQUE_SUA_API_KEY_AQUI') {
+        console.log('🚀 Configurando SendGrid (prioridade)...');
+        try {
+          sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+          this.useSendGrid = true;
+          console.log('✅ SendGrid configurado com sucesso!');
+          return;
+        } catch (error) {
+          console.error('❌ Erro ao configurar SendGrid:', error.message);
+        }
+      }
+      
+      // FALLBACK: Gmail SMTP (para desenvolvimento)
       if (process.env.EMAIL_USER && process.env.EMAIL_PASS && process.env.EMAIL_PASS !== 'sua_senha_de_app_aqui') {
-        console.log('📧 Configurando Gmail para envio de emails...');
+        console.log('📧 Fallback: Configurando Gmail SMTP...');
         this.transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
@@ -42,6 +57,52 @@ class EmailService {
       console.log('✅ Conexão de email estabelecida com sucesso!');
     } catch (error) {
       console.error('❌ Erro na conexão de email:', error.message);
+    }
+  }
+
+  async sendMail(mailOptions) {
+    try {
+      // Se usar SendGrid
+      if (this.useSendGrid) {
+        console.log('📧 Enviando via SendGrid API...');
+        
+        const msg = {
+          to: mailOptions.to,
+          from: {
+            email: process.env.EMAIL_USER || 'kralinfo18@gmail.com',
+            name: 'e-Prontuário Aliança-PE'
+          },
+          subject: mailOptions.subject,
+          html: mailOptions.html,
+        };
+        
+        console.log('📧 Dados do email:', { to: msg.to, from: msg.from.email, subject: msg.subject });
+        
+        const response = await sgMail.send(msg);
+        console.log('✅ Email enviado via SendGrid! Status:', response[0].statusCode);
+        
+        return { messageId: response[0].headers['x-message-id'] || 'sendgrid-success' };
+      }
+      
+      // Fallback: SMTP
+      if (!this.transporter) {
+        throw new Error('Nenhum método de envio disponível');
+      }
+
+      const info = await this.transporter.sendMail({
+        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+        ...mailOptions
+      });
+
+      console.log('📧 Email enviado via SMTP:', info.messageId);
+      
+      return info;
+    } catch (error) {
+      console.error('❌ Erro ao enviar email:', error.message);
+      if (error.response && error.response.body) {
+        console.error('📝 Detalhes do erro:', JSON.stringify(error.response.body, null, 2));
+      }
+      throw error;
     }
   }
 
@@ -112,19 +173,11 @@ class EmailService {
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('✅ Email enviado com sucesso:', info.messageId);
-      
-      // Se estiver usando Ethereal (teste), mostrar link de preview
-      if (info.messageId && this.transporter.options && this.transporter.options.host === 'smtp.ethereal.email') {
-        const previewUrl = nodemailer.getTestMessageUrl(info);
-        console.log('🔗 Preview do email (Ethereal):', previewUrl);
-        console.log('📧 Abra o link acima para ver o email enviado');
-      }
-      
-      return { success: true, messageId: info.messageId, previewUrl: nodemailer.getTestMessageUrl(info) };
+      const info = await this.sendMail(mailOptions);
+      console.log('✅ Email de recuperação enviado:', info.messageId);
+      return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('❌ Erro ao enviar email:', error);
+      console.error('❌ Erro ao enviar email de recuperação:', error);
       throw error;
     }
   }

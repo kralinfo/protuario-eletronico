@@ -54,7 +54,6 @@
     "migrate:robust": "node migrate-robust.cjs",
     "check:local": "node check-columns-local.cjs",
     "fix:migrations": "node migrate-robust.cjs",
-    
     "db:sync": "node sync-db.cjs",
     "db:update": "node sync-db.cjs",
     "db:fix": "node sync-db.cjs",
@@ -74,6 +73,7 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.0",
