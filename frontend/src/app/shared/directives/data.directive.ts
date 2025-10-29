@@ -27,13 +27,13 @@ export class DateInputLimiterDirective implements OnInit {
   onInput(event: any): void {
     const input = event.target;
     let value = input.value;
-    
+
     // Se o valor tem mais de 10 caracteres (formato YYYY-MM-DD), limitar
     if (value && value.length > 10) {
       value = value.substring(0, 10);
       input.value = value;
     }
-    
+
     // Verificar e corrigir se o ano tem mais de 4 dígitos
     // Isso pode acontecer se o usuário colar um valor ou em casos raros
     if (value.includes('-')) {
@@ -53,30 +53,30 @@ export class DateInputLimiterDirective implements OnInit {
     const input = event.target as HTMLInputElement;
     const value = input.value;
     const cursorPosition = input.selectionStart || 0;
-    
+
     // Permitir teclas especiais (backspace, delete, arrows, tab, etc.)
     const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
     if (allowedKeys.includes(event.key)) {
       return;
     }
-    
+
     // Se não é um dígito, bloquear (exceto teclas especiais já permitidas)
     if (!/\d/.test(event.key)) {
       event.preventDefault();
       return;
     }
-    
+
     // Se o valor atual já tem 10 caracteres (formato completo YYYY-MM-DD), bloquear entrada
     if (value && value.length >= 10) {
       event.preventDefault();
       return;
     }
-    
+
     // Lógica específica para limitação do ano (primeiros 4 caracteres)
     if (cursorPosition <= 4) {
       // Contar quantos dígitos já existem na parte do ano (antes do primeiro hífen ou nos primeiros 4 caracteres)
       const yearPart = value.split('-')[0] || value.substring(0, 4);
-      
+
       // Se já temos 4 dígitos no ano e o cursor está na posição do ano, bloquear
       if (yearPart.length >= 4 && cursorPosition <= yearPart.length) {
         event.preventDefault();
