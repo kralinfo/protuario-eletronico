@@ -34,16 +34,17 @@ export class DateInputLimiterDirective implements OnInit {
       input.value = value;
     }
     
-    // Verificar se o ano tem mais de 4 dígitos
-    const datePattern = /^(\d{1,4})-(\d{1,2})-(\d{1,2})$/;
-    const match = value.match(datePattern);
-    
-    if (match && match[1].length > 4) {
-      // Limitar o ano a 4 dígitos
-      const year = match[1].substring(0, 4);
-      const month = match[2];
-      const day = match[3];
-      input.value = `${year}-${month}-${day}`;
+    // Verificar e corrigir se o ano tem mais de 4 dígitos
+    // Isso pode acontecer se o usuário colar um valor ou em casos raros
+    if (value.includes('-')) {
+      const parts = value.split('-');
+      if (parts[0] && parts[0].length > 4) {
+        parts[0] = parts[0].substring(0, 4);
+        input.value = parts.join('-');
+      }
+    } else if (value.length > 4) {
+      // Se não tem hífen ainda mas tem mais de 4 dígitos, limitar a 4
+      input.value = value.substring(0, 4);
     }
   }
 
@@ -51,10 +52,17 @@ export class DateInputLimiterDirective implements OnInit {
   onKeyDown(event: KeyboardEvent): void {
     const input = event.target as HTMLInputElement;
     const value = input.value;
+    const cursorPosition = input.selectionStart || 0;
     
     // Permitir teclas especiais (backspace, delete, arrows, tab, etc.)
-    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter'];
+    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Home', 'End'];
     if (allowedKeys.includes(event.key)) {
+      return;
+    }
+    
+    // Se não é um dígito, bloquear (exceto teclas especiais já permitidas)
+    if (!/\d/.test(event.key)) {
+      event.preventDefault();
       return;
     }
     
@@ -64,12 +72,15 @@ export class DateInputLimiterDirective implements OnInit {
       return;
     }
     
-    // Verificar se estamos digitando na parte do ano e já temos 4 dígitos
-    const cursorPosition = input.selectionStart || 0;
-    if (cursorPosition <= 4 && value.length >= 4 && !value.includes('-')) {
-      // Estamos na parte do ano e já temos 4 dígitos, bloquear mais dígitos
-      if (/\d/.test(event.key)) {
+    // Lógica específica para limitação do ano (primeiros 4 caracteres)
+    if (cursorPosition <= 4) {
+      // Contar quantos dígitos já existem na parte do ano (antes do primeiro hífen ou nos primeiros 4 caracteres)
+      const yearPart = value.split('-')[0] || value.substring(0, 4);
+      
+      // Se já temos 4 dígitos no ano e o cursor está na posição do ano, bloquear
+      if (yearPart.length >= 4 && cursorPosition <= yearPart.length) {
         event.preventDefault();
+        return;
       }
     }
   }
