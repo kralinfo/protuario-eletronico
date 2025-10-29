@@ -140,55 +140,46 @@ class EmailService {
       to: email,
       subject: 'Recuperação de Senha - e-Prontuário',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #667eea; margin: 0;">e-Prontuário</h1>
-            <p style="color: #7f8c8d; margin: 5px 0;">Aliança-PE - Sistema de Gerenciamento</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+          <div style="text-align: center; margin-bottom: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+            <h1 style="color: #667eea; margin: 0; font-size: 24px;">e-Prontuário</h1>
+            <p style="color: #6c757d; margin: 5px 0; font-size: 14px;">Aliança-PE - Sistema de Gerenciamento</p>
           </div>
           
-          <div style="background: #f8f9fa; padding: 30px; border-radius: 8px; border-left: 4px solid #667eea;">
-            <h2 style="color: #2c3e50; margin-top: 0;">Recuperação de Senha</h2>
-            <p style="color: #34495e; line-height: 1.6;">
-              Olá <strong>${userName}</strong>,
+          <div style="padding: 20px; border-left: 4px solid #667eea; background-color: #f8f9fa; margin: 20px 0; border-radius: 4px;">
+            <h2 style="color: #333; margin-top: 0; font-size: 20px;">Recuperação de Senha</h2>
+            <p style="color: #555; line-height: 1.6; margin: 10px 0;">
+              Olá <strong>${userName || 'Usuário'}</strong>,
             </p>
-            <p style="color: #34495e; line-height: 1.6;">
-              Recebemos uma solicitação para redefinir a senha da sua conta no e-Prontuário. 
-              Se você fez esta solicitação, clique no botão abaixo para criar uma nova senha.
+            <p style="color: #555; line-height: 1.6; margin: 10px 0;">
+              Você solicitou a recuperação de senha para sua conta no e-Prontuário. 
+              Para continuar, clique no botão abaixo:
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${resetLink}" 
-                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        color: white; 
-                        padding: 15px 30px; 
-                        text-decoration: none; 
-                        border-radius: 6px; 
-                        font-weight: bold; 
-                        display: inline-block;">
+                 style="background-color: #667eea; color: #ffffff; padding: 12px 25px; text-decoration: none; 
+                        border-radius: 5px; font-weight: 500; display: inline-block; font-size: 16px;">
                 Redefinir Senha
               </a>
             </div>
             
-            <p style="color: #7f8c8d; font-size: 14px; line-height: 1.5;">
-              Este link é válido por <strong>1 hora</strong> e pode ser usado apenas uma vez.
+            <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 15px 0;">
+              <strong>Importante:</strong> Este link é válido por 1 hora.
             </p>
             
-            <p style="color: #7f8c8d; font-size: 14px; line-height: 1.5;">
-              Se você não solicitou esta alteração, pode ignorar este email com segurança. 
-              Sua senha atual permanece inalterada.
-            </p>
-            
-            <hr style="border: none; border-top: 1px solid #e9ecef; margin: 20px 0;">
-            
-            <p style="color: #95a5a6; font-size: 12px; text-align: center;">
-              Este é um email automático. Por favor, não responda a esta mensagem.<br>
-              Se você está tendo problemas com o botão acima, copie e cole o link abaixo no seu navegador:<br>
-              <span style="word-break: break-all;">${resetLink}</span>
+            <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 15px 0;">
+              Se você não solicitou esta alteração, pode ignorar este email com segurança.
             </p>
           </div>
           
-          <div style="text-align: center; margin-top: 20px; color: #95a5a6; font-size: 12px;">
-            © 2025 Aliança-PE. Todos os direitos reservados.
+          <div style="border-top: 1px solid #dee2e6; padding-top: 20px; margin-top: 30px; text-align: center;">
+            <p style="color: #6c757d; font-size: 12px; margin: 5px 0;">
+              Este email foi enviado automaticamente pelo sistema e-Prontuário.
+            </p>
+            <p style="color: #6c757d; font-size: 12px; margin: 5px 0;">
+              © 2025 Aliança-PE. Sistema de Gerenciamento de Saúde.
+            </p>
           </div>
         </div>
       `
