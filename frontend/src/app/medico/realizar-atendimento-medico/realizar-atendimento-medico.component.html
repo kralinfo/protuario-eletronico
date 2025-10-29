@@ -45,12 +45,12 @@
         <mat-icon class="text-red-500">medical_services</mat-icon>
         Hipótese Diagnóstica <span class="text-red-500">*</span>
       </h3>
-      <textarea class="w-full p-3 border border-gray-300 rounded focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500" 
-                formControlName="hipotese_diagnostica" 
-                rows="3" 
+      <textarea class="w-full p-3 border border-gray-300 rounded focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
+                formControlName="hipotese_diagnostica"
+                rows="3"
                 placeholder="Descreva a hipótese diagnóstica (campo obrigatório)"
                 required></textarea>
-      <div *ngIf="atendimentoForm.get('hipotese_diagnostica')?.invalid && atendimentoForm.get('hipotese_diagnostica')?.touched" 
+      <div *ngIf="atendimentoForm.get('hipotese_diagnostica')?.invalid && atendimentoForm.get('hipotese_diagnostica')?.touched"
            class="text-red-500 text-sm mt-1">
         Hipótese diagnóstica é obrigatória
       </div>
@@ -64,10 +64,6 @@
         <div>
           <h3 class="text-md font-medium text-gray-600 mb-2">Queixa Principal</h3>
           <input class="w-full p-2 border border-gray-300 rounded" formControlName="queixa_principal" placeholder="Digite a queixa principal">
-        </div>
-        <div>
-          <h3 class="text-md font-medium text-gray-600 mb-2">Histórico Atual</h3>
-          <textarea class="w-full p-2 border border-gray-300 rounded" formControlName="historia_clinica" rows="3" placeholder="Descreva o histórico atual"></textarea>
         </div>
         <div>
           <h3 class="text-md font-medium text-gray-600 mb-2">Sinais Vitais</h3>

@@ -91,7 +91,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   ) {
     // Configurar o locale para português brasileiro
     this.dateAdapter.setLocale('pt-BR');
-    
+
     this.atendimentoId = +this.route.snapshot.params['id'] || 0;
     this.atendimentoForm = this.criarFormulario();
 
@@ -102,7 +102,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       this.consultaRealizada = navigation.extras.state['consultaRealizada'] || false;
       this.podeEditarPorStatus = navigation.extras.state['podeEditarPorStatus'] !== false; // default true
       this.origemCard = navigation.extras.state['origemCard'] || '';
-      
+
       console.log('📍 Navegação recebida:', {
         modoVisualizacao: this.modoVisualizacao,
         consultaRealizada: this.consultaRealizada,
@@ -116,12 +116,12 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     // Ajustar estados de visualização e edição
     if (this.modoVisualizacao || this.consultaRealizada) {
       this.consultaRealizada = true;
-      
+
       // Se veio do card de consultas, verificar se o status permite edição
       if (this.origemCard === 'consultas') {
         this.podeEditar = this.podeEditarPorStatus;
         this.edicaoHabilitada = this.podeEditarPorStatus;
-        
+
         if (this.podeEditarPorStatus) {
           console.log('📝 Card consultas: Status permite edição - modo edição habilitado');
         } else {
@@ -192,7 +192,6 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
           // Dados da triagem (prioridade para carregar primeiro)
           queixa_principal: triagemData.queixa_principal || consultaData.queixa_principal || '',
           motivo_consulta: consultaData.motivo_consulta || triagemData.motivo || '',
-          historia_clinica: triagemData.historia_atual || consultaData.historia_atual || '',
           observacoes: triagemData.observacoes_triagem || triagemData.observacoes || consultaData.observacoes || '',
           exame_fisico: consultaData.exame_fisico || '',
           hipotese_diagnostica: consultaData.hipotese_diagnostica || '',
@@ -274,7 +273,6 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   criarFormulario(): FormGroup {
     return this.fb.group({
       queixa_principal: [''],
-      historia_clinica: [''], // será preenchido com histórico atual
       motivo_consulta: [''],
       exame_fisico: [''],
       hipotese_diagnostica: ['', Validators.required],
@@ -356,7 +354,6 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       frequencia_cardiaca: this.atendimentoForm.get('frequencia_cardiaca')?.value,
       saturacao_oxigenio: this.atendimentoForm.get('saturacao_oxigenio')?.value,
       queixa_principal: this.atendimentoForm.get('queixa_principal')?.value,
-      historia_atual: this.atendimentoForm.get('historia_clinica')?.value,
       observacoes_triagem: this.atendimentoForm.get('observacoes')?.value
       // NÃO INCLUIR classificacao_risco para preservar o valor da triagem
     };
@@ -448,7 +445,6 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     // Coletar apenas os campos da triagem original
     const triagemData = {
       queixa_principal: this.atendimentoForm.get('queixa_principal')?.value || '',
-      historia_atual: this.atendimentoForm.get('historia_clinica')?.value || '',
       observacoes_triagem: this.atendimentoForm.get('observacoes')?.value || '',
       pressao_arterial: this.atendimentoForm.get('pressao_arterial')?.value || '',
       temperatura: this.atendimentoForm.get('temperatura')?.value || null,
