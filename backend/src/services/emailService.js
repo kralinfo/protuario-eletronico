@@ -73,7 +73,7 @@ class EmailService {
         const msg = {
           to: mailOptions.to,
           from: {
-            email: process.env.EMAIL_USER || 'kralinfo18@gmail.com',
+            email: 'test@example.com', // Email temporário que funciona
             name: 'e-Prontuário Aliança-PE'
           },
           subject: mailOptions.subject,
