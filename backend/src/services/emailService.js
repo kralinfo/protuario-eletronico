@@ -10,6 +10,10 @@ class EmailService {
 
   async init() {
     try {
+      console.log('🚀 Iniciando EmailService...');
+      console.log('📧 SENDGRID_API_KEY disponível:', !!process.env.SENDGRID_API_KEY);
+      console.log('📧 EMAIL_USER disponível:', !!process.env.EMAIL_USER);
+      
       // PRIORIDADE 1: Tentar SendGrid se configurado
       if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY !== 'SG.COLOQUE_SUA_API_KEY_AQUI') {
         console.log('🚀 Configurando SendGrid (prioridade)...');
@@ -107,14 +111,14 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(email, resetToken, userName) {
-    if (!this.transporter) {
-      throw new Error('Transporter de email não inicializado');
+    // Verificar se há pelo menos um método de envio disponível
+    if (!this.useSendGrid && !this.transporter) {
+      throw new Error('Nenhum método de envio de email configurado');
     }
 
     const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:4200'}/reset-password?token=${resetToken}`;
     
     const mailOptions = {
-      from: process.env.EMAIL_FROM || '"e-Prontuário Aliança-PE" <noreply@alianca.com>',
       to: email,
       subject: 'Recuperação de Senha - e-Prontuário',
       html: `
