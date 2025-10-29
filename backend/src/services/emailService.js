@@ -66,29 +66,47 @@ class EmailService {
 
   async sendMail(mailOptions) {
     try {
-      // Se usar SendGrid
+      // Se usar SendGrid, tentar primeiro
       if (this.useSendGrid) {
-        console.log('📧 Enviando via SendGrid API...');
+        console.log('📧 Tentando SendGrid API...');
         
-        const msg = {
-          to: mailOptions.to,
-          from: {
-            email: 'test@example.com', // Email temporário que funciona
-            name: 'e-Prontuário Aliança-PE'
-          },
-          subject: mailOptions.subject,
-          html: mailOptions.html,
-        };
-        
-        console.log('📧 Dados do email:', { to: msg.to, from: msg.from.email, subject: msg.subject });
-        
-        const response = await sgMail.send(msg);
-        console.log('✅ Email enviado via SendGrid! Status:', response[0].statusCode);
-        
-        return { messageId: response[0].headers['x-message-id'] || 'sendgrid-success' };
+        try {
+          const msg = {
+            to: mailOptions.to,
+            from: {
+              email: 'kralinfo18@gmail.com', // Email verificado no SendGrid
+              name: 'e-Prontuário Aliança-PE'
+            },
+            subject: mailOptions.subject,
+            html: mailOptions.html,
+          };
+          
+          console.log('📧 Dados do email:', { to: msg.to, from: msg.from.email, subject: msg.subject });
+          
+          const response = await sgMail.send(msg);
+          console.log('✅ Email enviado via SendGrid! Status:', response[0].statusCode);
+          
+          return { messageId: response[0].headers['x-message-id'] || 'sendgrid-success' };
+        } catch (sgError) {
+          console.log('❌ SendGrid falhou, tentando fallback para Gmail SMTP...');
+          console.log('📧 Erro SendGrid:', sgError.message);
+          
+          // Fallback para Gmail SMTP se SendGrid falhar
+          if (this.transporter) {
+            console.log('📧 Usando Gmail SMTP como fallback...');
+            const info = await this.transporter.sendMail({
+              from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+              ...mailOptions
+            });
+            console.log('✅ Email enviado via Gmail SMTP (fallback):', info.messageId);
+            return info;
+          } else {
+            throw sgError; // Se não tem fallback, relança o erro SendGrid
+          }
+        }
       }
       
-      // Fallback: SMTP
+      // Se não usar SendGrid, usar SMTP diretamente
       if (!this.transporter) {
         throw new Error('Nenhum método de envio disponível');
       }
