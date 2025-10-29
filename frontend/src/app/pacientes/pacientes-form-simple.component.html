@@ -41,7 +41,7 @@
     </mat-form-field>
     <mat-form-field appearance="fill">
       <mat-label>Data de Nascimento</mat-label>
-      <input matInput formControlName="nascimento" type="date" />
+      <input matInput formControlName="nascimento" type="date" appDateInputLimiter />
       <mat-error *ngIf="form.get('nascimento')?.invalid && (form.get('nascimento')?.dirty || form.get('nascimento')?.touched)">Data de nascimento é obrigatória.</mat-error>
     </mat-form-field>
     <mat-form-field appearance="fill">

@@ -10,11 +10,11 @@
         <div class="flex gap-4 items-center">
           <div class="space-y-0">
             <label class="block text-sm font-medium text-gray-700">Data Inicial</label>
-            <input type="date" class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="dataInicial">
+            <input type="date" class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="dataInicial" appDateInputLimiter>
           </div>
           <div class="space-y-0">
             <label class="block text-sm font-medium text-gray-700">Data Final</label>
-            <input type="date" class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value">
+            <input type="date" class="w-full max-w-[180px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value" appDateInputLimiter>
           </div>
           <div class="space-y-0">
             <label class="block text-sm font-medium text-gray-700">Status</label>

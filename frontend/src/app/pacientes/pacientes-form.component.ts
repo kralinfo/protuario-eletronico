@@ -40,6 +40,7 @@ import { formatTelefoneValue } from '../utils/telefone-util';
 import { formatCepValue } from '../utils/cep-util';
 import { CepService } from '../services/cep.service';
 import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validator';
+import { DateInputLimiterDirective } from '../shared/directives/data.directive';
 
 @Component({
   selector: 'app-pacientes-form',
@@ -53,7 +54,8 @@ import { dataMaxHojeValidator } from '../shared/validators/data-max-hoje.validat
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSelectModule
+    MatSelectModule,
+    DateInputLimiterDirective
   ]
 })
 export class PacientesFormComponent
