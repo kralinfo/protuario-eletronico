@@ -368,7 +368,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
               this.medicoService.atualizarConsulta(consulta.id, dadosMedico).subscribe({
                 next: () => {
                   this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
-                  this.router.navigate(['/medico/fila']);
+                  this.router.navigate(['/medico']);
                 },
                 error: () => {
                   this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
@@ -382,7 +382,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
               this.medicoService.salvarConsulta(String(this.atendimentoId), dadosMedico).subscribe({
                 next: () => {
                   this.snackBar.open('Atendimento salvo com sucesso!', 'Fechar', { duration: 3000 });
-                  this.router.navigate(['/medico/fila']);
+                  this.router.navigate(['/medico']);
                 },
                 error: () => {
                   this.snackBar.open('Erro ao salvar atendimento.', 'Fechar', { duration: 5000 });
@@ -471,6 +471,6 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   }
 
   voltar() {
-    this.router.navigate(['/medico/fila']);
+    this.router.navigate(['/medico']);
   }
 }
