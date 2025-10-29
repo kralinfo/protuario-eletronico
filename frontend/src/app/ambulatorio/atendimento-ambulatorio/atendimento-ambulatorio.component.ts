@@ -123,7 +123,6 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
         // ...existing code...
         this.dadosTriagemOriginais = {
           queixa_principal: triagemData.queixa_principal || '',
-          historia_atual: triagemData.historia_atual || '',
           pressao_arterial: triagemData.pressao_arterial || '',
           temperatura: triagemData.temperatura || '',
           saturacao_oxigenio: triagemData.saturacao_oxigenio || '',
@@ -133,7 +132,6 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
         this.atendimentoForm.patchValue({
           // Triagem
           queixa_principal: triagemData.queixa_principal || '',
-          historia_doenca_atual: triagemData.historia_atual || '',
           pressao_arterial: triagemData.pressao_arterial || '',
           temperatura: triagemData.temperatura || '',
           saturacao_oxigenio: triagemData.saturacao_oxigenio || '',
@@ -168,7 +166,6 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
     return this.fb.group({
       // Dados da Triagem
       queixa_principal: [''],
-      historia_doenca_atual: [''],
       pressao_arterial: [''],
       temperatura: [''],
       saturacao_oxigenio: [''],
