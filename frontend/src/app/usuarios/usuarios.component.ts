@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, DestroyRef, ViewChild, TemplateRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -125,11 +125,23 @@ export class UsuariosComponent implements OnInit, OnDestroy {
 
   // Form group
   usuarioForm!: FormGroup;
+  @ViewChild('usuarioDialog') usuarioDialog!: TemplateRef<any>;
+  dialogRef: any = null;
+  // Campo de busca
+  searchTerm: string = '';
 
   ngOnInit(): void {
     this.initializeForm();
     this.loadUsuarios();
     this.setupEmailValidation();
+  }
+
+  openCreateDialog(): void {
+    this.resetForm();
+    this.dialogRef = this.dialog.open(this.usuarioDialog, {
+      width: '900px',
+      maxHeight: '90vh'
+    });
   }
 
   ngOnDestroy(): void {
@@ -229,8 +241,23 @@ export class UsuariosComponent implements OnInit, OnDestroy {
   }
 
   private updateFilteredUsuarios(): void {
-    this.filteredUsuarios.set([...this.usuarios()]);
+    const term = (this.searchTerm || '').trim().toLowerCase();
+    if (!term) {
+      this.filteredUsuarios.set([...this.usuarios()]);
+    } else {
+      const filtered = this.usuarios().filter(u => {
+        return (u.nome || '').toLowerCase().includes(term) ||
+               (u.email || '').toLowerCase().includes(term) ||
+               (u.nivel || '').toLowerCase().includes(term);
+      });
+      this.filteredUsuarios.set(filtered);
+    }
     this.updatePagination();
+  }
+
+  onSearchChange(value: string): void {
+    this.searchTerm = value || '';
+    this.updateFilteredUsuarios();
   }
 
   private updatePagination(): void {
@@ -274,6 +301,11 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     this.updateFormValidators(true);
 
     this.clearMessages();
+    // Abrir diálogo de edição
+    this.dialogRef = this.dialog.open(this.usuarioDialog, {
+      width: '900px',
+      maxHeight: '90vh'
+    });
   }
 
   onDeleteUser(user: Usuario): void {
@@ -388,6 +420,11 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     this.updateFormValidators(false);
 
     this.clearMessages();
+    // Fechar diálogo se aberto
+    if (this.dialogRef) {
+      try { this.dialogRef.close(); } catch (e) {}
+      this.dialogRef = null;
+    }
   }
 
   // Métodos de paginação
@@ -467,6 +504,11 @@ export class UsuariosComponent implements OnInit, OnDestroy {
           this.resetForm();
           this.loadUsuarios();
           this.setLoading(false);
+          // Fechar diálogo se estiver aberto
+          if (this.dialogRef) {
+            try { this.dialogRef.close(); } catch (e) {}
+            this.dialogRef = null;
+          }
         },
         error: (err) => {
           this.handleError(err, this.editandoUsuario() ? 'Erro ao editar usuário' : 'Erro ao cadastrar usuário');
