@@ -433,6 +433,13 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     this.updatePaginatedUsuarios();
   }
 
+  // Handler usado pelo componente de paginação compartilhado
+  onPageChange(pageOneBased: number): void {
+    const page = Math.max(0, pageOneBased - 1);
+    this.tableConfig.update(config => ({ ...config, currentPage: page }));
+    this.updatePaginatedUsuarios();
+  }
+
   // Métodos privados de apoio
   private saveUsuario(): void {
     this.setLoading(true);

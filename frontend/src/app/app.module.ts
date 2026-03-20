@@ -43,6 +43,7 @@ import { BreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { DashboardTriagemComponent } from './triagem/dashboard/dashboard-triagem.component';
 import { FilaTriagemComponent } from './triagem/fila-triagem/fila-triagem.component';
 import { ClassificacaoDialogComponent } from './classificacao-dialog/classificacao-dialog.component';
+import { PaginationComponent } from './shared/components/pagination/pagination.component';
 
 @NgModule({
   declarations: [
@@ -87,6 +88,7 @@ import { ClassificacaoDialogComponent } from './classificacao-dialog/classificac
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    PaginationComponent,
 
     // Remover diretivas e componentes dos imports, manter apenas módulos
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule

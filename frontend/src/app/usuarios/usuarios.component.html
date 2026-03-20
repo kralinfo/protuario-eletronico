@@ -1072,79 +1072,11 @@
               </select>
             </div>
 
-            <span class="table-footer-range">{{ getDisplayRange() }} de {{ filteredUsuarios().length }}</span>
+
+            <span class="table-footer-count">Visualizando {{ paginatedUsuarios().length }} de {{ filteredUsuarios().length }} registros</span>
 
             <div class="table-footer-pagination">
-              <button
-                class="table-footer-btn"
-                title="Primeira página"
-                (click)="goToFirstPage()"
-                [disabled]="tableConfig().currentPage === 0"
-              >
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              <button
-                class="table-footer-btn"
-                title="Página anterior"
-                (click)="goToPreviousPage()"
-                [disabled]="tableConfig().currentPage === 0"
-              >
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              <div class="table-footer-page-info">
-                <span
-                  >Página {{ tableConfig().currentPage + 1 }} de
-                  {{ tableConfig().totalPages }}</span
-                >
-              </div>
-              <button
-                class="table-footer-btn"
-                title="Próxima página"
-                (click)="goToNextPage()"
-                [disabled]="
-                  tableConfig().currentPage >= tableConfig().totalPages - 1
-                "
-              >
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-              <button
-                class="table-footer-btn"
-                title="Última página"
-                (click)="goToLastPage()"
-                [disabled]="
-                  tableConfig().currentPage >= tableConfig().totalPages - 1
-                "
-              >
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13 5l7 7-7 7M5 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
+              <app-pagination [current]="tableConfig().currentPage + 1" [total]="tableConfig().totalPages" (change)="onPageChange($event)"></app-pagination>
             </div>
           </div>
         </div>

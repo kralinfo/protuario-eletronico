@@ -272,24 +272,11 @@
               </select>
             </div>
 
-            <span class="table-footer-range">{{ paginatedPacientes.length > 0 ? (currentPage * pageSize + 1) : 0 }} – {{ currentPage * pageSize + paginatedPacientes.length }} de {{ pacientesFiltrados.length }}</span>
 
-            <div class="table-footer-pagination">
-              <button class="table-footer-btn" title="Primeira página" (click)="goToFirstPage()" [disabled]="currentPage === 0">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <button class="table-footer-btn" title="Página anterior" (click)="goToPreviousPage()" [disabled]="currentPage === 0">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <div class="table-footer-page-info">
-                <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-              </div>
-              <button class="table-footer-btn" title="Próxima página" (click)="goToNextPage()" [disabled]="currentPage >= totalPages - 1">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-              </button>
-              <button class="table-footer-btn" title="Última página" (click)="goToLastPage()" [disabled]="currentPage >= totalPages - 1">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-              </button>
+            <span class="table-footer-count">Visualizando {{ paginatedPacientes.length }} de {{ pacientesFiltrados.length }} registros</span>
+
+              <div class="table-footer-pagination">
+              <app-pagination [current]="currentPage + 1" [total]="totalPages" (change)="onPageChange($event)"></app-pagination>
             </div>
           </div>
         </div>

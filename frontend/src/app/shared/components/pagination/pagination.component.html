@@ -1,0 +1,12 @@
+<nav class="app-pagination" aria-label="Pagination">
+  <button class="pg-btn" (click)="go(1)" [disabled]="current === 1" title="Primeira página">«</button>
+  <button class="pg-btn" (click)="go(current - 1)" [disabled]="current === 1" title="Página anterior">‹</button>
+
+  <ng-container *ngFor="let p of pages">
+    <button *ngIf="p !== 'dots'" class="pg-number" [class.active]="p === current" (click)="go(p)">{{ p }}</button>
+    <span *ngIf="p === 'dots'" class="pg-dots">…</span>
+  </ng-container>
+
+  <button class="pg-btn" (click)="go(current + 1)" [disabled]="current === total" title="Próxima página">›</button>
+  <button class="pg-btn" (click)="go(total)" [disabled]="current === total" title="Última página">»</button>
+</nav>

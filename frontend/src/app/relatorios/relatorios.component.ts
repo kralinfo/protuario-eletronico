@@ -625,4 +625,10 @@ export class RelatoriosComponent implements OnInit {
     this.currentPage = this.totalPages - 1;
     this.updatePaginatedData();
   }
+
+  onPageChange(pageOneBased: number) {
+    const page = Math.max(0, (pageOneBased || 1) - 1);
+    this.currentPage = page;
+    this.updatePaginatedData();
+  }
 }

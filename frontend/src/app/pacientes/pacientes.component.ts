@@ -34,13 +34,14 @@ export interface Paciente {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PacientesFormComponent } from './pacientes-form.component';
+import { PaginationComponent } from '../shared/components/pagination/pagination.component';
 
 @Component({
     selector: 'app-pacientes',
     templateUrl: './pacientes.component.html',
     styleUrls: ['./pacientes.component.scss', '../shared/styles/table-footer.css'],
     standalone: true,
-    imports: [CommonModule, FormsModule, PacientesFormComponent]
+    imports: [CommonModule, FormsModule, PacientesFormComponent, PaginationComponent]
 })
 export class PacientesComponent implements OnInit, AfterViewInit {
 
@@ -303,6 +304,11 @@ export class PacientesComponent implements OnInit, AfterViewInit {
   goToPreviousPage() { if (this.currentPage > 0) this.currentPage--; }
   goToNextPage() { if (this.currentPage < this.totalPages - 1) this.currentPage++; }
   goToLastPage() { this.currentPage = this.totalPages - 1; }
+
+  onPageChange(pageOneBased: number) {
+    const page = Math.max(0, (pageOneBased || 1) - 1);
+    this.currentPage = page;
+  }
   pacientes: Paciente[] = [];
   filteredPacientes: Paciente[] = [];
   novoPaciente: Paciente = {

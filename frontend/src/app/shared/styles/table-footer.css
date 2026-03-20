@@ -67,6 +67,13 @@
   font-size: inherit;
 }
 
+.table-footer-count {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(0,0,0,0.6);
+  margin-top: 0.125rem;
+}
+
 .table-footer-pagination {
   display: flex;
   align-items: center;

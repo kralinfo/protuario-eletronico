@@ -7,11 +7,12 @@ import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validato
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { DateInputLimiterDirective } from '../shared/directives/data.directive';
+import { PaginationComponent } from '../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-relatorio-atendimentos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DateInputLimiterDirective],
+  imports: [CommonModule, ReactiveFormsModule, DateInputLimiterDirective, PaginationComponent],
   templateUrl: './relatorio-atendimentos.component.html',
   styleUrls: ['./relatorio-atendimentos.component.scss', '../shared/styles/table-footer.css']
 })
@@ -40,6 +41,11 @@ export class RelatorioAtendimentosComponent implements OnInit {
   onPageSizeChange(event: any) {
     this.pageSize = +event.target.value;
     this.currentPage = 0;
+  }
+
+  onPageChange(pageOneBased: number) {
+    const page = Math.max(0, (pageOneBased || 1) - 1);
+    this.currentPage = page;
   }
 
   loading = false;
