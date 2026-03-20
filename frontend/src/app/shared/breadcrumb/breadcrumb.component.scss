@@ -1,13 +1,19 @@
 .breadcrumb-nav {
-  @apply px-4 py-2 bg-gray-50 rounded-lg border border-gray-200;
+  @apply px-4 bg-gray-50 rounded-lg border border-gray-200;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  /* Allow icons to overflow a little without being clipped */
+  overflow: visible;
 }
 
 .breadcrumb-list {
   @apply flex items-center flex-wrap gap-2 text-sm;
+  align-items: center;
 }
 
 .breadcrumb-item {
   @apply flex items-center text-gray-600 hover:text-blue-500 transition-colors;
+  gap: 0.5rem;
 }
 
 .breadcrumb-link {
@@ -23,7 +29,21 @@
 }
 
 .breadcrumb-icon {
-  @apply h-4 w-4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Slightly larger and centered */
+  font-size: 1.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.breadcrumb-icon svg {
+  overflow: visible;
+  width: 100%;
+  height: 100%;
 }
 
 .breadcrumb-separator {
@@ -32,4 +52,15 @@
 
 .breadcrumb-label {
   @apply truncate max-w-xs md:max-w-md;
+  /* Use margin-right on icon instead of margin-left here */
+}
+
+/* ensure spacing between icon and label */
+.breadcrumb-content > .breadcrumb-icon {
+  margin-right: 0.4rem;
+}
+
+/* Make breadcrumb container allow the icons to render fully on small screens */
+.breadcrumb-nav {
+  overflow: visible;
 }
