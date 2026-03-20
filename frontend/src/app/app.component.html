@@ -331,7 +331,7 @@
 
 <!-- Sidenav layout (menu lateral) -->
   <mat-sidenav-container class="app-sidenav-container">
-  <mat-sidenav #sidenav mode="side" [opened]="true" class="app-sidenav" [class.compact]="sidenavCompact">
+  <mat-sidenav *ngIf="!isLoginRoute()" #sidenav mode="side" [opened]="true" class="app-sidenav" [class.compact]="sidenavCompact">
     <div class="sidenav-inner">
       <div class="sidenav-top"></div>
 
