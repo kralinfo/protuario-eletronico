@@ -1059,24 +1059,21 @@
 
           <!-- Rodapé padronizado -->
           <div class="table-footer">
-            <div class="table-footer-info">
-              <div class="table-footer-page-size">
-                <span>Itens por página:</span>
-                <select (change)="onPageSizeChange($event)">
-                  <option
-                    *ngFor="let size of tableConfig().pageSizeOptions"
-                    [value]="size"
-                    [selected]="size === tableConfig().pageSize"
-                  >
-                    {{ size }}
-                  </option>
-                </select>
-              </div>
-              <span class="table-footer-range"
-                >{{ getDisplayRange() }} de
-                {{ filteredUsuarios().length }}</span
-              >
+            <div class="table-footer-page-size">
+              <span>Itens por página:</span>
+              <select (change)="onPageSizeChange($event)">
+                <option
+                  *ngFor="let size of tableConfig().pageSizeOptions"
+                  [value]="size"
+                  [selected]="size === tableConfig().pageSize"
+                >
+                  {{ size }}
+                </option>
+              </select>
             </div>
+
+            <span class="table-footer-range">{{ getDisplayRange() }} de {{ filteredUsuarios().length }}</span>
+
             <div class="table-footer-pagination">
               <button
                 class="table-footer-btn"

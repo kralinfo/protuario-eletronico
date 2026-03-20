@@ -21,7 +21,7 @@ export class AtendimentosDiaComponent implements OnInit {
   paginaAtual = 1;
   itensPorPagina = 10;
   totalPaginas = 1;
-  pageSizeOptions = [5, 10, 20, 50];
+  pageSizeOptions = [10, 25, 50];
   loading = false;
 
   // Filtros de data

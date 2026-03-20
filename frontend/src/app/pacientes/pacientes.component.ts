@@ -284,7 +284,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
       doc.save('ficha-paciente-em-branco.pdf');
     };
   }
-  pageSizeOptions = [5, 10, 25, 50];
+  pageSizeOptions = [10, 25, 50];
   pageSize = 10;
   currentPage = 0;
   get totalPages() {
@@ -485,7 +485,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
             <h1>e-Prontuário Aliança-PE</h1>
             <h2>Ficha de Cadastro do Paciente</h2>
           </div>
-          
+
           <div class="section">
             <div class="section-title">DADOS PESSOAIS</div>
             <div class="field"><span class="label">Nome:</span> ${paciente.nome}</div>
@@ -500,7 +500,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
             ${paciente.telefone ? `<div class="field"><span class="label">Telefone:</span> ${paciente.telefone}</div>` : ''}
             ${paciente.sus ? `<div class="field"><span class="label">SUS:</span> ${paciente.sus}</div>` : ''}
           </div>
-          
+
           <div class="section">
             <div class="section-title">ENDEREÇO</div>
             ${paciente.endereco ? `<div class="field"><span class="label">Endereço:</span> ${paciente.endereco}</div>` : ''}
@@ -509,19 +509,19 @@ export class PacientesComponent implements OnInit, AfterViewInit {
             ${paciente.uf ? `<div class="field"><span class="label">UF:</span> ${paciente.uf}</div>` : ''}
             ${paciente.cep ? `<div class="field"><span class="label">CEP:</span> ${paciente.cep}</div>` : ''}
           </div>
-          
+
           ${paciente.acompanhante ? `
           <div class="section">
             <div class="section-title">ACOMPANHANTE</div>
             <div class="field"><span class="label">Acompanhante:</span> ${paciente.acompanhante}</div>
           </div>` : ''}
-          
+
           ${paciente.procedencia ? `
           <div class="section">
             <div class="section-title">PROCEDÊNCIA</div>
             <div class="field"><span class="label">Procedência:</span> ${paciente.procedencia}</div>
           </div>` : ''}
-          
+
           <div class="footer">
             <div>Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</div>
             <div>Sistema e-Prontuário Aliança-PE</div>
@@ -546,7 +546,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
     try {
       // Importar jsPDF dinamicamente
       let jsPDF;
-      
+
       // Tentar importar jsPDF
       try {
         const jsPDFModule = await import('jspdf');
@@ -688,7 +688,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
       // Salvar o PDF
       const nomeArquivo = `paciente_${paciente.nome.replace(/\s+/g, '_').toLowerCase()}_${new Date().getTime()}.pdf`;
       doc.save(nomeArquivo);
-      
+
       // Mostrar feedback de sucesso
       const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
         data: {
@@ -698,7 +698,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
         }
       });
       setTimeout(() => feedbackRef.close(), 2000);
-      
+
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
       const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
@@ -715,7 +715,7 @@ export class PacientesComponent implements OnInit, AfterViewInit {
   // Método auxiliar para calcular idade
   private calcularIdade(nascimento: string): number {
     if (!nascimento) return 0;
-    
+
     const nascimentoDate = new Date(nascimento);
     const hoje = new Date();
     let idade = hoje.getFullYear() - nascimentoDate.getFullYear();

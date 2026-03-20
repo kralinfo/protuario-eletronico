@@ -21,7 +21,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
   get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
   get status() { return this.filtrosForm.get('status')?.value; }
   relatorio: any[] = [];
-  pageSizeOptions = [5, 10, 20, 30, 50];
+  pageSizeOptions = [10, 25, 50];
   pageSize = 10;
   currentPage = 0;
 
@@ -88,8 +88,8 @@ export class RelatorioAtendimentosComponent implements OnInit {
 
   // Novos métodos para contadores de status específicos
   getAtendimentosEncaminhadosTriagem(): number {
-    return this.relatorio.filter(a => 
-      a.status === 'triagem pendente' || 
+    return this.relatorio.filter(a =>
+      a.status === 'triagem pendente' ||
       a.status === 'triagem_pendente' ||
       a.status === 'encaminhado para triagem' ||
       a.status === 'encaminhado_para_triagem'
@@ -97,22 +97,22 @@ export class RelatorioAtendimentosComponent implements OnInit {
   }
 
   getAtendimentosEmTriagem(): number {
-    return this.relatorio.filter(a => 
-      a.status === 'em_triagem' || 
+    return this.relatorio.filter(a =>
+      a.status === 'em_triagem' ||
       a.status === 'em triagem'
     ).length;
   }
 
   getAtendimentosEmObservacao(): number {
-    return this.relatorio.filter(a => 
-      a.status === 'em observação' || 
+    return this.relatorio.filter(a =>
+      a.status === 'em observação' ||
       a.status === 'em_observacao'
     ).length;
   }
 
   getAtendimentosAguardandoMedico(): number {
-    return this.relatorio.filter(a => 
-      a.status === 'encaminhado_para_sala_medica' || 
+    return this.relatorio.filter(a =>
+      a.status === 'encaminhado_para_sala_medica' ||
       a.status === 'encaminhado para sala médica' ||
       a.status === 'aguardando' ||
       a.status === 'aguardando_atendimento' ||
@@ -121,8 +121,8 @@ export class RelatorioAtendimentosComponent implements OnInit {
   }
 
   getAtendimentosEmAtendimento(): number {
-    return this.relatorio.filter(a => 
-      a.status === 'em_atendimento_medico' || 
+    return this.relatorio.filter(a =>
+      a.status === 'em_atendimento_medico' ||
       a.status === 'em atendimento médico' ||
       a.status === 'em_atendimento' ||
       a.status === 'em atendimento' ||
@@ -132,8 +132,8 @@ export class RelatorioAtendimentosComponent implements OnInit {
   }
 
   getAtendimentosFinalizados(): number {
-    return this.relatorio.filter(a => 
-      a.status === 'atendimento_concluido' || 
+    return this.relatorio.filter(a =>
+      a.status === 'atendimento_concluido' ||
       a.status === 'atendimento concluido' ||
       a.status === 'finalizado' ||
       a.status === 'alta_ambulatorial' ||
@@ -143,7 +143,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
   }
 
   getAtendimentosInterrompidos(): number {
-    return this.relatorio.filter(a => 
+    return this.relatorio.filter(a =>
       a.status === 'interrompido' ||
       a.status === 'abandonado'
     ).length;
@@ -246,7 +246,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
           filtrados = filtrados.filter((a: any) => {
             const status = a.status || '';
             const statusSelecionado = filtros.status;
-            
+
             // Mapeia o status selecionado para todas suas variações
             switch(statusSelecionado) {
               case 'encaminhado_para_triagem':
@@ -301,7 +301,7 @@ export class RelatorioAtendimentosComponent implements OnInit {
       }
     });
   }
-  
+
   limparFiltros() {
     // Reseta o formulário de filtros e recarrega todos os atendimentos
     this.filtrosForm.reset({ dataInicial: '', dataFinal: '', status: '', nomePaciente: '', observacoes: '' });

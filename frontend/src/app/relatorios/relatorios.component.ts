@@ -55,7 +55,7 @@ export class RelatoriosComponent implements OnInit {
   currentPage = 0;
   pageSize = 10;
   totalPages = 0;
-  pageSizeOptions = [5, 10, 20, 50];
+  pageSizeOptions = [10, 25, 50];
   paginatedPacientes: Paciente[] = [];
 
   // Opções para os filtros
@@ -178,10 +178,10 @@ export class RelatoriosComponent implements OnInit {
   atualizarOpcoesEstadoCivil(estadosDoBanco: string[]) {
     // Manter a opção "Todos"
     let novasOpcoes = [{ value: '', label: 'Todos' }];
-    
+
     // Mapear estados do banco para opções padronizadas
     const estadosUnicos = [...new Set(estadosDoBanco.filter(e => e && e.trim()))];
-    
+
     estadosUnicos.forEach(estado => {
       const estadoLower = estado.toLowerCase();
       if (estadoLower.includes('solteiro')) {
@@ -206,7 +206,7 @@ export class RelatoriosComponent implements OnInit {
         }
       }
     });
-    
+
     this.opcoesEstadoCivil = novasOpcoes;
     console.log('Opções de estado civil atualizadas:', this.opcoesEstadoCivil);
   }
@@ -214,13 +214,13 @@ export class RelatoriosComponent implements OnInit {
   atualizarOpcoesEscolaridade(escolaridadesDoBanco: string[]) {
     // Manter a opção "Todos"
     let novasOpcoes = [{ value: '', label: 'Todos' }];
-    
+
     // Mapear escolaridades do banco para opções padronizadas
     const escolaridadesUnicas = [...new Set(escolaridadesDoBanco.filter(e => e && e.trim()))];
-    
+
     escolaridadesUnicas.forEach(escolaridade => {
       const escolaridadeLower = escolaridade.toLowerCase();
-      
+
       if (escolaridadeLower.includes('analfabet')) {
         if (!novasOpcoes.find(o => o.value === 'analfabeto')) {
           novasOpcoes.push({ value: 'analfabeto', label: 'Analfabeto(a)' });
@@ -255,7 +255,7 @@ export class RelatoriosComponent implements OnInit {
         }
       }
     });
-    
+
     this.opcoesEscolaridade = novasOpcoes;
     console.log('Opções de escolaridade atualizadas:', this.opcoesEscolaridade);
   }
@@ -263,7 +263,7 @@ export class RelatoriosComponent implements OnInit {
   carregarPacientes() {
     this.carregando = true;
     const token = this.authService.getToken();
-    
+
     // Carrega dados de atendimentos para os contadores de status
     this.http.get<any>(`${environment.apiUrl}/atendimentos/reports`, {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -272,7 +272,7 @@ export class RelatoriosComponent implements OnInit {
         // A resposta deve conter os atendimentos
         this.atendimentos = response.data || response || [];
         console.log('Atendimentos carregados:', this.atendimentos.length);
-        
+
         // Carrega pacientes para o relatório
         this.http.get<any>(`${environment.apiUrl}/pacientes/reports`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -493,22 +493,22 @@ export class RelatoriosComponent implements OnInit {
 
   // Novos métodos para contadores de status de atendimentos
   getAtendimentosTriagemPendente(): number {
-    return this.atendimentos.filter(a => 
-      a.status === 'triagem pendente' || 
+    return this.atendimentos.filter(a =>
+      a.status === 'triagem pendente' ||
       a.status === 'encaminhado para triagem'
     ).length;
   }
 
   getAtendimentosEmTriagem(): number {
-    return this.atendimentos.filter(a => 
-      a.status === 'em_triagem' || 
+    return this.atendimentos.filter(a =>
+      a.status === 'em_triagem' ||
       a.status === 'em triagem'
     ).length;
   }
 
   getAtendimentosAguardandoMedico(): number {
-    return this.atendimentos.filter(a => 
-      a.status === 'encaminhado_para_sala_medica' || 
+    return this.atendimentos.filter(a =>
+      a.status === 'encaminhado_para_sala_medica' ||
       a.status === 'encaminhado para sala médica' ||
       a.status === 'aguardando' ||
       a.status === 'aguardando_atendimento' ||
@@ -517,8 +517,8 @@ export class RelatoriosComponent implements OnInit {
   }
 
   getAtendimentosEmAtendimento(): number {
-    return this.atendimentos.filter(a => 
-      a.status === 'em_atendimento_medico' || 
+    return this.atendimentos.filter(a =>
+      a.status === 'em_atendimento_medico' ||
       a.status === 'em atendimento médico' ||
       a.status === 'em_atendimento' ||
       a.status === 'em atendimento' ||
@@ -528,8 +528,8 @@ export class RelatoriosComponent implements OnInit {
   }
 
   getAtendimentosFinalizados(): number {
-    return this.atendimentos.filter(a => 
-      a.status === 'atendimento_concluido' || 
+    return this.atendimentos.filter(a =>
+      a.status === 'atendimento_concluido' ||
       a.status === 'atendimento concluido' ||
       a.status === 'finalizado' ||
       a.status === 'alta_ambulatorial' ||
@@ -539,7 +539,7 @@ export class RelatoriosComponent implements OnInit {
   }
 
   getAtendimentosInterrompidos(): number {
-    return this.atendimentos.filter(a => 
+    return this.atendimentos.filter(a =>
       a.status === 'interrompido' ||
       a.status === 'abandonado'
     ).length;

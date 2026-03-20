@@ -285,15 +285,15 @@
           </table>
           <!-- Rodapé padronizado -->
           <div class="table-footer" *ngIf="atendimentosFiltrados.length > 0">
-            <div class="table-footer-info">
-              <div class="table-footer-page-size">
-                <span>Items por página:</span>
-                <select (change)="onPageSizeChange($event)">
-                  <option *ngFor="let opt of pageSizeOptions" [value]="opt" [selected]="opt === itensPorPagina">{{ opt }}</option>
-                </select>
-              </div>
-              <span class="table-footer-range">{{ atendimentosFiltrados.length > 0 ? (paginaAtual - 1) * itensPorPagina + 1 : 0 }} – {{ (paginaAtual - 1) * itensPorPagina + atendimentosFiltrados.length }} de {{ atendimentosFiltradosSemPaginacao.length }}</span>
+            <div class="table-footer-page-size">
+              <span>Items por página:</span>
+              <select (change)="onPageSizeChange($event)">
+                <option *ngFor="let opt of pageSizeOptions" [value]="opt" [selected]="opt === itensPorPagina">{{ opt }}</option>
+              </select>
             </div>
+
+            <span class="table-footer-range">{{ atendimentosFiltrados.length > 0 ? (paginaAtual - 1) * itensPorPagina + 1 : 0 }} – {{ (paginaAtual - 1) * itensPorPagina + atendimentosFiltrados.length }} de {{ atendimentosFiltradosSemPaginacao.length }}</span>
+
             <div class="table-footer-pagination">
               <button class="table-footer-btn" title="Primeira página" (click)="goToFirstPage()" [disabled]="paginaAtual === 1">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
