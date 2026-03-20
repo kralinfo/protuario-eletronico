@@ -3,7 +3,14 @@ const reports = async (req, res) => {
   try {
     res.set('Cache-Control', 'no-store');
     const { dataInicial, dataFinal } = req.query;
-    let query = `SELECT a.id, a.created_at as data_criacao, p.nome as paciente_nome, a.data_hora_atendimento, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, a.abandonado, a.data_abandono, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
+    // Verificar se a coluna 'abandonado' existe na tabela atendimentos
+    const colCheck = await db.query("SELECT column_name FROM information_schema.columns WHERE table_name='atendimentos' AND column_name='abandonado'");
+    const hasAbandonado = colCheck.rowCount > 0;
+
+    // Montar SELECT dinamicamente conforme existência da coluna
+    const abandonoSelect = hasAbandonado ? 'a.abandonado, a.data_abandono,' : "false as abandonado, NULL as data_abandono,";
+
+    let query = `SELECT a.id, a.created_at as data_criacao, p.nome as paciente_nome, a.data_hora_atendimento, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, ${abandonoSelect} p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio
       FROM atendimentos a
       JOIN pacientes p ON p.id = a.paciente_id
       WHERE 1=1`;
@@ -152,7 +159,10 @@ const registrarAbandono = async (req, res) => {
     
     // Verificar se o atendimento existe e não foi abandonado ainda
     const atendimentoExistente = await db.query(
-      'SELECT id, status, abandonado FROM atendimentos WHERE id = $1',
+      `SELECT id, status,
+        (CASE WHEN (SELECT count(*) FROM information_schema.columns WHERE table_name='atendimentos' AND column_name='abandonado') > 0
+          THEN abandonado ELSE false END) as abandonado
+       FROM atendimentos WHERE id = $1`,
       [id]
     );
     
@@ -383,7 +393,10 @@ const atualizar = async (req, res) => {
     
     // Verificar se o atendimento existe
     const atendimentoExistente = await db.query(
-      'SELECT id, abandonado FROM atendimentos WHERE id = $1',
+      `SELECT id,
+        (CASE WHEN (SELECT count(*) FROM information_schema.columns WHERE table_name='atendimentos' AND column_name='abandonado') > 0
+          THEN abandonado ELSE false END) as abandonado
+       FROM atendimentos WHERE id = $1`,
       [id]
     );
     
