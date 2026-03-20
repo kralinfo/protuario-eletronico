@@ -1,25 +1,32 @@
-<div class="min-h-screen bg-gray-50 flex flex-col items-center py-10">
+<div class="min-h-screen flex flex-col items-center py-10" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
   <h2 class="text-2xl font-bold text-blue-700 mb-6">Atendimentos - {{ formatarPeriodo() }}</h2>
   <div class="w-full max-w-6xl bg-white rounded-lg shadow p-6 mb-8">
     <div class="flex flex-col gap-4">
-      <!-- Linha superior com pesquisa e novo atendimento -->
-      <div class="flex justify-between items-center">
-        <input
-          type="text"
-          [(ngModel)]="filtro"
-          placeholder="Pesquisar atendimento..."
-          class="border rounded px-3 py-2 w-1/2"
-        />
-        <a
-          routerLink="/atendimentos/novo"
-          class="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2"
-        >
-          <mat-icon class="!text-white !text-base">add</mat-icon>
-          NOVO ATENDIMENTO
-        </a>
+      <!-- Barra principal (search centralizado + botão à direita) similar à tela de pacientes -->
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 mb-2 sm:mb-4 w-full">
+        <div class="flex flex-row items-center w-full max-w-3xl mx-auto">
+          <div class="flex items-center bg-white rounded-lg shadow px-3 py-2 flex-grow min-w-0" style="width:100%;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
+            <input
+              type="text"
+              class="border-none outline-none bg-transparent text-gray-700 w-full text-base sm:text-lg px-1"
+              placeholder="Pesquisar atendimento..."
+              [(ngModel)]="filtro"
+              style="min-width:180px; max-width:100%; font-size:1.05em;"
+            />
+          </div>
+          <a
+            routerLink="/atendimentos/novo"
+            class="flex items-center gap-2 px-6 py-3 ml-2 rounded-lg bg-blue-700 text-white font-semibold shadow hover:bg-blue-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+            style="height:44px; min-width:140px;"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+            Novo Atendimento
+          </a>
+        </div>
       </div>
 
-      <!-- Filtro de data (sempre visível) -->
+      <!-- Filtro de data (sempre visível) - mantido abaixo, visual mais leve -->
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-2">
