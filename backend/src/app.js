@@ -111,8 +111,28 @@ class App {
 
   async start() {
     try {
-      // Testar conexão com banco
-      const dbConnected = await database.testConnection();
+      // Testar conexão com banco com retries e backoff
+      const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const maxAttempts = process.env.DB_CONNECT_RETRIES ? Number(process.env.DB_CONNECT_RETRIES) : 8;
+      let attempt = 0;
+      let dbConnected = false;
+
+      while (attempt < maxAttempts && !dbConnected) {
+        attempt += 1;
+        console.log(`⏳ Tentativa ${attempt}/${maxAttempts} de conectar ao banco...`);
+        try {
+          dbConnected = await database.testConnection();
+        } catch (e) {
+          dbConnected = false;
+        }
+
+        if (!dbConnected) {
+          const delayMs = Math.min(15000, attempt * 1000);
+          console.log(`🔁 Falha ao conectar (tentativa ${attempt}). Aguardando ${delayMs}ms antes da próxima tentativa...`);
+          await wait(delayMs);
+        }
+      }
+
       if (!dbConnected) {
         throw new Error('Falha na conexão com banco de dados');
       }
