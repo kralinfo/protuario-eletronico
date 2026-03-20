@@ -27,7 +27,8 @@ export class AtendimentosDiaComponent implements OnInit {
   // Filtros de data
   dataInicial: string = '';
   dataFinal: string = '';
-  mostrarFiltroData = false;
+  // O filtro de data deve estar sempre visível
+  mostrarFiltroData = true;
 
   // Verificar se o usuário pode dar baixa no atendimento (não é módulo recepção)
   get podeFinalizarAtendimento(): boolean {

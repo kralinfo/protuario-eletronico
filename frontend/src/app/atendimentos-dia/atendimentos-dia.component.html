@@ -19,19 +19,9 @@
         </a>
       </div>
 
-      <!-- Filtro de data -->
+      <!-- Filtro de data (sempre visível) -->
       <div class="flex items-center gap-4">
-        <button
-          (click)="toggleFiltroData()"
-          class="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 transition flex items-center gap-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          {{ mostrarFiltroData ? 'Ocultar Filtro' : 'Filtrar por Período' }}
-        </button>
-
-        <div *ngIf="mostrarFiltroData" class="flex items-center gap-3">
+        <div class="flex items-center gap-3">
           <div class="flex items-center gap-2">
             <label class="text-sm font-medium text-gray-700">De:</label>
             <input
