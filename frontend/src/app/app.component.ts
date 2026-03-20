@@ -1,4 +1,5 @@
 import { Component, ViewChild, TemplateRef } from '@angular/core';
+import { MatSidenav } from '@angular/material/sidenav';
 import { PacientesComponent } from './pacientes/pacientes.component';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from './auth/auth.service';
@@ -13,6 +14,23 @@ import { FeedbackDialogComponent } from './shared/feedback-dialog/feedback-dialo
   standalone: false
 })
 export class AppComponent {
+  @ViewChild('sidenav') sidenav!: MatSidenav;
+  // true = expanded, false = compact
+  sidenavCompact = false;
+  sidenavOpened = true;
+
+  toggleSidenav() {
+    try {
+      // Toggle compact <-> expanded state. Keep mat-sidenav opened (we just resize it).
+      this.sidenavCompact = !this.sidenavCompact;
+      this.sidenavOpened = !this.sidenavCompact;
+    } catch (e) {
+      // fallback: toggle boolean
+      this.sidenavCompact = !this.sidenavCompact;
+      this.sidenavOpened = !this.sidenavCompact;
+    }
+  }
+
   isModuloMedico(): boolean {
     return this.authService.getSelectedModule() === 'medico';
   }

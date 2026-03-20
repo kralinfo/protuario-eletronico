@@ -195,6 +195,130 @@ body.dark-mode .mat-tooltip {
   }
 }
 
+/* Sidenav styling */
+.app-sidenav-container {
+  min-height: calc(100vh - 64px); /* leave header height */
+}
+.app-sidenav {
+  --sidenav-width: 260px;
+  width: var(--sidenav-width);
+  background: #ffffff;
+  border-right: 1px solid #eee;
+}
+
+.app-sidenav.compact {
+  --sidenav-width: 72px;
+  width: var(--sidenav-width);
+}
+
+.app-sidenav .sidenav-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: flex-start;
+}
+
+.app-sidenav .sidenav-top { }
+
+.app-sidenav .avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #6b46ff; /* purple */
+  color: #fff;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-sidenav .profile-info .profile-name {
+  font-weight: 600;
+}
+.app-sidenav .profile-info .profile-role { font-size: 0.85rem; }
+
+.sidenav-collapse-toggle {
+  margin-left: auto;
+}
+
+.app-sidenav .sidenav-search .mat-search .mat-form-field-wrapper {
+  padding: 0 8px;
+}
+
+.sidenav-menu {
+  padding-top: 6px;
+  margin-top: 6px;
+}
+.sidenav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #333;
+  text-decoration: none;
+}
+.sidenav-item .mat-icon { font-size: 20px; }
+/* default icon color for sidebar items (non-selected) */
+.app-sidenav .sidenav-item .mat-icon,
+.app-sidenav .mat-list-item .mat-icon,
+.app-sidenav .mat-icon {
+  color: #374151 !important; /* gray-700 */
+  fill: #374151 !important;
+  opacity: 1 !important;
+}
+.sidenav-item:hover { background: #f4f6fb; }
+.sidenav-item:hover .mat-icon { color: #374151; }
+.sidenav-item.active, .sidenav-item.active:hover { background: #60a5fa; color: #fff; }
+.sidenav-item.active mat-icon { color: #fff !important; }
+.sidenav-item.active {
+  box-shadow: 0 6px 18px rgba(96,165,250,0.08);
+}
+
+/* Ensure svg icons inside mat-icon also get the color */
+.app-sidenav .mat-icon svg {
+  fill: #374151 !important;
+}
+.sidenav-item.active .mat-icon svg {
+  fill: #fff !important;
+}
+
+.sidenav-label { font-weight: 500; }
+
+.app-sidenav.compact .sidenav-label { display: none; }
+.app-sidenav.compact .profile-info { display: none; }
+.app-sidenav.compact .sidenav-search { display: none; }
+
+/* Remove profile and search UI entirely per request */
+.app-sidenav .avatar { display: none !important; }
+.app-sidenav .profile-info { display: none !important; }
+.app-sidenav .sidenav-search { display: none !important; }
+
+.sidenav-footer { margin-top: auto; }
+.sidenav-divider {
+  height: 1px;
+  background: #eee;
+  margin: 6px 0;
+}
+.app-sidenav .mat-list-text {
+  color: #374151; /* gray-700 */
+}
+
+@media (max-width: 768px) {
+  .app-sidenav {
+    width: 220px;
+  }
+}
+
+/* Center toggle button for sidenav in header */
+/* floating center toggle removed */
+@media (max-width: 640px) {
+  /* no floating toggle */
+}
+
+/* header height variable used to vertically center the toggle */
+.header-sistema { --header-height: 80px; }
+
 /* --- AJUSTE LABELS PARA DARK MODE --- */
 body.dark-mode label,
 body.dark-mode .mat-form-field-label,

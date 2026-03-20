@@ -123,8 +123,8 @@
       <div class="flex items-center gap-2 w-full sm:w-auto justify-start">
         <button
           mat-icon-button
-          [matMenuTriggerFor]="mainMenu"
-          aria-label="Menu principal"
+          (click)="toggleSidenav()"
+          aria-label="Abrir menu lateral"
           class="menu-hamburguer mr-2"
           style="
             background: transparent;
@@ -329,7 +329,57 @@
   </style>
 </ng-container>
 
-<!-- Breadcrumb Navigation -->
-<app-breadcrumb *ngIf="!isLoginRoute()"></app-breadcrumb>
+<!-- Sidenav layout (menu lateral) -->
+  <mat-sidenav-container class="app-sidenav-container">
+  <mat-sidenav #sidenav mode="side" [opened]="true" class="app-sidenav" [class.compact]="sidenavCompact">
+    <div class="sidenav-inner">
+      <div class="sidenav-top"></div>
 
-<router-outlet></router-outlet>
+      <nav class="sidenav-menu px-2 py-2">
+        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('pacientes')" routerLink="/pacientes" routerLinkActive="active">
+          <mat-icon>person_search</mat-icon>
+          <span class="sidenav-label" *ngIf="!sidenavCompact">Pacientes</span>
+        </a>
+        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('atendimentos')" routerLink="/atendimentos" routerLinkActive="active">
+          <mat-icon>medical_services</mat-icon>
+          <span class="sidenav-label" *ngIf="!sidenavCompact">Atendimentos</span>
+        </a>
+        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('triagem')" routerLink="/triagem" routerLinkActive="active">
+          <mat-icon>local_hospital</mat-icon>
+          <span class="sidenav-label" *ngIf="!sidenavCompact">Triagem</span>
+        </a>
+        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('relatorios')" routerLink="/relatorios/atendimentos" routerLinkActive="active">
+          <mat-icon>bar_chart</mat-icon>
+          <span class="sidenav-label" *ngIf="!sidenavCompact">Relatórios</span>
+        </a>
+        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('usuarios')" routerLink="/usuarios" routerLinkActive="active">
+          <mat-icon>group</mat-icon>
+          <span class="sidenav-label" *ngIf="!sidenavCompact">Usuários</span>
+        </a>
+      </nav>
+
+      <div class="sidenav-footer px-3 py-3">
+        <div class="sidenav-divider"></div>
+        <div class="footer-actions flex flex-col gap-2 mt-3">
+          <button mat-button class="logout flex items-center gap-2" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span *ngIf="!sidenavCompact">Logout</span>
+          </button>
+          <div class="dark-mode flex items-center justify-between" *ngIf="!sidenavCompact">
+            <div class="flex items-center gap-2"><mat-icon>dark_mode</mat-icon><span>Dark Mode</span></div>
+            <mat-slide-toggle [checked]="isDarkMode" (change)="alternarDarkMode()"></mat-slide-toggle>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <!-- center toggle removed (floating control not used) -->
+
+    <!-- Breadcrumb Navigation -->
+    <app-breadcrumb *ngIf="!isLoginRoute()"></app-breadcrumb>
+
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

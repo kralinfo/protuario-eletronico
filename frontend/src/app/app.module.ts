@@ -14,6 +14,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
@@ -25,6 +27,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FeedbackDialogComponent } from './shared/feedback-dialog/feedback-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -76,7 +79,10 @@ import { ClassificacaoDialogComponent } from './classificacao-dialog/classificac
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatMenuModule,
+    MatSidenavModule,
+    MatToolbarModule,
     MatCardModule,
+    MatSlideToggleModule,
     MatTooltipModule,
     MatDialogModule,
     MatButtonModule,
