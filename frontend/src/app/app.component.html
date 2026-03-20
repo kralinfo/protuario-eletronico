@@ -12,16 +12,16 @@
   <!-- Menu hamburguer à esquerda do header principal -->
   <mat-menu #mainMenu="matMenu" class="main-menu-modern text-xs">
     <!-- Pacientes - Disponível para recepcao e triagem -->
-    <button 
+    <button
       *ngIf="canAccessModule('pacientes')"
-      mat-menu-item 
-      routerLink="/pacientes" 
+      mat-menu-item
+      routerLink="/pacientes"
       routerLinkActive="font-bold"
     >
       <mat-icon>person_search</mat-icon>
       <span class="menu-label text-xs">Pacientes</span>
     </button>
-    
+
     <!-- Atendimentos - Disponível para recepcao e triagem -->
     <button
       *ngIf="canAccessModule('atendimentos')"
@@ -32,7 +32,7 @@
       <mat-icon>medical_services</mat-icon>
       <span class="menu-label text-xs">Atendimentos</span>
     </button>
-    
+
     <!-- Triagem - Disponível apenas para triagem -->
     <button
       *ngIf="canAccessModule('triagem')"
@@ -43,28 +43,28 @@
       <mat-icon>local_hospital</mat-icon>
       <span class="menu-label text-xs">Triagem</span>
     </button>
-    
+
     <!-- Relatórios - Disponível para recepcao e triagem -->
-    <button 
+    <button
       *ngIf="canAccessModule('relatorios')"
-      mat-menu-item 
+      mat-menu-item
       [matMenuTriggerFor]="relatorioMenu"
     >
       <mat-icon>bar_chart</mat-icon>
       <span class="menu-label text-xs">Relatórios</span>
     </button>
-    
+
     <!-- Usuários - Apenas para admins -->
-    <button 
+    <button
       *ngIf="canAccessModule('usuarios')"
-      mat-menu-item 
-      routerLink="/usuarios" 
+      mat-menu-item
+      routerLink="/usuarios"
       routerLinkActive="font-bold"
     >
       <mat-icon>group</mat-icon>
       <span class="menu-label text-xs">Usuários</span>
     </button>
-    
+
     <mat-divider></mat-divider>
     <button mat-menu-item [matMenuTriggerFor]="impressaoMenu">
       <mat-icon>print</mat-icon>
@@ -100,7 +100,7 @@
     </button>
   </mat-menu>
   <div
-    class="w-full relative shadow-sm"
+    class="w-full relative shadow-sm header-sistema"
     style="
       background: linear-gradient(
         100deg,
@@ -156,7 +156,7 @@
           </div>
         </div>
       </div>
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-center header-logo-center">
             <img
           src="assets/logo-alianca.svg"
           alt="Aliança-PE"

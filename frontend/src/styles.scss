@@ -153,6 +153,48 @@ body.dark-mode .mat-tooltip {
 }
 /* --- FIM DARK MODE COM CINZA ESCURO --- */
 
+/* Header logo centering: center the logo visually without affecting small-screen layout */
+.w-full.relative { position: relative; }
+.header-logo-center {
+  /* On larger screens, place the logo absolutely centered within header */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+/* On small screens (sm breakpoint ~640px), keep the logo in the normal flow */
+@media (max-width: 640px) {
+  .header-logo-center {
+    position: static !important;
+    transform: none !important;
+    width: 100%;
+    justify-content: center;
+    margin: 0 auto;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+}
+
+/* Increase header vertical space to better center the logo */
+.header-sistema {
+  padding-top: 1rem; /* 16px */
+  padding-bottom: 1rem; /* 16px */
+  min-height: 80px;
+}
+
+@media (max-width: 640px) {
+  .header-sistema {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    min-height: auto;
+  }
+}
+
 /* --- AJUSTE LABELS PARA DARK MODE --- */
 body.dark-mode label,
 body.dark-mode .mat-form-field-label,
