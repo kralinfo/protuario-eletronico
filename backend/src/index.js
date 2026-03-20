@@ -19,7 +19,7 @@ const app = express();
 // Configuração CORS mais flexível para Vercel
 const allowedOrigins = [
   'http://localhost:4200',
-  'https://protuario-eletronico-t3wu.vercel.app',
+  'https://prontuario-eletronico-five.vercel.app',
   /^https:\/\/protuario-eletronico.*\.vercel\.app$/
 ];
 

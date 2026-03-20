@@ -18,7 +18,7 @@ services:
       - key: JWT_SECRET
         value: jwt_secret_production_2025_alianca_pe_secure_key_12345
       - key: FRONTEND_URL
-        value: https://protuario-eletronico-t3wu.vercel.app
+        value: https://prontuario-eletronico-five.vercel.app
       # Configurações de Email (Gmail)
       - key: EMAIL_USER
         value: kralinfo18@gmail.com
