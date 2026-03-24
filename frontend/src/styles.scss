@@ -197,28 +197,66 @@ body.dark-mode .mat-tooltip {
 
 /* Sidenav styling */
 .app-sidenav-container {
-  min-height: calc(100vh - 64px); /* leave header height */
+  min-height: calc(100vh - 64px);
 }
 .app-sidenav {
-  --sidenav-width: 260px;
-  width: var(--sidenav-width);
   background: #ffffff;
   border-right: 1px solid #eee;
+  transition: width 0.25s ease;
+  overflow: hidden !important;
 }
 
 .app-sidenav.compact {
-  --sidenav-width: 72px;
-  width: var(--sidenav-width);
+  /* width controlled via [style.width] binding */
 }
 
+/* sidenav-inner: row layout — menu col + toggle strip */
 .app-sidenav .sidenav-inner {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+/* main col: takes all remaining width, stacks items vertically */
+.app-sidenav .sidenav-main-col {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   height: 100%;
-  justify-content: flex-start;
+  overflow: hidden;
+}
+
+/* toggle strip: thin column with just the arrow, centered vertically */
+.app-sidenav .sidenav-toggle-strip {
+  width: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.18s, background 0.18s;
+  user-select: none;
+}
+
+.app-sidenav .sidenav-toggle-strip:hover {
+  color: #2563eb;
+  background: #f8faff;
+}
+
+.app-sidenav .sidenav-toggle-strip .sidenav-toggle-arrow {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: inherit !important;
 }
 
 .app-sidenav .sidenav-top { }
+
 
 .app-sidenav .avatar {
   width: 44px;

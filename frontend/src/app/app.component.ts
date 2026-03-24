@@ -15,20 +15,12 @@ import { FeedbackDialogComponent } from './shared/feedback-dialog/feedback-dialo
 })
 export class AppComponent {
   @ViewChild('sidenav') sidenav!: MatSidenav;
-  // true = expanded, false = compact
-  sidenavCompact = false;
+  // true = compact/collapsed, false = expanded
+  sidenavCompact = true;
   sidenavOpened = true;
 
   toggleSidenav() {
-    try {
-      // Toggle compact <-> expanded state. Keep mat-sidenav opened (we just resize it).
-      this.sidenavCompact = !this.sidenavCompact;
-      this.sidenavOpened = !this.sidenavCompact;
-    } catch (e) {
-      // fallback: toggle boolean
-      this.sidenavCompact = !this.sidenavCompact;
-      this.sidenavOpened = !this.sidenavCompact;
-    }
+    this.sidenavCompact = !this.sidenavCompact;
   }
 
   isModuloMedico(): boolean {
@@ -40,9 +32,11 @@ export class AppComponent {
   irParaMenuPrincipal() {
     this.router.navigate(['/']);
   }
+
   title = 'frontend';
   currentUser: any;
   isDarkMode = false;
+
 
   imprimirFichaPacienteEmBrancoGlobal() {
     // Cria uma instância temporária do PacientesComponent apenas para imprimir

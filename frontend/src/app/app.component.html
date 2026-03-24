@@ -331,46 +331,56 @@
 
 <!-- Sidenav layout (menu lateral) -->
   <mat-sidenav-container class="app-sidenav-container">
-  <mat-sidenav *ngIf="!isLoginRoute()" #sidenav mode="side" [opened]="true" class="app-sidenav" [class.compact]="sidenavCompact">
+  <mat-sidenav *ngIf="!isLoginRoute()" #sidenav mode="side" [opened]="true" class="app-sidenav" [class.compact]="sidenavCompact" [style.width]="sidenavCompact ? '80px' : '240px'">
     <div class="sidenav-inner">
-      <div class="sidenav-top"></div>
 
-      <nav class="sidenav-menu px-2 py-2">
-        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('pacientes')" routerLink="/pacientes" routerLinkActive="active">
-          <mat-icon>person_search</mat-icon>
-          <span class="sidenav-label" *ngIf="!sidenavCompact">Pacientes</span>
-        </a>
-        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('atendimentos')" routerLink="/atendimentos" routerLinkActive="active">
-          <mat-icon>medical_services</mat-icon>
-          <span class="sidenav-label" *ngIf="!sidenavCompact">Atendimentos</span>
-        </a>
-        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('triagem')" routerLink="/triagem" routerLinkActive="active">
-          <mat-icon>local_hospital</mat-icon>
-          <span class="sidenav-label" *ngIf="!sidenavCompact">Triagem</span>
-        </a>
-        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('relatorios')" routerLink="/relatorios/atendimentos" routerLinkActive="active">
-          <mat-icon>bar_chart</mat-icon>
-          <span class="sidenav-label" *ngIf="!sidenavCompact">Relatórios</span>
-        </a>
-        <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('usuarios')" routerLink="/usuarios" routerLinkActive="active">
-          <mat-icon>group</mat-icon>
-          <span class="sidenav-label" *ngIf="!sidenavCompact">Usuários</span>
-        </a>
-      </nav>
+      <!-- Coluna principal: ícones + labels -->
+      <div class="sidenav-main-col">
+        <div class="sidenav-top"></div>
 
-      <div class="sidenav-footer px-3 py-3">
-        <div class="sidenav-divider"></div>
-        <div class="footer-actions flex flex-col gap-2 mt-3">
-          <button mat-button class="logout flex items-center gap-2" (click)="logout()">
-            <mat-icon>logout</mat-icon>
-            <span *ngIf="!sidenavCompact">Logout</span>
-          </button>
-          <div class="dark-mode flex items-center justify-between" *ngIf="!sidenavCompact">
-            <div class="flex items-center gap-2"><mat-icon>dark_mode</mat-icon><span>Dark Mode</span></div>
-            <mat-slide-toggle [checked]="isDarkMode" (change)="alternarDarkMode()"></mat-slide-toggle>
+        <nav class="sidenav-menu px-2 py-2">
+          <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('pacientes')" routerLink="/pacientes" routerLinkActive="active">
+            <mat-icon>person_search</mat-icon>
+            <span class="sidenav-label" *ngIf="!sidenavCompact">Pacientes</span>
+          </a>
+          <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('atendimentos')" routerLink="/atendimentos" routerLinkActive="active">
+            <mat-icon>medical_services</mat-icon>
+            <span class="sidenav-label" *ngIf="!sidenavCompact">Atendimentos</span>
+          </a>
+          <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('triagem')" routerLink="/triagem" routerLinkActive="active">
+            <mat-icon>local_hospital</mat-icon>
+            <span class="sidenav-label" *ngIf="!sidenavCompact">Triagem</span>
+          </a>
+          <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('relatorios')" routerLink="/relatorios/atendimentos" routerLinkActive="active">
+            <mat-icon>bar_chart</mat-icon>
+            <span class="sidenav-label" *ngIf="!sidenavCompact">Relatórios</span>
+          </a>
+          <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('usuarios')" routerLink="/usuarios" routerLinkActive="active">
+            <mat-icon>group</mat-icon>
+            <span class="sidenav-label" *ngIf="!sidenavCompact">Usuários</span>
+          </a>
+        </nav>
+
+        <div class="sidenav-footer px-3 py-3">
+          <div class="sidenav-divider"></div>
+          <div class="footer-actions flex flex-col gap-2 mt-3">
+            <button mat-button class="logout flex items-center gap-2" (click)="logout()">
+              <mat-icon>logout</mat-icon>
+              <span *ngIf="!sidenavCompact">Logout</span>
+            </button>
+            <div class="dark-mode flex items-center justify-between" *ngIf="!sidenavCompact">
+              <div class="flex items-center gap-2"><mat-icon>dark_mode</mat-icon><span>Dark Mode</span></div>
+              <mat-slide-toggle [checked]="isDarkMode" (change)="alternarDarkMode()"></mat-slide-toggle>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Faixa de toggle: apenas a seta, centralizada verticalmente -->
+      <div class="sidenav-toggle-strip" (click)="toggleSidenav()" aria-label="Alternar menu lateral" role="button" tabindex="0" (keydown.enter)="toggleSidenav()">
+        <mat-icon class="sidenav-toggle-arrow">{{ sidenavCompact ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </div>
+
     </div>
   </mat-sidenav>
 
