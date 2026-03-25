@@ -1,5 +1,5 @@
 import { Component, ViewChild, TemplateRef } from '@angular/core';
-import { MatSidenav } from '@angular/material/sidenav';
+import { MatSidenav, MatSidenavContainer } from '@angular/material/sidenav';
 import { PacientesComponent } from './pacientes/pacientes.component';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from './auth/auth.service';
@@ -15,12 +15,15 @@ import { FeedbackDialogComponent } from './shared/feedback-dialog/feedback-dialo
 })
 export class AppComponent {
   @ViewChild('sidenav') sidenav!: MatSidenav;
+  @ViewChild('sidenavContainer') sidenavContainer!: MatSidenavContainer;
   // true = compact/collapsed, false = expanded
   sidenavCompact = true;
   sidenavOpened = true;
 
   toggleSidenav() {
     this.sidenavCompact = !this.sidenavCompact;
+    // Force Angular Material to recalculate content margins after width change
+    setTimeout(() => this.sidenavContainer?.updateContentMargins(), 0);
   }
 
   isModuloMedico(): boolean {

@@ -199,6 +199,12 @@ body.dark-mode .mat-tooltip {
 .app-sidenav-container {
   min-height: calc(100vh - 64px);
 }
+
+/* Animate the content margin to match sidebar width transition */
+.app-sidenav-container .mat-sidenav-content {
+  transition: margin-left 0.25s ease !important;
+}
+
 .app-sidenav {
   background: #ffffff;
   border-right: 1px solid #eee;
