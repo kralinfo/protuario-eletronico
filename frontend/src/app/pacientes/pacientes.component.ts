@@ -9,6 +9,7 @@ import { HistoricoAtendimentosComponent } from './historico-atendimentos.compone
 import { HistoricoPacienteTimelineComponent } from './historico-paciente-timeline.component';
 import { RegistrarAtendimentoComponent } from '../atendimento/registrar-atendimento.component';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
+import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
 
 export interface Paciente {
   id?: number;
@@ -41,7 +42,7 @@ import { PaginationComponent } from '../shared/components/pagination/pagination.
     templateUrl: './pacientes.component.html',
     styleUrls: ['./pacientes.component.scss', '../shared/styles/table-footer.css'],
     standalone: true,
-    imports: [CommonModule, FormsModule, PacientesFormComponent, PaginationComponent]
+    imports: [CommonModule, FormsModule, PacientesFormComponent, PaginationComponent, ConfirmDialogComponent]
 })
 export class PacientesComponent implements OnInit, AfterViewInit {
 
@@ -441,22 +442,32 @@ export class PacientesComponent implements OnInit, AfterViewInit {
   }
 
   removerPaciente(id: number) {
-    if (confirm('Tem certeza que deseja remover este paciente?')) {
-      this.loading = true;
-      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-        next: () => {
-          this.listarPacientes();
-          if (this.pacienteEditando && this.pacienteEditando.id === id) {
-            this.pacienteEditando = null;
-            this.novoPaciente = { nome: '', mae: '', nascimento: '', sexo: '', estadoCivil: '', profissao: '', escolaridade: '', raca: '', endereco: '', bairro: '', municipio: '', uf: '', cep: '', acompanhante: '', procedencia: '' };
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Confirmar Exclusão',
+        message: 'Tem certeza que deseja remover este paciente? Esta ação não pode ser desfeita.'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loading = true;
+        this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+          next: () => {
+            this.listarPacientes();
+            if (this.pacienteEditando && this.pacienteEditando.id === id) {
+              this.pacienteEditando = null;
+              this.novoPaciente = { nome: '', mae: '', nascimento: '', sexo: '', estadoCivil: '', profissao: '', escolaridade: '', raca: '', endereco: '', bairro: '', municipio: '', uf: '', cep: '', acompanhante: '', procedencia: '' };
+            }
+          },
+          error: (error) => {
+            console.error('Erro ao remover paciente:', error);
+            this.loading = false;
           }
-        },
-        error: (error) => {
-          console.error('Erro ao remover paciente:', error);
-          this.loading = false;
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
   cancelarEdicao() {
