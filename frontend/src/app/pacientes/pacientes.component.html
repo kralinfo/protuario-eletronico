@@ -51,33 +51,56 @@
           </thead>
           <tbody>
             <tr *ngFor="let paciente of paginatedPacientes" class="border-b hover:bg-gray-50">
-              <td class="px-2 py-2 min-w-[3.5rem] max-w-[5rem] text-center">
-                <div class="flex gap-2 justify-center items-center w-full">
-                  <button (click)="editarPaciente(paciente)" [disabled]="loading" class="text-blue-700 hover:text-blue-900 transition" title="Editar paciente">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" />
+              <td class="px-2 py-2 text-center">
+                <div class="action-menu-wrapper">
+                  <!-- Botão de 3 pontos -->
+                  <button
+                    class="action-dots-btn"
+                    (click)="toggleMenu($event, paciente.id)"
+                    [disabled]="loading"
+                    title="Ações"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="5" cy="12" r="1.5"/>
+                      <circle cx="12" cy="12" r="1.5"/>
+                      <circle cx="19" cy="12" r="1.5"/>
                     </svg>
                   </button>
-                  <button (click)="abrirHistoricoPaciente(paciente)" [disabled]="loading" class="text-green-700 hover:text-green-900 transition" title="Histórico de atendimentos">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17l4-4-4-4m8 8V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2z" />
-                    </svg>
-                  </button>
-                  <button (click)="imprimirPaciente(paciente)" [disabled]="loading" class="text-gray-700 hover:text-gray-900 transition" title="Imprimir paciente">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                  </button>
-                  <button (click)="gerarPacientePDF(paciente)" [disabled]="loading" class="text-purple-700 hover:text-purple-900 transition" title="Gerar PDF">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </button>
-                  <button (click)="paciente.id !== undefined && removerPaciente(paciente.id)" [disabled]="paciente.id === undefined || loading" class="text-red-700 hover:text-red-900 transition" title="Remover paciente">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10" />
-                    </svg>
-                  </button>
+                  <!-- Dropdown de ações -->
+                  <div class="action-dropdown" *ngIf="openMenuId === paciente.id"
+                       [style.top.px]="menuPos.top" [style.left.px]="menuPos.left">
+                    <button class="action-item" (click)="editarPaciente(paciente); openMenuId = null">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="action-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" />
+                      </svg>
+                      <span>Editar</span>
+                    </button>
+                    <button class="action-item" (click)="abrirHistoricoPaciente(paciente); openMenuId = null">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="action-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      <span>Histórico</span>
+                    </button>
+                    <button class="action-item" (click)="imprimirPaciente(paciente); openMenuId = null">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="action-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                      <span>Imprimir</span>
+                    </button>
+                    <button class="action-item" (click)="gerarPacientePDF(paciente); openMenuId = null">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="action-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Gerar PDF</span>
+                    </button>
+                    <div class="action-divider"></div>
+                    <button class="action-item action-item--delete" (click)="paciente.id !== undefined && removerPaciente(paciente.id); openMenuId = null" [disabled]="paciente.id === undefined">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="action-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10" />
+                      </svg>
+                      <span>Excluir</span>
+                    </button>
+                  </div>
                 </div>
               </td>
               <td class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]">{{ paciente.nome }}</td>

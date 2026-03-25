@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
@@ -332,6 +332,26 @@ export class PacientesComponent implements OnInit, AfterViewInit {
   filtroNome: string = '';
   exibirFormulario = false;
   loading = false;
+  openMenuId: number | null = null;
+  menuPos = { top: 0, left: 0 };
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.openMenuId = null;
+  }
+
+  toggleMenu(event: Event, id: number | undefined) {
+    event.stopPropagation();
+    if (id === undefined) return;
+    if (this.openMenuId === id) {
+      this.openMenuId = null;
+    } else {
+      const btn = event.currentTarget as HTMLElement;
+      const rect = btn.getBoundingClientRect();
+      this.menuPos = { top: rect.bottom + 4, left: rect.left };
+      this.openMenuId = id;
+    }
+  }
   colunas = [
     'acoes', 'nome', 'mae', 'nascimento', 'sexo', 'estadoCivil', 'profissao', 'escolaridade', 'raca',
     'endereco', 'bairro', 'municipio', 'uf', 'cep', 'acompanhante', 'procedencia'
