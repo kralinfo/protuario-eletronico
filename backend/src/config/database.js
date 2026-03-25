@@ -4,7 +4,7 @@ import config from './env.js';
 class Database {
   constructor() {
     // Detectar se está rodando no Render ou produção
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER;
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER || (config.DATABASE_URL && config.DATABASE_URL.includes('render.com'));
     
     // Log da URL para debug (sem mostrar senha)
     if (config.DATABASE_URL) {
