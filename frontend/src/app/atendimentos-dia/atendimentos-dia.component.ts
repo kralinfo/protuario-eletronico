@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { AtendimentoService } from '../services/atendimento.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -29,6 +29,25 @@ export class AtendimentosDiaComponent implements OnInit {
   dataFinal: string = '';
   // O filtro de data deve estar sempre visível
   mostrarFiltroData = true;
+  openMenuId: number | null = null;
+  menuPos = { top: 0, left: 0 };
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.openMenuId = null;
+  }
+
+  toggleMenu(event: Event, id: number) {
+    event.stopPropagation();
+    if (this.openMenuId === id) {
+      this.openMenuId = null;
+    } else {
+      const btn = event.currentTarget as HTMLElement;
+      const rect = btn.getBoundingClientRect();
+      this.menuPos = { top: rect.bottom + 4, left: rect.left };
+      this.openMenuId = id;
+    }
+  }
 
   // Verificar se o usuário pode dar baixa no atendimento (não é módulo recepção)
   get podeFinalizarAtendimento(): boolean {

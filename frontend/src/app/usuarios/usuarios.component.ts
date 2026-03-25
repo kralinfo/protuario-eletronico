@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject, DestroyRef, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, DestroyRef, ViewChild, TemplateRef, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -129,6 +129,26 @@ export class UsuariosComponent implements OnInit, OnDestroy {
   dialogRef: any = null;
   // Campo de busca
   searchTerm: string = '';
+  openMenuId: number | null = null;
+  menuPos = { top: 0, left: 0 };
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.openMenuId = null;
+  }
+
+  toggleMenu(event: Event, id: number | undefined) {
+    event.stopPropagation();
+    if (id === undefined) return;
+    if (this.openMenuId === id) {
+      this.openMenuId = null;
+    } else {
+      const btn = event.currentTarget as HTMLElement;
+      const rect = btn.getBoundingClientRect();
+      this.menuPos = { top: rect.bottom + 4, left: rect.left };
+      this.openMenuId = id;
+    }
+  }
 
   ngOnInit(): void {
     this.initializeForm();

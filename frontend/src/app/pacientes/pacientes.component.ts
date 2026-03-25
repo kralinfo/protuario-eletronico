@@ -42,7 +42,7 @@ import { PaginationComponent } from '../shared/components/pagination/pagination.
     templateUrl: './pacientes.component.html',
     styleUrls: ['./pacientes.component.scss', '../shared/styles/table-footer.css'],
     standalone: true,
-    imports: [CommonModule, FormsModule, PacientesFormComponent, PaginationComponent, ConfirmDialogComponent]
+    imports: [CommonModule, FormsModule, PacientesFormComponent, PaginationComponent]
 })
 export class PacientesComponent implements OnInit, AfterViewInit {
 

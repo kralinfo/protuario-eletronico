@@ -1,30 +1,32 @@
-<div class="min-h-screen flex flex-col items-center py-10" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
-  <h2 class="text-2xl font-bold text-blue-700 mb-6">Atendimentos - {{ formatarPeriodo() }}</h2>
-  <div class="w-full max-w-6xl bg-white rounded-lg shadow p-6 mb-8">
-    <div class="flex flex-col gap-4">
-      <!-- Barra principal (search centralizado + botão à direita) similar à tela de pacientes -->
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 mb-2 sm:mb-4 w-full">
-        <div class="flex flex-row items-center w-full max-w-3xl mx-auto">
-          <div class="flex items-center bg-white rounded-lg shadow px-3 py-2 flex-grow min-w-0" style="width:100%;">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
-            <input
-              type="text"
-              class="border-none outline-none bg-transparent text-gray-700 w-full text-base sm:text-lg px-1"
-              placeholder="Pesquisar atendimento..."
-              [(ngModel)]="filtro"
-              style="min-width:180px; max-width:100%; font-size:1.05em;"
-            />
-          </div>
-          <a
-            routerLink="/atendimentos/novo"
-            class="flex items-center gap-2 px-6 py-3 ml-2 rounded-lg bg-blue-700 text-white font-semibold shadow hover:bg-blue-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
-            style="height:44px; min-width:140px;"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-            Novo Atendimento
-          </a>
-        </div>
+<div class="min-h-screen flex flex-col py-10" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+
+  <!-- Barra de busca e botão (acima do card, como nas demais telas) -->
+  <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6 w-full max-w-[1400px] mx-auto px-6">
+    <div class="flex flex-row items-center w-full max-w-2xl mx-auto">
+      <div class="flex items-center bg-white rounded-lg shadow px-3 py-2 flex-grow min-w-0" style="width:100%;">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
+        <input
+          type="text"
+          class="border-none outline-none bg-transparent text-gray-700 w-full text-base sm:text-lg px-1"
+          placeholder="Pesquisar atendimento..."
+          [(ngModel)]="filtro"
+          style="min-width:180px; max-width:100%; font-size:1.05em;"
+        />
       </div>
+      <a
+        routerLink="/atendimentos/novo"
+        class="flex items-center gap-2 px-6 py-3 ml-2 rounded-lg bg-blue-700 text-white font-semibold shadow hover:bg-blue-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
+        style="height:44px; min-width:160px;"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+        Novo Atendimento
+      </a>
+    </div>
+  </div>
+
+  <!-- Card branco com título dentro -->
+  <div class="w-full max-w-[1400px] mx-auto bg-white rounded-lg shadow p-6 mb-8">
+    <div class="flex flex-col gap-4">
 
       <!-- Filtro de data (sempre visível) - mantido abaixo, visual mais leve -->
       <div class="flex items-center gap-4">
@@ -128,132 +130,51 @@
                 *ngFor="let atendimento of atendimentosFiltrados"
                 class="border-b hover:bg-gray-50"
               >
-                <td class="px-4 py-2 min-w-[9rem] max-w-[12rem] text-center">
-                  <div class="flex flex-nowrap gap-2 justify-center items-center w-full min-w-[9rem]">
+                <td class="px-4 py-2 text-center">
+                  <div style="position:relative;display:inline-block;">
                     <button
-                      (click)="editarAtendimento(atendimento)"
-                      class="text-blue-700 hover:text-blue-900 transition"
-                      title="Editar atendimento"
+                      (click)="toggleMenu($event, atendimento.id)"
+                      title="Ações"
+                      style="background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z"
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <circle cx="5" cy="12" r="1.5"/>
+                        <circle cx="12" cy="12" r="1.5"/>
+                        <circle cx="19" cy="12" r="1.5"/>
                       </svg>
                     </button>
-                    <button
-                      (click)="imprimirAtendimento(atendimento)"
-                      class="text-gray-700 hover:text-gray-900 transition"
-                      title="Imprimir atendimento"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      (click)="gerarAtendimentoPDF(atendimento)"
-                      class="text-purple-700 hover:text-purple-900 transition"
-                      title="Gerar PDF"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      (click)="registrarAbandono(atendimento)"
-                      class="text-orange-700 hover:text-orange-900 transition"
-                      title="Registrar abandono"
-                      *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido'"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      (click)="finalizarAtendimento(atendimento)"
-                      class="text-green-700 hover:text-green-900 transition"
-                      title="Dar baixa no atendimento"
-                      *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido' && podeFinalizarAtendimento"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      (click)="removerAtendimento(atendimento.id)"
-                      class="text-red-700 hover:text-red-900 transition"
-                      title="Remover atendimento"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10"
-                        />
-                      </svg>
-                    </button>
+                    <div *ngIf="openMenuId === atendimento.id"
+                         [style.top.px]="menuPos.top" [style.left.px]="menuPos.left"
+                         style="position:fixed;min-width:168px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.13);z-index:9999;overflow:hidden;">
+                      <button (click)="editarAtendimento(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#1e293b;font-size:.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" /></svg>
+                        <span>Editar</span>
+                      </button>
+                      <button (click)="imprimirAtendimento(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#1e293b;font-size:.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                        <span>Imprimir</span>
+                      </button>
+                      <button (click)="gerarAtendimentoPDF(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#1e293b;font-size:.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span>Gerar PDF</span>
+                      </button>
+                      <button *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido'" (click)="registrarAbandono(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#1e293b;font-size:.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        <span>Registrar Abandono</span>
+                      </button>
+                      <button *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido' && podeFinalizarAtendimento" (click)="finalizarAtendimento(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#16a34a;font-size:.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>Finalizar</span>
+                      </button>
+                      <div style="height:1px;background:#f1f5f9;margin:2px 0;"></div>
+                      <button (click)="removerAtendimento(atendimento.id); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#dc2626;font-size:.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10" /></svg>
+                        <span>Excluir</span>
+                      </button>
+                    </div>
                   </div>
                 </td>
+
                 <td
                   class="px-6 py-2 font-medium text-gray-900 min-w-[12rem] max-w-[24rem]"
                 >
