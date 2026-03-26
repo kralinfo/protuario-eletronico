@@ -1,0 +1,62 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <mat-icon class="text-red-500 !text-base">warning</mat-icon>
+      <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Alertas Críticos</h3>
+      <span *ngIf="alertas.length > 0"
+            class="ml-1 bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full border border-red-200">
+        {{ alertas.length }}
+      </span>
+    </div>
+    <a routerLink="/triagem" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+      Ver fila
+      <mat-icon class="!text-sm">arrow_forward</mat-icon>
+    </a>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="carregando" class="p-4 space-y-2">
+    <div *ngFor="let _ of [1,2,3]" class="h-12 bg-gray-100 rounded animate-pulse"></div>
+  </div>
+
+  <!-- Sem alertas -->
+  <div *ngIf="!carregando && alertas.length === 0"
+       class="py-10 flex flex-col items-center justify-center text-gray-300 gap-2">
+    <mat-icon class="!text-5xl">check_circle</mat-icon>
+    <p class="text-sm">Nenhum alerta crítico no momento</p>
+  </div>
+
+  <!-- Lista -->
+  <ul *ngIf="!carregando && alertas.length > 0" class="divide-y divide-gray-50">
+    <li *ngFor="let alerta of alertas; trackBy: trackByAlerta"
+        class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors">
+
+      <!-- Ícone de gravidade -->
+      <div class="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+           [style.background-color]="getCorClassificacao(alerta.classificacao_risco) + '20'">
+        <mat-icon class="!text-base" [style.color]="getCorClassificacao(alerta.classificacao_risco)">
+          {{ alerta.classificacao_risco === 'vermelho' ? 'priority_high' : 'warning' }}
+        </mat-icon>
+      </div>
+
+      <!-- Dados do paciente -->
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-gray-800 truncate">{{ alerta.paciente_nome }}</p>
+        <p class="text-xs text-gray-400 truncate capitalize">{{ alerta.status }}</p>
+      </div>
+
+      <!-- Badge classificação -->
+      <span class="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold capitalize"
+            [ngClass]="getBadgeClass(alerta.classificacao_risco)">
+        {{ alerta.classificacao_risco }}
+      </span>
+
+      <!-- Tempo -->
+      <span class="flex-shrink-0 text-sm font-bold w-14 text-right"
+            [class.text-red-600]="alerta.minutos_espera > 15"
+            [class.text-orange-500]="alerta.minutos_espera > 0 && alerta.minutos_espera <= 15">
+        {{ alerta.minutos_espera }}<span class="text-xs font-normal text-gray-400"> min</span>
+      </span>
+    </li>
+  </ul>
+</div>

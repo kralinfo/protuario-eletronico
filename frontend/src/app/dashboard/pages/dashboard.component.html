@@ -1,0 +1,134 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <div class="container mx-auto px-4 py-8 max-w-screen-xl">
+
+    <!-- ═══════════════════════════════════ CABEÇALHO ═════════════════════════════════════ -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+          <mat-icon class="text-blue-600">dashboard</mat-icon>
+          Dashboard Operacional
+        </h1>
+        <p class="text-sm text-gray-500 mt-1 ml-9">
+          Atualizado em
+          <span class="font-medium text-gray-700">{{ horaAtualizacao | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+          &nbsp;·&nbsp;
+          <span class="text-blue-600">Hoje</span>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Filtro de data (preparado para expansão) -->
+        <mat-form-field appearance="outline" class="!text-sm !h-10" subscriptSizing="dynamic">
+          <mat-label>Data</mat-label>
+          <input matInput type="date" [(ngModel)]="filtroData"
+                 (change)="carregar()"
+                 [max]="'' | date:'yyyy-MM-dd'"
+                 placeholder="Hoje">
+          <mat-icon matSuffix>calendar_today</mat-icon>
+        </mat-form-field>
+
+        <button mat-stroked-button color="primary" (click)="carregar()" [disabled]="carregando">
+          <mat-icon>refresh</mat-icon>
+          Atualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- Banner de erro -->
+    <div *ngIf="erro && !carregando"
+         class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700 text-sm">
+      <mat-icon>error_outline</mat-icon>
+      Não foi possível carregar dados. Verifique a conexão com o servidor.
+    </div>
+
+    <!-- ═══════════════════════════════════ 1. TOPO — KPIs ════════════════════════════════ -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+      <app-dashboard-kpi-card
+        titulo="Total no Dia"
+        [valor]="operacional.total_hoje"
+        icone="people"
+        cor="gray"
+        subtitulo="Atendimentos abertos hoje"
+        [carregando]="carregando">
+      </app-dashboard-kpi-card>
+
+      <app-dashboard-kpi-card
+        titulo="Em Atendimento"
+        [valor]="operacional.em_atendimento"
+        icone="medical_services"
+        cor="blue"
+        subtitulo="Médico ou ambulatorial"
+        [carregando]="carregando">
+      </app-dashboard-kpi-card>
+
+      <app-dashboard-kpi-card
+        titulo="Espera p/ Triagem"
+        [valor]="operacional.tempo_medio_espera + ' min'"
+        icone="hourglass_empty"
+        cor="orange"
+        [subtitulo]="operacional.aguardando_triagem + ' aguardando'"
+        [carregando]="carregando">
+      </app-dashboard-kpi-card>
+
+      <app-dashboard-kpi-card
+        titulo="Finalizados"
+        [valor]="operacional.concluidos"
+        icone="check_circle"
+        cor="green"
+        [subtitulo]="taxaConclusao + '% de conclusão'"
+        [carregando]="carregando">
+      </app-dashboard-kpi-card>
+
+    </section>
+
+    <!-- ════════════════════════════════ 2. MEIO — Gráficos ══════════════════════════════ -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+      <!-- Linha + Etapas (2 colunas) -->
+      <div class="lg:col-span-2">
+        <app-dashboard-flow-chart
+          [dadosHora]="porHora"
+          [operacional]="operacional"
+          [carregando]="carregando">
+        </app-dashboard-flow-chart>
+      </div>
+
+      <!-- Donut de risco -->
+      <div>
+        <app-dashboard-risk-chart
+          [dados]="operacional.por_classificacao"
+          [carregando]="carregando">
+        </app-dashboard-risk-chart>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════════════ 3. BASE — Tabela médicos ════════════════════════ -->
+    <section class="mb-6">
+      <app-dashboard-doctors-table
+        [medicos]="medicos"
+        [carregando]="carregando">
+      </app-dashboard-doctors-table>
+    </section>
+
+    <!-- ══════════════════════════════ 4. LISTA CRÍTICA ══════════════════════════════════ -->
+    <section class="mb-6">
+      <app-dashboard-critical-list
+        [alertas]="operacional.alertas_criticos"
+        [carregando]="carregando">
+      </app-dashboard-critical-list>
+    </section>
+
+    <!-- ════════════════════════════════ Rodapé de info ══════════════════════════════════ -->
+    <footer class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 pb-6 text-xs text-gray-400">
+      <span>Atualização automática a cada 30 segundos</span>
+      <div class="flex items-center gap-4">
+        <span>Abandonos: <strong class="text-gray-600">{{ operacional.abandonos }}</strong></span>
+        <span>Pós-triagem: <strong class="text-gray-600">{{ operacional.pos_triagem }}</strong></span>
+        <span>Em triagem: <strong class="text-gray-600">{{ operacional.em_triagem }}</strong></span>
+      </div>
+    </footer>
+
+  </div>
+</div>

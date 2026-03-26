@@ -1,0 +1,60 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+    <mat-icon class="text-blue-500 !text-base">people</mat-icon>
+    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Produtividade por Médico (hoje)</h3>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="carregando" class="p-5 space-y-3">
+    <div *ngFor="let _ of [1,2,3]" class="h-8 bg-gray-100 rounded animate-pulse"></div>
+  </div>
+
+  <!-- Sem dados -->
+  <div *ngIf="!carregando && medicos.length === 0"
+       class="py-10 flex flex-col items-center justify-center text-gray-300 gap-2">
+    <mat-icon class="!text-5xl">table_chart</mat-icon>
+    <p class="text-sm">Nenhum atendimento médico registrado hoje</p>
+  </div>
+
+  <!-- Tabela -->
+  <div *ngIf="!carregando && medicos.length > 0" class="overflow-x-auto">
+    <table mat-table [dataSource]="dataSource" matSort class="w-full text-sm">
+
+      <!-- # -->
+      <ng-container matColumnDef="posicao">
+        <th mat-header-cell *matHeaderCellDef class="!text-xs !font-semibold !text-gray-500 !px-4 !py-3">#</th>
+        <td mat-cell *matCellDef="let row; let i = index" class="!px-4 !py-3 !text-gray-400 !text-xs">{{ i + 1 }}</td>
+      </ng-container>
+
+      <!-- Médico -->
+      <ng-container matColumnDef="medico_nome">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="!text-xs !font-semibold !text-gray-500 !px-4 !py-3">Médico</th>
+        <td mat-cell *matCellDef="let row" class="!px-4 !py-3 !font-medium !text-gray-800">{{ row.medico_nome }}</td>
+      </ng-container>
+
+      <!-- Atendimentos -->
+      <ng-container matColumnDef="total_atendimentos">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="!text-xs !font-semibold !text-gray-500 !px-4 !py-3">Atendimentos</th>
+        <td mat-cell *matCellDef="let row" class="!px-4 !py-3">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
+            {{ row.total_atendimentos }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Tempo médio -->
+      <ng-container matColumnDef="tempo_medio_minutos">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="!text-xs !font-semibold !text-gray-500 !px-4 !py-3">Tempo Médio</th>
+        <td mat-cell *matCellDef="let row" class="!px-4 !py-3">
+          <span [ngClass]="row.tempo_medio_minutos > 30 ? 'text-orange-600 font-semibold' : 'text-gray-700'">
+            {{ row.tempo_medio_minutos > 0 ? (row.tempo_medio_minutos + ' min') : '—' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="colunas" class="!bg-gray-50"></tr>
+      <tr mat-row *matRowDef="let row; columns: colunas;"
+          class="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"></tr>
+    </table>
+  </div>
+</div>

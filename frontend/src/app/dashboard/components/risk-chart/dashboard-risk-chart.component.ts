@@ -1,0 +1,94 @@
+import {
+  Component, Input, OnChanges, AfterViewInit,
+  SimpleChanges, ViewChild, ElementRef, OnDestroy
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { Chart, registerables } from 'chart.js';
+import { PorClassificacao } from '../../../services/dashboard.service';
+
+Chart.register(...registerables);
+
+@Component({
+  selector: 'app-dashboard-risk-chart',
+  templateUrl: './dashboard-risk-chart.component.html',
+  standalone: true,
+  imports: [CommonModule, MatIconModule]
+})
+export class DashboardRiskChartComponent implements AfterViewInit, OnChanges, OnDestroy {
+  @Input() dados: PorClassificacao = { vermelho: 0, laranja: 0, amarelo: 0, verde: 0, azul: 0 };
+  @Input() carregando = false;
+
+  @ViewChild('riskCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  private chart?: Chart;
+  private viewReady = false;
+
+  readonly LABELS  = ['Vermelho', 'Laranja', 'Amarelo', 'Verde', 'Azul'];
+  readonly COLORS  = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
+  readonly BORDERS = ['#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#2563eb'];
+
+  get total(): number {
+    const d = this.dados;
+    return d.vermelho + d.laranja + d.amarelo + d.verde + d.azul;
+  }
+
+  get valores(): number[] {
+    const d = this.dados;
+    return [d.vermelho, d.laranja, d.amarelo, d.verde, d.azul];
+  }
+
+  ngAfterViewInit(): void {
+    this.viewReady = true;
+    this.criarGrafico();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['dados'] && this.viewReady) {
+      this.destruirGrafico();
+      this.criarGrafico();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destruirGrafico();
+  }
+
+  private destruirGrafico(): void {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = undefined;
+    }
+  }
+
+  private criarGrafico(): void {
+    if (!this.canvasRef?.nativeElement || this.total === 0) return;
+
+    this.chart = new Chart(this.canvasRef.nativeElement, {
+      type: 'doughnut',
+      data: {
+        labels: this.LABELS,
+        datasets: [{
+          data:            this.valores,
+          backgroundColor: this.COLORS,
+          borderColor:     this.BORDERS,
+          borderWidth: 2,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '66%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.label}: ${ctx.parsed} (${Math.round((ctx.parsed / this.total) * 100)}%)`
+            }
+          }
+        }
+      }
+    });
+  }
+}

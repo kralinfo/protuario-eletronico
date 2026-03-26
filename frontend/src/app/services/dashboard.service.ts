@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, map } from 'rxjs';
 import { environment } from '../../environments/environment';
+
+// ─── Tipos ───────────────────────────────────────────────────────────────────
 
 export interface AlertaCritico {
   id: number;
@@ -32,13 +34,57 @@ export interface DadosOperacional {
   alertas_criticos: AlertaCritico[];
 }
 
+export interface AtendimentoHora {
+  hora: number;
+  total: number;
+}
+
+export interface MedicoProdutividade {
+  medico_nome: string;
+  total_atendimentos: number;
+  tempo_medio_minutos: number;
+}
+
+export interface DadosDashboard {
+  operacional: DadosOperacional;
+  por_hora: AtendimentoHora[];
+  medicos: MedicoProdutividade[];
+}
+
+// ─── Filtros (preparado para expansão futura) ─────────────────────────────────
+export interface FiltroDashboard {
+  data?: string;        // YYYY-MM-DD — padrão: hoje
+  medicoId?: number;
+}
+
+// ─── Service ─────────────────────────────────────────────────────────────────
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly base = `${environment.apiUrl}/dashboard`;
 
   constructor(private http: HttpClient) {}
 
-  getOperacional(): Observable<DadosOperacional> {
-    return this.http.get<DadosOperacional>(`${this.apiUrl}/dashboard/operacional`);
+  getOperacional(filtro?: FiltroDashboard): Observable<DadosOperacional> {
+    return this.http.get<DadosOperacional>(`${this.base}/operacional`, {
+      params: filtro as Record<string, string> ?? {}
+    });
+  }
+
+  getAtendimentosPorHora(): Observable<AtendimentoHora[]> {
+    return this.http.get<AtendimentoHora[]>(`${this.base}/por-hora`);
+  }
+
+  getProdutividadeMedicos(): Observable<MedicoProdutividade[]> {
+    return this.http.get<MedicoProdutividade[]>(`${this.base}/medicos`);
+  }
+
+  /** Carrega tudo em paralelo — usado pelo componente de página. */
+  getTudo(): Observable<DadosDashboard> {
+    return forkJoin({
+      operacional: this.getOperacional(),
+      por_hora:    this.getAtendimentosPorHora(),
+      medicos:     this.getProdutividadeMedicos()
+    });
   }
 }

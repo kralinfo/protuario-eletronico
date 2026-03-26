@@ -67,6 +67,16 @@ const routes: Routes = [
     }
   },
   {
+    path: 'dashboard',
+    loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
+    canActivate: [AuthGuard],
+    data: {
+      breadcrumb: 'Dashboard',
+      icon: 'dashboard',
+      title: 'Dashboard Operacional'
+    }
+  },
+  {
     path: 'login',
     component: LoginComponent,
     data: {

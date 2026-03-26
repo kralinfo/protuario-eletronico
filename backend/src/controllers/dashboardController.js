@@ -141,4 +141,64 @@ const operacional = async (req, res) => {
   }
 };
 
-export default { operacional };
+/**
+ * GET /api/dashboard/por-hora
+ * Agrupamento dos atendimentos de hoje por hora do dia (0-23).
+ */
+const atendimentosPorHora = async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT EXTRACT(HOUR FROM data_hora_atendimento)::int AS hora,
+              COUNT(*) AS total
+       FROM atendimentos
+       WHERE DATE(data_hora_atendimento) = CURRENT_DATE
+       GROUP BY hora
+       ORDER BY hora`
+    );
+
+    // Preencher todas as 24 horas com 0 para os que não têm registro
+    const mapa = Object.fromEntries(result.rows.map(r => [r.hora, parseInt(r.total)]));
+    const dados = Array.from({ length: 24 }, (_, h) => ({
+      hora: h,
+      total: mapa[h] || 0
+    }));
+
+    res.json(dados);
+  } catch (error) {
+    console.error('[Dashboard] Erro em atendimentosPorHora:', error);
+    res.status(500).json({ message: 'Erro interno.' });
+  }
+};
+
+/**
+ * GET /api/dashboard/medicos
+ * Produtividade por médico hoje (via tabela consultas_medicas).
+ * Retorna array vazio se a tabela não existir ou não houver consultas.
+ */
+const produtividadeMedicos = async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT
+         u.nome               AS medico_nome,
+         COUNT(c.id)::int     AS total_atendimentos,
+         COALESCE(
+           ROUND(AVG(
+             EXTRACT(EPOCH FROM (c.data_hora_fim - c.data_hora_inicio)) / 60
+           ))::int,
+           0
+         )                    AS tempo_medio_minutos
+       FROM consultas_medicas c
+       JOIN usuarios u ON u.id = c.medico_id
+       WHERE DATE(c.data_hora_inicio) = CURRENT_DATE
+       GROUP BY u.id, u.nome
+       ORDER BY total_atendimentos DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    // Tabela pode não existir ou colunas podem diferir — retorna vazio de forma segura
+    console.warn('[Dashboard] produtividadeMedicos indisponível:', error.message);
+    res.json([]);
+  }
+};
+
+export default { operacional, atendimentosPorHora, produtividadeMedicos };
