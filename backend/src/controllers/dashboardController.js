@@ -97,11 +97,14 @@ class DashboardController {
 
   static async operacional(req, res) {
     try {
-      const [overview, porEtapa, criticos, classificacao] = await Promise.all([
-        dashboardService.overview(null),
-        dashboardService.pacientesPorEtapa(null),
+      const data = req.query.data || null;
+
+      const [overview, porEtapa, criticos, classificacao, abandonosRes] = await Promise.all([
+        dashboardService.overview(data),
+        dashboardService.pacientesPorEtapa(data),
         dashboardService.pacientesCriticos(),
-        dashboardService.classificacaoRisco(null)
+        dashboardService.classificacaoRisco(data),
+        dashboardService.contarAbandonos(data)
       ]);
 
       const por_classificacao = Object.fromEntries(
@@ -110,16 +113,16 @@ class DashboardController {
 
       res.json({
         total_hoje:         overview.totalPacientesHoje,
-        aguardando_triagem: porEtapa.triagem,
-        em_triagem:         0,
-        pos_triagem:        porEtapa.aguardandoMedico,
+        aguardando_triagem: porEtapa.aguardandoTriagem ?? 0,
+        em_triagem:         porEtapa.emTriagem ?? 0,
+        pos_triagem:        porEtapa.aguardandoMedico ?? 0,
         em_atendimento:     overview.pacientesEmAtendimento,
         concluidos:         overview.atendimentosFinalizados,
-        abandonos:          0,
-        tempo_medio_espera: overview.tempoMedioEspera,
+        abandonos:          abandonosRes,
+        tempo_medio_espera: overview.tempoMedioEsperaFila,
         por_classificacao,
-        alertas_criticos:   criticos.map(c => ({
-          id:                  0,
+        alertas_criticos:   criticos.map((c, i) => ({
+          id:                  c.id ?? i + 1,
           paciente_nome:       c.nome,
           status:              c.status,
           classificacao_risco: c.classificacao,

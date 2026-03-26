@@ -133,8 +133,8 @@
       <div class="flex items-center gap-2 w-full sm:w-auto justify-start">
         <button
           mat-icon-button
-          (click)="toggleSidenav()"
-          aria-label="Abrir menu lateral"
+          [matMenuTriggerFor]="mainMenu"
+          aria-label="Abrir menu principal"
           class="menu-hamburguer mr-2"
           style="
             background: transparent;

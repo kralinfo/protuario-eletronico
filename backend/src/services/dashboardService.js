@@ -62,7 +62,7 @@ class DashboardService {
            ))::int                                                              AS em_atendimento,
            COALESCE(
              ROUND(AVG(
-               CASE WHEN status = 'encaminhado para triagem'
+               CASE WHEN status IN ('encaminhado para triagem', 'encaminhado_para_triagem')
                  THEN EXTRACT(EPOCH FROM (NOW() - data_hora_atendimento)) / 60
                END
              )),
@@ -165,46 +165,47 @@ class DashboardService {
   /**
    * GET /dashboard/pacientes-por-etapa
    *
-   * Quando data=null: usa vw_dashboard_fluxo_atual (tempo real — todos os pacientes
-   *   ativos, sem filtro de data). Adequado para o painel operacional.
-   * Quando data fornecida: query direta com filtro por data_hora_atendimento.
+   * Retorna contagem real por cada etapa do fluxo hospitalar.
+   * Separa "aguardando triagem" de "em triagem" para o dashboard.
    *
-   * Retorna: { recepcao, triagem, aguardandoMedico, emAtendimento, observacao }
+   * Retorna: { recepcao, aguardandoTriagem, emTriagem, aguardandoMedico, emAtendimento, observacao }
    */
   async pacientesPorEtapa(data) {
+    const query = `
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'recepcao')::int AS recepcao,
+
+        COUNT(*) FILTER (WHERE status IN (
+          'encaminhado para triagem', 'encaminhado_para_triagem'
+        ))::int AS "aguardandoTriagem",
+
+        COUNT(*) FILTER (WHERE status IN (
+          'em_triagem', 'em triagem'
+        ))::int AS "emTriagem",
+
+        COUNT(*) FILTER (WHERE status IN (
+          'triagem_finalizada',
+          'encaminhado para sala médica', 'encaminhado_para_sala_medica',
+          'encaminhado para ambulatório', 'encaminhado_para_ambulatorio'
+        ))::int AS "aguardandoMedico",
+
+        COUNT(*) FILTER (WHERE status IN (
+          'em atendimento médico', 'em_atendimento_medico',
+          'em atendimento ambulatorial', 'em_atendimento_ambulatorial'
+        ))::int AS "emAtendimento",
+
+        COUNT(*) FILTER (WHERE status IN (
+          'encaminhado para exames', 'encaminhado_para_exames',
+          'aguardando exames', 'aguardando_exames',
+          'em observacao', 'em_observacao'
+        ))::int AS observacao
+      FROM atendimentos
+    `;
+
     if (!data) {
-      // Tempo real — view pré-computada, sem varredura de data
+      // Tempo real — todos os atendimentos ativos
       const result = await db.query(
-        `SELECT
-           recepcao,
-           triagem,
-           aguardando_medico  AS "aguardandoMedico",
-           em_atendimento     AS "emAtendimento",
-           observacao
-         FROM vw_dashboard_fluxo_atual`
-      ).catch(() =>
-        // Fallback se a view ainda não existir
-        db.query(
-          `SELECT
-             COUNT(*) FILTER (WHERE status = 'recepcao')::int                   AS recepcao,
-             COUNT(*) FILTER (WHERE status IN (
-               'encaminhado para triagem', 'em_triagem'
-             ))::int                                                              AS triagem,
-             COUNT(*) FILTER (WHERE status IN (
-               'triagem_finalizada',
-               'encaminhado para sala médica',
-               'encaminhado para ambulatório'
-             ))::int                                                              AS "aguardandoMedico",
-             COUNT(*) FILTER (WHERE status IN (
-               'em atendimento médico',
-               'em atendimento ambulatorial'
-             ))::int                                                              AS "emAtendimento",
-             COUNT(*) FILTER (WHERE status IN (
-               'encaminhado para exames', 'aguardando exames'
-             ))::int                                                              AS observacao
-           FROM atendimentos
-           WHERE status NOT IN ('atendimento_concluido')`
-        )
+        query + ` WHERE status NOT IN ('atendimento_concluido')`
       );
       return result.rows[0];
     }
@@ -214,23 +215,32 @@ class DashboardService {
 
     const result = await db.query(
       `SELECT
-         COUNT(*) FILTER (WHERE status = 'recepcao')::int                       AS recepcao,
+         COUNT(*) FILTER (WHERE status = 'recepcao')::int AS recepcao,
+
          COUNT(*) FILTER (WHERE status IN (
-           'encaminhado para triagem', 'encaminhado_para_triagem',
+           'encaminhado para triagem', 'encaminhado_para_triagem'
+         ))::int AS "aguardandoTriagem",
+
+         COUNT(*) FILTER (WHERE status IN (
            'em_triagem', 'em triagem'
-         ))::int                                                                  AS triagem,
+         ))::int AS "emTriagem",
+
          COUNT(*) FILTER (WHERE status IN (
            'triagem_finalizada',
-           'encaminhado para sala médica',
-           'encaminhado para ambulatório'
-         ))::int                                                                  AS "aguardandoMedico",
+           'encaminhado para sala médica', 'encaminhado_para_sala_medica',
+           'encaminhado para ambulatório', 'encaminhado_para_ambulatorio'
+         ))::int AS "aguardandoMedico",
+
          COUNT(*) FILTER (WHERE status IN (
-           'em atendimento médico',
-           'em atendimento ambulatorial'
-         ))::int                                                                  AS "emAtendimento",
+           'em atendimento médico', 'em_atendimento_medico',
+           'em atendimento ambulatorial', 'em_atendimento_ambulatorial'
+         ))::int AS "emAtendimento",
+
          COUNT(*) FILTER (WHERE status IN (
-           'encaminhado para exames', 'aguardando exames'
-         ))::int                                                                  AS observacao
+           'encaminhado para exames', 'encaminhado_para_exames',
+           'aguardando exames', 'aguardando_exames',
+           'em observacao', 'em_observacao'
+         ))::int AS observacao
        FROM atendimentos
        WHERE ${expr}`,
       params
@@ -296,42 +306,56 @@ class DashboardService {
   /**
    * GET /dashboard/pacientes-criticos
    *
-   * Usa vw_dashboard_pacientes_criticos (vermelho/laranja não concluídos).
-   * Inclui todos os status ativos — não apenas triagem — pois um paciente
-   * vermelho pode estar em qualquer etapa.
+   * Pacientes vermelho/laranja ainda não concluídos.
    * Fallback para query direta se a view ainda não existir.
    */
   async pacientesCriticos() {
     const result = await db.query(
       `SELECT
-         nome,
-         classificacao_risco AS classificacao,
-         status,
-         minutos_espera      AS "tempoEspera"
-       FROM vw_dashboard_pacientes_criticos
+         a.id,
+         p.nome,
+         a.classificacao_risco AS classificacao,
+         a.status,
+         ROUND(
+           EXTRACT(EPOCH FROM (NOW() - a.data_hora_atendimento)) / 60
+         )::int AS "tempoEspera"
+       FROM atendimentos a
+       JOIN pacientes p ON p.id = a.paciente_id
+       WHERE a.classificacao_risco IN ('vermelho', 'laranja')
+         AND a.status NOT IN ('atendimento_concluido')
+       ORDER BY
+         CASE a.classificacao_risco WHEN 'vermelho' THEN 1 WHEN 'laranja' THEN 2 END,
+         a.data_hora_atendimento ASC
        LIMIT 10`
-    ).catch(() =>
-      // Fallback direto se a view ainda não existir
-      db.query(
-        `SELECT
-           p.nome,
-           a.classificacao_risco                                              AS classificacao,
-           a.status,
-           ROUND(
-             EXTRACT(EPOCH FROM (NOW() - a.data_hora_atendimento)) / 60
-           )::int                                                             AS "tempoEspera"
-         FROM atendimentos a
-         JOIN pacientes p ON p.id = a.paciente_id
-         WHERE a.classificacao_risco IN ('vermelho', 'laranja')
-           AND a.status NOT IN ('atendimento_concluido')
-         ORDER BY
-           CASE a.classificacao_risco WHEN 'vermelho' THEN 1 WHEN 'laranja' THEN 2 END,
-           a.data_hora_atendimento ASC
-         LIMIT 10`
-      )
     );
 
     return result.rows;
+  }
+
+  // ─── abandonos ─────────────────────────────────────────────────────────────
+
+  /**
+   * Conta atendimentos abandonados no dia.
+   */
+  async contarAbandonos(data) {
+    if (data && /^\d{4}-\d{2}-\d{2}$/.test(data)) {
+      const result = await db.query(
+        `SELECT COUNT(*)::int AS total
+         FROM atendimentos
+         WHERE abandonado = true
+           AND DATE(COALESCE(data_abandono, data_hora_atendimento)) = $1`,
+        [data]
+      );
+      return result.rows[0].total;
+    }
+
+    const result = await db.query(
+      `SELECT COUNT(*)::int AS total
+       FROM atendimentos
+       WHERE abandonado = true
+         AND DATE(COALESCE(data_abandono, data_hora_atendimento)) = CURRENT_DATE`
+    );
+    return result.rows[0].total;
   }
 }
 
