@@ -11,6 +11,15 @@
 <ng-container *ngIf="!isLoginRoute()">
   <!-- Menu hamburguer à esquerda do header principal -->
   <mat-menu #mainMenu="matMenu" class="main-menu-modern text-xs">
+    <!-- Início do Módulo -->
+    <button
+      mat-menu-item
+      (click)="irParaMenuPrincipal()"
+    >
+      <mat-icon>home</mat-icon>
+      <span class="menu-label text-xs">Início</span>
+    </button>
+
     <!-- Pacientes - Disponível para recepcao e triagem -->
     <button
       *ngIf="canAccessModule('pacientes')"
@@ -349,6 +358,10 @@
         <div class="sidenav-top"></div>
 
         <nav class="sidenav-menu px-2 py-2">
+          <a mat-list-item class="sidenav-item" (click)="irParaMenuPrincipal()" routerLinkActive="active" style="cursor: pointer;">
+            <mat-icon>home</mat-icon>
+            <span class="sidenav-label" *ngIf="!sidenavCompact">Início</span>
+          </a>
           <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('pacientes')" routerLink="/pacientes" routerLinkActive="active">
             <mat-icon>person_search</mat-icon>
             <span class="sidenav-label" *ngIf="!sidenavCompact">Pacientes</span>

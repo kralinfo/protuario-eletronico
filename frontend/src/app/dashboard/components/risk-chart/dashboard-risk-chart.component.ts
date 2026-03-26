@@ -44,9 +44,10 @@ export class DashboardRiskChartComponent implements AfterViewInit, OnChanges, On
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['dados'] && this.viewReady) {
+    if ((changes['dados'] || (changes['carregando'] && !this.carregando)) && this.viewReady) {
       this.destruirGrafico();
-      this.criarGrafico();
+      // O timeout garante que o canvas já saiu do estado de skeleton/ngIf e está no DOM
+      setTimeout(() => this.criarGrafico());
     }
   }
 

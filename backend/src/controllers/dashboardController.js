@@ -80,7 +80,8 @@ class DashboardController {
 
   static async pacientesCriticos(req, res) {
     try {
-      const resultado = await dashboardService.pacientesCriticos();
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.pacientesCriticos(periodo, data, dataInicio, dataFim);
       res.json(resultado);
     } catch (error) {
       console.error('[DashboardController] pacientesCriticos:', error);
@@ -96,7 +97,7 @@ class DashboardController {
       const [overview, porEtapa, criticos, classificacao, abandonosRes] = await Promise.all([
         dashboardService.overview(periodo, data, dataInicio, dataFim),
         dashboardService.pacientesPorEtapa(periodo, data, dataInicio, dataFim),
-        dashboardService.pacientesCriticos(),
+        dashboardService.pacientesCriticos(periodo, data, dataInicio, dataFim),
         dashboardService.classificacaoRisco(periodo, data, dataInicio, dataFim),
         dashboardService.contarAbandonos(periodo, data, dataInicio, dataFim)
       ]);

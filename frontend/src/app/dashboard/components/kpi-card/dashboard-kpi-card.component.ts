@@ -24,6 +24,7 @@ const COR: Record<Cor, { bg: string; icon: string; valor: string; ring: string }
 export class DashboardKpiCardComponent implements OnChanges {
   @Input() titulo = '';
   @Input() valor: number | string = 0;
+  @Input() unidade = ''; // exibida ao lado do valor
   @Input() icone = 'info';
   @Input() cor: Cor = 'blue';
   @Input() subtitulo = '';

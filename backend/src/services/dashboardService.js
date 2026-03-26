@@ -83,24 +83,43 @@ class DashboardService {
         params
       ),
 
-      // 2. Estatísticas em tempo real — sem filtro de data
-      db.query(
-        `SELECT
-           COUNT(*) FILTER (WHERE status IN (
-             'em atendimento médico',
-             'em atendimento ambulatorial'
-           ))::int                                                              AS em_atendimento,
-           COALESCE(
-             ROUND(AVG(
-               CASE WHEN status IN ('encaminhado para triagem', 'encaminhado_para_triagem')
-                 THEN EXTRACT(EPOCH FROM (NOW() - data_hora_atendimento)) / 60
-               END
-             )),
-             0
-           )::int                                                              AS espera_fila
-         FROM atendimentos
-         WHERE status NOT IN ('atendimento_concluido')`
-      ),
+      // 2. Estatísticas em tempo real (SEM FILTRO DE DATA OU POR DATA ATUAL)
+      ( (periodo === 'dia' && !data && !dataInicio) || (data === new Date().toISOString().slice(0, 10)) )
+        ? db.query(
+            `SELECT
+               COUNT(*) FILTER (WHERE status IN (
+                 'em atendimento médico',
+                 'em atendimento ambulatorial',
+                 'em_atendimento_medico',
+                 'em_atendimento_ambulatorial'
+               ))::int                                                              AS em_atendimento,
+               COALESCE(
+                 ROUND(AVG(
+                   CASE WHEN status IN ('encaminhado para triagem', 'encaminhado_para_triagem')
+                     THEN EXTRACT(EPOCH FROM (NOW() - data_hora_atendimento)) / 60
+                   END
+                 )),
+                 0
+               )::int                                                              AS espera_fila
+             FROM atendimentos
+             WHERE status NOT IN ('atendimento_concluido')
+               AND DATE(data_hora_atendimento) = CURRENT_DATE`
+          )
+        : db.query(
+            `SELECT
+               COUNT(*)::int AS em_atendimento,
+               0 AS espera_fila
+             FROM atendimentos a
+             WHERE status IN (
+               'em atendimento médico',
+               'em atendimento ambulatorial',
+               'em_atendimento_medico',
+               'em_atendimento_ambulatorial',
+               'atendimento_concluido'
+             )
+               AND ${expr}`,
+            params
+          ),
 
       // 3. Tempos médios do dia via view pré-computada
       //    Chegada → início da consulta  (tempoMedioEspera)
@@ -255,9 +274,10 @@ class DashboardService {
 
     const isRange = dataInicio && dataFim;
     if (!data && !isRange && (!periodo || periodo === 'dia')) {
-      // Tempo real — todos os atendimentos ativos
+      // Tempo real do dia atual — atendimentos de HOJE ainda não concluídos
       const result = await db.query(
-        query + ` WHERE status NOT IN ('atendimento_concluido')`
+        query + ` WHERE status NOT IN ('atendimento_concluido')
+                    AND DATE(data_hora_atendimento) = CURRENT_DATE`
       );
       return result.rows[0];
     }
@@ -358,10 +378,18 @@ class DashboardService {
   /**
    * GET /dashboard/pacientes-criticos
    *
-   * Pacientes vermelho/laranja ainda não concluídos.
-   * Fallback para query direta se a view ainda não existir.
+   * Pacientes vermelho/laranja no período selecionado.
    */
-  async pacientesCriticos() {
+  async pacientesCriticos(periodo, data, dataInicio, dataFim) {
+    const { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
+    
+    // Se for 'dia' (realtime), mantemos o filtro de não concluídos. 
+    // Se for histórico, mostramos quem FOI crítico naquele período.
+    const isRealtime = (periodo === 'dia' && !data && !dataInicio);
+    const statusFilter = isRealtime 
+      ? "AND a.status NOT IN ('atendimento_concluido')" 
+      : "";
+
     const result = await db.query(
       `SELECT
          a.id,
@@ -369,16 +397,21 @@ class DashboardService {
          a.classificacao_risco AS classificacao,
          a.status,
          ROUND(
-           EXTRACT(EPOCH FROM (NOW() - a.data_hora_atendimento)) / 60
+           EXTRACT(EPOCH FROM (
+             CASE WHEN a.status = 'atendimento_concluido' THEN a.updated_at ELSE NOW() END 
+             - a.data_hora_atendimento
+           )) / 60
          )::int AS "tempoEspera"
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
        WHERE a.classificacao_risco IN ('vermelho', 'laranja')
-         AND a.status NOT IN ('atendimento_concluido')
+         ${statusFilter}
+         AND ${expr}
        ORDER BY
          CASE a.classificacao_risco WHEN 'vermelho' THEN 1 WHEN 'laranja' THEN 2 END,
          a.data_hora_atendimento ASC
-       LIMIT 10`
+       LIMIT 10`,
+      params
     );
 
     return result.rows;

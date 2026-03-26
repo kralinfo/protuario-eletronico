@@ -33,7 +33,14 @@ export class AppComponent {
   @ViewChild('userMenu', { static: true }) userMenu!: MatMenu;
   sobreDialogRef: any;
   irParaMenuPrincipal() {
-    this.router.navigate(['/']);
+    const selectedModule = this.authService.getSelectedModule();
+    if (selectedModule === 'medico') {
+      this.router.navigate(['/medico']);
+    } else if (selectedModule === 'triagem') {
+      this.router.navigate(['/ambulatorio']);
+    } else {
+      this.router.navigate(['/']);
+    }
   }
 
   title = 'frontend';

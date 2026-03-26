@@ -89,7 +89,8 @@
 
       <app-dashboard-kpi-card
         titulo="Espera p/ Triagem"
-        [valor]="operacional.tempo_medio_espera + ' min'"
+        [valor]="operacional.tempo_medio_espera"
+        unidade="min"
         icone="hourglass_empty"
         cor="orange"
         [subtitulo]="operacional.aguardando_triagem + ' aguardando'"
