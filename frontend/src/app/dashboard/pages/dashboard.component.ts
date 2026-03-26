@@ -75,10 +75,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.carregar();
+    // Escutar o stream do service (Preparado para WebSocket no futuro)
+    this.dashboardService.getDashboardStream({ data: this.filtroData || undefined })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (dados) => {
+          this.operacional = dados.operacional;
+          this.porHora     = dados.por_hora;
+          this.medicos     = dados.medicos;
+          this.horaAtualizacao = new Date();
+          this.carregando = false;
+          this.erro = false;
+        },
+        error: () => this.tratarErro()
+      });
+
+    // Iniciar polling temporário (será removido ao implementar WebSocket)
     interval(INTERVALO_POLLING)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.carregar());
+      .subscribe(() => this.atualizar());
   }
 
   ngOnDestroy(): void {
@@ -86,29 +101,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  carregar(): void {
-    this.dashboardService.getTudo()
-      .pipe(
-        catchError(() => {
-          this.erro = true;
-          this.carregando = false;
-          this.snackBar.open('Erro ao atualizar o dashboard.', 'Fechar', { duration: 4000 });
-          return of<DadosDashboard>({
-            operacional: { ...OPERACIONAL_VAZIO },
-            por_hora: [],
-            medicos: []
-          });
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((dados) => {
-        this.operacional = dados.operacional;
-        this.porHora     = dados.por_hora;
-        this.medicos     = dados.medicos;
-        this.horaAtualizacao = new Date();
-        this.carregando = false;
-        this.erro = false;
-      });
+  /** Solicita atualização imediata via Service */
+  atualizar(): void {
+    // Se estiver filtrando data retroativa, talvez não queira polling
+    if (!this.filtroData) {
+      this.dashboardService.refreshDashboard();
+    }
+  }
+
+  /** Recarrega manualmente (usado no botão e no filtro) */
+  refreshManual(): void {
+    this.carregando = true;
+    this.dashboardService.refreshDashboard();
+  }
+
+  private tratarErro(): void {
+    this.erro = true;
+    this.carregando = false;
+    this.snackBar.open('Erro ao atualizar o dashboard.', 'Fechar', { duration: 4000 });
   }
 
   get taxaConclusao(): number {

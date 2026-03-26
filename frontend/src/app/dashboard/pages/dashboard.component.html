@@ -21,14 +21,14 @@
         <mat-form-field appearance="outline" class="!text-sm !h-10" subscriptSizing="dynamic">
           <mat-label>Data</mat-label>
           <input matInput type="date" [(ngModel)]="filtroData"
-                 (change)="carregar()"
+                 (change)="refreshManual()"
                  [max]="'' | date:'yyyy-MM-dd'"
                  placeholder="Hoje">
           <mat-icon matSuffix>calendar_today</mat-icon>
         </mat-form-field>
 
-        <button mat-stroked-button color="primary" (click)="carregar()" [disabled]="carregando">
-          <mat-icon>refresh</mat-icon>
+        <button mat-stroked-button color="primary" (click)="refreshManual()" [disabled]="carregando">
+          <mat-icon [class.animate-spin]="carregando">refresh</mat-icon>
           Atualizar
         </button>
       </div>

@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map } from 'rxjs';
+import { Observable, forkJoin, map, BehaviorSubject, switchMap, tap, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
+// (... existing interfaces ...)
 
 export interface AlertaCritico {
   id: number;
@@ -63,28 +64,57 @@ export interface FiltroDashboard {
 export class DashboardService {
   private readonly base = `${environment.apiUrl}/dashboard`;
 
+  // ── Controle de Atualização em Tempo Real (Preparado para WebSocket no futuro)
+  private refresh$ = new BehaviorSubject<void>(undefined);
+
+  // Cache do último estado para quem se inscrever agora não ver tela branca
+  private dashboardData$?: Observable<DadosDashboard>;
+
   constructor(private http: HttpClient) {}
+
+  /**
+   * Força uma atualização imediata de todos os componentes que escutam
+   * o stream principal do dashboard.
+   */
+  refreshDashboard(): void {
+    this.refresh$.next();
+  }
+
+  /**
+   * Stream contínuo do Dashboard.
+   * Emite dados sempre que refreshDashboard() for chamado.
+   */
+  getDashboardStream(filtro?: FiltroDashboard): Observable<DadosDashboard> {
+    return this.refresh$.pipe(
+      switchMap(() => this.getTudo(filtro)),
+      shareReplay(1) // Garante que múltiplos inscritos recebam o mesmo dado
+    );
+  }
 
   getOperacional(filtro?: FiltroDashboard): Observable<DadosOperacional> {
     return this.http.get<DadosOperacional>(`${this.base}/operacional`, {
-      params: filtro as Record<string, string> ?? {}
+      params: filtro as any ?? {}
     });
   }
 
-  getAtendimentosPorHora(): Observable<AtendimentoHora[]> {
-    return this.http.get<AtendimentoHora[]>(`${this.base}/por-hora`);
+  getAtendimentosPorHora(filtro?: FiltroDashboard): Observable<AtendimentoHora[]> {
+    return this.http.get<AtendimentoHora[]>(`${this.base}/atendimentos-por-hora`, {
+      params: filtro as any ?? {}
+    });
   }
 
-  getProdutividadeMedicos(): Observable<MedicoProdutividade[]> {
-    return this.http.get<MedicoProdutividade[]>(`${this.base}/medicos`);
+  getProdutividadeMedicos(filtro?: FiltroDashboard): Observable<MedicoProdutividade[]> {
+    return this.http.get<MedicoProdutividade[]>(`${this.base}/produtividade-medicos`, {
+      params: filtro as any ?? {}
+    });
   }
 
-  /** Carrega tudo em paralelo — usado pelo componente de página. */
-  getTudo(): Observable<DadosDashboard> {
+  /** Carrega tudo em paralelo — usado p/ stream ou carregamento manual. */
+  getTudo(filtro?: FiltroDashboard): Observable<DadosDashboard> {
     return forkJoin({
-      operacional: this.getOperacional(),
-      por_hora:    this.getAtendimentosPorHora(),
-      medicos:     this.getProdutividadeMedicos()
+      operacional: this.getOperacional(filtro),
+      por_hora:    this.getAtendimentosPorHora(filtro),
+      medicos:     this.getProdutividadeMedicos(filtro)
     });
   }
 }
