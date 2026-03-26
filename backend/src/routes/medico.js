@@ -101,10 +101,15 @@ router.get('/consulta/:id', async (req, res) => {
       return res.status(404).json({ error: 'Atendimento não encontrado.' });
     }
 
-    // Buscar consulta médica vinculada, se houver
-    const consulta = await knex('consultas_medicas')
-      .where('atendimento_id', req.params.id)
-      .orderBy('id', 'desc')
+    // Buscar consulta médica vinculada, se houver, incluindo o nome do médico
+    const consulta = await knex('consultas_medicas as c')
+      .leftJoin('usuarios as u', 'c.medico_id', 'u.id')
+      .select([
+        'c.*',
+        'u.nome as medico_nome'
+      ])
+      .where('c.atendimento_id', req.params.id)
+      .orderBy('c.id', 'desc')
       .first();
 
     console.log('[API] Consulta médica encontrada:', consulta);

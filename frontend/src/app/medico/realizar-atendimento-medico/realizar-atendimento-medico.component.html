@@ -31,6 +31,26 @@
       </span>
     </div>
   </div>
+  
+  <!-- Assinatura do Médico (visível em modo de visualização ou quando concluída) -->
+  <div *ngIf="consultaRealizada && nomeMedicoResponsavel" class="mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="p-2 bg-blue-50 bg-opacity-50 rounded-full text-blue-600">
+        <mat-icon>verified</mat-icon>
+      </div>
+      <div>
+        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-opacity-70">Consulta Assinada Digitalmente</p>
+        <p class="text-lg font-extrabold text-gray-800 tracking-tight">{{nomeMedicoResponsavel}}</p>
+      </div>
+    </div>
+    <div class="hidden sm:block text-right">
+      <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-opacity-70">Status do Registro</p>
+      <p class="text-xs font-bold text-green-600 flex items-center justify-end gap-1">
+        <mat-icon class="text-[14px] w-[14px] h-[14px]">check_circle</mat-icon>
+        AUTENTICADO
+      </p>
+    </div>
+  </div>
 
   <form [formGroup]="atendimentoForm" (ngSubmit)="salvarAtendimento()">
     <!-- Campo de Motivo da Consulta como primeiro campo da tela -->

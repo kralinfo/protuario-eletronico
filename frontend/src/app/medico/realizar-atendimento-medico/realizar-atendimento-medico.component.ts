@@ -79,6 +79,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   edicaoHabilitada = false; // Controla se a edição foi habilitada pelo usuário
   podeEditarPorStatus = true; // Controla se o status permite edição (do dashboard)
   origemCard = ''; // De qual card veio a navegação
+  nomeMedicoResponsavel = ''; // Nome do médico que realizou o atendimento
 
   constructor(
     private fb: FormBuilder,
@@ -187,6 +188,9 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
             console.log('Data retorno formatada:', dataRetornoFormatada);
           }
         }
+
+        // Nome do médico responsável (assinatura)
+        this.nomeMedicoResponsavel = consultaData.medico_nome || '';
 
         this.atendimentoForm.patchValue({
           // Dados da triagem (prioridade para carregar primeiro)
