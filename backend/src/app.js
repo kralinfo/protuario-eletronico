@@ -23,6 +23,7 @@ import apiRoutes from './routes/index.js';
 import atendimentosRouter from './routes/atendimentos.js';
 import triagemRouter from './routes/triagem.js';
 import historicoRouter from './routes/historico.routes.js';
+import dashboardRouter from './routes/dashboard.js';
 
 class App {
   constructor() {
@@ -99,6 +100,7 @@ class App {
     this.app.use('/api/atendimentos', atendimentosRouter);
     this.app.use('/api/triagem', triagemRouter);
     this.app.use('/api', historicoRouter);
+    this.app.use('/api/dashboard', dashboardRouter);
   }
 
   setupErrorHandling() {

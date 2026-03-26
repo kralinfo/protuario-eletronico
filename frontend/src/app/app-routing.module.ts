@@ -30,6 +30,16 @@ const routes: Routes = [
     }
   },
   {
+    path: 'dashboard',
+    loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
+    canActivate: [AuthGuard],
+    data: {
+      breadcrumb: 'Dashboard Operacional',
+      icon: 'dashboard',
+      title: 'Dashboard Operacional'
+    }
+  },
+  {
     path: 'medico',
     loadChildren: () => import('./medico/medico.module').then(m => m.MedicoModule),
     canActivate: [AuthGuard, ModuloGuard],

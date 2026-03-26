@@ -1,0 +1,424 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <div class="container mx-auto px-4 py-8">
+
+    <!-- Cabeçalho -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+          <mat-icon class="mr-3 text-blue-600">dashboard</mat-icon>
+          Dashboard Operacional
+        </h1>
+        <p class="text-sm text-gray-500 mt-1 ml-9">
+          Fluxo hospitalar em tempo real — hoje,
+          <span class="font-medium">{{ horaAtualizacao | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+        </p>
+      </div>
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="carregar()"
+        [disabled]="carregando"
+        class="self-start sm:self-auto"
+      >
+        <mat-icon>refresh</mat-icon>
+        Atualizar
+      </button>
+    </div>
+
+    <!-- Estado de erro -->
+    <div *ngIf="erro && !carregando" class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
+      <mat-icon>error_outline</mat-icon>
+      <span>Não foi possível carregar os dados. Verifique a conexão com o servidor.</span>
+    </div>
+
+    <!-- ===== Cards de Fluxo (linha do paciente) ===== -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+
+      <!-- Total Hoje -->
+      <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow col-span-2 md:col-span-1">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Hoje</p>
+            <p class="text-4xl font-bold text-gray-800 mt-1">{{ dados.total_hoje }}</p>
+          </div>
+          <div class="bg-gray-100 p-3 rounded-full">
+            <mat-icon class="text-gray-500">people</mat-icon>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">Atendimentos abertos</p>
+      </div>
+
+      <!-- Aguardando Triagem -->
+      <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Aguardando Triagem</p>
+            <p class="text-4xl font-bold text-red-500 mt-1">{{ dados.aguardando_triagem }}</p>
+          </div>
+          <div class="bg-red-100 p-3 rounded-full">
+            <mat-icon class="text-red-500">hourglass_empty</mat-icon>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">
+          Espera média: <span class="font-semibold text-red-500">{{ dados.tempo_medio_espera }} min</span>
+        </p>
+      </div>
+
+      <!-- Em Triagem -->
+      <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Em Triagem</p>
+            <p class="text-4xl font-bold text-orange-500 mt-1">{{ dados.em_triagem }}</p>
+          </div>
+          <div class="bg-orange-100 p-3 rounded-full">
+            <mat-icon class="text-orange-500">assignment_ind</mat-icon>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">Em avaliação agora</p>
+      </div>
+
+      <!-- Pós-Triagem -->
+      <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Pós-Triagem</p>
+            <p class="text-4xl font-bold text-yellow-500 mt-1">{{ dados.pos_triagem }}</p>
+          </div>
+          <div class="bg-yellow-100 p-3 rounded-full">
+            <mat-icon class="text-yellow-500">transfer_within_a_station</mat-icon>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">Aguardando consulta</p>
+      </div>
+
+      <!-- Em Atendimento -->
+      <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Em Atendimento</p>
+            <p class="text-4xl font-bold text-blue-500 mt-1">{{ dados.em_atendimento }}</p>
+          </div>
+          <div class="bg-blue-100 p-3 rounded-full">
+            <mat-icon class="text-blue-500">medical_services</mat-icon>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">Médico / ambulatorial</p>
+      </div>
+
+      <!-- Concluídos -->
+      <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Concluídos</p>
+            <p class="text-4xl font-bold text-green-500 mt-1">{{ dados.concluidos }}</p>
+          </div>
+          <div class="bg-green-100 p-3 rounded-full">
+            <mat-icon class="text-green-500">check_circle</mat-icon>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">
+          Abandonos: <span class="font-semibold text-gray-500">{{ dados.abandonos }}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- ===== Segunda linha: Pipeline visual + Classificação de Risco ===== -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+      <!-- Pipeline do fluxo do paciente -->
+      <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-5 flex items-center gap-2">
+          <mat-icon class="text-blue-500 !text-base">account_tree</mat-icon>
+          Fluxo do Paciente
+        </h2>
+
+        <div class="flex items-center justify-around flex-wrap gap-3">
+          <!-- Recepção -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shadow-inner">
+              <mat-icon class="text-gray-500">person_add</mat-icon>
+            </div>
+            <span class="text-xs text-gray-500">Recepção</span>
+            <span class="text-lg font-bold text-gray-700">{{ dados.total_hoje }}</span>
+          </div>
+
+          <mat-icon class="text-gray-300">arrow_forward</mat-icon>
+
+          <!-- Aguardando Triagem -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center shadow-inner">
+              <mat-icon class="text-red-500">hourglass_empty</mat-icon>
+            </div>
+            <span class="text-xs text-gray-500">Aguard. Triagem</span>
+            <span class="text-lg font-bold text-red-500">{{ dados.aguardando_triagem }}</span>
+          </div>
+
+          <mat-icon class="text-gray-300">arrow_forward</mat-icon>
+
+          <!-- Em Triagem -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center shadow-inner">
+              <mat-icon class="text-orange-500">assignment_ind</mat-icon>
+            </div>
+            <span class="text-xs text-gray-500">Em Triagem</span>
+            <span class="text-lg font-bold text-orange-500">{{ dados.em_triagem }}</span>
+          </div>
+
+          <mat-icon class="text-gray-300">arrow_forward</mat-icon>
+
+          <!-- Pós-Triagem -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center shadow-inner">
+              <mat-icon class="text-yellow-500">transfer_within_a_station</mat-icon>
+            </div>
+            <span class="text-xs text-gray-500">Pós-Triagem</span>
+            <span class="text-lg font-bold text-yellow-500">{{ dados.pos_triagem }}</span>
+          </div>
+
+          <mat-icon class="text-gray-300">arrow_forward</mat-icon>
+
+          <!-- Em Atendimento -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shadow-inner">
+              <mat-icon class="text-blue-500">medical_services</mat-icon>
+            </div>
+            <span class="text-xs text-gray-500">Atendimento</span>
+            <span class="text-lg font-bold text-blue-500">{{ dados.em_atendimento }}</span>
+          </div>
+
+          <mat-icon class="text-gray-300">arrow_forward</mat-icon>
+
+          <!-- Concluído -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center shadow-inner">
+              <mat-icon class="text-green-500">check_circle</mat-icon>
+            </div>
+            <span class="text-xs text-gray-500">Concluído</span>
+            <span class="text-lg font-bold text-green-500">{{ dados.concluidos }}</span>
+          </div>
+        </div>
+
+        <!-- Barra de progresso indicativa -->
+        <div class="mt-6 space-y-2">
+          <div class="flex justify-between text-xs text-gray-400 mb-1">
+            <span>Taxa de conclusão</span>
+            <span *ngIf="dados.total_hoje > 0">
+              {{ dados.concluidos }} de {{ dados.total_hoje }}
+              ({{ dados.total_hoje > 0 ? ((dados.concluidos / dados.total_hoje) * 100 | number:'1.0-0') : 0 }}%)
+            </span>
+            <span *ngIf="dados.total_hoje === 0">—</span>
+          </div>
+          <div class="w-full bg-gray-100 rounded-full h-2">
+            <div
+              class="bg-green-500 h-2 rounded-full transition-all duration-500"
+              [style.width.%]="dados.total_hoje > 0 ? (dados.concluidos / dados.total_hoje) * 100 : 0"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Classificação de Risco -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-5 flex items-center gap-2">
+          <mat-icon class="text-purple-500 !text-base">assessment</mat-icon>
+          Classificação de Risco
+        </h2>
+
+        <div *ngIf="totalClassificacao === 0" class="text-center text-gray-400 py-6">
+          <mat-icon class="text-4xl text-gray-200">pie_chart</mat-icon>
+          <p class="mt-2 text-sm">Sem dados hoje</p>
+        </div>
+
+        <div *ngIf="totalClassificacao > 0" class="space-y-3">
+
+          <!-- Vermelho -->
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></div>
+            <span class="text-sm text-gray-600 w-16 flex-shrink-0">Vermelho</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-2">
+              <div class="bg-red-500 h-2 rounded-full transition-all duration-500"
+                   [style.width.%]="pctClassificacao(dados.por_classificacao.vermelho)"></div>
+            </div>
+            <span class="text-sm font-bold text-red-600 w-8 text-right">{{ dados.por_classificacao.vermelho }}</span>
+          </div>
+
+          <!-- Laranja -->
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0"></div>
+            <span class="text-sm text-gray-600 w-16 flex-shrink-0">Laranja</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-2">
+              <div class="bg-orange-500 h-2 rounded-full transition-all duration-500"
+                   [style.width.%]="pctClassificacao(dados.por_classificacao.laranja)"></div>
+            </div>
+            <span class="text-sm font-bold text-orange-600 w-8 text-right">{{ dados.por_classificacao.laranja }}</span>
+          </div>
+
+          <!-- Amarelo -->
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0"></div>
+            <span class="text-sm text-gray-600 w-16 flex-shrink-0">Amarelo</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-2">
+              <div class="bg-yellow-500 h-2 rounded-full transition-all duration-500"
+                   [style.width.%]="pctClassificacao(dados.por_classificacao.amarelo)"></div>
+            </div>
+            <span class="text-sm font-bold text-yellow-600 w-8 text-right">{{ dados.por_classificacao.amarelo }}</span>
+          </div>
+
+          <!-- Verde -->
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></div>
+            <span class="text-sm text-gray-600 w-16 flex-shrink-0">Verde</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full transition-all duration-500"
+                   [style.width.%]="pctClassificacao(dados.por_classificacao.verde)"></div>
+            </div>
+            <span class="text-sm font-bold text-green-600 w-8 text-right">{{ dados.por_classificacao.verde }}</span>
+          </div>
+
+          <!-- Azul -->
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
+            <span class="text-sm text-gray-600 w-16 flex-shrink-0">Azul</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-2">
+              <div class="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                   [style.width.%]="pctClassificacao(dados.por_classificacao.azul)"></div>
+            </div>
+            <span class="text-sm font-bold text-blue-600 w-8 text-right">{{ dados.por_classificacao.azul }}</span>
+          </div>
+
+          <p class="text-xs text-gray-400 text-right pt-1">Total: {{ totalClassificacao }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Alertas Críticos ===== -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2">
+          <mat-icon class="text-red-500 !text-base">warning</mat-icon>
+          Alertas Críticos
+          <span
+            *ngIf="dados.alertas_criticos.length > 0"
+            class="ml-1 bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full"
+          >{{ dados.alertas_criticos.length }}</span>
+        </h2>
+        <a routerLink="/triagem" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+          <mat-icon class="!text-sm">arrow_forward</mat-icon>
+          Ver fila de triagem
+        </a>
+      </div>
+
+      <!-- Sem alertas -->
+      <div *ngIf="dados.alertas_criticos.length === 0" class="px-6 py-8 text-center text-gray-400">
+        <mat-icon class="text-4xl text-gray-200">check_circle</mat-icon>
+        <p class="mt-2 text-sm">Nenhum alerta crítico no momento</p>
+      </div>
+
+      <!-- Tabela de alertas -->
+      <div *ngIf="dados.alertas_criticos.length > 0" class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+            <tr>
+              <th class="px-6 py-3 text-left">Paciente</th>
+              <th class="px-6 py-3 text-left">Status</th>
+              <th class="px-6 py-3 text-left">Classificação</th>
+              <th class="px-6 py-3 text-right">Tempo Espera</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr
+              *ngFor="let alerta of dados.alertas_criticos; trackBy: trackByAlerta"
+              class="hover:bg-gray-50 transition-colors"
+            >
+              <td class="px-6 py-3 font-medium text-gray-800">{{ alerta.paciente_nome }}</td>
+              <td class="px-6 py-3 text-gray-600 capitalize">{{ alerta.status }}</td>
+              <td class="px-6 py-3">
+                <span
+                  class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold capitalize"
+                  [ngClass]="getBgClassificacao(alerta.classificacao_risco)"
+                >
+                  <span
+                    class="w-2 h-2 rounded-full flex-shrink-0"
+                    [style.background-color]="getCorClassificacao(alerta.classificacao_risco)"
+                  ></span>
+                  {{ alerta.classificacao_risco }}
+                </span>
+              </td>
+              <td class="px-6 py-3 text-right">
+                <span
+                  class="font-semibold"
+                  [class.text-red-600]="alerta.minutos_espera > 10"
+                  [class.text-orange-500]="alerta.minutos_espera > 0 && alerta.minutos_espera <= 10"
+                >
+                  {{ alerta.minutos_espera }} min
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== Links Rápidos ===== -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <a
+        routerLink="/atendimentos"
+        class="flex items-center gap-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all group"
+      >
+        <div class="bg-blue-100 p-2 rounded-lg group-hover:bg-blue-200 transition-colors">
+          <mat-icon class="text-blue-600">medical_services</mat-icon>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-800">Atendimentos</p>
+          <p class="text-xs text-gray-400">Novo atendimento</p>
+        </div>
+      </a>
+
+      <a
+        routerLink="/triagem"
+        class="flex items-center gap-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md hover:border-orange-300 transition-all group"
+      >
+        <div class="bg-orange-100 p-2 rounded-lg group-hover:bg-orange-200 transition-colors">
+          <mat-icon class="text-orange-600">local_hospital</mat-icon>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-800">Triagem</p>
+          <p class="text-xs text-gray-400">Fila de triagem</p>
+        </div>
+      </a>
+
+      <a
+        routerLink="/pacientes"
+        class="flex items-center gap-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md hover:border-green-300 transition-all group"
+      >
+        <div class="bg-green-100 p-2 rounded-lg group-hover:bg-green-200 transition-colors">
+          <mat-icon class="text-green-600">person_search</mat-icon>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-800">Pacientes</p>
+          <p class="text-xs text-gray-400">Buscar cadastro</p>
+        </div>
+      </a>
+
+      <a
+        routerLink="/relatorios/atendimentos"
+        class="flex items-center gap-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all group"
+      >
+        <div class="bg-purple-100 p-2 rounded-lg group-hover:bg-purple-200 transition-colors">
+          <mat-icon class="text-purple-600">bar_chart</mat-icon>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-800">Relatórios</p>
+          <p class="text-xs text-gray-400">Dados do dia</p>
+        </div>
+      </a>
+    </div>
+
+    <!-- Atualização automática -->
+    <p class="text-center text-xs text-gray-400 mt-6">
+      Atualização automática a cada 30 segundos
+    </p>
+
+  </div>
+</div>

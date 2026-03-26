@@ -44,6 +44,16 @@
       <span class="menu-label text-xs">Triagem</span>
     </button>
 
+    <!-- Dashboard Operacional - disponível para todos os módulos autenticados -->
+    <button
+      mat-menu-item
+      routerLink="/dashboard"
+      routerLinkActive="font-bold"
+    >
+      <mat-icon>dashboard</mat-icon>
+      <span class="menu-label text-xs">Dashboard</span>
+    </button>
+
     <!-- Relatórios - Disponível para recepcao e triagem -->
     <button
       *ngIf="canAccessModule('relatorios')"
