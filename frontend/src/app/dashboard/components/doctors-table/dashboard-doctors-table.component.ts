@@ -20,7 +20,7 @@ export class DashboardDoctorsTableComponent implements OnChanges, AfterViewInit 
   @Input() carregando = false;
   @ViewChild(MatSort) sort!: MatSort;
 
-  readonly colunas = ['posicao', 'medico_nome', 'total_atendimentos', 'tempo_medio_minutos'];
+  readonly colunas = ['posicao', 'nome', 'atendimentos', 'tempoMedio'];
   dataSource = new MatTableDataSource<MedicoProdutividade>([]);
 
   ngOnChanges(changes: SimpleChanges): void {

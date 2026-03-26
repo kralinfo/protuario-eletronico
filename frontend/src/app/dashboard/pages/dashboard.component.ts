@@ -8,14 +8,15 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { Subject, interval, takeUntil, catchError, of } from 'rxjs';
+import { Subject, interval, takeUntil } from 'rxjs';
 
 import {
   DashboardService,
   DadosDashboard,
   DadosOperacional,
   AtendimentoHora,
-  MedicoProdutividade
+  MedicoProdutividade,
+  FiltroDashboard
 } from '../../services/dashboard.service';
 
 import { DashboardKpiCardComponent } from '../components/kpi-card/dashboard-kpi-card.component';
@@ -67,7 +68,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Filtros (preparados para expansão futura)
   filtroData = '';  // '' = hoje
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
+  private filtro: FiltroDashboard = {};
 
   constructor(
     private dashboardService: DashboardService,
@@ -75,22 +77,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Escutar o stream do service (Preparado para WebSocket no futuro)
-    this.dashboardService.getDashboardStream({ data: this.filtroData || undefined })
+    // Escutar o stream do service — preparado para WebSocket no futuro.
+    // Para migrar para WebSocket: remover o interval abaixo e chamar
+    // dashboardService.refreshDashboard() dentro do listener do socket.
+    this.dashboardService.getDashboardStream(this.filtro)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (dados) => {
-          this.operacional = dados.operacional;
-          this.porHora     = dados.por_hora;
-          this.medicos     = dados.medicos;
-          this.horaAtualizacao = new Date();
-          this.carregando = false;
-          this.erro = false;
-        },
-        error: () => this.tratarErro()
+        next:  (dados) => this.aplicarDados(dados),
+        error: ()      => this.tratarErro()
       });
 
-    // Iniciar polling temporário (será removido ao implementar WebSocket)
+    // Polling temporário — remover ao implementar WebSocket
     interval(INTERVALO_POLLING)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.atualizar());
@@ -101,18 +98,34 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /** Solicita atualização imediata via Service */
+  /** Polling automático — só atualiza quando estiver no dia atual. */
   atualizar(): void {
-    // Se estiver filtrando data retroativa, talvez não queira polling
     if (!this.filtroData) {
       this.dashboardService.refreshDashboard();
     }
   }
 
-  /** Recarrega manualmente (usado no botão e no filtro) */
+  /** Chamado pelo botão e pela mudança do filtro de data. */
   refreshManual(): void {
+    this.filtro = { data: this.filtroData || undefined };
     this.carregando = true;
+    // Recriar o stream com o novo filtro + acionar emissão imediata
+    this.dashboardService.getDashboardStream(this.filtro)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next:  (dados) => this.aplicarDados(dados),
+        error: ()      => this.tratarErro()
+      });
     this.dashboardService.refreshDashboard();
+  }
+
+  private aplicarDados(dados: DadosDashboard): void {
+    this.operacional     = dados.operacional;
+    this.porHora         = dados.por_hora;
+    this.medicos         = dados.medicos;
+    this.horaAtualizacao = new Date();
+    this.carregando      = false;
+    this.erro            = false;
   }
 
   private tratarErro(): void {

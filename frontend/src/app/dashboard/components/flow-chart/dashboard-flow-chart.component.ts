@@ -66,7 +66,8 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   private criarLinhaChart(): void {
     if (!this.lineRef?.nativeElement || !this.dadosHora.length) return;
 
-    const labels = this.dadosHora.map(d => `${String(d.hora).padStart(2, '0')}h`);
+    // hora já vem como "08:00" do backend — usa diretamente
+    const labels = this.dadosHora.map(d => d.hora);
     const dados  = this.dadosHora.map(d => d.total);
 
     this.chartLine = new Chart(this.lineRef.nativeElement, {
