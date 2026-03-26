@@ -70,7 +70,8 @@ export class RelatorioAtendimentosComponent implements OnInit {
       next: (atendimentos: any[]) => {
         console.log('Total de atendimentos retornados pela API:', atendimentos.length);
         this.relatorio = atendimentos.map((a: any) => ({
-          data: a.created_at ? new Date(a.created_at) : new Date(),
+          // Usa data_hora_atendimento (data real do atendimento) com fallback para created_at
+          data: a.data_hora_atendimento ? new Date(a.data_hora_atendimento) : (a.created_at ? new Date(a.created_at) : new Date()),
           paciente_nome: a.paciente_nome || '',
           profissional: a.usuario_id || '',
           procedimento: a.procedencia || '',
@@ -207,91 +208,96 @@ export class RelatorioAtendimentosComponent implements OnInit {
       next: (atendimentos: any[]) => {
         const filtros = this.filtrosForm.value;
 
-        // Primeiro normalize os atendimentos para um formato consistente (createdAt: Date)
+        // Normaliza os atendimentos usando data_hora_atendimento como campo principal
         const atendimentosNorm = (atendimentos || []).map(a => ({
           ...a,
-          createdAt: a.created_at ? new Date(a.created_at) : null,
+          // Usa data_hora_atendimento (data real do atendimento) com fallback para created_at
+          createdAt: a.data_hora_atendimento
+            ? new Date(a.data_hora_atendimento)
+            : (a.created_at ? new Date(a.created_at) : null),
           paciente_nome: a.paciente_nome || '',
           observacoes: a.observacoes || '',
-          status: a.status || ''
+          status: (a.status || '').toLowerCase().trim()
         }));
 
         let filtrados = atendimentosNorm;
 
-        // Helper: parse date input (string from <input type=date> is YYYY-MM-DD) as local Date (avoid UTC shift)
+        // Helper: parse date input (YYYY-MM-DD) como data local, evitando UTC shift
         const parseDateInputToLocal = (input: any): Date | null => {
           if (!input && input !== 0) return null;
           if (input instanceof Date) return new Date(input.getFullYear(), input.getMonth(), input.getDate());
           const s = String(input);
-          // common HTML date input format: YYYY-MM-DD
           const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
           if (m) {
-            const y = Number(m[1]);
-            const mm = Number(m[2]) - 1;
-            const d = Number(m[3]);
-            return new Date(y, mm, d);
+            return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
           }
-          // fallback to Date parsing, then normalize to local date
           const dobj = new Date(s);
           if (isNaN(dobj.getTime())) return null;
           return new Date(dobj.getFullYear(), dobj.getMonth(), dobj.getDate());
         };
 
-        // Converter filtros de data para objetos Date robustamente e aplicar start/end of day
+        // Filtro por Data Inicial
         const dataInicialLocal = parseDateInputToLocal(filtros.dataInicial);
         if (dataInicialLocal) {
           dataInicialLocal.setHours(0, 0, 0, 0);
           filtrados = filtrados.filter((a: any) => a.createdAt && a.createdAt.getTime() >= dataInicialLocal.getTime());
         }
+
+        // Filtro por Data Final
         const dataFinalLocal = parseDateInputToLocal(filtros.dataFinal);
         if (dataFinalLocal) {
           dataFinalLocal.setHours(23, 59, 59, 999);
           filtrados = filtrados.filter((a: any) => a.createdAt && a.createdAt.getTime() <= dataFinalLocal.getTime());
         }
+
+        // Filtro por Status — cobre todas as variações armazenadas no banco
         if (filtros.status) {
           filtrados = filtrados.filter((a: any) => {
-            const status = a.status || '';
-            const statusSelecionado = filtros.status;
-
-            // Mapeia o status selecionado para todas suas variações
-            switch(statusSelecionado) {
+            const s = a.status; // já está em lowercase
+            switch (filtros.status) {
               case 'encaminhado_para_triagem':
-                return status === 'encaminhado para triagem' || status === 'encaminhado_para_triagem' || status === 'triagem pendente' || status === 'triagem_pendente';
+                return ['encaminhado para triagem', 'encaminhado_para_triagem', 'triagem pendente', 'triagem_pendente'].includes(s);
               case 'em_triagem':
-                return status === 'em triagem' || status === 'em_triagem';
+                return ['em triagem', 'em_triagem'].includes(s);
               case 'encaminhado_para_sala_medica':
-                return status === 'encaminhado para sala médica' || status === 'encaminhado_para_sala_medica';
+                return ['encaminhado para sala médica', 'encaminhado para sala medica', 'encaminhado_para_sala_medica', 'em_sala_medica', '3 - encaminhado para sala médica'].includes(s);
               case 'em_atendimento_medico':
-                return status === 'em atendimento médico' || status === 'em_atendimento_medico';
+                return ['em atendimento médico', 'em atendimento medico', 'em_atendimento_medico', '4 - em atendimento médico'].includes(s);
               case 'encaminhado_para_ambulatorio':
-                return status === 'encaminhado para ambulatório' || status === 'encaminhado_para_ambulatorio';
+                return ['encaminhado para ambulatório', 'encaminhado para ambulatorio', 'encaminhado_para_ambulatorio'].includes(s);
+              case 'em_atendimento_ambulatorial':
+                return ['em atendimento ambulatorial', 'em_atendimento_ambulatorial'].includes(s);
               case 'em_observacao':
-                return status === 'em observação' || status === 'em_observacao';
+                return ['em observação', 'em observacao', 'em_observacao'].includes(s);
               case 'atendimento_concluido':
-                return status === 'atendimento concluido' || status === 'atendimento_concluido';
+                return ['atendimento concluido', 'atendimento_concluido', '8 - atendimento concluído', 'alta médica', 'alta_medica', 'alta ambulatorial', 'alta_ambulatorial'].includes(s);
               case 'encaminhado_para_exames':
-                return status === 'encaminhado para exames' || status === 'encaminhado_para_exames';
+                return ['encaminhado para exames', 'encaminhado_para_exames', '7 - encaminhado para exames'].includes(s);
               case 'interrompido':
-                return status === 'interrompido';
+                return s === 'interrompido';
               case 'abandonado':
-                return status === 'abandonado';
+                return s === 'abandonado';
               default:
-                return status === statusSelecionado;
+                return s === filtros.status.toLowerCase();
             }
           });
         }
+
+        // Filtro por Nome do Paciente
         if (filtros.nomePaciente) {
           const nomePacienteLower = String(filtros.nomePaciente).toLowerCase();
           filtrados = filtrados.filter((a: any) => (a.paciente_nome || '').toLowerCase().includes(nomePacienteLower));
         }
+
+        // Filtro por Observações
         if (filtros.observacoes) {
           const observacoesLower = String(filtros.observacoes).toLowerCase();
           filtrados = filtrados.filter((a: any) => (a.observacoes || '').toLowerCase().includes(observacoesLower));
         }
 
-        // Mapear para o formato de exibição com a data normalizada
+        // Mapear para o formato de exibição
         this.relatorio = filtrados.map((a: any) => ({
-          data: a.createdAt || (a.created_at ? new Date(a.created_at) : new Date()),
+          data: a.createdAt || new Date(),
           paciente_nome: a.paciente_nome || '',
           profissional: a.usuario_id || '',
           procedimento: a.procedencia || a.procedimento || '',
