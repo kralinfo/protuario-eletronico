@@ -12,25 +12,50 @@
           Atualizado em
           <span class="font-medium text-gray-700">{{ horaAtualizacao | date:'dd/MM/yyyy HH:mm:ss' }}</span>
           &nbsp;·&nbsp;
-          <span class="text-blue-600">Hoje</span>
+          <span class="text-blue-600">{{ periodoSelecionado === 'personalizado' && dataFim ? (dataInicio | date:'dd/MM') + ' – ' + (dataFim | date:'dd/MM') : periodos[periodoSelecionado === 'dia' ? 0 : periodoSelecionado === 'semana' ? 1 : periodoSelecionado === 'mes' ? 2 : periodoSelecionado === 'ano' ? 3 : 4].label }}</span>
         </p>
       </div>
 
-      <div class="flex items-center gap-3">
-        <!-- Filtro de data (preparado para expansão) -->
-        <mat-form-field appearance="outline" class="!text-sm !h-10" subscriptSizing="dynamic">
-          <mat-label>Data</mat-label>
-          <input matInput type="date" [(ngModel)]="filtroData"
-                 (change)="refreshManual()"
-                 [max]="'' | date:'yyyy-MM-dd'"
-                 placeholder="Hoje">
-          <mat-icon matSuffix>calendar_today</mat-icon>
-        </mat-form-field>
+      <div class="flex flex-col items-end gap-2">
 
-        <button mat-stroked-button color="primary" (click)="refreshManual()" [disabled]="carregando">
-          <mat-icon [class.animate-spin]="carregando">refresh</mat-icon>
-          Atualizar
-        </button>
+        <!-- Seletor de período -->
+        <div class="flex items-center gap-3">
+          <div class="flex rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+            <button
+              *ngFor="let p of periodos"
+              (click)="selecionarPeriodo(p.valor)"
+              [class.bg-blue-600]="periodoSelecionado === p.valor"
+              [class.text-white]="periodoSelecionado === p.valor"
+              [class.text-gray-700]="periodoSelecionado !== p.valor"
+              class="px-4 py-2 text-sm font-medium border-r border-gray-300 last:border-r-0 transition-colors hover:bg-blue-50">
+              {{ p.label }}
+            </button>
+          </div>
+
+          <button mat-icon-button color="primary" (click)="refreshManual()" [disabled]="carregando"
+                  matTooltip="Atualizar agora">
+            <mat-icon [class.animate-spin]="carregando">refresh</mat-icon>
+          </button>
+        </div>
+
+        <!-- Intervalo personalizado (visível apenas quando selecionado) -->
+        <div *ngIf="periodoSelecionado === 'personalizado'"
+             class="flex items-center gap-2 bg-white border border-blue-200 rounded-lg px-3 py-2 shadow-sm">
+          <label class="text-xs text-gray-500 font-medium">De</label>
+          <input type="date" [(ngModel)]="dataInicio" [max]="dataMaxima"
+                 class="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <label class="text-xs text-gray-500 font-medium">Até</label>
+          <input type="date" [(ngModel)]="dataFim" [min]="dataInicio" [max]="dataMaxima"
+                 class="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <button mat-stroked-button color="primary"
+                  (click)="aplicarPersonalizado()"
+                  [disabled]="!dataInicio || !dataFim || carregando"
+                  class="!text-sm !py-1 !px-3">
+            <mat-icon class="!text-sm">search</mat-icon>
+            Aplicar
+          </button>
+        </div>
+
       </div>
     </div>
 
@@ -90,6 +115,7 @@
         <app-dashboard-flow-chart
           [dadosHora]="porHora"
           [operacional]="operacional"
+          [periodo]="periodoSelecionado"
           [carregando]="carregando">
         </app-dashboard-flow-chart>
       </div>

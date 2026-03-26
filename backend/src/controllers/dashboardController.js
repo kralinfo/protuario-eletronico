@@ -4,18 +4,29 @@ import dashboardService from '../services/dashboardService.js';
  * DashboardController
  *
  * Camada HTTP — valida parâmetros, chama DashboardService e retorna JSON.
- * Todos os endpoints aceitam ?data=YYYY-MM-DD (opcional; padrão: hoje).
+ * Params aceitos: ?periodo=dia|semana|mes|ano  (padrão: 'dia')
+ *                 ?data=YYYY-MM-DD             (sobrescreve periodo, usa data exata)
+ *                 ?dataInicio=YYYY-MM-DD       (intervalo personalizado, junto com dataFim)
+ *                 ?dataFim=YYYY-MM-DD
  */
+
+const PERIODOS_VALIDOS = ['dia', 'semana', 'mes', 'ano'];
+const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
+
+function extrairParams(req) {
+  const data      = req.query.data      && RE_DATA.test(req.query.data)      ? req.query.data      : null;
+  const dataInicio = req.query.dataInicio && RE_DATA.test(req.query.dataInicio) ? req.query.dataInicio : null;
+  const dataFim   = req.query.dataFim   && RE_DATA.test(req.query.dataFim)   ? req.query.dataFim   : null;
+  const periodo   = PERIODOS_VALIDOS.includes(req.query.periodo) ? req.query.periodo : 'dia';
+  return { periodo, data, dataInicio, dataFim };
+}
+
 class DashboardController {
 
-  /**
-   * GET /api/dashboard/overview
-   * KPIs: totalPacientesHoje, pacientesEmAtendimento,
-   *       tempoMedioEspera, atendimentosFinalizados
-   */
   static async overview(req, res) {
     try {
-      const resultado = await dashboardService.overview(req.query.data || null);
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.overview(periodo, data, dataInicio, dataFim);
       res.json(resultado);
     } catch (error) {
       console.error('[DashboardController] overview:', error);
@@ -23,13 +34,10 @@ class DashboardController {
     }
   }
 
-  /**
-   * GET /api/dashboard/atendimentos-por-hora
-   * [{ hora: "08:00", total: 10 }, ...]
-   */
   static async atendimentosPorHora(req, res) {
     try {
-      const resultado = await dashboardService.atendimentosPorHora(req.query.data || null);
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.atendimentosPorHora(periodo, data, dataInicio, dataFim);
       res.json(resultado);
     } catch (error) {
       console.error('[DashboardController] atendimentosPorHora:', error);
@@ -37,13 +45,10 @@ class DashboardController {
     }
   }
 
-  /**
-   * GET /api/dashboard/classificacao-risco
-   * [{ nivel: "VERMELHO", total: 5 }, ...]
-   */
   static async classificacaoRisco(req, res) {
     try {
-      const resultado = await dashboardService.classificacaoRisco(req.query.data || null);
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.classificacaoRisco(periodo, data, dataInicio, dataFim);
       res.json(resultado);
     } catch (error) {
       console.error('[DashboardController] classificacaoRisco:', error);
@@ -51,13 +56,10 @@ class DashboardController {
     }
   }
 
-  /**
-   * GET /api/dashboard/pacientes-por-etapa
-   * { recepcao, triagem, aguardandoMedico, emAtendimento, observacao }
-   */
   static async pacientesPorEtapa(req, res) {
     try {
-      const resultado = await dashboardService.pacientesPorEtapa(req.query.data || null);
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.pacientesPorEtapa(periodo, data, dataInicio, dataFim);
       res.json(resultado);
     } catch (error) {
       console.error('[DashboardController] pacientesPorEtapa:', error);
@@ -65,24 +67,17 @@ class DashboardController {
     }
   }
 
-  /**
-   * GET /api/dashboard/produtividade-medicos
-   * [{ nome, atendimentos, tempoMedio }]
-   */
   static async produtividadeMedicos(req, res) {
     try {
-      const resultado = await dashboardService.produtividadeMedicos(req.query.data || null);
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.produtividadeMedicos(periodo, data, dataInicio, dataFim);
       res.json(resultado);
     } catch (error) {
       console.error('[DashboardController] produtividadeMedicos:', error);
-      res.json([]); // retorna vazio se tabela não existir
+      res.json([]);
     }
   }
 
-  /**
-   * GET /api/dashboard/pacientes-criticos
-   * [{ nome, classificacao, tempoEspera, status }]
-   */
   static async pacientesCriticos(req, res) {
     try {
       const resultado = await dashboardService.pacientesCriticos();
@@ -93,18 +88,17 @@ class DashboardController {
     }
   }
 
-  // ── Legado: mantido para compatibilidade com o frontend já integrado ──────
-
+  // ── Endpoint principal consumido pelo frontend ─────────────────────────────
   static async operacional(req, res) {
     try {
-      const data = req.query.data || null;
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
 
       const [overview, porEtapa, criticos, classificacao, abandonosRes] = await Promise.all([
-        dashboardService.overview(data),
-        dashboardService.pacientesPorEtapa(data),
+        dashboardService.overview(periodo, data, dataInicio, dataFim),
+        dashboardService.pacientesPorEtapa(periodo, data, dataInicio, dataFim),
         dashboardService.pacientesCriticos(),
-        dashboardService.classificacaoRisco(data),
-        dashboardService.contarAbandonos(data)
+        dashboardService.classificacaoRisco(periodo, data, dataInicio, dataFim),
+        dashboardService.contarAbandonos(periodo, data, dataInicio, dataFim)
       ]);
 
       const por_classificacao = Object.fromEntries(
@@ -135,11 +129,11 @@ class DashboardController {
     }
   }
 
-  /** Legado: /api/dashboard/por-hora (mantém contrato antigo do frontend) */
+  /** Legado: /api/dashboard/por-hora */
   static async porHora(req, res) {
     try {
-      const resultado = await dashboardService.atendimentosPorHora(req.query.data || null);
-      // Legado retornava { hora: number } — converter para manter compatibilidade
+      const { periodo, data } = extrairParams(req);
+      const resultado = await dashboardService.atendimentosPorHora(periodo, data);
       res.json(resultado.map(r => ({ hora: parseInt(r.hora), total: r.total })));
     } catch (error) {
       console.error('[DashboardController] porHora:', error);
@@ -150,7 +144,8 @@ class DashboardController {
   /** Legado: /api/dashboard/medicos */
   static async medicosLegado(req, res) {
     try {
-      const resultado = await dashboardService.produtividadeMedicos(req.query.data || null);
+      const { periodo, data } = extrairParams(req);
+      const resultado = await dashboardService.produtividadeMedicos(periodo, data);
       res.json(resultado.map(r => ({
         medico_nome:          r.nome,
         total_atendimentos:   r.atendimentos,

@@ -5,7 +5,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { Chart, registerables } from 'chart.js';
-import { AtendimentoHora, DadosOperacional } from '../../../services/dashboard.service';
+import { AtendimentoHora, DadosOperacional, PeriodoDashboard } from '../../../services/dashboard.service';
 
 Chart.register(...registerables);
 
@@ -19,11 +19,23 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   @Input() dadosHora: AtendimentoHora[] = [];
   @Input() operacional?: DadosOperacional;
   @Input() carregando = false;
+  @Input() periodo: PeriodoDashboard | 'personalizado' = 'dia';
 
   @ViewChild('lineCanvas') lineRef!: ElementRef<HTMLCanvasElement>;
 
   private chartLine?: Chart;
   private viewReady = false;
+
+  get tituloGrafico(): string {
+    const map: Record<PeriodoDashboard | 'personalizado', string> = {
+      dia:          'Atendimentos por Hora (hoje)',
+      semana:       'Atendimentos por Dia (esta semana)',
+      mes:          'Atendimentos por Dia (este mês)',
+      ano:          'Atendimentos por Mês (este ano)',
+      personalizado:'Atendimentos por Dia (período selecionado)',
+    };
+    return map[this.periodo];
+  }
 
   readonly ETAPAS: { label: string; campo: keyof DadosOperacional; cor: string }[] = [
     { label: 'Aguard. Triagem', campo: 'aguardando_triagem', cor: '#ef4444' },
@@ -50,7 +62,8 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['dadosHora'] || changes['operacional']) && this.viewReady) {
       this.destruir();
-      this.criarLinhaChart();
+      // setTimeout garante que o canvas já existe no DOM após *ngIf mudar
+      setTimeout(() => this.criarLinhaChart());
     }
   }
 

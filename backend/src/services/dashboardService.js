@@ -4,21 +4,51 @@ import db from '../config/database.js';
  * DashboardService
  *
  * Encapsula todas as queries de banco do módulo Dashboard.
- * Todos os métodos aceitam um parâmetro `data` (string 'YYYY-MM-DD').
- * Quando omitido, usa CURRENT_DATE (hoje).
+ * Todos os métodos aceitam um parâmetro `periodo` ('dia' | 'semana' | 'mes' | 'ano')
+ * e/ou `data` (string 'YYYY-MM-DD' para dia específico).
  */
 class DashboardService {
   // ─── helpers ─────────────────────────────────────────────────────────────
 
   /**
-   * Retorna a expressão SQL que compara a coluna de data com o filtro.
-   * Se `data` for fornecida valida o formato; caso contrário usa CURRENT_DATE.
+   * Retorna expressão SQL + params para filtrar por período.
+   * periodo: 'dia' (default) | 'semana' | 'mes' | 'ano'
+   * data: 'YYYY-MM-DD' (ignora período, usa data exata)
    */
-  _filtroDia(coluna, data) {
-    if (data && /^\d{4}-\d{2}-\d{2}$/.test(data)) {
+  _filtroPeriodo(coluna, periodo, data, dataInicio, dataFim) {
+    // Intervalo personalizado tem maior prioridade
+    const reData = /^\d{4}-\d{2}-\d{2}$/;
+    if (dataInicio && dataFim && reData.test(dataInicio) && reData.test(dataFim)) {
+      return { expr: `DATE(${coluna}) BETWEEN $1 AND $2`, params: [dataInicio, dataFim] };
+    }
+    // Data específica
+    if (data && reData.test(data)) {
       return { expr: `DATE(${coluna}) = $1`, params: [data] };
     }
-    return { expr: `DATE(${coluna}) = CURRENT_DATE`, params: [] };
+    switch (periodo) {
+      case 'semana':
+        return {
+          expr: `DATE(${coluna}) >= DATE_TRUNC('week', CURRENT_DATE) AND DATE(${coluna}) <= CURRENT_DATE`,
+          params: []
+        };
+      case 'mes':
+        return {
+          expr: `DATE(${coluna}) >= DATE_TRUNC('month', CURRENT_DATE) AND DATE(${coluna}) <= CURRENT_DATE`,
+          params: []
+        };
+      case 'ano':
+        return {
+          expr: `DATE(${coluna}) >= DATE_TRUNC('year', CURRENT_DATE) AND DATE(${coluna}) <= CURRENT_DATE`,
+          params: []
+        };
+      default: // 'dia'
+        return { expr: `DATE(${coluna}) = CURRENT_DATE`, params: [] };
+    }
+  }
+
+  // Mantido para compatibilidade interna
+  _filtroDia(coluna, data) {
+    return this._filtroPeriodo(coluna, 'dia', data);
   }
 
   // ─── overview ────────────────────────────────────────────────────────────
@@ -37,10 +67,10 @@ class DashboardService {
    * Usa vw_dashboard_tempo_atendimento para os cálculos de tempo histórico.
    * Se a view ainda não existir (primeira inicialização), retorna zeros.
    */
-  async overview(data) {
-    const { expr, params } = this._filtroDia('a.data_hora_atendimento', data);
-    // Para a query da view, o parâmetro posicional é o mesmo $1
-    const dateClause = params.length ? '$1' : 'CURRENT_DATE';
+  async overview(periodo, data, dataInicio, dataFim) {
+    const { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
+    // Para a query da view, usa a mesma expressão
+    const viewExpr = expr.replace(/\ba\./g, 't.');
 
     const [totaisRes, realtimeRes, temposRes] = await Promise.all([
       // 1. Totais do dia (filtrado por data de chegada)
@@ -81,7 +111,7 @@ class DashboardService {
            COALESCE(ROUND(AVG(t.minutos_espera_medico)),    0)::int AS tempo_espera_medico,
            COALESCE(ROUND(AVG(t.minutos_duracao_consulta)), 0)::int AS tempo_consulta
          FROM vw_dashboard_tempo_atendimento t
-         WHERE DATE(t.chegada) = ${dateClause}
+         WHERE ${viewExpr}
            AND t.minutos_espera_medico IS NOT NULL`,
         params
       ).catch(() => ({ rows: [{ tempo_espera_medico: 0, tempo_consulta: 0 }] }))
@@ -103,9 +133,30 @@ class DashboardService {
    * GET /dashboard/atendimentos-por-hora
    * Retorna array de 24 posições: [{ hora: "08:00", total: 10 }, ...]
    */
-  async atendimentosPorHora(data) {
-    const { expr, params } = this._filtroDia('data_hora_atendimento', data);
+  async atendimentosPorHora(periodo, data, dataInicio, dataFim) {
+    const { expr, params } = this._filtroPeriodo('data_hora_atendimento', periodo, data, dataInicio, dataFim);
 
+    // Para período > dia ou intervalo customizado multi-dia, agrupa por data; caso contrário, por hora
+    const isRange = dataInicio && dataFim && dataInicio !== dataFim;
+    if ((periodo && periodo !== 'dia' && !data) || isRange) {
+      const result = await db.query(
+        `SELECT DATE(data_hora_atendimento) AS d,
+                COUNT(*)::int AS total
+         FROM atendimentos
+         WHERE ${expr}
+         GROUP BY d
+         ORDER BY d`,
+        params
+      );
+      return result.rows.map(r => ({
+        hora:  r.d instanceof Date
+          ? r.d.toISOString().slice(0, 10)
+          : String(r.d).slice(0, 10),
+        total: r.total
+      }));
+    }
+
+    // Dia: agrupa por hora (0-23)
     const result = await db.query(
       `SELECT EXTRACT(HOUR FROM data_hora_atendimento)::int AS h,
               COUNT(*)::int AS total
@@ -134,10 +185,10 @@ class DashboardService {
    * se o campo ainda não foi preenchido, usa data_hora_atendimento como fallback.
    * Retorna: [{ nivel: "VERMELHO", total: 5 }, ...] — todos os 5 níveis.
    */
-  async classificacaoRisco(data) {
+  async classificacaoRisco(periodo, data, dataInicio, dataFim) {
     // Usa data_inicio_triagem quando disponível (registro real da triagem)
     const coluna = 'COALESCE(data_inicio_triagem, data_hora_atendimento)';
-    const { expr, params } = this._filtroDia(coluna, data);
+    const { expr, params } = this._filtroPeriodo(coluna, periodo, data, dataInicio, dataFim);
 
     const result = await db.query(
       `SELECT classificacao_risco AS nivel,
@@ -170,7 +221,7 @@ class DashboardService {
    *
    * Retorna: { recepcao, aguardandoTriagem, emTriagem, aguardandoMedico, emAtendimento, observacao }
    */
-  async pacientesPorEtapa(data) {
+  async pacientesPorEtapa(periodo, data, dataInicio, dataFim) {
     const query = `
       SELECT
         COUNT(*) FILTER (WHERE status = 'recepcao')::int AS recepcao,
@@ -202,7 +253,8 @@ class DashboardService {
       FROM atendimentos
     `;
 
-    if (!data) {
+    const isRange = dataInicio && dataFim;
+    if (!data && !isRange && (!periodo || periodo === 'dia')) {
       // Tempo real — todos os atendimentos ativos
       const result = await db.query(
         query + ` WHERE status NOT IN ('atendimento_concluido')`
@@ -210,8 +262,8 @@ class DashboardService {
       return result.rows[0];
     }
 
-    // Histórico — filtro por data de chegada
-    const { expr, params } = this._filtroDia('data_hora_atendimento', data);
+    // Histórico — filtro por período
+    const { expr, params } = this._filtroPeriodo('data_hora_atendimento', periodo, data, dataInicio, dataFim);
 
     const result = await db.query(
       `SELECT
@@ -262,8 +314,8 @@ class DashboardService {
    *
    * Retorna [] se consultas_medicas estiver vazia ou indisponível.
    */
-  async produtividadeMedicos(data) {
-    const { expr, params } = this._filtroDia('c.data_hora_inicio', data);
+  async produtividadeMedicos(periodo, data, dataInicio, dataFim) {
+    const { expr, params } = this._filtroPeriodo('c.data_hora_inicio', periodo, data, dataInicio, dataFim);
 
     try {
       const result = await db.query(
@@ -337,23 +389,14 @@ class DashboardService {
   /**
    * Conta atendimentos abandonados no dia.
    */
-  async contarAbandonos(data) {
-    if (data && /^\d{4}-\d{2}-\d{2}$/.test(data)) {
-      const result = await db.query(
-        `SELECT COUNT(*)::int AS total
-         FROM atendimentos
-         WHERE abandonado = true
-           AND DATE(COALESCE(data_abandono, data_hora_atendimento)) = $1`,
-        [data]
-      );
-      return result.rows[0].total;
-    }
-
+  async contarAbandonos(periodo, data, dataInicio, dataFim) {
+    const { expr, params } = this._filtroPeriodo('COALESCE(data_abandono, data_hora_atendimento)', periodo, data, dataInicio, dataFim);
     const result = await db.query(
       `SELECT COUNT(*)::int AS total
        FROM atendimentos
        WHERE abandonado = true
-         AND DATE(COALESCE(data_abandono, data_hora_atendimento)) = CURRENT_DATE`
+         AND ${expr}`,
+      params
     );
     return result.rows[0].total;
   }

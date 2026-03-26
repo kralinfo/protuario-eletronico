@@ -5,9 +5,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { Subject, interval, takeUntil } from 'rxjs';
 
 import {
@@ -16,7 +13,8 @@ import {
   DadosOperacional,
   AtendimentoHora,
   MedicoProdutividade,
-  FiltroDashboard
+  FiltroDashboard,
+  PeriodoDashboard
 } from '../../services/dashboard.service';
 
 import { DashboardKpiCardComponent } from '../components/kpi-card/dashboard-kpi-card.component';
@@ -46,9 +44,6 @@ const OPERACIONAL_VAZIO: DadosOperacional = {
     MatButtonModule,
     MatTooltipModule,
     MatSnackBarModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatInputModule,
     DashboardKpiCardComponent,
     DashboardRiskChartComponent,
     DashboardFlowChartComponent,
@@ -65,11 +60,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   carregando = true;
   erro = false;
 
-  // Filtros (preparados para expansão futura)
-  filtroData = '';  // '' = hoje
+  readonly periodos: { valor: PeriodoDashboard | 'personalizado'; label: string }[] = [
+    { valor: 'dia',          label: 'Hoje'         },
+    { valor: 'semana',       label: 'Semana'       },
+    { valor: 'mes',          label: 'Mês'          },
+    { valor: 'ano',          label: 'Ano'          },
+    { valor: 'personalizado', label: 'Personalizado' },
+  ];
+  periodoSelecionado: PeriodoDashboard | 'personalizado' = 'dia';
+
+  // Intervalo personalizado
+  dataInicio = '';
+  dataFim    = '';
+  dataMaxima = new Date().toISOString().slice(0, 10);
 
   private readonly destroy$ = new Subject<void>();
-  private filtro: FiltroDashboard = {};
+  private filtro: FiltroDashboard = { periodo: 'dia' };
 
   constructor(
     private dashboardService: DashboardService,
@@ -77,20 +83,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Escutar o stream do service — preparado para WebSocket no futuro.
-    // Para migrar para WebSocket: remover o interval abaixo e chamar
-    // dashboardService.refreshDashboard() dentro do listener do socket.
-    this.dashboardService.getDashboardStream(this.filtro)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next:  (dados) => this.aplicarDados(dados),
-        error: ()      => this.tratarErro()
-      });
+    this._carregarStream();
 
-    // Polling temporário — remover ao implementar WebSocket
+    // Polling só no período "dia" (dados em tempo real)
     interval(INTERVALO_POLLING)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.atualizar());
+      .subscribe(() => {
+        if (this.periodoSelecionado === 'dia') {
+          this.dashboardService.refreshDashboard();
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -98,25 +100,49 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /** Polling automático — só atualiza quando estiver no dia atual. */
-  atualizar(): void {
-    if (!this.filtroData) {
-      this.dashboardService.refreshDashboard();
-    }
+  selecionarPeriodo(periodo: PeriodoDashboard | 'personalizado'): void {
+    if (this.periodoSelecionado === periodo) return;
+    this.periodoSelecionado = periodo;
+    // Modo personalizado não carrega até o usuário aplicar o intervalo
+    if (periodo === 'personalizado') return;
+    this.filtro = { periodo };
+    this.carregando = true;
+    this._carregarStream();
+    this.dashboardService.refreshDashboard();
   }
 
-  /** Chamado pelo botão e pela mudança do filtro de data. */
-  refreshManual(): void {
-    this.filtro = { data: this.filtroData || undefined };
+  aplicarPersonalizado(): void {
+    if (!this.dataInicio || !this.dataFim) return;
+    this.filtro = { dataInicio: this.dataInicio, dataFim: this.dataFim };
     this.carregando = true;
-    // Recriar o stream com o novo filtro + acionar emissão imediata
+    this._carregarStream();
+    this.dashboardService.refreshDashboard();
+  }
+
+  refreshManual(): void {
+    this.carregando = true;
+    this._carregarStream();
+    this.dashboardService.refreshDashboard();
+  }
+
+  private _carregarStream(): void {
     this.dashboardService.getDashboardStream(this.filtro)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next:  (dados) => this.aplicarDados(dados),
         error: ()      => this.tratarErro()
       });
-    this.dashboardService.refreshDashboard();
+  }
+
+  get tituloGraficoHora(): string {
+    const labels: Record<PeriodoDashboard | 'personalizado', string> = {
+      dia:          'Atendimentos por Hora (hoje)',
+      semana:       'Atendimentos por Dia (semana)',
+      mes:          'Atendimentos por Dia (mês)',
+      ano:          'Atendimentos por Mês (ano)',
+      personalizado:'Atendimentos por Dia (período selecionado)',
+    };
+    return labels[this.periodoSelecionado];
   }
 
   private aplicarDados(dados: DadosDashboard): void {
