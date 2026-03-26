@@ -1,16 +1,20 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth.js';
-import dashboardController from '../controllers/dashboardController.js';
+import DashboardController from '../controllers/dashboardController.js';
 
 const router = Router();
 
-/** Métricas em tempo real do fluxo hospitalar */
-router.get('/operacional', authenticateToken, dashboardController.operacional);
+// ── Novos endpoints (contrato camelCase) ──────────────────────────────────
+router.get('/overview',              authenticateToken, DashboardController.overview);
+router.get('/atendimentos-por-hora', authenticateToken, DashboardController.atendimentosPorHora);
+router.get('/classificacao-risco',   authenticateToken, DashboardController.classificacaoRisco);
+router.get('/pacientes-por-etapa',   authenticateToken, DashboardController.pacientesPorEtapa);
+router.get('/produtividade-medicos', authenticateToken, DashboardController.produtividadeMedicos);
+router.get('/pacientes-criticos',    authenticateToken, DashboardController.pacientesCriticos);
 
-/** Atendimentos agrupados por hora do dia (hoje) */
-router.get('/por-hora', authenticateToken, dashboardController.atendimentosPorHora);
-
-/** Produtividade por médico (hoje) */
-router.get('/medicos', authenticateToken, dashboardController.produtividadeMedicos);
+// ── Legado: mantidos para compatibilidade com o frontend existente ─────────
+router.get('/operacional', authenticateToken, DashboardController.operacional);
+router.get('/por-hora',    authenticateToken, DashboardController.porHora);
+router.get('/medicos',     authenticateToken, DashboardController.medicosLegado);
 
 export default router;
