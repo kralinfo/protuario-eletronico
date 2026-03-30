@@ -29,13 +29,18 @@
     </div>
 
     <ul class="space-y-1.5 text-sm">
-      <li *ngFor="let l of LABELS; let i = index" class="flex items-center justify-between gap-2">
+      <li *ngFor="let l of LABELS; let i = index"
+          class="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
+          (click)="abrirDetalheRisco(l)">
         <span class="flex items-center gap-1.5">
           <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
                 [style.background-color]="COLORS[i]"></span>
-          <span class="text-gray-600">{{ l }}</span>
+          <span class="text-gray-600 group-hover:font-medium group-hover:text-gray-900">{{ l }}</span>
         </span>
-        <span class="font-semibold" [style.color]="COLORS[i]">{{ valores[i] }}</span>
+        <span class="font-semibold flex items-center gap-1" [style.color]="COLORS[i]">
+          {{ valores[i] }}
+          <mat-icon class="!text-xs opacity-0 group-hover:opacity-60">chevron_right</mat-icon>
+        </span>
       </li>
     </ul>
   </div>

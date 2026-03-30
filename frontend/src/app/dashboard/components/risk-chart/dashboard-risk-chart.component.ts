@@ -1,11 +1,13 @@
 import {
   Component, Input, OnChanges, AfterViewInit,
-  SimpleChanges, ViewChild, ElementRef, OnDestroy
+  SimpleChanges, ViewChild, ElementRef, OnDestroy, Output, EventEmitter
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Chart, registerables } from 'chart.js';
-import { PorClassificacao } from '../../../services/dashboard.service';
+import { PorClassificacao, FiltroDashboard } from '../../../services/dashboard.service';
+import { DoctorProductivityDialogComponent } from '../doctor-productivity-dialog/doctor-productivity-dialog.component';
 
 Chart.register(...registerables);
 
@@ -13,11 +15,12 @@ Chart.register(...registerables);
   selector: 'app-dashboard-risk-chart',
   templateUrl: './dashboard-risk-chart.component.html',
   standalone: true,
-  imports: [CommonModule, MatIconModule]
+  imports: [CommonModule, MatIconModule, MatDialogModule]
 })
 export class DashboardRiskChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() dados: PorClassificacao = { vermelho: 0, laranja: 0, amarelo: 0, verde: 0, azul: 0 };
   @Input() carregando = false;
+  @Input() filtro: FiltroDashboard = { periodo: 'dia' };
 
   @ViewChild('riskCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
@@ -27,6 +30,25 @@ export class DashboardRiskChartComponent implements AfterViewInit, OnChanges, On
   readonly LABELS  = ['Vermelho', 'Laranja', 'Amarelo', 'Verde', 'Azul'];
   readonly COLORS  = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
   readonly BORDERS = ['#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#2563eb'];
+
+  constructor(private dialog: MatDialog) {}
+
+  abrirDetalheRisco(nivel: string): void {
+    const idx = this.LABELS.findIndex(l => l.toLowerCase() === nivel.toLowerCase());
+    const total = idx >= 0 ? this.valores[idx] : this.total;
+    if (total === 0) return;
+    this.dialog.open(DoctorProductivityDialogComponent, {
+      data: {
+        modo: 'etapa',
+        etapaNome: nivel,
+        total,
+        filtro: this.filtro,
+        tipoDetalhe: 'risco'
+      },
+      width: '850px',
+      maxWidth: '95vw'
+    });
+  }
 
   get total(): number {
     const d = this.dados;
@@ -81,6 +103,12 @@ export class DashboardRiskChartComponent implements AfterViewInit, OnChanges, On
         responsive: true,
         maintainAspectRatio: false,
         cutout: '66%',
+        onClick: (_event: any, elements: any[]) => {
+          if (elements.length > 0) {
+            const idx = elements[0].index;
+            this.abrirDetalheRisco(this.LABELS[idx]);
+          }
+        },
         plugins: {
           legend: { display: false },
           tooltip: {

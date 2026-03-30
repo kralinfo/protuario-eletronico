@@ -136,7 +136,8 @@ export class DoctorProductivityDialogComponent implements OnInit, AfterViewInit 
       medico?: MedicoProdutividade,
       etapaNome?: string,
       total?: number,
-      filtro: FiltroDashboard
+      filtro: FiltroDashboard,
+      tipoDetalhe?: 'etapa' | 'risco'
     },
     private dialogRef: MatDialogRef<DoctorProductivityDialogComponent>,
     private dashboardService: DashboardService,
@@ -158,9 +159,16 @@ export class DoctorProductivityDialogComponent implements OnInit, AfterViewInit 
   carregarAtendimentos(): void {
     this.carregando = true;
 
-    const obs = this.data.modo === 'etapa'
-      ? this.dashboardService.getAtendimentosPorEtapa(this.data.etapaNome!, this.data.filtro)
-      : this.dashboardService.getAtendimentosPorMedico(this.data.medico!.medicoId, this.data.filtro);
+    let obs;
+    if (this.data.modo === 'etapa') {
+      if (this.data.tipoDetalhe === 'risco') {
+        obs = this.dashboardService.getAtendimentosPorRisco(this.data.etapaNome!, this.data.filtro);
+      } else {
+        obs = this.dashboardService.getAtendimentosPorEtapa(this.data.etapaNome!, this.data.filtro);
+      }
+    } else {
+      obs = this.dashboardService.getAtendimentosPorMedico(this.data.medico!.medicoId, this.data.filtro);
+    }
 
     obs.subscribe({
       next: (atendimentos) => {

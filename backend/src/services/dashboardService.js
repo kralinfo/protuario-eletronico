@@ -258,6 +258,38 @@ class DashboardService {
     }));
   }
 
+  async pacientesPorRiscoDetalhe(nivel, periodo, data, dataInicio, dataFim) {
+    const { expr, params } = this._filtroPeriodo(
+      'COALESCE(a.data_inicio_triagem, a.data_hora_atendimento)', periodo, data, dataInicio, dataFim
+    );
+
+    const nivelExpr = nivel === 'Qualquer'
+      ? 'a.classificacao_risco IS NOT NULL'
+      : `LOWER(a.classificacao_risco) = LOWER($${params.length + 1})`;
+
+    const queryParams = nivel === 'Qualquer' ? params : [...params, nivel];
+
+    const result = await db.query(
+      `SELECT
+         a.id,
+         p.nome AS "pacienteNome",
+         a.data_hora_atendimento AS chegada,
+         a.data_hora_atendimento AS "dataHoraInicio",
+         a.status,
+         a.classificacao_risco,
+         a.classificacao_risco AS classificacao,
+         u.nome AS medico_nome
+       FROM atendimentos a
+       JOIN pacientes p ON a.paciente_id = p.id
+       LEFT JOIN usuarios u ON a.usuario_id = u.id
+       WHERE ${nivelExpr} AND ${expr}
+       ORDER BY a.data_hora_atendimento DESC`,
+      queryParams
+    );
+
+    return result.rows;
+  }
+
   // ─── pacientes por etapa ───────────────────────────────────────────────────
 
   /**

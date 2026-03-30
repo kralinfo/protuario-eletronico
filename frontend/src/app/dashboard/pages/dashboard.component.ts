@@ -6,7 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { Subject, interval, takeUntil } from 'rxjs';
+import { Router, NavigationEnd } from '@angular/router';
+import { Subject, interval, takeUntil, filter, pairwise, startWith } from 'rxjs';
 
 import {
   DashboardService,
@@ -83,13 +84,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private dashboardService: DashboardService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     // Inicializa o filtro com o período padrão 'dia'
     this.filtro = { periodo: 'dia' };
     this._carregarStream();
+
+    // Ao voltar para /dashboard vindo de outra rota, reseta o filtro para "Hoje"
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      startWith(null),
+      pairwise(),
+      takeUntil(this.destroy$)
+    ).subscribe(([prev, curr]) => {
+      if (prev !== null) {
+        // O usuário navegou de volta ao dashboard — reseta para "Hoje"
+        this._resetarParaHoje();
+      }
+    });
 
     // Polling só no período "dia" (dados em tempo real)
     interval(INTERVALO_POLLING)
@@ -137,6 +152,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   refreshManual(): void {
+    this.carregando = true;
+    this.dashboardService.refreshDashboard(this.filtro);
+  }
+
+  private _resetarParaHoje(): void {
+    this.periodoSelecionado = 'dia';
+    this.dataInicio = '';
+    this.dataFim = '';
+    this.filtro = { periodo: 'dia' };
     this.carregando = true;
     this.dashboardService.refreshDashboard(this.filtro);
   }

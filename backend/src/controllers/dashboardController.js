@@ -90,6 +90,18 @@ class DashboardController {
     }
   }
 
+  static async pacientesPorRiscoDetalhe(req, res) {
+    try {
+      const { nivel } = req.params;
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.pacientesPorRiscoDetalhe(nivel, periodo, data, dataInicio, dataFim);
+      res.json(resultado);
+    } catch (error) {
+      console.error('[DashboardController] pacientesPorRiscoDetalhe:', error);
+      res.status(500).json({ message: 'Erro interno ao carregar detalhe do risco.' });
+    }
+  }
+
   static async pacientesCriticos(req, res) {
     try {
       const { periodo, data, dataInicio, dataFim } = extrairParams(req);
