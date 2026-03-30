@@ -19,30 +19,30 @@ class DashboardService {
     // Intervalo personalizado tem maior prioridade
     const reData = /^\d{4}-\d{2}-\d{2}$/;
     if (dataInicio && dataFim && reData.test(dataInicio) && reData.test(dataFim)) {
-      return { expr: `DATE(${coluna}) BETWEEN $1 AND $2`, params: [dataInicio, dataFim] };
+      return { expr: `DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') BETWEEN $1 AND $2`, params: [dataInicio, dataFim] };
     }
     // Data específica
     if (data && reData.test(data)) {
-      return { expr: `DATE(${coluna}) = $1`, params: [data] };
+      return { expr: `DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') = $1`, params: [data] };
     }
     switch (periodo) {
       case 'semana':
         return {
-          expr: `DATE(${coluna}) >= DATE_TRUNC('week', CURRENT_DATE) AND DATE(${coluna}) <= CURRENT_DATE`,
+          expr: `DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') >= DATE_TRUNC('week', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') AND DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') <= DATE(CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')`,
           params: []
         };
       case 'mes':
         return {
-          expr: `DATE(${coluna}) >= DATE_TRUNC('month', CURRENT_DATE) AND DATE(${coluna}) <= CURRENT_DATE`,
+          expr: `DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') >= DATE_TRUNC('month', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') AND DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') <= DATE(CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')`,
           params: []
         };
       case 'ano':
         return {
-          expr: `DATE(${coluna}) >= DATE_TRUNC('year', CURRENT_DATE) AND DATE(${coluna}) <= CURRENT_DATE`,
+          expr: `DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') >= DATE_TRUNC('year', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') AND DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') <= DATE(CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')`,
           params: []
         };
       default: // 'dia'
-        return { expr: `DATE(${coluna}) = CURRENT_DATE`, params: [] };
+        return { expr: `DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')`, params: [] };
     }
   }
 
@@ -106,7 +106,7 @@ class DashboardService {
                )::int                                                              AS espera_fila
              FROM atendimentos
              WHERE status NOT IN ('atendimento_concluido')
-               AND DATE(data_hora_atendimento) = CURRENT_DATE`
+               AND DATE(data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') = CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife'`
           )
         : Promise.resolve({ rows: [{ em_atendimento: 0, espera_fila: 0 }] }),
 
@@ -148,7 +148,7 @@ class DashboardService {
     const isRange = dataInicio && dataFim && dataInicio !== dataFim;
     if ((periodo && periodo !== 'dia' && !data) || isRange) {
       const result = await db.query(
-        `SELECT DATE(data_hora_atendimento) AS d,
+        `SELECT DATE(data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') AS d,
                 COUNT(*)::int AS total
          FROM atendimentos
          WHERE ${expr}
@@ -166,7 +166,7 @@ class DashboardService {
 
     // Dia: agrupa por hora (0-23)
     const result = await db.query(
-      `SELECT EXTRACT(HOUR FROM data_hora_atendimento)::int AS h,
+      `SELECT EXTRACT(HOUR FROM data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')::int AS h,
               COUNT(*)::int AS total
        FROM atendimentos
        WHERE ${expr}
