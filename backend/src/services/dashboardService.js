@@ -183,6 +183,45 @@ class DashboardService {
     }));
   }
 
+  /**
+   * GET /dashboard/pacientes-por-eta-detalhe
+   * Retorna lista de atendimentos para uma etapa específica seguindo os filtros
+   */
+  async pacientesPorEtapaDetalhe(etapa, periodo, data, dataInicio, dataFim) {
+    let mapping = {
+      'Aguard. Triagem': "a.status IN ('encaminhado para triagem', 'encaminhado_para_triagem')",
+      'Em Triagem':      "a.status IN ('em atendimento de triagem', 'em_atendimento_triagem')",
+      'Pós-Triagem':     "a.status IN ('encaminhado para médico', 'encaminhado_para_medico', 'encaminhado para ambulatorio', 'encaminhado_para_ambulatorio')",
+      'Em Atendimento':  "a.status IN ('em atendimento médico', 'em_atendimento_medico', 'em atendimento ambulatorial', 'em_atendimento_ambulatorial')",
+      'Concluídos':      "a.status = 'atendimento_concluido'",
+      'Qualquer':        "TRUE"
+    };
+
+    const statusExpr = mapping[etapa] || 'TRUE';
+    const { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
+
+    const result = await db.query(
+      `SELECT
+         a.id,
+         p.nome AS paciente_nome,
+         p.nome AS "pacienteNome",
+         a.data_hora_atendimento AS chegada,
+         a.data_hora_atendimento AS "dataHoraInicio",
+         a.status,
+         a.classificacao_risco,
+         a.classificacao_risco AS classificacao,
+         u.nome AS medico_nome
+       FROM atendimentos a
+       JOIN pacientes p ON a.paciente_id = p.id
+       LEFT JOIN usuarios u ON a.usuario_id = u.id
+       WHERE ${statusExpr} AND ${expr}
+       ORDER BY a.data_hora_atendimento DESC`,
+      params
+    );
+
+    return result.rows;
+  }
+
   // ─── classificação de risco ────────────────────────────────────────────────
 
   /**

@@ -26,10 +26,10 @@ import { DashboardService, AtendimentoMedicoDetalhe, MedicoProdutividade, Filtro
       <div class="flex items-center justify-between mb-6">
         <div>
           <h2 mat-dialog-title class="!m-0 text-xl font-bold text-gray-800">
-            Atendimentos de {{ data.medico.nome }}
+            {{ data.modo === 'etapa' ? 'Pacientes em: ' + data.etapaNome : 'Atendimentos de ' + data.medico?.nome }}
           </h2>
           <p class="text-sm text-gray-500 mt-1">
-            Total visitado: {{ data.medico.atendimentos }} atendimentos
+            Total: {{ data.modo === 'etapa' ? data.total : data.medico?.atendimentos }} atendimentos
           </p>
         </div>
         <button mat-icon-button mat-dialog-close>
@@ -48,7 +48,7 @@ import { DashboardService, AtendimentoMedicoDetalhe, MedicoProdutividade, Filtro
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Paciente </th>
             <td mat-cell *matCellDef="let row">
               <a (click)="abrirFicha(row)" class="text-blue-600 font-medium hover:underline cursor-pointer">
-                {{ row.pacienteNome }}
+                {{ row.pacienteNome || row.nome }}
               </a>
             </td>
           </ng-container>
@@ -68,28 +68,36 @@ import { DashboardService, AtendimentoMedicoDetalhe, MedicoProdutividade, Filtro
             </td>
           </ng-container>
 
+          <!-- Médico Column (Only for Etapa mode) -->
+          <ng-container matColumnDef="medico">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Médico </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.medico_nome || '-' }}
+            </td>
+          </ng-container>
+
           <!-- Classificação Column -->
           <ng-container matColumnDef="classificacao">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Risco </th>
             <td mat-cell *matCellDef="let row">
               <div class="flex items-center gap-2">
-                <div [class]="'w-3 h-3 rounded-full ' + getColorClass(row.classificacao)"></div>
-                <span class="text-xs uppercase">{{ row.classificacao || 'N/A' }}</span>
+                <div [class]="'w-3 h-3 rounded-full ' + getColorClass(row.classificacao_risco || row.classificacao)"></div>
+                <span class="text-xs uppercase">{{ row.classificacao_risco || row.classificacao || 'N/A' }}</span>
               </div>
             </td>
           </ng-container>
 
           <!-- Início Column -->
           <ng-container matColumnDef="inicio">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Início </th>
-            <td mat-cell *matCellDef="let row"> {{ row.dataHoraInicio | date:'HH:mm' }} </td>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> {{ data.modo === 'etapa' ? 'Chegada' : 'Início' }} </th>
+            <td mat-cell *matCellDef="let row"> {{ (row.chegada || row.dataHoraInicio) | date:'HH:mm' }} </td>
           </ng-container>
 
           <!-- Duração Column -->
           <ng-container matColumnDef="duracao">
             <th mat-header-cell *matHeaderCellDef> Duração </th>
             <td mat-cell *matCellDef="let row">
-              {{ calcularDuracao(row.dataHoraInicio, row.dataHoraFim) }}
+              {{ calcularDuracao(row.dataHoraInicio || row.chegada, row.dataHoraFim || row.updated_at) }}
             </td>
           </ng-container>
 
@@ -117,17 +125,27 @@ import { DashboardService, AtendimentoMedicoDetalhe, MedicoProdutividade, Filtro
 })
 export class DoctorProductivityDialogComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['paciente', 'status', 'classificacao', 'inicio', 'duracao'];
-  dataSource = new MatTableDataSource<AtendimentoMedicoDetalhe>([]);
+  dataSource = new MatTableDataSource<any>([]);
   carregando = true;
 
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { medico: MedicoProdutividade, filtro: FiltroDashboard },
+    @Inject(MAT_DIALOG_DATA) public data: {
+      modo: 'medico' | 'etapa',
+      medico?: MedicoProdutividade,
+      etapaNome?: string,
+      total?: number,
+      filtro: FiltroDashboard
+    },
     private dialogRef: MatDialogRef<DoctorProductivityDialogComponent>,
     private dashboardService: DashboardService,
     private router: Router
-  ) {}
+  ) {
+    if (this.data.modo === 'etapa') {
+      this.displayedColumns = ['paciente', 'medico', 'status', 'classificacao', 'inicio'];
+    }
+  }
 
   ngOnInit(): void {
     this.carregarAtendimentos();
@@ -139,17 +157,21 @@ export class DoctorProductivityDialogComponent implements OnInit, AfterViewInit 
 
   carregarAtendimentos(): void {
     this.carregando = true;
-    this.dashboardService.getAtendimentosPorMedico(this.data.medico.medicoId, this.data.filtro)
-      .subscribe({
-        next: (atendimentos) => {
-          this.dataSource.data = atendimentos;
-          this.carregando = false;
-        },
-        error: (err) => {
-          console.error('Erro ao carregar atendimentos do médico:', err);
-          this.carregando = false;
-        }
-      });
+
+    const obs = this.data.modo === 'etapa'
+      ? this.dashboardService.getAtendimentosPorEtapa(this.data.etapaNome!, this.data.filtro)
+      : this.dashboardService.getAtendimentosPorMedico(this.data.medico!.medicoId, this.data.filtro);
+
+    obs.subscribe({
+      next: (atendimentos) => {
+        this.dataSource.data = atendimentos;
+        this.carregando = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar atendimentos:', err);
+        this.carregando = false;
+      }
+    });
   }
 
   formatarStatus(status: string): string {

@@ -162,6 +162,13 @@ export class DashboardService {
     );
   }
 
+  getAtendimentosPorEtapa(etapa: string, filtro?: FiltroDashboard): Observable<AtendimentoMedicoDetalhe[]> {
+    return this.http.get<AtendimentoMedicoDetalhe[]>(
+      `${this.base}/pacientes-por-etapa-detalhe/${etapa}`,
+      { params: this._toParams(filtro) }
+    );
+  }
+
   /** Carrega tudo em paralelo — usado pelo stream e pelo carregamento manual. */
   getTudo(filtro?: FiltroDashboard): Observable<DadosDashboard> {
     return forkJoin({

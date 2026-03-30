@@ -78,6 +78,18 @@ class DashboardController {
     }
   }
 
+  static async pacientesPorEtapaDetalhe(req, res) {
+    try {
+      const { etapa } = req.params;
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.pacientesPorEtapaDetalhe(etapa, periodo, data, dataInicio, dataFim);
+      res.json(resultado);
+    } catch (error) {
+      console.error('[DashboardController] pacientesPorEtapaDetalhe:', error);
+      res.status(500).json({ message: 'Erro interno ao carregar detalhe da etapa.' });
+    }
+  }
+
   static async pacientesCriticos(req, res) {
     try {
       const { periodo, data, dataInicio, dataFim } = extrairParams(req);

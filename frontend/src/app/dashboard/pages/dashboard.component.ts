@@ -78,7 +78,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   dataMaxima = new Date().toISOString().slice(0, 10);
 
   private readonly destroy$ = new Subject<void>();
-  private filtro: FiltroDashboard = { periodo: 'dia' };
+  public filtro: FiltroDashboard = { periodo: 'dia' };
 
   constructor(
     private dashboardService: DashboardService,
@@ -108,7 +108,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   abrirDetalhesMedico(medico: MedicoProdutividade): void {
     this.dialog.open(DoctorProductivityDialogComponent, {
-      data: { medico, filtro: this.filtro },
+      data: {
+        modo: 'medico',
+        medico,
+        filtro: this.filtro
+      },
       width: '850px',
       maxWidth: '95vw',
       panelClass: 'custom-dialog-container'

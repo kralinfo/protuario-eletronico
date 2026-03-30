@@ -4,8 +4,10 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Chart, registerables } from 'chart.js';
-import { AtendimentoHora, DadosOperacional, PeriodoDashboard } from '../../../services/dashboard.service';
+import { AtendimentoHora, DadosOperacional, PeriodoDashboard, FiltroDashboard } from '../../../services/dashboard.service';
+import { DoctorProductivityDialogComponent } from '../doctor-productivity-dialog/doctor-productivity-dialog.component';
 
 Chart.register(...registerables);
 
@@ -13,18 +15,21 @@ Chart.register(...registerables);
   selector: 'app-dashboard-flow-chart',
   templateUrl: './dashboard-flow-chart.component.html',
   standalone: true,
-  imports: [CommonModule, MatIconModule]
+  imports: [CommonModule, MatIconModule, MatDialogModule]
 })
 export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() dadosHora: AtendimentoHora[] = [];
   @Input() operacional?: DadosOperacional;
   @Input() carregando = false;
   @Input() periodo: PeriodoDashboard | 'personalizado' = 'dia';
+  @Input() filtro?: FiltroDashboard;
 
   @ViewChild('lineCanvas') lineRef!: ElementRef<HTMLCanvasElement>;
 
   private chartLine?: Chart;
   private viewReady = false;
+
+  constructor(private dialog: MatDialog) {}
 
   get tituloGrafico(): string {
     const map: Record<PeriodoDashboard | 'personalizado', string> = {
@@ -52,6 +57,22 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   getBarWidth(campo: keyof DadosOperacional): number {
     const max = Math.max(...this.ETAPAS.map(e => this.getValorEtapa(e.campo)), 1);
     return Math.max((this.getValorEtapa(campo) / max) * 100, 0);
+  }
+
+  abrirDetalheEtapa(etapa: { label: string; campo: keyof DadosOperacional }): void {
+    const total = this.getValorEtapa(etapa.campo);
+    if (total === 0) return;
+
+    this.dialog.open(DoctorProductivityDialogComponent, {
+      data: {
+        modo: 'etapa',
+        etapaNome: etapa.label,
+        total: total,
+        filtro: this.filtro || { periodo: 'dia' }
+      },
+      width: '850px',
+      maxWidth: '95vw'
+    });
   }
 
   ngAfterViewInit(): void {
@@ -103,13 +124,41 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: (event: any, elements: any[]) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const label = labels[index];
+            const total = (dados[index] as number);
+
+            if (total > 0) {
+              const novoFiltro = { ...this.filtro };
+
+              if (this.periodo !== 'dia' && label.includes('-')) {
+                novoFiltro.data = label;
+                delete novoFiltro.dataInicio;
+                delete novoFiltro.dataFim;
+              }
+
+              this.dialog.open(DoctorProductivityDialogComponent, {
+                data: {
+                  modo: 'etapa',
+                  etapaNome: 'Qualquer', // Nome especial para buscar todos do período
+                  total: total,
+                  filtro: novoFiltro
+                },
+                width: '850px',
+                maxWidth: '95vw'
+              });
+            }
+          }
+        },
         plugins: {
           legend: { display: false },
           tooltip: { mode: 'index', intersect: false }
         },
         scales: {
           x: {
-            grid: { color: 'rgba(0,0,0,0.04)' },
+            grid: { color: 'rgba(0,0,0,0.04)', display: true },
             ticks: { font: { size: 10 }, maxRotation: 45 }
           },
           y: {

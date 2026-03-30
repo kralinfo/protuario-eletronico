@@ -30,17 +30,20 @@
     </h3>
 
     <div class="space-y-3">
-      <div *ngFor="let etapa of ETAPAS" class="flex items-center gap-3">
-        <span class="text-xs text-gray-500 w-32 flex-shrink-0 truncate">{{ etapa.label }}</span>
-        <div class="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+      <div *ngFor="let etapa of ETAPAS"
+           class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
+           (click)="abrirDetalheEtapa(etapa)">
+        <span class="text-xs text-gray-500 w-32 flex-shrink-0 truncate group-hover:text-gray-900 group-hover:font-medium">{{ etapa.label }}</span>
+        <div class="flex-1 bg-gray-100 rounded-full h-3.5 overflow-hidden">
           <div
-            class="h-3 rounded-full transition-all duration-500"
+            class="h-3.5 rounded-full transition-all duration-500"
             [style.width.%]="getBarWidth(etapa.campo)"
             [style.background-color]="etapa.cor"
           ></div>
         </div>
-        <span class="text-sm font-bold w-7 text-right" [style.color]="etapa.cor">
+        <span class="text-sm font-bold w-8 text-right flex items-center justify-end gap-1" [style.color]="etapa.cor">
           {{ getValorEtapa(etapa.campo) }}
+          <mat-icon class="!text-xs opacity-0 group-hover:opacity-60">chevron_right</mat-icon>
         </span>
       </div>
     </div>
