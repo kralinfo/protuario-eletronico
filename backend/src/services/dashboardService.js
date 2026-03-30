@@ -83,7 +83,7 @@ class DashboardService {
         params
       ),
 
-      // 2. Estatísticas em tempo real (SEM FILTRO DE DATA OU POR DATA ATUAL)
+      // 2. Estatísticas em tempo real (SÓ SE FOR HOJE)
       ( (periodo === 'dia' && !data && !dataInicio) || (data === new Date().toISOString().slice(0, 10)) )
         ? db.query(
             `SELECT
@@ -105,21 +105,7 @@ class DashboardService {
              WHERE status NOT IN ('atendimento_concluido')
                AND DATE(data_hora_atendimento) = CURRENT_DATE`
           )
-        : db.query(
-            `SELECT
-               COUNT(*)::int AS em_atendimento,
-               0 AS espera_fila
-             FROM atendimentos a
-             WHERE status IN (
-               'em atendimento médico',
-               'em atendimento ambulatorial',
-               'em_atendimento_medico',
-               'em_atendimento_ambulatorial',
-               'atendimento_concluido'
-             )
-               AND ${expr}`,
-            params
-          ),
+        : Promise.resolve({ rows: [{ em_atendimento: 0, espera_fila: 0 }] }),
 
       // 3. Tempos médios do dia via view pré-computada
       //    Chegada → início da consulta  (tempoMedioEspera)
@@ -241,7 +227,10 @@ class DashboardService {
    * Retorna: { recepcao, aguardandoTriagem, emTriagem, aguardandoMedico, emAtendimento, observacao }
    */
   async pacientesPorEtapa(periodo, data, dataInicio, dataFim) {
-    const query = `
+    const isRange = dataInicio && dataFim;
+    const isToday = !data && !isRange && (!periodo || periodo === 'dia');
+
+    const queryBase = `
       SELECT
         COUNT(*) FILTER (WHERE status = 'recepcao')::int AS recepcao,
 
@@ -269,55 +258,22 @@ class DashboardService {
           'aguardando exames', 'aguardando_exames',
           'em observacao', 'em_observacao'
         ))::int AS observacao
-      FROM atendimentos
+      FROM atendimentos a
     `;
 
-    const isRange = dataInicio && dataFim;
-    if (!data && !isRange && (!periodo || periodo === 'dia')) {
+    if (isToday) {
       // Tempo real do dia atual — atendimentos de HOJE ainda não concluídos
       const result = await db.query(
-        query + ` WHERE status NOT IN ('atendimento_concluido')
-                    AND DATE(data_hora_atendimento) = CURRENT_DATE`
+        queryBase + ` WHERE status NOT IN ('atendimento_concluido')
+                        AND DATE(data_hora_atendimento) = CURRENT_DATE`
       );
       return result.rows[0];
     }
 
     // Histórico — filtro por período
-    const { expr, params } = this._filtroPeriodo('data_hora_atendimento', periodo, data, dataInicio, dataFim);
+    const { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
 
-    const result = await db.query(
-      `SELECT
-         COUNT(*) FILTER (WHERE status = 'recepcao')::int AS recepcao,
-
-         COUNT(*) FILTER (WHERE status IN (
-           'encaminhado para triagem', 'encaminhado_para_triagem'
-         ))::int AS "aguardandoTriagem",
-
-         COUNT(*) FILTER (WHERE status IN (
-           'em_triagem', 'em triagem'
-         ))::int AS "emTriagem",
-
-         COUNT(*) FILTER (WHERE status IN (
-           'triagem_finalizada',
-           'encaminhado para sala médica', 'encaminhado_para_sala_medica',
-           'encaminhado para ambulatório', 'encaminhado_para_ambulatorio'
-         ))::int AS "aguardandoMedico",
-
-         COUNT(*) FILTER (WHERE status IN (
-           'em atendimento médico', 'em_atendimento_medico',
-           'em atendimento ambulatorial', 'em_atendimento_ambulatorial'
-         ))::int AS "emAtendimento",
-
-         COUNT(*) FILTER (WHERE status IN (
-           'encaminhado para exames', 'encaminhado_para_exames',
-           'aguardando exames', 'aguardando_exames',
-           'em observacao', 'em_observacao'
-         ))::int AS observacao
-       FROM atendimentos
-       WHERE ${expr}`,
-      params
-    );
-
+    const result = await db.query(queryBase + ` WHERE ${expr}`, params);
     return result.rows[0];
   }
 
