@@ -69,8 +69,11 @@ class DashboardService {
    */
   async overview(periodo, data, dataInicio, dataFim) {
     const { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
-    // Para a query da view, usa a mesma expressão
-    const viewExpr = expr.replace(/\ba\./g, 't.');
+    // Para a query da view: a coluna equivalente a data_hora_atendimento é "chegada"
+    const viewExpr = expr
+      .replace(/DATE\(a\.data_hora_atendimento\)/g, 'DATE(t.chegada)')
+      .replace(/a\.data_hora_atendimento/g, 't.chegada')
+      .replace(/\ba\./g, 't.');
 
     const [totaisRes, realtimeRes, temposRes] = await Promise.all([
       // 1. Totais do dia (filtrado por data de chegada)
