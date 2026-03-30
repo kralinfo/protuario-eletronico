@@ -135,7 +135,9 @@
     <section class="mb-6">
       <app-dashboard-doctors-table
         [medicos]="medicos"
-        [carregando]="carregando">
+        [carregando]="carregando"
+        [periodo]="periodoSelecionado"
+        (medicoSelecionado)="abrirDetalhesMedico($event)">
       </app-dashboard-doctors-table>
     </section>
 

@@ -475,6 +475,12 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   }
 
   voltar() {
-    this.router.navigate(['/medico']);
+    if (this.origemCard === 'dashboard') {
+      this.router.navigate(['/dashboard']);
+    } else if (this.origemCard === 'consultas') {
+      this.router.navigate(['/medico/consultas']);
+    } else {
+      this.router.navigate(['/medico']);
+    }
   }
 }

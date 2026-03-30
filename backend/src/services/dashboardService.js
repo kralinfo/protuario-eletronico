@@ -356,7 +356,8 @@ class DashboardService {
                EXTRACT(EPOCH FROM (c.data_hora_inicio - a.data_hora_atendimento)) / 60
              )),
              0
-           )::int                                                       AS "tempoEspera"
+           )::int                                                       AS "tempoEspera",
+           u.id                                                         AS "medicoId"
          FROM consultas_medicas c
          JOIN usuarios    u ON u.id = c.medico_id
          JOIN atendimentos a ON a.id = c.atendimento_id
@@ -412,6 +413,46 @@ class DashboardService {
          a.data_hora_atendimento ASC
        LIMIT 10`,
       params
+    );
+
+    return result.rows;
+  }
+
+  /**
+   * GET /dashboard/atendimentos-por-medico
+   */
+  async atendimentosPorMedico(medicoId, periodo, data, dataInicio, dataFim) {
+    const { expr, params } = this._filtroPeriodo('c.data_hora_inicio', periodo, data, dataInicio, dataFim);
+    
+    // Converte todos os parâmetros de data para o placeholder correto ($2, $3, etc)
+    // Já que o $1 é o medicoId.
+    let sqlExpr = expr;
+    if (params.length > 0) {
+      // Substitui placeholders para não conflitar com $1 (medicoId)
+      // Se houver $1 em expr, vira $2. Se $2, vira $3.
+      sqlExpr = expr.replace(/\$(\d+)/g, (match, number) => {
+        return '$' + (parseInt(number) + 1);
+      });
+    }
+
+    const queryParams = [medicoId, ...params];
+
+    const result = await db.query(
+      `SELECT
+         c.id         AS "consultaId",
+         a.id         AS "atendimentoId",
+         p.nome       AS "pacienteNome",
+         a.status,
+         c.data_hora_inicio AS "dataHoraInicio",
+         c.data_hora_fim    AS "dataHoraFim",
+         a.classificacao_risco AS "classificacao"
+       FROM consultas_medicas c
+       JOIN atendimentos a ON a.id = c.atendimento_id
+       JOIN pacientes p ON p.id = a.paciente_id
+       WHERE c.medico_id = $1
+         AND ${sqlExpr}
+       ORDER BY c.data_hora_inicio DESC`,
+      queryParams
     );
 
     return result.rows;

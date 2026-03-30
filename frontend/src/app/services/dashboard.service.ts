@@ -72,6 +72,18 @@ export interface MedicoProdutividade {
   atendimentos: number;
   tempoMedio:  number;
   tempoEspera: number;
+  medicoId:    number;
+}
+
+/** Interface para os atendimentos detalhados de um médico */
+export interface AtendimentoMedicoDetalhe {
+  consultaId: number;
+  atendimentoId: number;
+  pacienteNome: string;
+  status: string;
+  dataHoraInicio: string;
+  dataHoraFim: string;
+  classificacao: string;
 }
 
 /** Agregado completo do dashboard */
@@ -100,17 +112,14 @@ export class DashboardService {
 
   /**
    * Emissor central de atualizações — Preparado para WebSocket.
-   * Ao implementar WebSocket, basta chamar refreshDashboard() dentro do
-   * listener do socket (ex: socket.on('dashboard:update', () => this.refreshDashboard()))
-   * e todos os componentes subscritos se atualizarão automaticamente.
    */
-  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  private readonly refresh$ = new BehaviorSubject<FiltroDashboard | undefined>(undefined);
 
   constructor(private http: HttpClient) {}
 
   /** Força uma atualização imediata em todos os componentes que escutam o stream. */
-  refreshDashboard(): void {
-    this.refresh$.next();
+  refreshDashboard(filtro?: FiltroDashboard): void {
+    this.refresh$.next(filtro);
   }
 
   /**
@@ -118,9 +127,9 @@ export class DashboardService {
    * Emite dados na inicialização e sempre que refreshDashboard() for chamado.
    * shareReplay(1) evita múltiplas requisições quando há vários inscritos.
    */
-  getDashboardStream(filtro?: FiltroDashboard): Observable<DadosDashboard> {
+  getDashboardStream(): Observable<DadosDashboard> {
     return this.refresh$.pipe(
-      switchMap(() => this.getTudo(filtro)),
+      switchMap((filtro) => this.getTudo(filtro)),
       shareReplay(1)
     );
   }
@@ -142,6 +151,13 @@ export class DashboardService {
   getProdutividadeMedicos(filtro?: FiltroDashboard): Observable<MedicoProdutividade[]> {
     return this.http.get<MedicoProdutividade[]>(
       `${this.base}/produtividade-medicos`,
+      { params: this._toParams(filtro) }
+    );
+  }
+
+  getAtendimentosPorMedico(medicoId: number, filtro?: FiltroDashboard): Observable<AtendimentoMedicoDetalhe[]> {
+    return this.http.get<AtendimentoMedicoDetalhe[]>(
+      `${this.base}/atendimento-por-medico/${medicoId}`,
       { params: this._toParams(filtro) }
     );
   }

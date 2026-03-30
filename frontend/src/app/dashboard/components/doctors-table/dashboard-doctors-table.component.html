@@ -1,7 +1,7 @@
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
   <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
     <mat-icon class="text-blue-500 !text-base">people</mat-icon>
-    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Produtividade por Médico (hoje)</h3>
+    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Produtividade por Médico ({{ labelPeriodo }})</h3>
   </div>
 
   <!-- Skeleton -->
@@ -13,7 +13,7 @@
   <div *ngIf="!carregando && medicos.length === 0"
        class="py-10 flex flex-col items-center justify-center text-gray-300 gap-2">
     <mat-icon class="!text-5xl">table_chart</mat-icon>
-    <p class="text-sm">Nenhum atendimento médico registrado hoje</p>
+    <p class="text-sm">Nenhum atendimento médico registrado {{ labelPeriodo }}</p>
   </div>
 
   <!-- Tabela -->
@@ -36,9 +36,11 @@
       <ng-container matColumnDef="atendimentos">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="!text-xs !font-semibold !text-gray-500 !px-4 !py-3">Atendimentos</th>
         <td mat-cell *matCellDef="let row" class="!px-4 !py-3">
-          <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
+          <button (click)="onAtendimentosClick(row)"
+                  matTooltip="Ver atendimentos deste médico"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm hover:bg-blue-200 transition-colors cursor-pointer border-0">
             {{ row.atendimentos }}
-          </span>
+          </button>
         </td>
       </ng-container>
 

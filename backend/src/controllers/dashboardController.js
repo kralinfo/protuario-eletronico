@@ -89,6 +89,18 @@ class DashboardController {
     }
   }
 
+  static async atendimentoPorMedico(req, res) {
+    try {
+      const { medicoId } = req.params;
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.atendimentosPorMedico(medicoId, periodo, data, dataInicio, dataFim);
+      res.json(resultado);
+    } catch (error) {
+      console.error('[DashboardController] atendimentoPorMedico:', error);
+      res.status(500).json({ message: 'Erro interno ao carregar atendimentos do médico.' });
+    }
+  }
+
   // ── Endpoint principal consumido pelo frontend ─────────────────────────────
   static async operacional(req, res) {
     try {

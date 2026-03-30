@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Subject, interval, takeUntil } from 'rxjs';
 
 import {
@@ -22,6 +23,7 @@ import { DashboardRiskChartComponent } from '../components/risk-chart/dashboard-
 import { DashboardFlowChartComponent } from '../components/flow-chart/dashboard-flow-chart.component';
 import { DashboardDoctorsTableComponent } from '../components/doctors-table/dashboard-doctors-table.component';
 import { DashboardCriticalListComponent } from '../components/critical-list/dashboard-critical-list.component';
+import { DoctorProductivityDialogComponent } from '../components/doctor-productivity-dialog/doctor-productivity-dialog.component';
 
 const INTERVALO_POLLING = 30_000;
 
@@ -44,6 +46,7 @@ const OPERACIONAL_VAZIO: DadosOperacional = {
     MatButtonModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatDialogModule,
     DashboardKpiCardComponent,
     DashboardRiskChartComponent,
     DashboardFlowChartComponent,
@@ -79,10 +82,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private dashboardService: DashboardService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
+    // Inicializa o filtro com o período padrão 'dia'
+    this.filtro = { periodo: 'dia' };
     this._carregarStream();
 
     // Polling só no período "dia" (dados em tempo real)
@@ -90,7 +96,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.periodoSelecionado === 'dia') {
-          this.dashboardService.refreshDashboard();
+          this.dashboardService.refreshDashboard(this.filtro);
         }
       });
   }
@@ -100,6 +106,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  abrirDetalhesMedico(medico: MedicoProdutividade): void {
+    this.dialog.open(DoctorProductivityDialogComponent, {
+      data: { medico, filtro: this.filtro },
+      width: '850px',
+      maxWidth: '95vw',
+      panelClass: 'custom-dialog-container'
+    });
+  }
+
   selecionarPeriodo(periodo: PeriodoDashboard | 'personalizado'): void {
     if (this.periodoSelecionado === periodo) return;
     this.periodoSelecionado = periodo;
@@ -107,26 +122,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (periodo === 'personalizado') return;
     this.filtro = { periodo };
     this.carregando = true;
-    this._carregarStream();
-    this.dashboardService.refreshDashboard();
+    this.dashboardService.refreshDashboard(this.filtro);
   }
 
   aplicarPersonalizado(): void {
     if (!this.dataInicio || !this.dataFim) return;
     this.filtro = { dataInicio: this.dataInicio, dataFim: this.dataFim };
     this.carregando = true;
-    this._carregarStream();
-    this.dashboardService.refreshDashboard();
+    this.dashboardService.refreshDashboard(this.filtro);
   }
 
   refreshManual(): void {
     this.carregando = true;
-    this._carregarStream();
-    this.dashboardService.refreshDashboard();
+    this.dashboardService.refreshDashboard(this.filtro);
   }
 
   private _carregarStream(): void {
-    this.dashboardService.getDashboardStream(this.filtro)
+    this.dashboardService.getDashboardStream()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next:  (dados) => this.aplicarDados(dados),

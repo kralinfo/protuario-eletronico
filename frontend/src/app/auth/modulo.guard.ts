@@ -22,6 +22,9 @@ export class ModuloGuard implements CanActivate {
       return true;
     }
 
+    // Admin tem acesso irrestrito a todos os módulos
+    if (user.nivel === 'admin') return true;
+
     const requiredModulo = route.data['modulo'] as string;
 
     // Se não exigir módulo, libera
