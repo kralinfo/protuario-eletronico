@@ -28,7 +28,7 @@
 
   <!-- Lista -->
   <ul *ngIf="!carregando && alertas.length > 0" class="divide-y divide-gray-50">
-    <li *ngFor="let alerta of alertas; trackBy: trackByAlerta"
+    <li *ngFor="let alerta of alertasPaginados; trackBy: trackByAlerta"
         class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors">
 
       <!-- Ícone de gravidade -->
@@ -59,4 +59,16 @@
       </span>
     </li>
   </ul>
+
+  <!-- Paginação -->
+  <mat-paginator
+    *ngIf="!carregando && alertas.length > 0"
+    [length]="alertas.length"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)"
+    aria-label="Selecionar página de alertas"
+    class="!text-xs border-t border-gray-100"
+  >
+  </mat-paginator>
 </div>

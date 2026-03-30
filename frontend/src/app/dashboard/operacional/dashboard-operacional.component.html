@@ -318,7 +318,7 @@
       <!-- Tabela de alertas -->
       <div *ngIf="dados.alertas_criticos.length > 0" class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+          <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide border-b border-gray-100">
             <tr>
               <th class="px-6 py-3 text-left">Paciente</th>
               <th class="px-6 py-3 text-left">Status</th>
@@ -328,7 +328,7 @@
           </thead>
           <tbody class="divide-y divide-gray-100">
             <tr
-              *ngFor="let alerta of dados.alertas_criticos; trackBy: trackByAlerta"
+              *ngFor="let alerta of alertasPaginados; trackBy: trackByAlerta"
               class="hover:bg-gray-50 transition-colors"
             >
               <td class="px-6 py-3 font-medium text-gray-800">{{ alerta.paciente_nome }}</td>
@@ -357,6 +357,17 @@
             </tr>
           </tbody>
         </table>
+
+        <!-- Paginação -->
+        <mat-paginator
+          [length]="dados.alertas_criticos.length"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)"
+          aria-label="Selecionar página de alertas"
+          class="!text-xs border-t border-gray-100"
+        >
+        </mat-paginator>
       </div>
     </div>
 

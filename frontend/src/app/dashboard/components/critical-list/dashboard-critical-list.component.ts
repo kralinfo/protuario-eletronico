@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { RouterModule } from '@angular/router';
 import { AlertaCritico } from '../../../services/dashboard.service';
 
@@ -8,11 +9,27 @@ import { AlertaCritico } from '../../../services/dashboard.service';
   selector: 'app-dashboard-critical-list',
   templateUrl: './dashboard-critical-list.component.html',
   standalone: true,
-  imports: [CommonModule, MatIconModule, RouterModule]
+  imports: [CommonModule, MatIconModule, MatPaginatorModule, RouterModule]
 })
 export class DashboardCriticalListComponent {
   @Input() alertas: AlertaCritico[] = [];
   @Input() carregando = false;
+
+  // Paginação
+  pageSize = 5;
+  pageIndex = 0;
+  pageSizeOptions = [5, 10, 15, 25, 50];
+
+  get alertasPaginados(): AlertaCritico[] {
+    const start = this.pageIndex * this.pageSize;
+    const end = start + this.pageSize;
+    return (this.alertas || []).slice(start, end);
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.pageIndex = event.pageIndex;
+  }
 
   getCorClassificacao(c: string): string {
     switch ((c || '').toLowerCase()) {
