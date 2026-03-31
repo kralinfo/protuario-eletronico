@@ -210,7 +210,9 @@ class DashboardService {
 
     // Para período > dia ou intervalo customizado multi-dia, agrupa por data; caso contrário, por hora
     const isRange = dataInicio && dataFim && dataInicio !== dataFim;
-    if ((periodo && periodo !== 'dia' && !data) || isRange) {
+    const isSingleDayRange = dataInicio && dataFim && dataInicio === dataFim;
+
+    if (!isSingleDayRange && ((periodo && periodo !== 'dia' && !data) || isRange)) {
       const result = await db.query(
         `SELECT DATE(data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') AS d,
                 COUNT(*)::int AS total

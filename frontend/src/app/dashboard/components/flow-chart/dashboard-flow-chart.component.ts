@@ -35,6 +35,11 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   constructor(private dialog: MatDialog, private dashboardService: DashboardService) {}
 
   get tituloGrafico(): string {
+    if (this.isFiltradoPorDia) {
+      const dataLabel = this.filtro?.data || '';
+      const [y, m, d] = dataLabel.split('-');
+      return `Atendimentos em ${d}/${m} (por hora)`;
+    }
     if (this.isFiltradoPorSemana) {
       return `Atendimentos por Dia (esta semana)`;
     }
@@ -44,13 +49,18 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
     }
 
     const map: Record<PeriodoDashboard | 'personalizado', string> = {
-      dia:          'Atendimentos por Hora (hoje)',
+      dia:          'Atendimentos por Hora',
       semana:       'Atendimentos por Dia (esta semana)',
       mes:          'Atendimentos por Semana (este mês)',
       ano:          'Atendimentos por Mês (este ano)',
       personalizado:'Atendimentos por Dia (período selecionado)',
     };
     return map[this.periodo];
+  }
+
+  get isFiltradoPorDia(): boolean {
+    // Estamos visualizando horas de um dia (drill-down da semana)
+    return this.periodo === 'dia' && !!this.filtro?.data;
   }
 
   get isFiltradoPorMes(): boolean {
@@ -105,6 +115,33 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
       periodo: 'mes',
       dataInicio: `${ano}-${mesStr}-01`,
       dataFim: `${ano}-${mesStr}-${String(ultimoDia).padStart(2, '0')}`
+    });
+  }
+
+  voltarParaSemana(): void {
+    if (!this.filtro?.data) return;
+
+    const dataRef = new Date(this.filtro.data);
+    const day = dataRef.getUTCDate();
+    const rawSemana = Math.floor((day - 1) / 7) + 1;
+
+    // Recalcula o rande da semana (S1: 01-07, etc)
+    const ano = dataRef.getUTCFullYear();
+    const mes = dataRef.getUTCMonth();
+    const mesStr = String(mes + 1).padStart(2, '0');
+
+    const diaInicioNum = (rawSemana - 1) * 7 + 1;
+    const diaInicio = String(diaInicioNum).padStart(2, '0');
+
+    let diaFimNum = rawSemana * 7;
+    const ultimoDiaDoMes = new Date(ano, mes + 1, 0).getDate();
+    if (diaFimNum > ultimoDiaDoMes) diaFimNum = ultimoDiaDoMes;
+    const diaFim = String(diaFimNum).padStart(2, '0');
+
+    this.filtered.emit({
+      periodo: 'mes',
+      dataInicio: `${ano}-${mesStr}-${diaInicio}`,
+      dataFim: `${ano}-${mesStr}-${diaFim}`
     });
   }
 
@@ -230,6 +267,17 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
                 periodo: 'mes',
                 dataInicio: `${anoAtual}-${mesStr}-${diaInicio}`,
                 dataFim: `${anoAtual}-${mesStr}-${diaFim}`
+              };
+              this.filtered.emit(novoFiltro);
+              return;
+            }
+
+            // Drill-down: Se clicar em um dia específico na visão de semana (detalhada por dias)
+            // Agora abre a visão de HORA do dia em vez de abrir direto o modal
+            if (this.periodo === 'mes' && this.isFiltradoPorSemana && rawData.data) {
+              const novoFiltro: FiltroDashboard = {
+                periodo: 'dia',
+                data: rawData.data
               };
               this.filtered.emit(novoFiltro);
               return;

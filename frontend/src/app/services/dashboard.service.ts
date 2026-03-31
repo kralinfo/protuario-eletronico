@@ -66,6 +66,7 @@ export interface AtendimentoHora {
   mes?:  number;  // 1-12 (Adicionado para suportar drill-down anual)
   semana?: number; // 1-5 (Adicionado para suportar drill-down mensal)
   dia?: number;    // 1-31 (Adicionado para suportar drill-down semanal)
+  data?: string;   // ISO string da data completa (adicionado para drill-down de semana)
   total: number;
 }
 
