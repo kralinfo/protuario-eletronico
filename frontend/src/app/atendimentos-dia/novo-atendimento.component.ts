@@ -331,42 +331,85 @@ export class NovoAtendimentoComponent {
 
   gerarPDF() {
     if (!this.pacienteSelecionado) return;
-    const printWindow = window.open('', '', 'width=800,height=600');
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Ficha de Atendimento</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            h2 { color: #2563eb; }
-            .section { margin-bottom: 24px; }
-            .label { font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <h2>e-Prontuário Aliança-PE</h2>
-          <h3>Ficha de Atendimento</h3>
-          <hr />
-          <div class="section">
-            <span class="label">Paciente:</span> ${this.pacienteSelecionado?.nome || ''}<br />
-            <span class="label">Motivo:</span> ${this.motivo || ''}<br />
-            <span class="label">Observações:</span> ${this.observacoes || ''}<br />
-            <span class="label">Acompanhante:</span> ${this.acompanhante || ''}<br />
-            <span class="label">Procedência:</span> ${this.procedencia || ''}<br />
-            <span class="label">Status:</span> ${this.status || ''}<br />
-          </div>
-          <hr />
-          <div style="margin-top: 32px; color: #666; font-size: 12px;">
-            Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br />
-            Sistema e-Prontuário Aliança-PE
-          </div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+
+    // Carregar brasão e converter para data URL para a janela de impressão
+    const img = new window.Image();
+    img.src = 'assets/brasao-alianca.png';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      const logoDataUrl = canvas.toDataURL('image/png');
+
+      const printWindow = window.open('', '', 'width=800,height=600');
+      if (!printWindow) return;
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Ficha de Atendimento</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: Arial, sans-serif; margin: 20mm; color: #222; font-size: 11px; }
+              .inst-header { display: flex; align-items: center; margin-bottom: 6px; padding-bottom: 6px; }
+              .brasao { width: 72px; height: 72px; margin-right: 14px; object-fit: contain; }
+              .inst-name { font-size: 14px; font-weight: bold; margin-bottom: 1px; }
+              .inst-dept, .inst-unit { font-size: 10px; margin-bottom: 1px; }
+              .inst-addr { font-size: 9px; color: #555; }
+              .title-bar { text-align: center; font-size: 14px; font-weight: bold; padding: 7px 0; border-top: 2px solid #333; border-bottom: 2px solid #333; margin-bottom: 14px; letter-spacing: 1px; }
+              .section { border: 1px solid #aaa; border-radius: 4px; padding: 10px 14px; margin-bottom: 10px; }
+              .section-title { font-weight: bold; font-size: 11px; color: #1565c0; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+              .field { margin: 5px 0; font-size: 11px; line-height: 1.6; }
+              .label { font-weight: bold; color: #333; }
+              .signature-area { margin-top: 50px; text-align: center; }
+              .signature-line { width: 55%; border-top: 1px solid #666; margin: 0 auto 4px; }
+              .signature-label { font-size: 10px; color: #666; }
+              .footer { margin-top: 20px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #ddd; padding-top: 6px; }
+              @media print { body { margin: 15mm; } }
+            </style>
+          </head>
+          <body>
+            <div class="inst-header">
+              <img src="${logoDataUrl}" alt="Brasão Aliança" class="brasao" />
+              <div>
+                <div class="inst-name">PREFEITURA DA ALIANÇA</div>
+                <div class="inst-dept">SECRETARIA MUNICIPAL DE SAÚDE</div>
+                <div class="inst-unit">UNIDADE MISTA MUNICIPAL DE ALIANÇA</div>
+                <div class="inst-addr">Rua Marechal Deodoro, s/n - Aliança - PE - CEP: 55.890-000</div>
+                <div class="inst-addr">Fones: 3637.1340 / 3637.1388</div>
+                <div class="inst-addr">E-mail: unidademista2009@hotmail.com</div>
+              </div>
+            </div>
+
+            <div class="title-bar">FICHA DE ATENDIMENTO</div>
+
+            <div class="section">
+              <div class="section-title">Dados do Atendimento</div>
+              <div class="field"><span class="label">Paciente:</span> ${this.pacienteSelecionado?.nome || ''}</div>
+              <div class="field"><span class="label">Motivo:</span> ${this.motivo || '-'}</div>
+              ${this.observacoes ? '<div class="field"><span class="label">Observações:</span> ' + this.observacoes + '</div>' : ''}
+              <div class="field"><span class="label">Status:</span> ${this.status || ''}</div>
+            </div>
+
+            ${this.acompanhante || this.procedencia ? '<div class="section"><div class="section-title">Informações Complementares</div>' + (this.acompanhante ? '<div class="field"><span class="label">Acompanhante:</span> ' + this.acompanhante + '</div>' : '') + (this.procedencia ? '<div class="field"><span class="label">Procedência:</span> ' + this.procedencia + '</div>' : '') + '</div>' : ''}
+
+            <div class="signature-area">
+              <div class="signature-line"></div>
+              <div class="signature-label">Assinatura do Profissional</div>
+            </div>
+
+            <div class="footer">
+              <div>Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</div>
+              <div>Sistema e-Prontuário - Unidade Mista Municipal de Aliança-PE</div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    };
   }
 }
