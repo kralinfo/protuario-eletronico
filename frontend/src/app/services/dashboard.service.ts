@@ -63,10 +63,11 @@ export interface DadosOperacional {
 /** Retorno de /api/dashboard/atendimentos-por-hora */
 export interface AtendimentoHora {
   hora?: string;  // ex: "08:00" ou "Semana 1"
-  mes?:  number;  // 1-12 (Adicionado para suportar drill-down anual)
-  semana?: number; // 1-5 (Adicionado para suportar drill-down mensal)
-  dia?: number;    // 1-31 (Adicionado para suportar drill-down semanal)
-  data?: string;   // ISO string da data completa (adicionado para drill-down de semana)
+  ano?:  number;  // ex: 2024 (para drill-down multi-ano personalizado)
+  mes?:  number;  // 1-12 (para drill-down anual)
+  semana?: number; // 1-5 (para drill-down mensal)
+  dia?: number;    // 1-31 (para drill-down semanal)
+  data?: string;   // ISO string da data completa (para drill-down de semana)
   total: number;
 }
 
@@ -101,10 +102,12 @@ export type PeriodoDashboard = 'dia' | 'semana' | 'mes' | 'ano';
 
 /** Filtro opcional passado nos endpoints */
 export interface FiltroDashboard {
-  periodo?: PeriodoDashboard; // padrão: 'dia'
+  periodo?: PeriodoDashboard | 'personalizado'; // padrão: 'dia'
   data?: string;              // YYYY-MM-DD — sobrescreve periodo
   dataInicio?: string;        // YYYY-MM-DD — limite inferior do intervalo personalizado
   dataFim?: string;           // YYYY-MM-DD — limite superior do intervalo personalizado
+  originalDataInicio?: string; // Limite original do range personalizado (preservado durante drill-down)
+  originalDataFim?: string;    // Limite original do range personalizado (preservado durante drill-down)
   medicoId?: number;
 }
 

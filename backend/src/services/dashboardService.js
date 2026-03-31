@@ -144,8 +144,31 @@ class DashboardService {
   async atendimentosPorHora(periodo, data, dataInicio, dataFim) {
     const { expr, params } = this._filtroPeriodo('data_hora_atendimento', periodo, data, dataInicio, dataFim);
 
-    // Para período 'ano' sem data específica, agrupa por mês (1-12)
-    if (periodo === 'ano' && !data && !dataInicio) {
+    // Intervalo personalizado que cobre múltiplos anos → agrupa por ano
+    if (dataInicio && dataFim) {
+      const yearStart = new Date(dataInicio).getFullYear();
+      const yearEnd   = new Date(dataFim).getFullYear();
+      if (yearEnd > yearStart) {
+        const result = await db.query(
+          `SELECT EXTRACT(YEAR FROM data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')::int AS y,
+                  COUNT(*)::int AS total
+           FROM atendimentos
+           WHERE DATE(data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') BETWEEN $1 AND $2
+           GROUP BY y
+           ORDER BY y`,
+          [dataInicio, dataFim]
+        );
+        const mapa = Object.fromEntries(result.rows.map(r => [r.y, r.total]));
+        const anos = [];
+        for (let y = yearStart; y <= yearEnd; y++) {
+          anos.push({ hora: String(y), total: mapa[y] ?? 0, ano: y });
+        }
+        return anos;
+      }
+    }
+
+    // Para período 'ano' (com ou sem dataInicio/dataFim de ano único), agrupa por mês (1-12)
+    if (periodo === 'ano') {
       const result = await db.query(
         `SELECT EXTRACT(MONTH FROM data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')::int AS m,
                 COUNT(*)::int AS total
@@ -173,7 +196,7 @@ class DashboardService {
     // Isso cobre dois casos:
     //   1) periodo = 'mes' sem dataInicio (mês atual)
     //   2) periodo = 'mes' com dataInicio/dataFim cobrindo um mês inteiro (drill-down do ano)
-    const isMonthFilter = periodo === 'mes' || (periodo === 'ano' && data && data.length === 7);
+    const isMonthFilter = periodo === 'mes';
     const isFullMonthRange = dataInicio && dataFim &&
       ((new Date(dataFim).getTime() - new Date(dataInicio).getTime()) / (1000 * 60 * 60 * 24)) > 10;
 

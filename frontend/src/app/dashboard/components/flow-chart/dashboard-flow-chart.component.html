@@ -15,6 +15,11 @@
         <mat-icon class="!text-sm">arrow_back</mat-icon>
       </button>
 
+      <!-- Botão Voltar para os Anos (vindo do ano dentro de personalizado multi-ano) -->
+      <button *ngIf="isFiltradoPorAnoPersonalizado" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1" (click)="voltarParaPersonalizado()" matTooltip="Voltar para visão por anos">
+        <mat-icon class="!text-sm">arrow_back</mat-icon>
+      </button>
+
       <!-- Botão Voltar para o Ano (vindo do Mês) -->
       <button *ngIf="isFiltradoPorMes && !isFiltradoPorSemana" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1" (click)="voltarParaAno()" matTooltip="Voltar para visão anual">
         <mat-icon class="!text-sm">arrow_back</mat-icon>
