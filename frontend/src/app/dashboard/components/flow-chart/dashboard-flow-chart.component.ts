@@ -24,9 +24,9 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   @Input() periodo: PeriodoDashboard | 'personalizado' = 'dia';
   @Input() filtro?: FiltroDashboard;
 
-  @ViewChild('lineCanvas') lineRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('barCanvas') barRef!: ElementRef<HTMLCanvasElement>;
 
-  private chartLine?: Chart;
+  private chartBar?: Chart;
   private viewReady = false;
 
   constructor(private dialog: MatDialog) {}
@@ -77,14 +77,14 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
 
   ngAfterViewInit(): void {
     this.viewReady = true;
-    this.criarLinhaChart();
+    this.criarBarChart();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['dadosHora'] || changes['operacional']) && this.viewReady) {
       this.destruir();
       // setTimeout garante que o canvas já existe no DOM após *ngIf mudar
-      setTimeout(() => this.criarLinhaChart());
+      setTimeout(() => this.criarBarChart());
     }
   }
 
@@ -93,32 +93,27 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   }
 
   private destruir(): void {
-    this.chartLine?.destroy();
-    this.chartLine = undefined;
+    this.chartBar?.destroy();
+    this.chartBar = undefined;
   }
 
-  private criarLinhaChart(): void {
-    if (!this.lineRef?.nativeElement || !this.dadosHora.length) return;
+  private criarBarChart(): void {
+    if (!this.barRef?.nativeElement || !this.dadosHora.length) return;
 
     // hora já vem como "08:00" do backend — usa diretamente
     const labels = this.dadosHora.map(d => d.hora);
     const dados  = this.dadosHora.map(d => d.total);
 
-    this.chartLine = new Chart(this.lineRef.nativeElement, {
-      type: 'line',
+    this.chartBar = new Chart(this.barRef.nativeElement, {
+      type: 'bar',
       data: {
         labels,
         datasets: [{
           label: 'Atendimentos',
           data: dados,
-          borderColor: '#2563eb',
-          backgroundColor: 'rgba(37,99,235,0.08)',
-          borderWidth: 2,
-          pointBackgroundColor: '#2563eb',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          tension: 0.35,
-          fill: true
+          backgroundColor: '#2563eb',
+          borderRadius: 4,
+          maxBarThickness: 32
         }]
       },
       options: {
@@ -158,13 +153,13 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
         },
         scales: {
           x: {
-            grid: { color: 'rgba(0,0,0,0.04)', display: true },
+            grid: { color: 'rgba(0,0,0,0.04)', display: false },
             ticks: { font: { size: 10 }, maxRotation: 45 }
           },
           y: {
             beginAtZero: true,
             grid: { color: 'rgba(0,0,0,0.04)' },
-            ticks: { precision: 0, font: { size: 11 } }
+            ticks: { precision: 0, font: { size: 11 }, stepSize: 1 }
           }
         }
       }
