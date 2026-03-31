@@ -4,13 +4,13 @@
       <mat-icon class="text-purple-500 !text-base">donut_large</mat-icon>
       Classificação de Risco
     </h3>
-    <span class="text-xs text-gray-400" *ngIf="total > 0">{{ total }} total</span>
+    <span class="text-xs text-gray-400" *ngIf="total > 0">{{ total }} total · {{ labelPeriodo }}</span>
   </div>
 
   <!-- Sem dados -->
   <div *ngIf="total === 0 && !carregando" class="flex-1 flex flex-col items-center justify-center text-gray-300 gap-2 py-6">
     <mat-icon class="!text-5xl">pie_chart</mat-icon>
-    <span class="text-sm">Sem dados hoje</span>
+    <span class="text-sm">Sem dados {{ labelPeriodo }}</span>
   </div>
 
   <!-- Skeleton -->
