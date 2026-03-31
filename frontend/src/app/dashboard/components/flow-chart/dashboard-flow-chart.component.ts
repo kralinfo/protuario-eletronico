@@ -51,6 +51,9 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
       const ano = new Date(this.filtro?.dataInicio || '').getUTCFullYear();
       return `Atendimentos em ${ano} (por mês)`;
     }
+    if (this.isPersonalizadoMesmoAno) {
+      return 'Atendimentos por Mês (período selecionado)';
+    }
     if (this.isPersonalizadoMultiAno) {
       return 'Atendimentos por Ano (período selecionado)';
     }
@@ -112,6 +115,24 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
     const yearStart = new Date(this.filtro.dataInicio).getUTCFullYear();
     const yearEnd   = new Date(this.filtro.dataFim).getUTCFullYear();
     return yearEnd > yearStart;
+  }
+
+  /** Personalizado dentro do mesmo ano com mais de 31 dias → mostra barras por mês */
+  get isPersonalizadoMesmoAno(): boolean {
+    if (this.periodo !== 'personalizado') return false;
+    if (!this.filtro?.dataInicio || !this.filtro?.dataFim) return false;
+    const yearStart = new Date(this.filtro.dataInicio).getUTCFullYear();
+    const yearEnd   = new Date(this.filtro.dataFim).getUTCFullYear();
+    const diffDays  = Math.ceil(Math.abs(new Date(this.filtro.dataFim).getTime() - new Date(this.filtro.dataInicio).getTime()) / (1000 * 60 * 60 * 24));
+    return yearStart === yearEnd && diffDays > 31;
+  }
+
+  /** Detecta se a visão mensal atual veio de um personalizado same-year (para saber onde voltar) */
+  get origemMesPersonalizadoMesmoAno(): boolean {
+    if (!this.filtro?.originalDataInicio || !this.filtro?.originalDataFim) return false;
+    const yearStart = new Date(this.filtro.originalDataInicio).getUTCFullYear();
+    const yearEnd   = new Date(this.filtro.originalDataFim).getUTCFullYear();
+    return yearStart === yearEnd;
   }
 
   get isFiltradoPorAnoPersonalizado(): boolean {
@@ -270,6 +291,21 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
             const label = labels[index] || '';
             const total = (dados[index] as number);
             const rawData = this.dadosHora[index];
+
+            // Drill-down: personalizado mesmo ano → clique em um mês → mostra semanas
+            if (this.isPersonalizadoMesmoAno && rawData.mes) {
+              const ano    = new Date(this.filtro!.dataInicio!).getUTCFullYear();
+              const mesStr = String(rawData.mes).padStart(2, '0');
+              const ultimoDia = new Date(ano, rawData.mes, 0).getDate();
+              this.filtered.emit({
+                periodo: 'mes',
+                dataInicio: `${ano}-${mesStr}-01`,
+                dataFim: `${ano}-${mesStr}-${String(ultimoDia).padStart(2, '0')}`,
+                originalDataInicio: this.filtro!.dataInicio!,
+                originalDataFim: this.filtro!.dataFim!
+              });
+              return;
+            }
 
             // Drill-down: personalizado multi-ano → clique em um ano → mostra meses
             if (this.isPersonalizadoMultiAno && rawData.ano) {

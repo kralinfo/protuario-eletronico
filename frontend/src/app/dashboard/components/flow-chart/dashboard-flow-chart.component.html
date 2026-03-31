@@ -20,8 +20,10 @@
         <mat-icon class="!text-sm">arrow_back</mat-icon>
       </button>
 
-      <!-- Botão Voltar para o Ano (vindo do Mês) -->
-      <button *ngIf="isFiltradoPorMes && !isFiltradoPorSemana" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1" (click)="voltarParaAno()" matTooltip="Voltar para visão anual">
+      <!-- Botão Voltar para o Ano / Personalizado (vindo do Mês) -->
+      <button *ngIf="isFiltradoPorMes && !isFiltradoPorSemana" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1"
+              (click)="origemMesPersonalizadoMesmoAno ? voltarParaPersonalizado() : voltarParaAno()"
+              matTooltip="Voltar para visão anterior">
         <mat-icon class="!text-sm">arrow_back</mat-icon>
       </button>
 

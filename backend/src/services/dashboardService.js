@@ -167,7 +167,41 @@ class DashboardService {
       }
     }
 
-    // Para período 'ano' (com ou sem dataInicio/dataFim de ano único), agrupa por mês (1-12)
+    // Range dentro do mesmo ano com mais de 31 dias → agrupa apenas os meses do range.
+    // Cobre dois casos:
+    //   1) personalizado same-year (ex: 01/01/2026 – 31/03/2026)
+    //   2) drill-down de um ano específico vindo de multi-ano (periodo='ano' + dataInicio/dataFim)
+    if (dataInicio && dataFim) {
+      const _yearStart = new Date(dataInicio).getFullYear();
+      const _yearEnd   = new Date(dataFim).getFullYear();
+      const _diffDays  = Math.ceil((new Date(dataFim) - new Date(dataInicio)) / (1000 * 60 * 60 * 24));
+
+      if (_yearStart === _yearEnd && _diffDays > 31) {
+        const result = await db.query(
+          `SELECT EXTRACT(MONTH FROM data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')::int AS m,
+                  COUNT(*)::int AS total
+           FROM atendimentos
+           WHERE DATE(data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') BETWEEN $1 AND $2
+           GROUP BY m
+           ORDER BY m`,
+          [dataInicio, dataFim]
+        );
+
+        const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const mapa  = Object.fromEntries(result.rows.map(r => [r.m, r.total]));
+
+        const startMonth = new Date(dataInicio).getMonth() + 1;
+        const endMonth   = new Date(dataFim).getMonth()   + 1;
+
+        const arr = [];
+        for (let m = startMonth; m <= endMonth; m++) {
+          arr.push({ hora: meses[m - 1], total: mapa[m] ?? 0, mes: m });
+        }
+        return arr;
+      }
+    }
+
+    // Para período 'ano' sem range personalizado (ano atual completo) → todos os 12 meses
     if (periodo === 'ano') {
       const result = await db.query(
         `SELECT EXTRACT(MONTH FROM data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')::int AS m,
@@ -186,9 +220,9 @@ class DashboardService {
       const mapa = Object.fromEntries(result.rows.map(r => [r.m, r.total]));
       
       return meses.map((nome, i) => ({
-        hora: nome, // Usamos 'hora' como label genérico para o frontend
+        hora: nome,
         total: mapa[i + 1] ?? 0,
-        mes: i + 1  // Informação extra para o clique
+        mes: i + 1
       }));
     }
 
