@@ -51,8 +51,14 @@
                   (click)="aplicarPersonalizado()"
                   [disabled]="!dataInicio || !dataFim || carregando"
                   class="!text-sm !py-1 !px-3">
-            <mat-icon class="!text-sm">search</mat-icon>
+            <mat-icon class="!text-sm">check</mat-icon>
             Aplicar
+          </button>
+          <button mat-stroked-button
+                  (click)="limparPersonalizado()"
+                  class="!text-sm !py-1 !px-3 !text-gray-500 !border-gray-300 hover:!text-red-500 hover:!border-red-300">
+            <mat-icon class="!text-sm">close</mat-icon>
+            Limpar
           </button>
         </div>
 

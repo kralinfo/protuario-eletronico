@@ -6,25 +6,25 @@
       <mat-icon class="text-blue-500 !text-base">show_chart</mat-icon>
 
       <!-- Botão Voltar para a Semana (vindo do Dia) -->
-      <button *ngIf="isFiltradoPorDia" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1" (click)="voltarParaSemana()" matTooltip="Voltar para visão semanal">
-        <mat-icon class="!text-sm">arrow_back</mat-icon>
+      <button *ngIf="isFiltradoPorDia" mat-icon-button class="!w-8 !h-8 !leading-8 mr-1 flex items-center justify-center bg-gray-100" (click)="voltarParaSemana()" matTooltip="Voltar para visão semanal">
+        <mat-icon class="!text-base">arrow_back</mat-icon>
       </button>
 
       <!-- Botão Voltar para o Mês (vindo da Semana) -->
-      <button *ngIf="isFiltradoPorSemana" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1" (click)="voltarParaMes()" matTooltip="Voltar para visão mensal">
-        <mat-icon class="!text-sm">arrow_back</mat-icon>
+      <button *ngIf="isFiltradoPorSemana" mat-icon-button class="!w-8 !h-8 !leading-8 mr-1 flex items-center justify-center bg-gray-100" (click)="voltarParaMes()" matTooltip="Voltar para visão mensal">
+        <mat-icon class="!text-base">arrow_back</mat-icon>
       </button>
 
       <!-- Botão Voltar para os Anos (vindo do ano dentro de personalizado multi-ano) -->
-      <button *ngIf="isFiltradoPorAnoPersonalizado" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1" (click)="voltarParaPersonalizado()" matTooltip="Voltar para visão por anos">
-        <mat-icon class="!text-sm">arrow_back</mat-icon>
+      <button *ngIf="isFiltradoPorAnoPersonalizado" mat-icon-button class="!w-8 !h-8 !leading-8 mr-1 flex items-center justify-center bg-gray-100" (click)="voltarParaPersonalizado()" matTooltip="Voltar para visão por anos">
+        <mat-icon class="!text-base">arrow_back</mat-icon>
       </button>
 
       <!-- Botão Voltar para o Ano / Personalizado (vindo do Mês) -->
-      <button *ngIf="isFiltradoPorMes && !isFiltradoPorSemana" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1"
+      <button *ngIf="isFiltradoPorMes && !isFiltradoPorSemana" mat-icon-button class="!w-8 !h-8 !leading-8 mr-1 flex items-center justify-center bg-gray-100"
               (click)="origemMesPersonalizadoMesmoAno ? voltarParaPersonalizado() : voltarParaAno()"
               matTooltip="Voltar para visão anterior">
-        <mat-icon class="!text-sm">arrow_back</mat-icon>
+        <mat-icon class="!text-base">arrow_back</mat-icon>
       </button>
 
       {{ tituloGrafico }}

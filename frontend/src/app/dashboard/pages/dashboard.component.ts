@@ -151,6 +151,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.dashboardService.refreshDashboard(this.filtro);
   }
 
+  limparPersonalizado(): void {
+    this.dataInicio = '';
+    this.dataFim = '';
+    this.periodoSelecionado = 'dia';
+    this.filtro = { periodo: 'dia' };
+    this.carregando = true;
+    this.dashboardService.refreshDashboard(this.filtro);
+  }
+
   aoFiltrarPeloGrafico(novoFiltro: FiltroDashboard): void {
     this.filtro = novoFiltro;
     this.periodoSelecionado = novoFiltro.periodo || 'ano';

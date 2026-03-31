@@ -19,6 +19,7 @@ export interface PorClassificacao {
   amarelo: number;
   verde: number;
   azul: number;
+  aguardando?: number;
 }
 
 /** Retorno de /api/dashboard/overview */

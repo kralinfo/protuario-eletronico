@@ -18,30 +18,97 @@
     <div class="w-40 h-40 rounded-full bg-gray-100 animate-pulse"></div>
   </div>
 
-  <!-- Gráfico + legenda -->
+  <!-- Gráfico SVG + legenda -->
   <div *ngIf="total > 0 && !carregando" class="flex-1 flex flex-col gap-4">
+
+    <!-- Donut SVG -->
     <div class="relative mx-auto" style="width:160px;height:160px;">
-      <canvas #riskCanvas></canvas>
+      <svg viewBox="0 0 200 200" width="160" height="160" style="overflow:visible;">
+        <!-- Trilho de fundo -->
+        <circle cx="100" cy="100" [attr.r]="RAIO" fill="none" stroke="#f1f5f9" stroke-width="22"/>
+
+        <!-- Segmentos animados (exceto o hovered, que vem depois para ficar na frente) -->
+        <circle
+          *ngFor="let seg of segmentos; trackBy: trackBySeg"
+          [style.visibility]="hoveredOriginalIndex === seg.originalIndex ? 'hidden' : 'visible'"
+          cx="100" cy="100"
+          [attr.r]="RAIO"
+          fill="none"
+          [attr.stroke]="seg.cor"
+          stroke-width="22"
+          stroke-linecap="round"
+          [attr.transform]="'rotate(' + seg.rotateDeg + ' 100 100)'"
+          [attr.stroke-dasharray]="CIRCUM + ' ' + CIRCUM"
+          [attr.stroke-dashoffset]="animando ? seg.finalOffset : CIRCUM"
+          [style.transition]="'stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1) ' + seg.delay + 's'"
+          style="pointer-events: none;"
+          (mouseenter)="hoveredOriginalIndex = seg.originalIndex"
+          (mouseleave)="hoveredOriginalIndex = null"
+        />
+
+        <!-- Segmento hovered renderizado por último (sempre na frente) -->
+        <ng-container *ngFor="let seg of segmentos; trackBy: trackBySeg">
+          <circle
+            *ngIf="hoveredOriginalIndex === seg.originalIndex"
+            cx="100" cy="100"
+            [attr.r]="RAIO"
+            fill="none"
+            [attr.stroke]="seg.cor"
+            stroke-width="30"
+            stroke-linecap="round"
+            [attr.transform]="'rotate(' + seg.rotateDeg + ' 100 100)'"
+            [attr.stroke-dasharray]="CIRCUM + ' ' + CIRCUM"
+            [attr.stroke-dashoffset]="seg.finalOffset"
+            style="pointer-events: none; filter: drop-shadow(0 0 4px rgba(0,0,0,0.18));"
+          />
+        </ng-container>
+
+        <!-- Overlay invisível: captura cliques e resolve hover por ângulo -->
+        <circle
+          cx="100" cy="100"
+          [attr.r]="RAIO"
+          fill="none"
+          stroke="rgba(0,0,0,0)"
+          stroke-width="26"
+          style="cursor:pointer;"
+          pointer-events="stroke"
+          (click)="onDonutClick($event)"
+          (mousemove)="onDonutHover($event)"
+          (mouseleave)="hoveredOriginalIndex = null"
+        />
+      </svg>
+
+      <!-- Texto central -->
       <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span class="text-2xl font-bold text-gray-700">{{ total }}</span>
-        <span class="text-xs text-gray-400">pacientes</span>
+        <span class="text-3xl font-bold text-gray-800 leading-none" style="transition: all 0.2s ease;">
+          {{ hoveredSeg ? hoveredSeg.valor : total }}
+        </span>
+        <span class="text-xs text-gray-400 mt-0.5 text-center" style="max-width:80px; transition: all 0.2s ease; line-height:1.2">
+          {{ hoveredSeg ? hoveredSeg.label : 'pacientes' }}
+        </span>
       </div>
     </div>
 
+    <!-- Legenda -->
     <ul class="space-y-1.5 text-sm">
       <li *ngFor="let l of LABELS; let i = index"
           class="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
-          (click)="abrirDetalheRisco(l)">
+          [class.opacity-40]="valores[i] === 0"
+          (click)="abrirDetalheRisco(l)"
+          (mouseenter)="hoveredOriginalIndex = i"
+          (mouseleave)="hoveredOriginalIndex = null">
         <span class="flex items-center gap-1.5">
           <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
                 [style.background-color]="COLORS[i]"></span>
           <span class="text-gray-600 group-hover:font-medium group-hover:text-gray-900">{{ l }}</span>
         </span>
-        <span class="font-semibold flex items-center gap-1" [style.color]="COLORS[i]">
+        <span class="font-semibold flex items-center gap-1"
+              [style.color]="l === 'Aguardando Triagem' ? '#94a3b8' : COLORS[i]">
           {{ valores[i] }}
           <mat-icon class="!text-xs opacity-0 group-hover:opacity-60">chevron_right</mat-icon>
         </span>
       </li>
     </ul>
+
   </div>
 </div>

@@ -390,16 +390,15 @@ class DashboardService {
     const { expr, params } = this._filtroPeriodo(coluna, periodo, data, dataInicio, dataFim);
 
     const result = await db.query(
-      `SELECT classificacao_risco AS nivel,
-              COUNT(*)::int       AS total
+      `SELECT COALESCE(classificacao_risco, 'AGUARDANDO') AS nivel,
+              COUNT(*)::int                        AS total
        FROM atendimentos
        WHERE ${expr}
-         AND classificacao_risco IS NOT NULL
-       GROUP BY classificacao_risco`,
+       GROUP BY COALESCE(classificacao_risco, 'AGUARDANDO')`,
       params
     );
 
-    const NIVEIS = ['vermelho', 'laranja', 'amarelo', 'verde', 'azul'];
+    const NIVEIS = ['vermelho', 'laranja', 'amarelo', 'verde', 'azul', 'aguardando'];
     const mapa   = Object.fromEntries(
       result.rows.map(r => [(r.nivel || '').toLowerCase(), r.total])
     );
@@ -412,20 +411,28 @@ class DashboardService {
 
   async pacientesPorRiscoDetalhe(nivel, periodo, data, dataInicio, dataFim) {
     const { expr, params } = this._filtroPeriodo(
-      'COALESCE(a.data_inicio_triagem, a.data_hora_atendimento)', periodo, data, dataInicio, dataFim
+      'COALESCE(a.data_inicio_triagem, a.data_hora_atendimento, a.created_at)', periodo, data, dataInicio, dataFim
     );
 
-    const nivelExpr = nivel === 'Qualquer'
-      ? 'a.classificacao_risco IS NOT NULL'
-      : `LOWER(a.classificacao_risco) = LOWER($${params.length + 1})`;
+    let nivelExpr;
+    let queryParams;
 
-    const queryParams = nivel === 'Qualquer' ? params : [...params, nivel];
+    if (nivel === 'Qualquer') {
+      nivelExpr = 'a.classificacao_risco IS NOT NULL';
+      queryParams = params;
+    } else if (nivel.toLowerCase().includes('aguardando')) {
+      nivelExpr = 'a.classificacao_risco IS NULL';
+      queryParams = params;
+    } else {
+      nivelExpr = `LOWER(a.classificacao_risco) = LOWER($${params.length + 1})`;
+      queryParams = [...params, nivel];
+    }
 
     const result = await db.query(
       `SELECT
          a.id,
          p.nome AS "pacienteNome",
-         a.data_hora_atendimento AS chegada,
+         COALESCE(a.data_hora_atendimento, a.created_at) AS chegada,
          a.data_hora_atendimento AS "dataHoraInicio",
          a.status,
          a.classificacao_risco,
@@ -435,7 +442,7 @@ class DashboardService {
        JOIN pacientes p ON a.paciente_id = p.id
        LEFT JOIN usuarios u ON a.usuario_id = u.id
        WHERE ${nivelExpr} AND ${expr}
-       ORDER BY a.data_hora_atendimento DESC`,
+       ORDER BY COALESCE(a.data_hora_atendimento, a.created_at) DESC`,
       queryParams
     );
 
