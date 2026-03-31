@@ -62,7 +62,8 @@ export interface DadosOperacional {
 
 /** Retorno de /api/dashboard/atendimentos-por-hora */
 export interface AtendimentoHora {
-  hora:  string;  // ex: "08:00"
+  hora?: string;  // ex: "08:00"
+  mes?:  number;  // 1-12
   total: number;
 }
 

@@ -4,6 +4,9 @@
   <div>
     <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2 mb-4">
       <mat-icon class="text-blue-500 !text-base">show_chart</mat-icon>
+      <button *ngIf="isFiltradoPorMes" mat-icon-button class="!w-6 !h-6 !leading-6 mr-1" (click)="voltarParaAno()" matTooltip="Voltar para visão anual">
+        <mat-icon class="!text-sm">arrow_back</mat-icon>
+      </button>
       {{ tituloGrafico }}
     </h3>
 
@@ -11,7 +14,7 @@
 
     <div *ngIf="!carregando && !dadosHora.length" class="h-40 flex flex-col items-center justify-center text-gray-300 gap-2">
       <mat-icon class="!text-4xl">bar_chart</mat-icon>
-      <span class="text-sm">Sem dados de hoje</span>
+      <span class="text-sm">Sem dados {{ isFiltradoPorMes ? 'neste mês' : 'neste período' }}</span>
     </div>
 
     <div *ngIf="!carregando && dadosHora.length" style="height:160px; position:relative;">

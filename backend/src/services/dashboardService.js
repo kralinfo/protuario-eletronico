@@ -144,6 +144,31 @@ class DashboardService {
   async atendimentosPorHora(periodo, data, dataInicio, dataFim) {
     const { expr, params } = this._filtroPeriodo('data_hora_atendimento', periodo, data, dataInicio, dataFim);
 
+    // Para período 'ano' sem data específica, agrupa por mês (1-12)
+    if (periodo === 'ano' && !data && !dataInicio) {
+      const result = await db.query(
+        `SELECT EXTRACT(MONTH FROM data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')::int AS m,
+                COUNT(*)::int AS total
+         FROM atendimentos
+         WHERE ${expr}
+         GROUP BY m
+         ORDER BY m`,
+        params
+      );
+      
+      const meses = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+      ];
+      const mapa = Object.fromEntries(result.rows.map(r => [r.m, r.total]));
+      
+      return meses.map((nome, i) => ({
+        hora: nome, // Usamos 'hora' como label genérico para o frontend
+        total: mapa[i + 1] ?? 0,
+        mes: i + 1  // Informação extra para o clique
+      }));
+    }
+
     // Para período > dia ou intervalo customizado multi-dia, agrupa por data; caso contrário, por hora
     const isRange = dataInicio && dataFim && dataInicio !== dataFim;
     if ((periodo && periodo !== 'dia' && !data) || isRange) {

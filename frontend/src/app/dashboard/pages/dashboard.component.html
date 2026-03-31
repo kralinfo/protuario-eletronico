@@ -118,7 +118,8 @@
           [operacional]="operacional"
           [periodo]="periodoSelecionado"
           [filtro]="filtro"
-          [carregando]="carregando">
+          [carregando]="carregando"
+          (filtered)="aoFiltrarPeloGrafico($event)">
         </app-dashboard-flow-chart>
       </div>
 

@@ -1,12 +1,14 @@
 import {
   Component, Input, OnChanges, AfterViewInit,
-  SimpleChanges, ViewChild, ElementRef, OnDestroy
+  SimpleChanges, ViewChild, ElementRef, OnDestroy, Output, EventEmitter
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Chart, registerables } from 'chart.js';
-import { AtendimentoHora, DadosOperacional, PeriodoDashboard, FiltroDashboard } from '../../../services/dashboard.service';
+import { AtendimentoHora, DadosOperacional, PeriodoDashboard, FiltroDashboard, DashboardService } from '../../../services/dashboard.service';
 import { DoctorProductivityDialogComponent } from '../doctor-productivity-dialog/doctor-productivity-dialog.component';
 
 Chart.register(...registerables);
@@ -15,7 +17,7 @@ Chart.register(...registerables);
   selector: 'app-dashboard-flow-chart',
   templateUrl: './dashboard-flow-chart.component.html',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatDialogModule]
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule, MatDialogModule]
 })
 export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() dadosHora: AtendimentoHora[] = [];
@@ -23,15 +25,21 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   @Input() carregando = false;
   @Input() periodo: PeriodoDashboard | 'personalizado' = 'dia';
   @Input() filtro?: FiltroDashboard;
+  @Output() filtered = new EventEmitter<FiltroDashboard>();
 
   @ViewChild('barCanvas') barRef!: ElementRef<HTMLCanvasElement>;
 
   private chartBar?: Chart;
   private viewReady = false;
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog, private dashboardService: DashboardService) {}
 
   get tituloGrafico(): string {
+    if (this.isFiltradoPorMes) {
+      const dataLabel = this.filtro?.dataInicio || '';
+      return `Atendimentos em ${this.getNomeMes(dataLabel)}`;
+    }
+
     const map: Record<PeriodoDashboard | 'personalizado', string> = {
       dia:          'Atendimentos por Hora (hoje)',
       semana:       'Atendimentos por Dia (esta semana)',
@@ -40,6 +48,24 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
       personalizado:'Atendimentos por Dia (período selecionado)',
     };
     return map[this.periodo];
+  }
+
+  get isFiltradoPorMes(): boolean {
+    // Detecta se estamos no modo drill-down: período é 'ano' mas existe intervalo personalizado
+    return this.periodo === 'ano' && !!(this.filtro?.dataInicio && this.filtro?.dataFim);
+  }
+
+  private getNomeMes(dataIso: string): string {
+    const mes = parseInt(dataIso.split('-')[1]);
+    const meses = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return meses[mes - 1] || '';
+  }
+
+  voltarParaAno(): void {
+    this.filtered.emit({ periodo: 'ano' });
   }
 
   readonly ETAPAS: { label: string; campo: keyof DadosOperacional; cor: string }[] = [
@@ -122,8 +148,24 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
         onClick: (event: any, elements: any[]) => {
           if (elements.length > 0) {
             const index = elements[0].index;
-            const label = labels[index];
+            const label = labels[index] || '';
             const total = (dados[index] as number);
+            const rawData = this.dadosHora[index];
+
+            // Drill-down: Se clicar em um mês na visão anual
+            if (this.periodo === 'ano' && !this.isFiltradoPorMes && rawData.mes) {
+              const anoAtual = new Date().getFullYear();
+              const mesStr = String(rawData.mes).padStart(2, '0');
+              const ultimoDia = new Date(anoAtual, rawData.mes, 0).getDate();
+
+              const novoFiltro: FiltroDashboard = {
+                periodo: 'ano', // Mantemos 'ano' mas injetamos o range do mês
+                dataInicio: `${anoAtual}-${mesStr}-01`,
+                dataFim: `${anoAtual}-${mesStr}-${ultimoDia}`
+              };
+              this.filtered.emit(novoFiltro);
+              return;
+            }
 
             if (total > 0) {
               const novoFiltro = { ...this.filtro };

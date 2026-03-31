@@ -151,6 +151,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.dashboardService.refreshDashboard(this.filtro);
   }
 
+  aoFiltrarPeloGrafico(novoFiltro: FiltroDashboard): void {
+    this.filtro = novoFiltro;
+    this.periodoSelecionado = novoFiltro.periodo || 'ano';
+
+    // Se for um filtro de data exata vindo do drill-down, preenchemos os campos de data
+    if (novoFiltro.dataInicio && novoFiltro.dataFim) {
+      this.dataInicio = novoFiltro.dataInicio;
+      this.dataFim = novoFiltro.dataFim;
+    } else {
+      this.dataInicio = '';
+      this.dataFim = '';
+    }
+
+    this.carregando = true;
+    this.dashboardService.refreshDashboard(this.filtro);
+  }
+
   refreshManual(): void {
     this.carregando = true;
     this.dashboardService.refreshDashboard(this.filtro);
