@@ -169,6 +169,45 @@ class DashboardService {
       }));
     }
 
+    // Para período 'mes' agrupa por SEMANA do mês.
+    // Isso cobre dois casos:
+    //   1) periodo = 'mes' sem dataInicio (mês atual)
+    //   2) periodo = 'mes' com dataInicio/dataFim cobrindo um mês inteiro (drill-down do ano)
+    const isMonthFilter = periodo === 'mes' || (periodo === 'ano' && data && data.length === 7);
+    const isFullMonthRange = dataInicio && dataFim &&
+      ((new Date(dataFim).getTime() - new Date(dataInicio).getTime()) / (1000 * 60 * 60 * 24)) > 10;
+
+    if (isMonthFilter && (!dataInicio || isFullMonthRange)) {
+      // Se data for "YYYY-MM", filtramos por esse mês específico em vez de usar a expr padrão do switch
+      let finalExpr = expr;
+      let finalParams = params;
+      
+      if (data && data.length === 7) {
+        finalExpr = `TO_CHAR(data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife', 'YYYY-MM') = $1`;
+        finalParams = [data];
+      }
+
+      const result = await db.query(
+        `SELECT 
+           FLOOR((EXTRACT(DAY FROM data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') - 1) / 7 + 1)::int AS s,
+           COUNT(*)::int AS total
+         FROM atendimentos
+         WHERE ${finalExpr}
+         GROUP BY s
+         ORDER BY s`,
+        finalParams
+      );
+
+      const mapa = Object.fromEntries(result.rows.map(r => [r.s, r.total]));
+      
+      // Retorna 5 semanas para cobrir todos os meses
+      return Array.from({ length: 5 }, (_, i) => ({
+        hora: `Semana ${i + 1}`,
+        total: mapa[i + 1] ?? 0,
+        semana: i + 1
+      }));
+    }
+
     // Para período > dia ou intervalo customizado multi-dia, agrupa por data; caso contrário, por hora
     const isRange = dataInicio && dataFim && dataInicio !== dataFim;
     if ((periodo && periodo !== 'dia' && !data) || isRange) {
@@ -181,6 +220,35 @@ class DashboardService {
          ORDER BY d`,
         params
       );
+
+      // Se for um range curto (até 10 dias), garantimos todos os dias
+      if (dataInicio && dataFim) {
+        const start = new Date(dataInicio);
+        const end = new Date(dataFim);
+        const diff = (end - start) / (1000 * 60 * 60 * 24);
+
+        if (diff >= 1 && diff <= 10) {
+          const mapa = Object.fromEntries(
+            result.rows.map(r => {
+              const key = r.d instanceof Date ? r.d.toISOString().slice(0, 10) : String(r.d).slice(0, 10);
+              return [key, r.total];
+            })
+          );
+
+          const dias = [];
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const iso = d.toISOString().slice(0, 10);
+            const [y, m, day] = iso.split('-');
+            dias.push({
+              hora: `${day}/${m}`, // Label amigável: DD/MM
+              total: mapa[iso] ?? 0,
+              data: iso
+            });
+          }
+          return dias;
+        }
+      }
+
       return result.rows.map(r => ({
         hora:  r.d instanceof Date
           ? r.d.toISOString().slice(0, 10)

@@ -35,15 +35,18 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   constructor(private dialog: MatDialog, private dashboardService: DashboardService) {}
 
   get tituloGrafico(): string {
+    if (this.isFiltradoPorSemana) {
+      return `Atendimentos por Dia (esta semana)`;
+    }
     if (this.isFiltradoPorMes) {
       const dataLabel = this.filtro?.dataInicio || '';
-      return `Atendimentos em ${this.getNomeMes(dataLabel)}`;
+      return `Atendimentos em ${this.getNomeMes(dataLabel)} (por semana)`;
     }
 
     const map: Record<PeriodoDashboard | 'personalizado', string> = {
       dia:          'Atendimentos por Hora (hoje)',
       semana:       'Atendimentos por Dia (esta semana)',
-      mes:          'Atendimentos por Dia (este mês)',
+      mes:          'Atendimentos por Semana (este mês)',
       ano:          'Atendimentos por Mês (este ano)',
       personalizado:'Atendimentos por Dia (período selecionado)',
     };
@@ -51,12 +54,35 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   }
 
   get isFiltradoPorMes(): boolean {
-    // Detecta se estamos no modo drill-down: período é 'ano' mas existe intervalo personalizado
-    return this.periodo === 'ano' && !!(this.filtro?.dataInicio && this.filtro?.dataFim);
+    // Estamos visualizando semanas de um mês (drill-down do ano)
+    if (this.periodo !== 'mes') return false;
+    if (!this.filtro?.dataInicio || !this.filtro?.dataFim) return false;
+
+    const d1 = new Date(this.filtro.dataInicio);
+    const d2 = new Date(this.filtro.dataFim);
+    const diffDays = Math.ceil(Math.abs(d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Se o período for 'mes' e o intervalo for maior que 10 dias, assumimos que é a visão de semanas
+    return diffDays > 10;
+  }
+
+  get isFiltradoPorSemana(): boolean {
+    // Estamos visualizando dias de uma semana (drill-down do mês)
+    if (this.periodo !== 'mes') return false;
+    if (!this.filtro?.dataInicio || !this.filtro?.dataFim) return false;
+
+    const d1 = new Date(this.filtro.dataInicio);
+    const d2 = new Date(this.filtro.dataFim);
+    const diffDays = Math.ceil(Math.abs(d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Se o intervalo for de 7 dias ou menos, é a visão de dias da semana
+    return diffDays <= 8;
   }
 
   private getNomeMes(dataIso: string): string {
-    const mes = parseInt(dataIso.split('-')[1]);
+    const mesArr = dataIso.split('-');
+    if (mesArr.length < 2) return '';
+    const mes = parseInt(mesArr[1]);
     const meses = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
@@ -66,6 +92,20 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
 
   voltarParaAno(): void {
     this.filtered.emit({ periodo: 'ano' });
+  }
+
+  voltarParaMes(): void {
+    // Reconstrói o range do mês inteiro a partir da data de referência atual
+    const ref = (this.filtro?.dataInicio) ? new Date(this.filtro.dataInicio) : new Date();
+    const ano = ref.getUTCFullYear();
+    const mes = ref.getUTCMonth(); // 0-based
+    const mesStr = String(mes + 1).padStart(2, '0');
+    const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+    this.filtered.emit({
+      periodo: 'mes',
+      dataInicio: `${ano}-${mesStr}-01`,
+      dataFim: `${ano}-${mesStr}-${String(ultimoDia).padStart(2, '0')}`
+    });
   }
 
   readonly ETAPAS: { label: string; campo: keyof DadosOperacional; cor: string }[] = [
@@ -153,15 +193,43 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
             const rawData = this.dadosHora[index];
 
             // Drill-down: Se clicar em um mês na visão anual
-            if (this.periodo === 'ano' && !this.isFiltradoPorMes && rawData.mes) {
+            if (this.periodo === 'ano' && rawData.mes) {
               const anoAtual = new Date().getFullYear();
               const mesStr = String(rawData.mes).padStart(2, '0');
               const ultimoDia = new Date(anoAtual, rawData.mes, 0).getDate();
 
               const novoFiltro: FiltroDashboard = {
-                periodo: 'ano', // Mantemos 'ano' mas injetamos o range do mês
+                periodo: 'mes',
                 dataInicio: `${anoAtual}-${mesStr}-01`,
                 dataFim: `${anoAtual}-${mesStr}-${ultimoDia}`
+              };
+              this.filtered.emit(novoFiltro);
+              return;
+            }
+
+            // Drill-down: Se clicar em uma semana na visão mensal (agrupada por semanas)
+            if (this.periodo === 'mes' && this.isFiltradoPorMes && rawData.semana) {
+              const dataRef = (this.filtro && this.filtro.dataInicio) ? new Date(this.filtro.dataInicio) : new Date();
+              const anoAtual = dataRef.getUTCFullYear();
+              const mesRef = dataRef.getUTCMonth();
+              const mesStr = String(mesRef + 1).padStart(2, '0');
+
+              // Calcula os dias da semana (S1: 01-07, S2: 08-14, S3: 15-21, S4: 22-28, S5: 29-fim)
+              const diaInicioNum = (rawData.semana - 1) * 7 + 1;
+              const diaInicio = String(diaInicioNum).padStart(2, '0');
+
+              let diaFimNum = rawData.semana * 7;
+              const ultimoDiaDoMes = new Date(anoAtual, mesRef + 1, 0).getDate();
+
+              if (diaFimNum > ultimoDiaDoMes) {
+                diaFimNum = ultimoDiaDoMes;
+              }
+              const diaFim = String(diaFimNum).padStart(2, '0');
+
+              const novoFiltro: FiltroDashboard = {
+                periodo: 'mes',
+                dataInicio: `${anoAtual}-${mesStr}-${diaInicio}`,
+                dataFim: `${anoAtual}-${mesStr}-${diaFim}`
               };
               this.filtered.emit(novoFiltro);
               return;

@@ -62,8 +62,10 @@ export interface DadosOperacional {
 
 /** Retorno de /api/dashboard/atendimentos-por-hora */
 export interface AtendimentoHora {
-  hora?: string;  // ex: "08:00"
-  mes?:  number;  // 1-12
+  hora?: string;  // ex: "08:00" ou "Semana 1"
+  mes?:  number;  // 1-12 (Adicionado para suportar drill-down anual)
+  semana?: number; // 1-5 (Adicionado para suportar drill-down mensal)
+  dia?: number;    // 1-31 (Adicionado para suportar drill-down semanal)
   total: number;
 }
 
