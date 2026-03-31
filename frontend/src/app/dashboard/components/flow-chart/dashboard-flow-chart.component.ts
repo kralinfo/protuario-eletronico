@@ -181,6 +181,12 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   }
 
   voltarParaSemana(): void {
+    // Se veio do filtro nativo 'semana', volta diretamente para ele
+    if (this.filtro?.originalPeriodo === 'semana') {
+      this.filtered.emit({ periodo: 'semana' });
+      return;
+    }
+
     if (!this.filtro?.data) return;
 
     const dataRef = new Date(this.filtro.data);
@@ -369,6 +375,32 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
                 ...(this.filtro?.originalDataInicio ? { originalDataInicio: this.filtro.originalDataInicio, originalDataFim: this.filtro.originalDataFim } : {})
               };
               this.filtered.emit(novoFiltro);
+              return;
+            }
+
+            // Drill-down: filtro nativo 'mes' (sem dataInicio) → clique em semana → dias da semana
+            if (this.periodo === 'mes' && !this.filtro?.dataInicio && rawData.semana) {
+              const now = new Date();
+              const ano = now.getFullYear();
+              const mes = now.getMonth(); // 0-based
+              const mesStr = String(mes + 1).padStart(2, '0');
+              const diaInicioNum = (rawData.semana - 1) * 7 + 1;
+              const diaInicio = String(diaInicioNum).padStart(2, '0');
+              let diaFimNum = rawData.semana * 7;
+              const ultimoDiaDoMes = new Date(ano, mes + 1, 0).getDate();
+              if (diaFimNum > ultimoDiaDoMes) diaFimNum = ultimoDiaDoMes;
+              const diaFim = String(diaFimNum).padStart(2, '0');
+              this.filtered.emit({
+                periodo: 'mes',
+                dataInicio: `${ano}-${mesStr}-${diaInicio}`,
+                dataFim: `${ano}-${mesStr}-${diaFim}`
+              });
+              return;
+            }
+
+            // Drill-down: filtro nativo 'semana' → clique em dia → horas daquele dia
+            if (this.periodo === 'semana' && rawData.hora && /^\d{4}-\d{2}-\d{2}$/.test(rawData.hora)) {
+              this.filtered.emit({ periodo: 'dia', data: rawData.hora, originalPeriodo: 'semana' });
               return;
             }
 

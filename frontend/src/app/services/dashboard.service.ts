@@ -108,6 +108,7 @@ export interface FiltroDashboard {
   dataFim?: string;           // YYYY-MM-DD — limite superior do intervalo personalizado
   originalDataInicio?: string; // Limite original do range personalizado (preservado durante drill-down)
   originalDataFim?: string;    // Limite original do range personalizado (preservado durante drill-down)
+  originalPeriodo?: string;    // Período de origem antes do drill-down (ex: 'semana')
   medicoId?: number;
 }
 
