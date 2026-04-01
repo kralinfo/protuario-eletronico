@@ -1,10 +1,10 @@
-<div class="mb-6 rounded-xl overflow-hidden shadow-sm border border-blue-100">
+<div class="mb-6 rounded-xl overflow-hidden shadow-sm border border-gray-200">
 
   <!-- ══ Barra de cabeçalho (sempre visível) ══ -->
   <div
     class="flex items-center justify-between px-5 py-3 bg-white cursor-pointer select-none"
     [class.border-b]="expandido"
-    [class.border-blue-100]="expandido"
+    [class.border-gray-200]="expandido"
     (click)="toggleExpand()">
 
     <!-- Título + badge "tempo real" -->
@@ -48,7 +48,7 @@
   </div>
 
   <!-- ══ Conteúdo expansível ══ -->
-  <div *ngIf="expandido" class="bg-blue-50/40 p-5">
+  <div *ngIf="expandido" class="bg-white p-5 border-t border-gray-100">
 
     <!-- Skeleton -->
     <div *ngIf="carregando" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
