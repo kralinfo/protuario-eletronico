@@ -221,11 +221,13 @@ export class DashboardService {
   /** Converte FiltroDashboard em HttpParams tipados (nenhum `any`). */
   private _toParams(filtro?: FiltroDashboard): HttpParams {
     let p = new HttpParams();
-    if (filtro?.periodo)    p = p.set('periodo',    filtro.periodo);
-    if (filtro?.data)       p = p.set('data',       filtro.data);
-    if (filtro?.dataInicio) p = p.set('dataInicio', filtro.dataInicio);
-    if (filtro?.dataFim)    p = p.set('dataFim',    filtro.dataFim);
-    if (filtro?.medicoId)   p = p.set('medicoId',   String(filtro.medicoId));
+    if (filtro?.periodo)       p = p.set('periodo',       filtro.periodo);
+    if (filtro?.data)          p = p.set('data',          filtro.data);
+    if (filtro?.dataInicio)    p = p.set('dataInicio',    filtro.dataInicio);
+    if (filtro?.dataFim)       p = p.set('dataFim',       filtro.dataFim);
+    if (filtro?.medicoId)      p = p.set('medicoId',      String(filtro.medicoId));
+    if (filtro?.classificacao) p = p.set('classificacao', filtro.classificacao);
+    if (filtro?.hora)          p = p.set('hora',          filtro.hora);
     return p;
   }
 }

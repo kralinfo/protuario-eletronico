@@ -692,11 +692,27 @@ class DashboardService {
    * GET /dashboard/atendimentos
    *
    * Lista paginada de atendimentos com os mesmos filtros do dashboard.
-   * Parâmetros: page (1-based), limit, periodo, data, dataInicio, dataFim
+   * Parâmetros: page (1-based), limit, periodo, data, dataInicio, dataFim, classificacao, hora
    * Retorna: { dados: [], total: number }
    */
-  async atendimentosPaginados(page, limit, periodo, data, dataInicio, dataFim) {
-    const { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
+  async atendimentosPaginados(page, limit, periodo, data, dataInicio, dataFim, classificacao, hora) {
+    let { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
+
+    // Filtro por classificação
+    if (classificacao) {
+      if (classificacao.toUpperCase() === 'AGUARDANDO TRIAGEM') {
+        expr += ` AND (a.classificacao_risco IS NULL OR UPPER(a.classificacao_risco) = 'AGUARDANDO TRIAGEM' OR a.status = 'aguardando_triagem')`;
+      } else {
+        params.push(classificacao.toUpperCase());
+        expr += ` AND UPPER(a.classificacao_risco) = $${params.length}`;
+      }
+    }
+
+    // Filtro por hora específica (ex: "08:00")
+    if (hora && /^\d{2}:\d{2}$/.test(hora)) {
+      params.push(hora);
+      expr += ` AND TO_CHAR(a.data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife', 'HH24:00') = $${params.length}`;
+    }
 
     const offset = (page - 1) * limit;
     const dataParams = [...params, limit, offset];

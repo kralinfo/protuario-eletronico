@@ -42,8 +42,6 @@
           [attr.stroke-dashoffset]="animando ? seg.finalOffset : CIRCUM"
           [style.transition]="'stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1) ' + seg.delay + 's'"
           style="pointer-events: none;"
-          (mouseenter)="hoveredOriginalIndex = seg.originalIndex"
-          (mouseleave)="hoveredOriginalIndex = null"
         />
 
         <!-- Segmento hovered renderizado por último (sempre na frente) -->
@@ -78,14 +76,29 @@
         />
       </svg>
 
-      <!-- Texto central -->
+      <!-- Texto central: apenas exibe, sem bloquear eventos do SVG -->
       <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span class="text-3xl font-bold text-gray-800 leading-none" style="transition: all 0.2s ease;">
+        <span class="text-3xl font-bold leading-none transition-all duration-200"
+              [class.text-blue-600]="isCenterHovered"
+              [class.scale-110]="isCenterHovered"
+              [class.text-gray-800]="!isCenterHovered">
           {{ hoveredSeg ? hoveredSeg.valor : total }}
         </span>
-        <span class="text-xs text-gray-400 mt-0.5 text-center" style="max-width:80px; transition: all 0.2s ease; line-height:1.2">
+        <span class="text-xs mt-0.5 text-center transition-all duration-200"
+              [class.text-blue-500]="isCenterHovered"
+              [class.text-gray-400]="!isCenterHovered"
+              style="max-width:80px; line-height:1.2">
           {{ hoveredSeg ? hoveredSeg.label : 'pacientes' }}
         </span>
+      </div>
+
+      <!-- Área clicável apenas no buraco central do donut -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer"
+           style="width:104px;height:104px;"
+           (click)="limparFiltroClassificacao()"
+           (mouseenter)="isCenterHovered = true"
+           (mouseleave)="isCenterHovered = false"
+           [matTooltip]="'Clique para ver todos os pacientes'">
       </div>
     </div>
 

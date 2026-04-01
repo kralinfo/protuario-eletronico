@@ -5,6 +5,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { PorClassificacao, FiltroDashboard } from '../../../services/dashboard.service';
 
 interface Segmento {
@@ -21,7 +22,7 @@ interface Segmento {
   selector: 'app-dashboard-risk-chart',
   templateUrl: './dashboard-risk-chart.component.html',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatDialogModule]
+  imports: [CommonModule, MatIconModule, MatDialogModule, MatTooltipModule]
 })
 export class DashboardRiskChartComponent implements OnChanges, OnDestroy {
   @Input() dados: PorClassificacao = { vermelho: 0, laranja: 0, amarelo: 0, verde: 0, azul: 0, aguardando: 0 };
@@ -73,6 +74,7 @@ export class DashboardRiskChartComponent implements OnChanges, OnDestroy {
 
   animando = false;
   hoveredOriginalIndex: number | null = null;
+  isCenterHovered = false;
   private animTimeout?: ReturnType<typeof setTimeout>;
 
   // Cache — recalculado apenas quando `dados` muda (evita thrashing do *ngFor)

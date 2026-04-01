@@ -15,11 +15,13 @@ const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_LIMIT = 100;
 
 function extrairParams(req) {
-  const data      = req.query.data      && RE_DATA.test(req.query.data)      ? req.query.data      : null;
-  const dataInicio = req.query.dataInicio && RE_DATA.test(req.query.dataInicio) ? req.query.dataInicio : null;
-  const dataFim   = req.query.dataFim   && RE_DATA.test(req.query.dataFim)   ? req.query.dataFim   : null;
-  const periodo   = PERIODOS_VALIDOS.includes(req.query.periodo) ? req.query.periodo : 'dia';
-  return { periodo, data, dataInicio, dataFim };
+  const data       = req.query.data       && RE_DATA.test(req.query.data)       ? req.query.data       : null;
+  const dataInicio  = req.query.dataInicio  && RE_DATA.test(req.query.dataInicio)  ? req.query.dataInicio  : null;
+  const dataFim     = req.query.dataFim     && RE_DATA.test(req.query.dataFim)     ? req.query.dataFim     : null;
+  const periodo     = PERIODOS_VALIDOS.includes(req.query.periodo) ? req.query.periodo : 'dia';
+  const classificacao = req.query.classificacao || null;
+  const hora          = req.query.hora          || null;
+  return { periodo, data, dataInicio, dataFim, classificacao, hora };
 }
 
 class DashboardController {
@@ -128,10 +130,10 @@ class DashboardController {
 
   static async atendimentosPaginados(req, res) {
     try {
-      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const { periodo, data, dataInicio, dataFim, classificacao, hora } = extrairParams(req);
       const page  = Math.max(1, parseInt(req.query.page)  || 1);
       const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(req.query.limit) || 10));
-      const resultado = await dashboardService.atendimentosPaginados(page, limit, periodo, data, dataInicio, dataFim);
+      const resultado = await dashboardService.atendimentosPaginados(page, limit, periodo, data, dataInicio, dataFim, classificacao, hora);
       res.json(resultado);
     } catch (error) {
       console.error('[DashboardController] atendimentosPaginados:', error);
