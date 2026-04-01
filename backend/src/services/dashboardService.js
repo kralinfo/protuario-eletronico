@@ -697,7 +697,7 @@ class DashboardService {
    */
   async atendimentosPaginados(page, limit, periodo, data, dataInicio, dataFim, classificacao, hora) {
     let { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
-
+    
     // Filtro por classificação
     if (classificacao) {
       if (classificacao.toUpperCase() === 'AGUARDANDO TRIAGEM') {
@@ -731,21 +731,29 @@ class DashboardService {
            a.classificacao_risco AS "classificacaoRisco",
            a.data_hora_atendimento AS "dataHoraAtendimento",
            a.updated_at   AS "dataHoraFim",
-           u.nome         AS "medicoNome"
+           COALESCE(um.nome, u.nome) AS "medicoNome"
          FROM atendimentos a
          JOIN pacientes p ON a.paciente_id = p.id
          LEFT JOIN usuarios u ON a.usuario_id = u.id
+         LEFT JOIN consultas_medicas cm ON a.id = cm.atendimento_id
+         LEFT JOIN usuarios um ON cm.medico_id = um.id
          WHERE ${expr}
          ORDER BY a.data_hora_atendimento DESC
          LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
         dataParams
-      ),
+      ).catch(err => {
+        console.error('ERRO NA QUERY DE ATENDIMENTOS:', err, 'EXPR:', expr, 'PARAMS:', dataParams);
+        throw err;
+      }),
       db.query(
         `SELECT COUNT(*)::int AS total
          FROM atendimentos a
          WHERE ${expr}`,
         countParams
-      )
+      ).catch(err => {
+        console.error('ERRO NO COUNT DE ATENDIMENTOS:', err, 'EXPR:', expr, 'PARAMS:', countParams);
+        throw err;
+      })
     ]);
 
     return {

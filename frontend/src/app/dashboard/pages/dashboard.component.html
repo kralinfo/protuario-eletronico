@@ -105,7 +105,14 @@
 
     </section>
 
-    <!-- ════════════════════════════════ 2. BASE — Tabela médicos ════════════════════════ -->
+    <!-- ═══════════════════════════ 2. BASE — TABELA DE ATENDIMENTOS ════════════════════════════ -->
+    <section class="mb-6">
+      <app-dashboard-atendimentos-table
+        [filtro]="filtro">
+      </app-dashboard-atendimentos-table>
+    </section>
+
+    <!-- ════════════════════════════════ 3. RODAPÉ — Tabela médicos ════════════════════════ -->
     <section class="mb-6">
       <app-dashboard-doctors-table
         [medicos]="medicos"
@@ -114,13 +121,6 @@
         [filtro]="filtro"
         (medicoSelecionado)="abrirDetalhesMedico($event)">
       </app-dashboard-doctors-table>
-    </section>
-
-    <!-- ═══════════════════════════ 3. TABELA DE ATENDIMENTOS ════════════════════════════ -->
-    <section class="mb-6">
-      <app-dashboard-atendimentos-table
-        [filtro]="filtro">
-      </app-dashboard-atendimentos-table>
     </section>
 
     <!-- ════════════════════════════════ Rodapé de info ══════════════════════════════════ -->
