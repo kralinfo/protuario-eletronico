@@ -226,6 +226,43 @@ class DashboardService {
       }));
     }
 
+    // Para período 'semana' nativo, garantimos todos os dias da semana atual
+    if (periodo === 'semana' && !dataInicio && !data) {
+      const result = await db.query(
+        `SELECT DATE(data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') AS d,
+                COUNT(*)::int AS total
+         FROM atendimentos
+         WHERE ${expr}
+         GROUP BY d
+         ORDER BY d`,
+        params
+      );
+
+      const mapa = Object.fromEntries(
+        result.rows.map(r => {
+          const key = r.d instanceof Date ? r.d.toISOString().slice(0, 10) : String(r.d);
+          return [key, r.total];
+        })
+      );
+
+      // Gera range da semana atual (segunda a hoje) usando DATE_TRUNC('week')
+      const weekStartRes = await db.query(`SELECT DATE_TRUNC('week', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')::date AS start`);
+      const start = new Date(weekStartRes.rows[0].start);
+      const end = new Date(); // Hoje
+
+      const dias = [];
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const iso = d.toISOString().slice(0, 10);
+        const [y, m, day] = iso.split('-');
+        dias.push({
+          hora: `${day}/${m}`,
+          total: mapa[iso] ?? 0,
+          data: iso
+        });
+      }
+      return dias;
+    }
+
     // Para período 'mes' agrupa por SEMANA do mês.
     // Isso cobre dois casos:
     //   1) periodo = 'mes' sem dataInicio (mês atual)

@@ -358,7 +358,7 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
               const diaFim = String(diaFimNum).padStart(2, '0');
 
               const novoFiltro: FiltroDashboard = {
-                periodo: 'mes',
+                periodo: 'semana', // <--- Mudado de 'mes' para 'semana'
                 dataInicio: `${anoAtual}-${mesStr}-${diaInicio}`,
                 dataFim: `${anoAtual}-${mesStr}-${diaFim}`,
                 ...(this.filtro?.originalDataInicio ? { originalDataInicio: this.filtro.originalDataInicio, originalDataFim: this.filtro.originalDataFim } : {})
@@ -378,6 +378,16 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
               return;
             }
 
+            // Drill-down: Se clicar em um dia na visão nativa 'semana' → abre as horas daquele dia
+            if (this.periodo === 'semana' && rawData.data) {
+              const novoFiltro: FiltroDashboard = {
+                periodo: 'dia',
+                data: rawData.data
+              };
+              this.filtered.emit(novoFiltro);
+              return;
+            }
+
             // Drill-down: filtro nativo 'mes' (sem dataInicio) → clique em semana → dias da semana
             if (this.periodo === 'mes' && !this.filtro?.dataInicio && rawData.semana) {
               const now = new Date();
@@ -391,7 +401,7 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
               if (diaFimNum > ultimoDiaDoMes) diaFimNum = ultimoDiaDoMes;
               const diaFim = String(diaFimNum).padStart(2, '0');
               this.filtered.emit({
-                periodo: 'mes',
+                periodo: 'semana', // <--- Mudado de 'mes' para 'semana'
                 dataInicio: `${ano}-${mesStr}-${diaInicio}`,
                 dataFim: `${ano}-${mesStr}-${diaFim}`
               });

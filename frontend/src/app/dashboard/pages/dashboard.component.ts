@@ -151,7 +151,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   aoFiltrarPeloGrafico(novoFiltro: FiltroDashboard): void {
     this.filtro = novoFiltro;
-    this.periodoSelecionado = novoFiltro.periodo || 'ano';
+
+    // Se o filtro vier com dataInicio/dataFim e for um range de semana (<= 8 dias),
+    // forçamos o período selecionado para 'semana' para manter sincronia com o seletor superior.
+    if (novoFiltro.dataInicio && novoFiltro.dataFim) {
+      const d1 = new Date(novoFiltro.dataInicio);
+      const d2 = new Date(novoFiltro.dataFim);
+      const diff = Math.ceil(Math.abs(d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+      if (diff <= 8) {
+        this.periodoSelecionado = 'semana';
+      } else if (diff > 10 && diff <= 31) {
+        this.periodoSelecionado = 'mes';
+      } else {
+        this.periodoSelecionado = novoFiltro.periodo || 'ano';
+      }
+    } else {
+      this.periodoSelecionado = novoFiltro.periodo || 'ano';
+    }
 
     // Se for um filtro de data exata vindo do drill-down, preenchemos os campos de data
     if (novoFiltro.dataInicio && novoFiltro.dataFim) {
