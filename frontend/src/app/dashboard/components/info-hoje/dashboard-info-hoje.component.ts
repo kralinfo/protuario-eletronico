@@ -8,7 +8,7 @@ import { Subject, BehaviorSubject, interval, switchMap, takeUntil } from 'rxjs';
 import {
   DashboardService,
   DadosOperacional,
-  PorClassificacao
+  PeriodoDashboard
 } from '../../../services/dashboard.service';
 import { DashboardKpiCardComponent } from '../kpi-card/dashboard-kpi-card.component';
 import { DashboardCriticalListComponent } from '../critical-list/dashboard-critical-list.component';
@@ -38,8 +38,8 @@ const OPERACIONAL_VAZIO: DadosOperacional = {
 })
 export class DashboardInfoHojeComponent implements OnInit, OnChanges, OnDestroy {
 
-  /** Informa se o filtro global está em "HOJE" — controla expand/collapse automático */
-  @Input() isHoje = true;
+  /** Período global selecionado no dashboard — controla expand/collapse automático */
+  @Input() periodo: PeriodoDashboard | 'personalizado' = 'dia';
 
   operacional: DadosOperacional = { ...OPERACIONAL_VAZIO };
   carregando = true;
@@ -51,7 +51,7 @@ export class DashboardInfoHojeComponent implements OnInit, OnChanges, OnDestroy 
   constructor(private dashboardService: DashboardService) {}
 
   ngOnInit(): void {
-    this.expandido = this.isHoje;
+    this.expandido = this.periodo === 'dia';
 
     // Stream independente — sempre busca dados do dia atual
     this.refresh$.pipe(
@@ -74,9 +74,9 @@ export class DashboardInfoHojeComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Quando o filtro global muda, ajusta expand/collapse automaticamente
-    if (changes['isHoje'] && !changes['isHoje'].firstChange) {
-      this.expandido = changes['isHoje'].currentValue;
+    // Toda mudança de período reaplica a regra: só expande quando for "hoje"
+    if (changes['periodo'] && !changes['periodo'].firstChange) {
+      this.expandido = changes['periodo'].currentValue === 'dia';
     }
   }
 
