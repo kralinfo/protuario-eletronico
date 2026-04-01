@@ -15,6 +15,8 @@ O dashboard oferece uma visão em tempo real e histórica da operação da unida
   - `KPI Cards`: [frontend/src/app/dashboard/components/kpi-card/](frontend/src/app/dashboard/components/kpi-card/)
   - `Gráfico de Risco`: [frontend/src/app/dashboard/components/risk-chart/](frontend/src/app/dashboard/components/risk-chart/)
   - `Gráfico de Fluxo`: [frontend/src/app/dashboard/components/flow-chart/](frontend/src/app/dashboard/components/flow-chart/)
+  - `Informações Hoje`: [frontend/src/app/dashboard/components/info-hoje/](frontend/src/app/dashboard/components/info-hoje/)
+  - `Tabela de Atendimentos`: [frontend/src/app/dashboard/components/atendimentos-table/](frontend/src/app/dashboard/components/atendimentos-table/)
   - `Tabela de Médicos`: [frontend/src/app/dashboard/components/doctors-table/](frontend/src/app/dashboard/components/doctors-table/)
   - `Lista Crítica`: [frontend/src/app/dashboard/components/critical-list/](frontend/src/app/dashboard/components/critical-list/)
 
@@ -24,19 +26,24 @@ O dashboard oferece uma visão em tempo real e histórica da operação da unida
 
 ## 🚀 Funcionalidades Chave
 
-### 1. Filtros de Período
+### 1. Filtros de Período e "Hoje Real"
 - **Padrão:** Hoje (`dia`).
 - **Opções:** Semana, Mês, Ano e Personalizado.
-- **Polling:** Quando o período 'dia' está selecionado, o dashboard atualiza automaticamente a cada 30 segundos (`INTERVALO_POLLING`).
+- **Identificação de Hoje:** A seção superior ("Informações Hoje") expande automaticamente apenas se o período for `dia` E a data selecionada coincidir com a data atual do servidor/máquina.
+- **Polling:** A seção "Informações Hoje" possui polling independente de 30 segundos (`INTERVALO_POLLING`), garantindo monitoramento em tempo real mesmo com filtros de datas históricas ativos no restante do dashboard.
 
 ### 2. Fluxo de Dados (RxJS)
-- O `DashboardService` utiliza um `BehaviorSubject` (`refresh$`) para gerenciar as atualizações.
-- O método `getDashboardStream()` centraliza as requisições via `switchMap`, garantindo que apenas a última requisição seja processada.
-- Os dados são agregados no frontend através da interface `DadosDashboard`.
+- O `DashboardService` utiliza um `BehaviorSubject` (`refresh$`) para gerenciar as atualizações de todo o dashboard.
+- O método `getDashboardStream()` centraliza as requisições via `switchMap`.
+- A tabela detalhada de atendimentos (`DashboardAtendimentosTableComponent`) escuta as mudanças no `FiltroDashboard` e realiza requisições paginadas (server-side) automaticamente.
 
-### 3. Drill-down e Filtros Dinâmicos
-- Os gráficos permitem cliques para filtrar períodos específicos (ex: clicar em um mês no gráfico anual muda a visão para aquele mês).
-- O estado do filtro é mantido na interface `FiltroDashboard`.
+### 3. Drill-down e Interatividade de Gráficos
+- **Sem Modais:** Os cliques nos gráficos (atendimentos por hora e classificação de risco) não abrem mais modais. Eles atualizam diretamente o filtro global.
+- **Filtros Dinâmicos:** 
+  - Clicar em uma barra de hora filtra a tabela por aquela hora específica.
+  - Clicar em uma fatia do gráfico de pizza filtra por aquela classificação de risco.
+  - Clicar no centro do gráfico de pizza (total) limpa o filtro de classificação.
+- O estado do filtro é centralizado na interface `FiltroDashboard`, que suporta `periodo`, `data`, `dataInicio`, `dataFim`, `classificacao`, `hora` e `medicoId`.
 
 ## 🎨 Padrões de UI/UX
 - **Framework:** Angular 17+ (Standalone Components).
