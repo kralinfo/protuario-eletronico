@@ -1,12 +1,11 @@
 import {
   Component, Input, OnChanges,
-  SimpleChanges, OnDestroy
+  SimpleChanges, OnDestroy, Output, EventEmitter
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { PorClassificacao, FiltroDashboard } from '../../../services/dashboard.service';
-import { DoctorProductivityDialogComponent } from '../doctor-productivity-dialog/doctor-productivity-dialog.component';
 
 interface Segmento {
   cor: string;
@@ -28,6 +27,7 @@ export class DashboardRiskChartComponent implements OnChanges, OnDestroy {
   @Input() dados: PorClassificacao = { vermelho: 0, laranja: 0, amarelo: 0, verde: 0, azul: 0, aguardando: 0 };
   @Input() carregando = false;
   @Input() filtro: FiltroDashboard = { periodo: 'dia' };
+  @Output() filtered = new EventEmitter<FiltroDashboard>();
 
   private readonly MESES = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -85,7 +85,7 @@ export class DashboardRiskChartComponent implements OnChanges, OnDestroy {
     return this.segmentos.find(s => s.originalIndex === this.hoveredOriginalIndex) ?? null;
   }
 
-  constructor(private dialog: MatDialog) {}
+  constructor() {}
 
   private _recalcular(): void {
     const d = this.dados;
@@ -154,7 +154,15 @@ export class DashboardRiskChartComponent implements OnChanges, OnDestroy {
 
   onDonutClick(event: MouseEvent): void {
     const seg = this._segmentoPorAngulo(event);
-    if (seg) this.abrirDetalheRisco(seg.label);
+    if (seg) {
+      this.filtrarPorClassificacao(seg.label);
+    } else {
+      // Se clicou no centro ou fora de um segmento (mas dentro do SVG), limpa o filtro de classificação
+      const svg = (event.target as SVGElement).closest('svg');
+      if (svg) {
+        this.limparFiltroClassificacao();
+      }
+    }
   }
 
   onDonutHover(event: MouseEvent): void {
@@ -162,14 +170,17 @@ export class DashboardRiskChartComponent implements OnChanges, OnDestroy {
     this.hoveredOriginalIndex = seg ? seg.originalIndex : null;
   }
 
-  abrirDetalheRisco(nivel: string): void {
-    const idx = this.LABELS.findIndex(l => l.toLowerCase() === nivel.toLowerCase());
-    const total = idx >= 0 ? this.valores[idx] : this.total;
-    if (total === 0) return;
-    this.dialog.open(DoctorProductivityDialogComponent, {
-      data: { modo: 'etapa', etapaNome: nivel, total, filtro: this.filtro, tipoDetalhe: 'risco' },
-      width: '850px',
-      maxWidth: '95vw'
-    });
+  filtrarPorClassificacao(nivel: string): void {
+    const novoFiltro: FiltroDashboard = {
+      ...this.filtro,
+      classificacao: nivel.toUpperCase()
+    };
+    this.filtered.emit(novoFiltro);
+  }
+
+  limparFiltroClassificacao(): void {
+    const novoFiltro: FiltroDashboard = { ...this.filtro };
+    delete novoFiltro.classificacao;
+    this.filtered.emit(novoFiltro);
   }
 }

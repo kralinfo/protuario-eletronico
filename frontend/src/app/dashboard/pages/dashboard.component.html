@@ -97,7 +97,8 @@
         <app-dashboard-risk-chart
           [dados]="operacional.por_classificacao"
           [filtro]="filtro"
-          [carregando]="carregando">
+          [carregando]="carregando"
+          (filtered)="aoFiltrarPeloGrafico($event)">
         </app-dashboard-risk-chart>
       </div>
 

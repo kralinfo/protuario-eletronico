@@ -94,7 +94,7 @@
       <li *ngFor="let l of LABELS; let i = index"
           class="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
           [class.opacity-40]="valores[i] === 0"
-          (click)="abrirDetalheRisco(l)"
+          (click)="filtrarPorClassificacao(l)"
           (mouseenter)="hoveredOriginalIndex = i"
           (mouseleave)="hoveredOriginalIndex = null">
         <span class="flex items-center gap-1.5">

@@ -128,6 +128,8 @@ export interface FiltroDashboard {
   originalDataFim?: string;    // Limite original do range personalizado (preservado durante drill-down)
   originalPeriodo?: string;    // Período de origem antes do drill-down (ex: 'semana')
   medicoId?: number;
+  classificacao?: string;      // Filtro por classificação de risco (VERMELHO, AMARELO, etc.)
+  hora?: string;               // Filtro por hora específica (HH:00)
 }
 
 // ─── Service ─────────────────────────────────────────────────────────────────

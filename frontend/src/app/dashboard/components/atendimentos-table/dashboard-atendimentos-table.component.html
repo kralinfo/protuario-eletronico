@@ -1,9 +1,24 @@
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
 
   <!-- Cabeçalho -->
-  <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-    <mat-icon class="text-blue-500 !text-base">list_alt</mat-icon>
-    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Atendimentos do Período</h3>
+  <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-4">
+    <div class="flex items-center gap-2">
+      <mat-icon class="text-blue-500 !text-base">list_alt</mat-icon>
+      <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Atendimentos do Período</h3>
+    </div>
+
+    <!-- Badges de Filtros Ativos -->
+    <div class="flex items-center gap-2" *ngIf="filtro.hora || filtro.classificacao">
+      <span *ngIf="filtro.hora" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-blue-100">
+        <mat-icon class="!text-[10px] h-3 w-3">schedule</mat-icon>
+        {{ filtro.hora }}
+      </span>
+      <span *ngIf="filtro.classificacao" class="bg-gray-50 text-gray-600 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-gray-200">
+        <mat-icon class="!text-[10px] h-3 w-3">flag</mat-icon>
+        {{ filtro.classificacao }}
+      </span>
+    </div>
+
     <span *ngIf="!carregando" class="ml-auto text-xs text-gray-400">{{ total }} registro(s)</span>
   </div>
 

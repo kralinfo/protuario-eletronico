@@ -421,8 +421,19 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
               return;
             }
 
+            // AO CLICAR EM UMA HORA (VISÃO DE DIA)
+            if (this.periodo === 'dia' && label.includes(':')) {
+              const novoFiltro: FiltroDashboard = {
+                ...this.filtro,
+                periodo: 'dia',
+                hora: label
+              };
+              this.filtered.emit(novoFiltro);
+              return;
+            }
+
             if (total > 0) {
-              const novoFiltro = { ...this.filtro };
+              const novoFiltro: FiltroDashboard = { ...this.filtro };
 
               if (this.periodo !== 'dia' && label.includes('-')) {
                 novoFiltro.data = label;
@@ -430,16 +441,9 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
                 delete novoFiltro.dataFim;
               }
 
-              this.dialog.open(DoctorProductivityDialogComponent, {
-                data: {
-                  modo: 'etapa',
-                  etapaNome: 'Qualquer', // Nome especial para buscar todos do período
-                  total: total,
-                  filtro: novoFiltro
-                },
-                width: '850px',
-                maxWidth: '95vw'
-              });
+              // Se clicou em algo que não é drill-down nem hora específica,
+              // mas tem total, podemos querer filtrar a tabela por esse critério temporal.
+              this.filtered.emit(novoFiltro);
             }
           }
         },
