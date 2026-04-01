@@ -86,7 +86,8 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   }
 
   get isFiltradoPorSemana(): boolean {
-    // Estamos visualizando dias de uma semana (drill-down do mês)
+    // Estamos visualizando dias de uma semana (drill-down do mês OU seletor direto)
+    if (this.periodo === 'semana') return true;
     if (this.periodo !== 'mes') return false;
     if (!this.filtro?.dataInicio || !this.filtro?.dataFim) return false;
 
@@ -165,6 +166,12 @@ export class DashboardFlowChartComponent implements AfterViewInit, OnChanges, On
   }
 
   voltarParaMes(): void {
+    // Se o período for 'semana' nativo, voltamos para o gráfico do ano'
+    if (this.periodo === 'semana' && !this.filtro?.dataInicio) {
+      this.filtered.emit({ periodo: 'ano' });
+      return;
+    }
+
     // Reconstrói o range do mês inteiro a partir da data de referência atual
     const ref = (this.filtro?.dataInicio) ? new Date(this.filtro.dataInicio) : new Date();
     const ano = ref.getUTCFullYear();
