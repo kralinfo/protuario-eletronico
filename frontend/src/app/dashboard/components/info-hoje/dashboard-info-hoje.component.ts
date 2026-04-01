@@ -8,7 +8,8 @@ import { Subject, BehaviorSubject, interval, switchMap, takeUntil } from 'rxjs';
 import {
   DashboardService,
   DadosOperacional,
-  PeriodoDashboard
+  PeriodoDashboard,
+  FiltroDashboard
 } from '../../../services/dashboard.service';
 import { DashboardKpiCardComponent } from '../kpi-card/dashboard-kpi-card.component';
 import { DashboardCriticalListComponent } from '../critical-list/dashboard-critical-list.component';
@@ -40,6 +41,7 @@ export class DashboardInfoHojeComponent implements OnInit, OnChanges, OnDestroy 
 
   /** Período global selecionado no dashboard — controla expand/collapse automático */
   @Input() periodo: PeriodoDashboard | 'personalizado' = 'dia';
+  @Input() filtro: FiltroDashboard = { periodo: 'dia' };
 
   operacional: DadosOperacional = { ...OPERACIONAL_VAZIO };
   carregando = true;
@@ -50,10 +52,23 @@ export class DashboardInfoHojeComponent implements OnInit, OnChanges, OnDestroy 
 
   constructor(private dashboardService: DashboardService) {}
 
-  ngOnInit(): void {
-    this.expandido = this.periodo === 'dia';
+  get isHoje(): boolean {
+    if (this.periodo !== 'dia') return false;
 
-    // Stream independente — sempre busca dados do dia atual
+    // Se tiver uma data específica e NÃO for a data de hoje, não é "hoje real"
+    if (this.filtro.data) {
+      const hoje = new Date().toISOString().slice(0, 10);
+      return this.filtro.data === hoje;
+    }
+
+    // Se estiver no período 'dia' sem data específica, assume-se que é o dia atual (nativo)
+    return true;
+  }
+
+  ngOnInit(): void {
+    this.expandido = this.isHoje;
+
+    // Stream independente — sempre busca dados do dia atual (realtime)
     this.refresh$.pipe(
       switchMap(() => this.dashboardService.getOperacional({ periodo: 'dia' })),
       takeUntil(this.destroy$)
@@ -74,9 +89,9 @@ export class DashboardInfoHojeComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Toda mudança de período reaplica a regra: só expande quando for "hoje"
-    if (changes['periodo'] && !changes['periodo'].firstChange) {
-      this.expandido = changes['periodo'].currentValue === 'dia';
+    // Toda mudança de período ou filtro reaplica a regra: só expande quando for "hoje real"
+    if ((changes['periodo'] || changes['filtro']) && !changes['periodo']?.firstChange) {
+      this.expandido = this.isHoje;
     }
   }
 
