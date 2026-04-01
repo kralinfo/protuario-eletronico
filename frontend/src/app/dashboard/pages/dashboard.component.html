@@ -159,6 +159,13 @@
       </app-dashboard-critical-list>
     </section>
 
+    <!-- ═══════════════════════════ 5. TABELA DE ATENDIMENTOS ════════════════════════════ -->
+    <section class="mb-6">
+      <app-dashboard-atendimentos-table
+        [filtro]="filtro">
+      </app-dashboard-atendimentos-table>
+    </section>
+
     <!-- ════════════════════════════════ Rodapé de info ══════════════════════════════════ -->
     <footer class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 pb-6 text-xs text-gray-400">
       <span>Atualização automática a cada 30 segundos</span>

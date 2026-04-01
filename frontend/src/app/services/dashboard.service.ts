@@ -92,6 +92,23 @@ export interface AtendimentoMedicoDetalhe {
   classificacao: string;
 }
 
+/** Item da tabela paginada de atendimentos do dashboard */
+export interface AtendimentoDashboard {
+  id: number;
+  pacienteNome: string;
+  status: string;
+  classificacaoRisco: string;
+  dataHoraAtendimento: string;
+  dataHoraFim: string;
+  medicoNome: string | null;
+}
+
+/** Resposta paginada de atendimentos */
+export interface RespostaAtendimentosPaginados {
+  dados: AtendimentoDashboard[];
+  total: number;
+}
+
 /** Agregado completo do dashboard */
 export interface DadosDashboard {
   operacional: DadosOperacional;
@@ -162,6 +179,11 @@ export class DashboardService {
       `${this.base}/produtividade-medicos`,
       { params: this._toParams(filtro) }
     );
+  }
+
+  getAtendimentosPaginados(page: number, limit: number, filtro?: FiltroDashboard): Observable<RespostaAtendimentosPaginados> {
+    let p = this._toParams(filtro).set('page', String(page)).set('limit', String(limit));
+    return this.http.get<RespostaAtendimentosPaginados>(`${this.base}/atendimentos`, { params: p });
   }
 
   getAtendimentosPorMedico(medicoId: number, filtro?: FiltroDashboard): Observable<AtendimentoMedicoDetalhe[]> {

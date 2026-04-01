@@ -25,6 +25,7 @@ import { DashboardFlowChartComponent } from '../components/flow-chart/dashboard-
 import { DashboardDoctorsTableComponent } from '../components/doctors-table/dashboard-doctors-table.component';
 import { DashboardCriticalListComponent } from '../components/critical-list/dashboard-critical-list.component';
 import { DoctorProductivityDialogComponent } from '../components/doctor-productivity-dialog/doctor-productivity-dialog.component';
+import { DashboardAtendimentosTableComponent } from '../components/atendimentos-table/dashboard-atendimentos-table.component';
 
 const INTERVALO_POLLING = 30_000;
 
@@ -52,7 +53,8 @@ const OPERACIONAL_VAZIO: DadosOperacional = {
     DashboardRiskChartComponent,
     DashboardFlowChartComponent,
     DashboardDoctorsTableComponent,
-    DashboardCriticalListComponent
+    DashboardCriticalListComponent,
+    DashboardAtendimentosTableComponent
   ]
 })
 export class DashboardComponent implements OnInit, OnDestroy {

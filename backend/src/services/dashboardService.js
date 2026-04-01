@@ -649,6 +649,58 @@ class DashboardService {
 
   // ─── abandonos ─────────────────────────────────────────────────────────────
 
+  // ─── atendimentos paginados ────────────────────────────────────────────────
+
+  /**
+   * GET /dashboard/atendimentos
+   *
+   * Lista paginada de atendimentos com os mesmos filtros do dashboard.
+   * Parâmetros: page (1-based), limit, periodo, data, dataInicio, dataFim
+   * Retorna: { dados: [], total: number }
+   */
+  async atendimentosPaginados(page, limit, periodo, data, dataInicio, dataFim) {
+    const { expr, params } = this._filtroPeriodo('a.data_hora_atendimento', periodo, data, dataInicio, dataFim);
+
+    const offset = (page - 1) * limit;
+    const dataParams = [...params, limit, offset];
+    const countParams = [...params];
+
+    // Ajusta os placeholders para LIMIT e OFFSET virem depois dos parâmetros de filtro
+    const limitIdx  = params.length + 1;
+    const offsetIdx = params.length + 2;
+
+    const [dadosRes, totalRes] = await Promise.all([
+      db.query(
+        `SELECT
+           a.id,
+           p.nome         AS "pacienteNome",
+           a.status,
+           a.classificacao_risco AS "classificacaoRisco",
+           a.data_hora_atendimento AS "dataHoraAtendimento",
+           a.updated_at   AS "dataHoraFim",
+           u.nome         AS "medicoNome"
+         FROM atendimentos a
+         JOIN pacientes p ON a.paciente_id = p.id
+         LEFT JOIN usuarios u ON a.usuario_id = u.id
+         WHERE ${expr}
+         ORDER BY a.data_hora_atendimento DESC
+         LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+        dataParams
+      ),
+      db.query(
+        `SELECT COUNT(*)::int AS total
+         FROM atendimentos a
+         WHERE ${expr}`,
+        countParams
+      )
+    ]);
+
+    return {
+      dados: dadosRes.rows,
+      total: totalRes.rows[0].total
+    };
+  }
+
   /**
    * Conta atendimentos abandonados no dia.
    */

@@ -12,6 +12,7 @@ import dashboardService from '../services/dashboardService.js';
 
 const PERIODOS_VALIDOS = ['dia', 'semana', 'mes', 'ano'];
 const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_LIMIT = 100;
 
 function extrairParams(req) {
   const data      = req.query.data      && RE_DATA.test(req.query.data)      ? req.query.data      : null;
@@ -122,6 +123,19 @@ class DashboardController {
     } catch (error) {
       console.error('[DashboardController] atendimentoPorMedico:', error);
       res.status(500).json({ message: 'Erro interno ao carregar atendimentos do médico.' });
+    }
+  }
+
+  static async atendimentosPaginados(req, res) {
+    try {
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const page  = Math.max(1, parseInt(req.query.page)  || 1);
+      const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(req.query.limit) || 10));
+      const resultado = await dashboardService.atendimentosPaginados(page, limit, periodo, data, dataInicio, dataFim);
+      res.json(resultado);
+    } catch (error) {
+      console.error('[DashboardController] atendimentosPaginados:', error);
+      res.status(500).json({ message: 'Erro interno ao carregar atendimentos.' });
     }
   }
 

@@ -6,6 +6,7 @@ const router = Router();
 
 // ── Novos endpoints (contrato camelCase) ──────────────────────────────────
 router.get('/overview',              authenticateToken, DashboardController.overview);
+router.get('/atendimentos',          authenticateToken, DashboardController.atendimentosPaginados);
 router.get('/atendimentos-por-hora', authenticateToken, DashboardController.atendimentosPorHora);
 router.get('/classificacao-risco',   authenticateToken, DashboardController.classificacaoRisco);
 router.get('/pacientes-por-etapa',   authenticateToken, DashboardController.pacientesPorEtapa);
