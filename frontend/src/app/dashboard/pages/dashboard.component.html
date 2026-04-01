@@ -72,49 +72,12 @@
       Não foi possível carregar dados. Verifique a conexão com o servidor.
     </div>
 
-    <!-- ═══════════════════════════════════ 1. TOPO — KPIs ════════════════════════════════ -->
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- ══════════════════ 0. INFORMAÇÕES DO DIA (independente de filtro) ═══════════════ -->
+    <app-dashboard-info-hoje
+      [isHoje]="periodoSelecionado === 'dia'">
+    </app-dashboard-info-hoje>
 
-      <app-dashboard-kpi-card
-        titulo="Total no Dia"
-        [valor]="operacional.total_hoje"
-        icone="people"
-        cor="gray"
-        subtitulo="Atendimentos abertos hoje"
-        [carregando]="carregando">
-      </app-dashboard-kpi-card>
-
-      <app-dashboard-kpi-card
-        titulo="Em Atendimento"
-        [valor]="operacional.em_atendimento"
-        icone="medical_services"
-        cor="blue"
-        subtitulo="Médico ou ambulatorial"
-        [carregando]="carregando">
-      </app-dashboard-kpi-card>
-
-      <app-dashboard-kpi-card
-        titulo="Espera p/ Triagem"
-        [valor]="operacional.tempo_medio_espera"
-        unidade="min"
-        icone="hourglass_empty"
-        cor="orange"
-        [subtitulo]="operacional.aguardando_triagem + ' aguardando'"
-        [carregando]="carregando">
-      </app-dashboard-kpi-card>
-
-      <app-dashboard-kpi-card
-        titulo="Finalizados"
-        [valor]="operacional.concluidos"
-        icone="check_circle"
-        cor="green"
-        [subtitulo]="taxaConclusao + '% de conclusão'"
-        [carregando]="carregando">
-      </app-dashboard-kpi-card>
-
-    </section>
-
-    <!-- ════════════════════════════════ 2. MEIO — Gráficos ══════════════════════════════ -->
+    <!-- ════════════════════════════════ 1. MEIO — Gráficos ══════════════════════════════ -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
       <!-- Linha + Etapas (2 colunas) -->
@@ -140,7 +103,7 @@
 
     </section>
 
-    <!-- ════════════════════════════════ 3. BASE — Tabela médicos ════════════════════════ -->
+    <!-- ════════════════════════════════ 2. BASE — Tabela médicos ════════════════════════ -->
     <section class="mb-6">
       <app-dashboard-doctors-table
         [medicos]="medicos"
@@ -151,15 +114,7 @@
       </app-dashboard-doctors-table>
     </section>
 
-    <!-- ══════════════════════════════ 4. LISTA CRÍTICA ══════════════════════════════════ -->
-    <section class="mb-6">
-      <app-dashboard-critical-list
-        [alertas]="operacional.alertas_criticos"
-        [carregando]="carregando">
-      </app-dashboard-critical-list>
-    </section>
-
-    <!-- ═══════════════════════════ 5. TABELA DE ATENDIMENTOS ════════════════════════════ -->
+    <!-- ═══════════════════════════ 3. TABELA DE ATENDIMENTOS ════════════════════════════ -->
     <section class="mb-6">
       <app-dashboard-atendimentos-table
         [filtro]="filtro">
@@ -168,7 +123,7 @@
 
     <!-- ════════════════════════════════ Rodapé de info ══════════════════════════════════ -->
     <footer class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 pb-6 text-xs text-gray-400">
-      <span>Atualização automática a cada 30 segundos</span>
+      <span>Informações do dia atualizam automaticamente a cada 30 segundos</span>
       <div class="flex items-center gap-4">
         <span>Abandonos: <strong class="text-gray-600">{{ operacional.abandonos }}</strong></span>
         <span>Pós-triagem: <strong class="text-gray-600">{{ operacional.pos_triagem }}</strong></span>

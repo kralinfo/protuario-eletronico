@@ -7,7 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router, NavigationEnd } from '@angular/router';
-import { Subject, interval, takeUntil, filter, pairwise, startWith } from 'rxjs';
+import { Subject, takeUntil, filter, pairwise, startWith } from 'rxjs';
 
 import {
   DashboardService,
@@ -19,15 +19,12 @@ import {
   PeriodoDashboard
 } from '../../services/dashboard.service';
 
-import { DashboardKpiCardComponent } from '../components/kpi-card/dashboard-kpi-card.component';
+import { DashboardInfoHojeComponent } from '../components/info-hoje/dashboard-info-hoje.component';
 import { DashboardRiskChartComponent } from '../components/risk-chart/dashboard-risk-chart.component';
 import { DashboardFlowChartComponent } from '../components/flow-chart/dashboard-flow-chart.component';
 import { DashboardDoctorsTableComponent } from '../components/doctors-table/dashboard-doctors-table.component';
-import { DashboardCriticalListComponent } from '../components/critical-list/dashboard-critical-list.component';
 import { DoctorProductivityDialogComponent } from '../components/doctor-productivity-dialog/doctor-productivity-dialog.component';
 import { DashboardAtendimentosTableComponent } from '../components/atendimentos-table/dashboard-atendimentos-table.component';
-
-const INTERVALO_POLLING = 30_000;
 
 const OPERACIONAL_VAZIO: DadosOperacional = {
   total_hoje: 0, aguardando_triagem: 0, em_triagem: 0,
@@ -49,11 +46,10 @@ const OPERACIONAL_VAZIO: DadosOperacional = {
     MatTooltipModule,
     MatSnackBarModule,
     MatDialogModule,
-    DashboardKpiCardComponent,
+    DashboardInfoHojeComponent,
     DashboardRiskChartComponent,
     DashboardFlowChartComponent,
     DashboardDoctorsTableComponent,
-    DashboardCriticalListComponent,
     DashboardAtendimentosTableComponent
   ]
 })
@@ -107,15 +103,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this._resetarParaHoje();
       }
     });
-
-    // Polling só no período "dia" (dados em tempo real)
-    interval(INTERVALO_POLLING)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        if (this.periodoSelecionado === 'dia') {
-          this.dashboardService.refreshDashboard(this.filtro);
-        }
-      });
   }
 
   ngOnDestroy(): void {
@@ -226,11 +213,5 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.erro = true;
     this.carregando = false;
     this.snackBar.open('Erro ao atualizar o dashboard.', 'Fechar', { duration: 4000 });
-  }
-
-  get taxaConclusao(): number {
-    return this.operacional.total_hoje > 0
-      ? Math.round((this.operacional.concluidos / this.operacional.total_hoje) * 100)
-      : 0;
   }
 }
