@@ -41,8 +41,8 @@ class DashboardService {
           expr: `DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') >= DATE_TRUNC('year', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') AND DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') <= DATE(CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')`,
           params: []
         };
-      default: // 'dia'
-        return { expr: `DATE(${coluna} AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife')`, params: [] };
+      default: // 'dia' → últimas 24 horas (mesma lógica dos módulos triagem/atendimentos)
+        return { expr: `${coluna} >= NOW() - INTERVAL '24 hours'`, params: [] };
     }
   }
 
@@ -106,7 +106,7 @@ class DashboardService {
                )::int                                                              AS espera_fila
              FROM atendimentos
              WHERE status NOT IN ('atendimento_concluido')
-               AND DATE(data_hora_atendimento AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife') = CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'America/Recife'`
+               AND data_hora_atendimento >= NOW() - INTERVAL '24 hours'`
           )
         : Promise.resolve({ rows: [{ em_atendimento: 0, espera_fila: 0 }] }),
 
@@ -532,10 +532,10 @@ class DashboardService {
     `;
 
     if (isToday) {
-      // Tempo real do dia atual — atendimentos de HOJE ainda não concluídos
+      // Tempo real — atendimentos das últimas 24h ainda não concluídos (mesma lógica triagem)
       const result = await db.query(
         queryBase + ` WHERE status NOT IN ('atendimento_concluido')
-                        AND DATE(data_hora_atendimento) = CURRENT_DATE`
+                        AND data_hora_atendimento >= NOW() - INTERVAL '24 hours'`
       );
       return result.rows[0];
     }

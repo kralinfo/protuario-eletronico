@@ -87,8 +87,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Inicializa o filtro com o período padrão 'dia'
-    this.filtro = { periodo: 'dia' };
+    // Tenta recuperar filtro salvo da sessão (para persistir no reload)
+    const filtroSalvo = sessionStorage.getItem('dashboard_filtro');
+    const periodoSalvo = sessionStorage.getItem('dashboard_periodo');
+
+    if (filtroSalvo && periodoSalvo) {
+      this.filtro = JSON.parse(filtroSalvo);
+      this.periodoSelecionado = periodoSalvo as PeriodoDashboard | 'personalizado';
+
+      // Restaura datas se for personalizado
+      if (this.filtro.dataInicio) this.dataInicio = this.filtro.dataInicio;
+      if (this.filtro.dataFim) this.dataFim = this.filtro.dataFim;
+
+      // Sincroniza o service com o filtro recuperado
+      this.dashboardService.refreshDashboard(this.filtro);
+    } else {
+      this.filtro = { periodo: 'dia' };
+      this.periodoSelecionado = 'dia';
+    }
+
     this._carregarStream();
 
     // Ao voltar para /dashboard vindo de outra rota, reseta o filtro para "Hoje"
@@ -98,11 +115,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
       pairwise(),
       takeUntil(this.destroy$)
     ).subscribe(([prev, curr]) => {
+      // Se prev for null, é o primeiro carregamento da aplicação ou um RELOAD.
+      // Se prev NÃO for null, o usuário navegou de outra rota para cá.
       if (prev !== null) {
-        // O usuário navegou de volta ao dashboard — reseta para "Hoje"
+        // O usuário navegou de outra rota — reseta para "Hoje" e limpa cache
         this._resetarParaHoje();
       }
     });
+  }
+
+  private _salvarFiltro(): void {
+    sessionStorage.setItem('dashboard_filtro', JSON.stringify(this.filtro));
+    sessionStorage.setItem('dashboard_periodo', this.periodoSelecionado);
   }
 
   ngOnDestroy(): void {
@@ -130,6 +154,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (periodo === 'personalizado') return;
     this.filtro = { periodo };
     this.carregando = true;
+    this._salvarFiltro();
     this.dashboardService.refreshDashboard(this.filtro);
   }
 
@@ -137,6 +162,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!this.dataInicio || !this.dataFim) return;
     this.filtro = { dataInicio: this.dataInicio, dataFim: this.dataFim };
     this.carregando = true;
+    this._salvarFiltro();
     this.dashboardService.refreshDashboard(this.filtro);
   }
 
@@ -146,6 +172,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.periodoSelecionado = 'dia';
     this.filtro = { periodo: 'dia' };
     this.carregando = true;
+    this._salvarFiltro();
     this.dashboardService.refreshDashboard(this.filtro);
   }
 
@@ -180,6 +207,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.carregando = true;
+    this._salvarFiltro();
     this.dashboardService.refreshDashboard(this.filtro);
   }
 
@@ -194,6 +222,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.dataFim = '';
     this.filtro = { periodo: 'dia' };
     this.carregando = true;
+    sessionStorage.removeItem('dashboard_filtro');
+    sessionStorage.removeItem('dashboard_periodo');
     this.dashboardService.refreshDashboard(this.filtro);
   }
 
