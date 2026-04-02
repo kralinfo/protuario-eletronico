@@ -1,8 +1,8 @@
-<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col gap-6">
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col h-full">
 
   <!-- ── Linha: Atendimentos por Hora ── -->
-  <div>
-    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2 mb-4">
+  <div class="flex-1 flex flex-col min-h-0">
+    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2 mb-4 shrink-0">
       <mat-icon class="text-blue-500 !text-base">show_chart</mat-icon>
 
       <!-- Botão Voltar para a Semana (vindo do Dia) -->
@@ -37,45 +37,15 @@
       {{ tituloGrafico }}
     </h3>
 
-    <div *ngIf="carregando" class="h-40 animate-pulse bg-gray-100 rounded"></div>
+    <div *ngIf="carregando" class="flex-1 animate-pulse bg-gray-100 rounded min-h-[140px]"></div>
 
-    <div *ngIf="!carregando && !dadosHora.length" class="h-40 flex flex-col items-center justify-center text-gray-300 gap-2">
+    <div *ngIf="!carregando && !dadosHora.length" class="flex-1 flex flex-col items-center justify-center text-gray-300 gap-2 min-h-[140px]">
       <mat-icon class="!text-4xl">bar_chart</mat-icon>
       <span class="text-sm">Sem dados {{ isFiltradoPorMes ? 'neste mês' : 'neste período' }}</span>
     </div>
 
-    <div *ngIf="!carregando && dadosHora.length" style="height:160px; position:relative;">
+    <div *ngIf="!carregando && dadosHora.length" class="flex-1 relative min-h-[140px]">
       <canvas #barCanvas></canvas>
-    </div>
-  </div>
-
-  <!-- Divisória -->
-  <div *ngIf="operacional" class="border-t border-gray-100"></div>
-
-  <!-- ── Barras: Pacientes por Etapa ── -->
-  <div *ngIf="operacional">
-    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2 mb-4">
-      <mat-icon class="text-indigo-500 !text-base">linear_scale</mat-icon>
-      Pacientes por Etapa
-    </h3>
-
-    <div class="space-y-3">
-      <div *ngFor="let etapa of ETAPAS"
-           class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
-           (click)="abrirDetalheEtapa(etapa)">
-        <span class="text-xs text-gray-500 w-32 flex-shrink-0 truncate group-hover:text-gray-900 group-hover:font-medium">{{ etapa.label }}</span>
-        <div class="flex-1 bg-gray-100 rounded-full h-3.5 overflow-hidden">
-          <div
-            class="h-3.5 rounded-full transition-all duration-500"
-            [style.width.%]="getBarWidth(etapa.campo)"
-            [style.background-color]="etapa.cor"
-          ></div>
-        </div>
-        <span class="text-sm font-bold w-8 text-right flex items-center justify-end gap-1" [style.color]="etapa.cor">
-          {{ getValorEtapa(etapa.campo) }}
-          <mat-icon class="!text-xs opacity-0 group-hover:opacity-60">chevron_right</mat-icon>
-        </span>
-      </div>
     </div>
   </div>
 </div>

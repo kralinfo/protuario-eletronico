@@ -19,11 +19,11 @@
   </div>
 
   <!-- Gráfico SVG + legenda -->
-  <div *ngIf="total > 0 && !carregando" class="flex-1 flex flex-col gap-4">
+  <div *ngIf="total > 0 && !carregando" class="flex-1 flex flex-row items-center gap-6">
 
     <!-- Donut SVG -->
-    <div class="relative mx-auto" style="width:160px;height:160px;">
-      <svg viewBox="0 0 200 200" width="160" height="160" style="overflow:visible;">
+    <div class="relative shrink-0" style="width:140px;height:140px;">
+      <svg viewBox="0 0 200 200" width="140" height="140" style="overflow:visible;">
         <!-- Trilho de fundo -->
         <circle cx="100" cy="100" [attr.r]="RAIO" fill="none" stroke="#f1f5f9" stroke-width="22"/>
 
@@ -78,23 +78,23 @@
 
       <!-- Texto central: apenas exibe, sem bloquear eventos do SVG -->
       <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span class="text-3xl font-bold leading-none transition-all duration-200"
+        <span class="text-2xl font-bold leading-none transition-all duration-200"
               [class.text-blue-600]="isCenterHovered"
               [class.scale-110]="isCenterHovered"
               [class.text-gray-800]="!isCenterHovered">
           {{ hoveredSeg ? hoveredSeg.valor : total }}
         </span>
-        <span class="text-xs mt-0.5 text-center transition-all duration-200"
+        <span class="text-[10px] mt-0.5 text-center transition-all duration-200"
               [class.text-blue-500]="isCenterHovered"
               [class.text-gray-400]="!isCenterHovered"
-              style="max-width:80px; line-height:1.2">
+              style="max-width:70px; line-height:1.2">
           {{ hoveredSeg ? hoveredSeg.label : 'pacientes' }}
         </span>
       </div>
 
       <!-- Área clicável apenas no buraco central do donut -->
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer"
-           style="width:104px;height:104px;"
+           style="width:90px;height:90px;"
            (click)="limparFiltroClassificacao()"
            (mouseenter)="isCenterHovered = true"
            (mouseleave)="isCenterHovered = false"
@@ -103,22 +103,22 @@
     </div>
 
     <!-- Legenda -->
-    <ul class="space-y-1.5 text-sm">
+    <ul class="flex-1 space-y-1 text-xs">
       <li *ngFor="let l of LABELS; let i = index"
-          class="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
+          class="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded-lg transition-colors group"
           [class.opacity-40]="valores[i] === 0"
           (click)="filtrarPorClassificacao(l)"
           (mouseenter)="hoveredOriginalIndex = i"
           (mouseleave)="hoveredOriginalIndex = null">
-        <span class="flex items-center gap-1.5">
-          <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+        <span class="flex items-center gap-1.5 overflow-hidden">
+          <span class="inline-block w-2 h-2 rounded-full flex-shrink-0"
                 [style.background-color]="COLORS[i]"></span>
-          <span class="text-gray-600 group-hover:font-medium group-hover:text-gray-900">{{ l }}</span>
+          <span class="text-gray-600 group-hover:font-medium group-hover:text-gray-900 truncate">{{ l }}</span>
         </span>
-        <span class="font-semibold flex items-center gap-1"
+        <span class="font-semibold flex items-center gap-1 shrink-0"
               [style.color]="l === 'Aguardando Triagem' ? '#94a3b8' : COLORS[i]">
           {{ valores[i] }}
-          <mat-icon class="!text-xs opacity-0 group-hover:opacity-60">chevron_right</mat-icon>
+          <mat-icon class="!text-[10px] !w-3 !h-3 opacity-0 group-hover:opacity-60">chevron_right</mat-icon>
         </span>
       </li>
     </ul>

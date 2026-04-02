@@ -79,10 +79,10 @@
     </app-dashboard-info-hoje>
 
     <!-- ════════════════════════════════ 1. MEIO — Gráficos ══════════════════════════════ -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <section class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
 
-      <!-- Linha + Etapas (2 colunas) -->
-      <div class="lg:col-span-2">
+      <!-- Linha + Etapas (3 colunas) -->
+      <div class="lg:col-span-3">
         <app-dashboard-flow-chart
           [dadosHora]="porHora"
           [operacional]="operacional"
@@ -93,8 +93,8 @@
         </app-dashboard-flow-chart>
       </div>
 
-      <!-- Donut de risco -->
-      <div>
+      <!-- Donut de risco (2 colunas) -->
+      <div class="lg:col-span-2">
         <app-dashboard-risk-chart
           [dados]="operacional.por_classificacao"
           [filtro]="filtro"
