@@ -130,6 +130,8 @@ export interface FiltroDashboard {
   medicoId?: number;
   classificacao?: string;      // Filtro por classificação de risco (VERMELHO, AMARELO, etc.)
   hora?: string;               // Filtro por hora específica (HH:00)
+  resetNavigation?: boolean;   // Se true, indica que o filtro veio de um reset de navegação de outra rota
+  manualFilter?: boolean;      // Se true, indica que o filtro veio de uma ação manual no gráfico/seletor
 }
 
 // ─── Service ─────────────────────────────────────────────────────────────────

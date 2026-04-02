@@ -89,9 +89,29 @@ export class DashboardInfoHojeComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Toda mudança de período ou filtro reaplica a regra: só expande quando for "hoje real"
+    // Toda mudança de período ou filtro reaplica a regra
     if ((changes['periodo'] || changes['filtro']) && !changes['periodo']?.firstChange) {
-      this.expandido = this.isHoje;
+
+      // REGRAS DE EXPAND/COLLAPSE:
+      // 1. Se o filtro for manual (clique em barra, botão hoje etc) -> COLLAPSE
+      // 2. Se for navegação vinda de fora -> EXPAND
+      // 3. Só avalia expandir se for hoje real.
+
+      if (this.filtro.manualFilter) {
+        this.expandido = false;
+        return;
+      }
+
+      // Se for navegação vinda de outra rota, expande se for hoje.
+      if (this.filtro.resetNavigation) {
+        this.expandido = this.isHoje;
+        return;
+      }
+
+      // Por padrão, se não for hoje real, colapsa.
+      if (!this.isHoje) {
+        this.expandido = false;
+      }
     }
   }
 

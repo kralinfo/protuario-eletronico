@@ -152,7 +152,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.periodoSelecionado = periodo;
     // Modo personalizado não carrega até o usuário aplicar o intervalo
     if (periodo === 'personalizado') return;
-    this.filtro = { periodo };
+    this.filtro = { periodo, manualFilter: true }; // Marca como filtro manual
     this.carregando = true;
     this._salvarFiltro();
     this.dashboardService.refreshDashboard(this.filtro);
@@ -160,7 +160,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   aplicarPersonalizado(): void {
     if (!this.dataInicio || !this.dataFim) return;
-    this.filtro = { dataInicio: this.dataInicio, dataFim: this.dataFim };
+    this.filtro = { dataInicio: this.dataInicio, dataFim: this.dataFim, manualFilter: true };
     this.carregando = true;
     this._salvarFiltro();
     this.dashboardService.refreshDashboard(this.filtro);
@@ -170,14 +170,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.dataInicio = '';
     this.dataFim = '';
     this.periodoSelecionado = 'dia';
-    this.filtro = { periodo: 'dia' };
+    this.filtro = { periodo: 'dia', manualFilter: true };
     this.carregando = true;
     this._salvarFiltro();
     this.dashboardService.refreshDashboard(this.filtro);
   }
 
   aoFiltrarPeloGrafico(novoFiltro: FiltroDashboard): void {
-    this.filtro = novoFiltro;
+    this.filtro = { ...novoFiltro, manualFilter: true }; // Adiciona a flag de filtro manual
 
     // Se o filtro vier com dataInicio/dataFim e for um range de semana (<= 8 dias),
     // forçamos o período selecionado para 'semana' para manter sincronia com o seletor superior.
@@ -220,7 +220,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.periodoSelecionado = 'dia';
     this.dataInicio = '';
     this.dataFim = '';
-    this.filtro = { periodo: 'dia' };
+    this.filtro = { periodo: 'dia', resetNavigation: true }; // Adiciona flag para evitar expand automático
     this.carregando = true;
     sessionStorage.removeItem('dashboard_filtro');
     sessionStorage.removeItem('dashboard_periodo');

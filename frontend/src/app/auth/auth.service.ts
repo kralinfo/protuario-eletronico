@@ -106,6 +106,11 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem('auth_user');
     localStorage.removeItem('selected_module');
+
+    // Limpa filtros do Dashboard ao deslogar
+    sessionStorage.removeItem('dashboard_filtro');
+    sessionStorage.removeItem('dashboard_periodo');
+
     this.selectedModule = null;
     this.userSubject.next(null);
     this.router.navigate(['/login']);
@@ -115,6 +120,11 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem('auth_user');
     localStorage.removeItem('selected_module');
+
+    // Limpa filtros do Dashboard
+    sessionStorage.removeItem('dashboard_filtro');
+    sessionStorage.removeItem('dashboard_periodo');
+
     this.selectedModule = null;
     this.userSubject.next(null);
   }
