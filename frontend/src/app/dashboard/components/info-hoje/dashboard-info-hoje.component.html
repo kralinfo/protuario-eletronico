@@ -26,7 +26,7 @@
       </span>
       <span>
         <strong class="text-blue-600">{{ operacional.em_atendimento }}</strong>
-        <span class="text-gray-400 ml-1">em atendimento</span>
+        <span class="text-gray-400 ml-1">pós-triagem</span>
       </span>
       <span>
         <strong class="text-green-600">{{ operacional.concluidos }}</strong>
@@ -68,11 +68,11 @@
       </app-dashboard-kpi-card>
 
       <app-dashboard-kpi-card
-        titulo="Em Atendimento"
+        titulo="Pós-Triagem"
         [valor]="operacional.em_atendimento"
         icone="medical_services"
         cor="blue"
-        subtitulo="Médico ou ambulatorial"
+        subtitulo="Em fluxo pós-triagem"
         [carregando]="false">
       </app-dashboard-kpi-card>
 

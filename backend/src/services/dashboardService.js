@@ -90,11 +90,13 @@ class DashboardService {
       ( (periodo === 'dia' && !data && !dataInicio) || (data === new Date().toISOString().slice(0, 10)) )
         ? db.query(
             `SELECT
-               COUNT(*) FILTER (WHERE status IN (
-                 'em atendimento médico',
-                 'em atendimento ambulatorial',
-                 'em_atendimento_medico',
-                 'em_atendimento_ambulatorial'
+               COUNT(*) FILTER (WHERE status NOT IN (
+                 'recepcao',
+                 'encaminhado para triagem',
+                 'encaminhado_para_triagem',
+                 'em_triagem',
+                 'em triagem',
+                 'atendimento_concluido'
                ))::int                                                              AS em_atendimento,
                COALESCE(
                  ROUND(AVG(
