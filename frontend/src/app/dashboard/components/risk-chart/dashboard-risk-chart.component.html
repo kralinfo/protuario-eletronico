@@ -1,33 +1,32 @@
-<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 h-full flex flex-col">
-  <div class="flex items-center justify-between mb-4">
-    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2">
-      <mat-icon class="text-purple-500 !text-base">donut_large</mat-icon>
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 h-full flex flex-col">
+  <div class="flex items-center justify-between mb-3 shrink-0">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+      <mat-icon class="text-purple-500 !text-sm">donut_large</mat-icon>
       Classificação de Risco
     </h3>
-    <span class="text-xs text-gray-400" *ngIf="total > 0">{{ total }} total · {{ labelPeriodo }}</span>
+    <span class="text-[10px] text-gray-400" *ngIf="total > 0">{{ total }} total</span>
   </div>
 
   <!-- Sem dados -->
-  <div *ngIf="total === 0 && !carregando" class="flex-1 flex flex-col items-center justify-center text-gray-300 gap-2 py-6">
-    <mat-icon class="!text-5xl">pie_chart</mat-icon>
-    <span class="text-sm">Sem dados {{ labelPeriodo }}</span>
+  <div *ngIf="total === 0 && !carregando" class="flex-1 flex flex-col items-center justify-center text-gray-300 gap-1 py-4">
+    <mat-icon class="!text-3xl">pie_chart</mat-icon>
+    <span class="text-xs">Sem dados {{ labelPeriodo }}</span>
   </div>
 
   <!-- Skeleton -->
   <div *ngIf="carregando" class="flex-1 flex items-center justify-center">
-    <div class="w-40 h-40 rounded-full bg-gray-100 animate-pulse"></div>
+    <div class="w-32 h-32 rounded-full bg-gray-100 animate-pulse"></div>
   </div>
 
   <!-- Gráfico SVG + legenda -->
-  <div *ngIf="total > 0 && !carregando" class="flex-1 flex flex-row items-center gap-6">
+  <div *ngIf="total > 0 && !carregando" class="flex-1 flex flex-row items-center gap-4">
 
-    <!-- Donut SVG -->
-    <div class="relative shrink-0" style="width:140px;height:140px;">
-      <svg viewBox="0 0 200 200" width="140" height="140" style="overflow:visible;">
+    <!-- Donut SVG (Reduzido de 140px para 120px) -->
+    <div class="relative shrink-0" style="width:120px;height:120px;">
+      <svg viewBox="0 0 200 200" width="120" height="120" style="overflow:visible;">
         <!-- Trilho de fundo -->
-        <circle cx="100" cy="100" [attr.r]="RAIO" fill="none" stroke="#f1f5f9" stroke-width="22"/>
-
-        <!-- Segmentos animados (exceto o hovered, que vem depois para ficar na frente) -->
+        <circle cx="100" cy="100" [attr.r]="RAIO" fill="none" stroke="#f1f5f9" stroke-width="24"/>
+        <!-- Segmentos -->
         <circle
           *ngFor="let seg of segmentos; trackBy: trackBySeg"
           [style.visibility]="hoveredOriginalIndex === seg.originalIndex ? 'hidden' : 'visible'"
@@ -35,7 +34,7 @@
           [attr.r]="RAIO"
           fill="none"
           [attr.stroke]="seg.cor"
-          stroke-width="22"
+          stroke-width="24"
           stroke-linecap="round"
           [attr.transform]="'rotate(' + seg.rotateDeg + ' 100 100)'"
           [attr.stroke-dasharray]="CIRCUM + ' ' + CIRCUM"
@@ -43,8 +42,7 @@
           [style.transition]="'stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1) ' + seg.delay + 's'"
           style="pointer-events: none;"
         />
-
-        <!-- Segmento hovered renderizado por último (sempre na frente) -->
+        <!-- Hovered segment -->
         <ng-container *ngFor="let seg of segmentos; trackBy: trackBySeg">
           <circle
             *ngIf="hoveredOriginalIndex === seg.originalIndex"
@@ -52,7 +50,7 @@
             [attr.r]="RAIO"
             fill="none"
             [attr.stroke]="seg.cor"
-            stroke-width="30"
+            stroke-width="32"
             stroke-linecap="round"
             [attr.transform]="'rotate(' + seg.rotateDeg + ' 100 100)'"
             [attr.stroke-dasharray]="CIRCUM + ' ' + CIRCUM"
@@ -60,14 +58,13 @@
             style="pointer-events: none; filter: drop-shadow(0 0 4px rgba(0,0,0,0.18));"
           />
         </ng-container>
-
-        <!-- Overlay invisível: captura cliques e resolve hover por ângulo -->
+        <!-- Interactive overlay -->
         <circle
           cx="100" cy="100"
           [attr.r]="RAIO"
           fill="none"
           stroke="rgba(0,0,0,0)"
-          stroke-width="26"
+          stroke-width="28"
           style="cursor:pointer;"
           pointer-events="stroke"
           (click)="onDonutClick($event)"
@@ -75,26 +72,24 @@
           (mouseleave)="hoveredOriginalIndex = null"
         />
       </svg>
-
-      <!-- Texto central: apenas exibe, sem bloquear eventos do SVG -->
+      <!-- Texto central -->
       <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span class="text-2xl font-bold leading-none transition-all duration-200"
+        <span class="text-xl font-bold leading-none transition-all duration-200"
               [class.text-blue-600]="isCenterHovered"
               [class.scale-110]="isCenterHovered"
               [class.text-gray-800]="!isCenterHovered">
           {{ hoveredSeg ? hoveredSeg.valor : total }}
         </span>
-        <span class="text-[10px] mt-0.5 text-center transition-all duration-200"
+        <span class="text-[9px] mt-0.5 text-center transition-all duration-200"
               [class.text-blue-500]="isCenterHovered"
               [class.text-gray-400]="!isCenterHovered"
-              style="max-width:70px; line-height:1.2">
+              style="max-width:60px; line-height:1.1">
           {{ hoveredSeg ? hoveredSeg.label : 'pacientes' }}
         </span>
       </div>
-
-      <!-- Área clicável apenas no buraco central do donut -->
+      <!-- Center interactive area -->
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer"
-           style="width:90px;height:90px;"
+           style="width:80px;height:80px;"
            (click)="limparFiltroClassificacao()"
            (mouseenter)="isCenterHovered = true"
            (mouseleave)="isCenterHovered = false"
