@@ -114,7 +114,7 @@
     </section>
 
     <!-- ════════════════════════════════ 3. RODAPÉ — Tabela médicos ════════════════════════ -->
-    <section class="mb-4">
+    <section class="flex-none mb-2 shrink-0" *ngIf="isAdmin">
       <app-dashboard-doctors-table
         [medicos]="medicos"
         [carregando]="carregando"

@@ -9,6 +9,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subject, takeUntil, filter, pairwise, startWith } from 'rxjs';
 
+import { AuthService } from '../../auth/auth.service';
 import {
   DashboardService,
   DadosDashboard,
@@ -83,8 +84,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private dashboardService: DashboardService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    public authService: AuthService
   ) {}
+
+  get isAdmin(): boolean {
+    return this.authService.isAdmin;
+  }
 
   ngOnInit(): void {
     // Tenta recuperar filtro salvo da sessão (para persistir no reload)
