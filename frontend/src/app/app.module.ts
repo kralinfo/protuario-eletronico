@@ -44,6 +44,8 @@ import { DashboardTriagemComponent } from './triagem/dashboard/dashboard-triagem
 import { FilaTriagemComponent } from './triagem/fila-triagem/fila-triagem.component';
 import { ClassificacaoDialogComponent } from './classificacao-dialog/classificacao-dialog.component';
 import { PaginationComponent } from './shared/components/pagination/pagination.component';
+import { NotificationContainerComponent } from './shared/components/notification-container.component';
+import { RealtimeStatusComponent } from './shared/components/realtime-status.component';
 
 @NgModule({
   declarations: [
@@ -89,6 +91,8 @@ import { PaginationComponent } from './shared/components/pagination/pagination.c
     MatButtonModule,
     MatIconModule,
     PaginationComponent,
+    NotificationContainerComponent,
+    RealtimeStatusComponent,
 
     // Remover diretivas e componentes dos imports, manter apenas módulos
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule

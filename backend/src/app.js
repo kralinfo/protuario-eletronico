@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import http from 'http';
 
 // Configurações
 import { config } from './config/env.js';
@@ -17,6 +18,11 @@ import {
   securityHeaders 
 } from './middleware/security.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+
+// Realtime
+import realtimeManager from './realtime/RealtimeManager.js';
+import TriagemRealtimeModule from './realtime/modules/TriagemRealtimeModule.js';
+import AmbulatoriRealtimeModule from './realtime/modules/AmbulatoriRealtimeModule.js';
 
 // Rotas
 import apiRoutes from './routes/index.js';
@@ -140,7 +146,16 @@ class App {
       }
 
       // Iniciar servidor
-      const server = this.app.listen(this.port, () => {
+      const server = http.createServer(this.app);
+
+      // Inicializar RealtimeManager com servidor HTTP
+      realtimeManager.initialize(server, corsOptions);
+
+      // Inicializar módulos de realtime
+      TriagemRealtimeModule.initialize();
+      AmbulatoriRealtimeModule.initialize();
+
+      const httpServer = server.listen(this.port, () => {
         console.log('🚀 ================================');
         console.log('🚀 Prontuário Eletrônico API v2.0');
         console.log('🚀 ================================');
@@ -149,13 +164,14 @@ class App {
         console.log(`🚀 URL: http://localhost:${this.port}`);
         console.log(`🚀 Health: http://localhost:${this.port}/api/health`);
         console.log(`🚀 Docs: http://localhost:${config.PORT}/api/info`);
+        console.log(`🚀 WebSocket: ws://localhost:${this.port}`);
         console.log('🚀 ================================');
       });
 
       // Graceful shutdown
       process.on('SIGTERM', () => {
         console.log('📋 SIGTERM recebido, fechando servidor...');
-        server.close(async () => {
+        httpServer.close(async () => {
           console.log('🔌 Servidor HTTP fechado');
           await database.close();
           process.exit(0);
@@ -164,14 +180,14 @@ class App {
 
       process.on('SIGINT', () => {
         console.log('📋 SIGINT recebido, fechando servidor...');
-        server.close(async () => {
+        httpServer.close(async () => {
           console.log('🔌 Servidor HTTP fechado');
           await database.close();
           process.exit(0);
         });
       });
 
-      return server;
+      return httpServer;
     } catch (error) {
       console.error('❌ Erro ao iniciar aplicação:', error);
       process.exit(1);

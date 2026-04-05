@@ -1,28 +1,40 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { MedicoService } from 'src/app/medico/medico.service';
 import { TriagemService } from 'src/app/services/triagem.service';
+import { RealtimeService } from 'src/app/services/realtime.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { Subscription } from 'rxjs';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-dashboard-medico',
   templateUrl: './dashboard-medico.component.html',
   styleUrls: ['./dashboard-medico.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule]
+  imports: [CommonModule, FormsModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule, MatSnackBarModule]
 })
-export class DashboardMedicoComponent implements OnInit {
+export class DashboardMedicoComponent implements OnInit, OnDestroy {
+  private subscriptions: Subscription = new Subscription();
+  private atualizacaoPendente: any;
+  mostrarAlertaAtualizacao: boolean = false;
+  alertaEstado: 'carregando' | 'sucesso' | 'erro' = 'carregando';
+  private ocultarAlertaTimeout: any;
+  private alertasInterval: any;
+
   constructor(
     private medicoService: MedicoService,
     private triagemService: TriagemService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private realtimeService: RealtimeService,
+    private snackBar: MatSnackBar
   ) {}
 
   abrirDialogClassificacao() {
@@ -142,6 +154,78 @@ export class DashboardMedicoComponent implements OnInit {
 
   ngOnInit() {
     this.atualizarDashboard();
+    this.configurarRealtime();
+
+    // Verificador de tempo: A cada 60 segundos ele busca os atendimentos
+    // e recalcula quem está estourando o tempo limite (Manchester),
+    // além de forçar a atualização visual dos minutos corridos na tela.
+    this.alertasInterval = setInterval(() => {
+      this.carregarAlertasTempo();
+    }, 60000);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+    if (this.alertasInterval) {
+      clearInterval(this.alertasInterval);
+    }
+  }
+
+  configurarRealtime() {
+    this.subscriptions.add(this.realtimeService.onPatientArrived().subscribe((data) => {
+      console.log('🔄 Dashboard Medico (WebSocket): Paciente chegou, atualizando dashboard...', data);
+      this.processarAtualizacaoSocket();
+    }));
+
+    this.subscriptions.add(this.realtimeService.onPatientTransferred().subscribe((data) => {
+      console.log('🔄 Dashboard Medico (WebSocket): Paciente transferido, atualizando dashboard...', data);
+      this.processarAtualizacaoSocket();
+    }));
+
+    this.subscriptions.add(this.realtimeService.onQueueUpdated().subscribe((data) => {
+      console.log('🔄 Dashboard Medico (WebSocket): Fila atualizada, atualizando dashboard...', data);
+      this.processarAtualizacaoSocket();
+    }));
+
+    this.subscriptions.add(this.realtimeService.onConnectionError().subscribe((error) => {
+      console.error('❌ Erro de conexão WebSocket:', error);
+      this.mostrarAlertaErro();
+    }));
+  }
+
+  mostrarAlertaErro() {
+    this.mostrarAlertaAtualizacao = true;
+    this.alertaEstado = 'erro';
+    if (this.ocultarAlertaTimeout) clearTimeout(this.ocultarAlertaTimeout);
+    this.ocultarAlertaTimeout = setTimeout(() => {
+      this.mostrarAlertaAtualizacao = false;
+    }, 5000);
+  }
+
+  processarAtualizacaoSocket() {
+    if (this.ocultarAlertaTimeout) {
+      clearTimeout(this.ocultarAlertaTimeout);
+    }
+    
+    this.mostrarAlertaAtualizacao = true;
+    this.alertaEstado = 'carregando';
+
+    if (this.atualizacaoPendente) {
+      clearTimeout(this.atualizacaoPendente);
+    }
+
+    this.atualizacaoPendente = setTimeout(() => {
+      this.atualizarDashboard();
+      
+      setTimeout(() => {
+        this.alertaEstado = 'sucesso';
+        this.ocultarAlertaTimeout = setTimeout(() => {
+          this.mostrarAlertaAtualizacao = false;
+        }, 5000);
+      }, 500);
+      
+      this.atualizacaoPendente = null;
+    }, 800);
   }
 
   atualizarDashboard() {

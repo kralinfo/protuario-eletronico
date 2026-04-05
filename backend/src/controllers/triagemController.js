@@ -1,5 +1,6 @@
 import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
+import PatientEventService from '../services/PatientEventService.js';
 
 // Classificação de risco baseada no Protocolo Manchester
 const CLASSIFICACAO_RISCO = {
@@ -219,13 +220,58 @@ class TriagemController {
       console.log('Status destino recebido:', status_destino);
       console.log('Body completo:', req.body);
 
+      // [REALTIME DEBUG] LOG 1: ANTES DA TRANSFERÊNCIA
+      const originModule = 'triagem';
+      const debugTimestamp1 = new Date().toISOString();
+      console.log(`[REALTIME DEBUG] Iniciando transferência de paciente | patientId=${dadosAtuais.id} | de=${originModule} | para=${status_destino} | timestamp=${debugTimestamp1}`);
+
       const atendimento = await Atendimento.finalizarTriagem(id, status_destino);
+
+      // [REALTIME DEBUG] LOG 2: APÓS TRANSFERÊNCIA SER SALVA
+      const debugTimestamp2 = new Date().toISOString();
+      console.log(`[REALTIME DEBUG] Transferência salva no banco | patientId=${atendimento.paciente_id} | atendimentoId=${atendimento.id} | novoStatus=${atendimento.status} | timestamp=${debugTimestamp2}`);
       
       if (!atendimento) {
         return res.status(404).json({ 
           error: 'Não foi possível finalizar a triagem' 
         });
       }
+
+      // 🔌 EMITIR EVENTOS DE REALTIME
+      const userId = req.user?.id || 'system';
+      
+      // Mapear status destino para módulo
+      const statusToModuleMap = {
+        'encaminhado para sala médica': 'medico',
+        'encaminhado para ambulatório': 'ambulatorio',
+        'encaminhado para exames': 'exames',
+        'atendimento_concluido': 'conclusao'
+      };
+
+      const destinationModule = statusToModuleMap[status_destino] || status_destino;
+
+      // [REALTIME DEBUG] LOG 3: ANTES DE EMITIR EVENTO REALTIME
+      const debugTimestamp3 = new Date().toISOString();
+      console.log(`[REALTIME DEBUG] Emitindo evento de transferência | patientId=${atendimento.paciente_id} | de=${originModule} | para=${destinationModule} | classificacao=${atendimento.classificacao_risco} | timestamp=${debugTimestamp3}`);
+
+      // Emitir evento de transferência
+      await PatientEventService.emitPatientTransferred({
+        patientId: atendimento.paciente_id,
+        patientName: dadosAtuais.paciente_nome,
+        originModule: 'triagem',
+        destinationModule,
+        status: status_destino,
+        classificationRisk: atendimento.classificacao_risco,
+        userId
+      });
+
+      // Emitir evento de triagem finalizada
+      await PatientEventService.emitTriagemFinished({
+        patientId: atendimento.paciente_id,
+        patientName: dadosAtuais.paciente_nome,
+        classificationRisk: atendimento.classificacao_risco,
+        userId
+      });
 
       res.json({
         message: `Triagem finalizada com sucesso. Paciente encaminhado para: ${status_destino}`,
