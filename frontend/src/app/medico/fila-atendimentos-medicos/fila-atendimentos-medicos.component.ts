@@ -22,7 +22,7 @@ import { MatChipsModule } from '@angular/material/chips';
 })
 export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
+
   estatisticas: any = {
     por_classificacao: {
       vermelho: 0,
@@ -219,7 +219,7 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
       }).length;
       this.cdr.detectChanges();
     });
-    
+
     const statusList = [
       'encaminhado para sala médica',
       'em atendimento médico',
@@ -230,11 +230,11 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
       'transferido',
       'óbito'
     ];
-    
+
     this.medicoService.getAtendimentosPorStatus(statusList).subscribe((data: any[]) => {
       // Nova referência para garantir atualização
       this.atendimentos = [...(data || [])];
-      
+
       // Atualiza estatísticas por classificação apenas para atendimentos até 24h
       const agora = new Date();
       const por_classificacao = {
@@ -244,7 +244,7 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
         verde: 0,
         azul: 0
       };
-      
+
       for (const p of this.atendimentos) {
         let campoData = p.created_at || p.data_hora_atendimento;
         if (!campoData) continue;
@@ -265,12 +265,17 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
       this.estatisticas.por_classificacao = por_classificacao;
       this.cdr.detectChanges();
     });
-    
+
     this.calcularEncaminhadosParaAmbulatorio();
   }
 
   ngOnInit(): void {
     this.carregarDados();
+
+    // 🔌 Conectar WebSocket ao módulo médico
+    this.realtimeService.connect('medico')
+      .then(() => console.log('✅ [FilaMedico] Realtime conectado ao módulo medico'))
+      .catch((err: any) => console.warn('⚠️ [FilaMedico] Realtime indisponível:', err?.message));
 
     // 🔄 Ouvir por novos pacientes chegando em tempo real
     this.realtimeService.on('patient:arrived', (event: PatientArrivedEvent) => {
@@ -289,5 +294,6 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.realtimeService.disconnect();
   }
 }

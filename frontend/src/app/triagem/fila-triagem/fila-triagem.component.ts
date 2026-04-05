@@ -96,6 +96,11 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     this.carregarDados();
     this.iniciarAtualizacaoAutomatica();
 
+    // 🔌 Conectar WebSocket ao módulo triagem
+    this.realtimeService.connect('triagem')
+      .then(() => console.log('✅ [FilaTriagem] Realtime conectado ao módulo triagem'))
+      .catch((err: any) => console.warn('⚠️ [FilaTriagem] Realtime indisponível:', err?.message));
+
     // 🔄 Ouvir por mudanças em tempo real
     this.realtimeService.on('patient:transferred_out', (event: any) => {
       console.log('[FilaTriagem] Paciente saiu da triagem em tempo real:', event);
@@ -110,6 +115,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.atualizacaoSubscription?.unsubscribe();
+    this.realtimeService.disconnect();
   }
 
   private iniciarAtualizacaoAutomatica() {

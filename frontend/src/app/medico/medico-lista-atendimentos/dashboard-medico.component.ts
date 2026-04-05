@@ -154,7 +154,17 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.atualizarDashboard();
-    this.configurarRealtime();
+
+    // 🔌 Conectar WebSocket ao módulo médico antes de configurar eventos
+    this.realtimeService.connect('medico')
+      .then(() => {
+        console.log('✅ [DashboardMedico] Realtime conectado ao módulo medico');
+        this.configurarRealtime();
+      })
+      .catch((err: any) => {
+        console.warn('⚠️ [DashboardMedico] Realtime indisponível:', err?.message);
+        this.configurarRealtime(); // configura mesmo assim (observables falharão silenciosamente)
+      });
 
     // Verificador de tempo: A cada 60 segundos ele busca os atendimentos
     // e recalcula quem está estourando o tempo limite (Manchester),
@@ -169,6 +179,7 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
     if (this.alertasInterval) {
       clearInterval(this.alertasInterval);
     }
+    this.realtimeService.disconnect();
   }
 
   configurarRealtime() {
@@ -206,7 +217,7 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
     if (this.ocultarAlertaTimeout) {
       clearTimeout(this.ocultarAlertaTimeout);
     }
-    
+
     this.mostrarAlertaAtualizacao = true;
     this.alertaEstado = 'carregando';
 
@@ -216,14 +227,14 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
 
     this.atualizacaoPendente = setTimeout(() => {
       this.atualizarDashboard();
-      
+
       setTimeout(() => {
         this.alertaEstado = 'sucesso';
         this.ocultarAlertaTimeout = setTimeout(() => {
           this.mostrarAlertaAtualizacao = false;
         }, 5000);
       }, 500);
-      
+
       this.atualizacaoPendente = null;
     }, 800);
   }
@@ -383,7 +394,7 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
     // Status que permitem edição no card de consultas
     const statusPermiteEdicao = [
       'em atendimento médico',
-      'em_atendimento_medico', 
+      'em_atendimento_medico',
       'encaminhado para atendimento médico',
       'encaminhado_para_atendimento_medico',
       'retorno para atendimento médico',
@@ -392,13 +403,13 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
     ];
 
     const podeEditar = statusPermiteEdicao.includes(consulta.status?.toLowerCase().trim());
-    
+
     console.log('🔍 Status permite edição:', podeEditar);
 
-    // Navegar para a tela de atendimento médico 
+    // Navegar para a tela de atendimento médico
     this.router.navigate(['/medico/atendimento', consulta.id], {
-      state: { 
-        modoVisualizacao: true, 
+      state: {
+        modoVisualizacao: true,
         consultaRealizada: true,
         podeEditarPorStatus: podeEditar,
         origemCard: 'consultas'
