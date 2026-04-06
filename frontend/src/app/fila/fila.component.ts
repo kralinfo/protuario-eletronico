@@ -21,12 +21,15 @@ interface PacienteChamado {
 })
 export class FilaComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private resetTimer$ = new Subject<void>();
   now = new Date();
 
-  pacienteAtual: any = null;
-  historicoChamadas: any[] = [];
+  // Fila de chamadas e controle de exibição
+  callQueue: any[] = [];
+  currentCall: any = null;
   exibirDestaque = false;
+  isProcessingQueue = false;
+
+  historicoChamadas: any[] = [];
 
   constructor(private realtimeService: RealtimeService) {}
 
@@ -43,44 +46,65 @@ export class FilaComponent implements OnInit, OnDestroy {
     this.realtimeService.onPatientCalled()
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => {
-        this.processarChamada(data);
+        this.receberChamada(data);
       });
   }
 
-  processarChamada(data: any): void {
-    // Reiniciar timer se houver uma nova chamada
-    this.resetTimer$.next();
+  receberChamada(data: any): void {
+    // 1. Evitar duplicidade (se já estiver na fila ou sendo exibido)
+    const jaNaLista = this.callQueue.some(p => p.patientId === data.patientId && p.target === data.target) ||
+                     (this.currentCall?.patientId === data.patientId && this.currentCall?.target === data.target);
 
+    if (jaNaLista) return;
+
+    // 2. Adicionar na fila
     const novoPaciente = {
       ...data,
-      timestamp: new Date()
+      timestamp: new Date(),
+      priority: data.priority || 'normal' // Preparado para prioridades futuras
     };
+    this.callQueue.push(novoPaciente);
 
-    // 1. Atualiza o paciente em destaque
-    this.pacienteAtual = novoPaciente;
+    // 3. Atualizar a tabela IMEDIATAMENTE (conforme requisito 5)
+    this.atualizarTabela(novoPaciente);
+
+    // 4. Iniciar processamento da fila
+    this.processQueue();
+  }
+
+  processQueue(): void {
+    // Se já estiver exibindo algo ou fila vazia, não faz nada
+    if (this.currentCall || this.callQueue.length === 0) return;
+
+    // Remover primeiro item (FIFO)
+    this.currentCall = this.callQueue.shift();
     this.exibirDestaque = true;
 
-    // 2. Gerencia o histórico da tabela
+    // Tocar alerta
+    this.reproduzirAlerta();
+
+    // Tempo de exibição: 7 segundos antes da próxima chamada
+    timer(7000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.exibirDestaque = false;
+        this.currentCall = null;
+        // Processar próximo da fila
+        this.processQueue();
+      });
+  }
+
+  atualizarTabela(paciente: any): void {
     // Remove se já existir e adiciona ao topo
     this.historicoChamadas = this.historicoChamadas.filter(p =>
-      p.patientId !== novoPaciente.patientId || p.target !== novoPaciente.target
+      p.patientId !== paciente.patientId || p.target !== paciente.target
     );
-    this.historicoChamadas.unshift(novoPaciente);
+    this.historicoChamadas.unshift(paciente);
 
     // Limita o histórico
     if (this.historicoChamadas.length > 10) {
       this.historicoChamadas.pop();
     }
-
-    // 3. Tocar um som de alerta
-    this.reproduzirAlerta();
-
-    // 4. Temporizador para remover o destaque visual (15 seg)
-    timer(15000)
-      .pipe(takeUntil(this.resetTimer$), takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.exibirDestaque = false;
-      });
   }
 
   reproduzirAlerta(): void {
@@ -95,21 +119,19 @@ export class FilaComponent implements OnInit, OnDestroy {
   }
 
   getMensagemDirecionamento(): string {
-    if (!this.pacienteAtual) return '';
-    return this.pacienteAtual.target === 'triagem'
+    if (!this.currentCall) return '';
+    return this.currentCall.target === 'triagem'
       ? 'DIRIJA-SE À TRIAGEM'
       : 'DIRIJA-SE AO CONSULTÓRIO';
   }
 
   getTargetClass(): string {
-    if (!this.pacienteAtual) return '';
-    return this.pacienteAtual.target === 'triagem' ? 'target-triagem' : 'target-medico';
+    if (!this.currentCall) return '';
+    return this.currentCall.target === 'triagem' ? 'target-triagem' : 'target-medico';
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.resetTimer$.next();
-    this.resetTimer$.complete();
   }
 }

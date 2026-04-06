@@ -1,17 +1,23 @@
 <div class="min-h-screen flex flex-col py-10" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
 
   <!-- Destaque do Paciente Chamado (Painel de TV) -->
-  <div *ngIf="exibirDestaque && pacienteAtual"
+  <div *ngIf="exibirDestaque && currentCall"
        class="w-full max-w-[1400px] mx-auto mb-8 animate-bounce">
     <div class="bg-blue-700 text-white rounded-2xl shadow-2xl p-12 text-center border-8 border-white">
       <h1 class="text-4xl font-bold mb-4 opacity-80 uppercase tracking-widest">PACIENTE CHAMADO</h1>
       <div class="text-8xl font-black mb-8 uppercase break-words">
-        {{ pacienteAtual.patientName }}
+        {{ currentCall.patientName }}
       </div>
       <div class="inline-block px-10 py-5 rounded-full bg-white text-blue-800 text-5xl font-bold shadow-lg">
         {{ getMensagemDirecionamento() | uppercase }}
       </div>
     </div>
+  </div>
+
+  <!-- Fila de Espera (Aviso quando há mais na fila) -->
+  <div *ngIf="callQueue.length > 0" class="w-full max-w-[1400px] mx-auto mb-4 px-6 text-gray-600 font-bold flex items-center gap-2">
+    <span class="animate-pulse flex h-3 w-3 rounded-full bg-orange-500"></span>
+    Próximos na fila: {{ callQueue.length }} paciente(s) aguardando chamada...
   </div>
 
   <!-- Título e Card da Tabela (Padrão do Sistema) -->
@@ -38,7 +44,9 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 text-gray-800">
-          <tr *ngFor="let item of historicoChamadas" class="hover:bg-gray-50 transition-colors">
+          <tr *ngFor="let item of historicoChamadas"
+              [ngClass]="{'bg-yellow-50 border-l-8 border-yellow-400': currentCall?.patientId === item.patientId && exibirDestaque}"
+              class="hover:bg-gray-50 transition-all duration-300">
             <td class="px-6 py-4 font-mono text-gray-500 border-r w-32">
               {{ item.timestamp | date:'HH:mm' }}
             </td>
