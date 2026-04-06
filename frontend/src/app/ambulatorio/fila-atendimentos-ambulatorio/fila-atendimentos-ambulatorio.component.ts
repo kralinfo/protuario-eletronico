@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
+import { RealtimeService } from 'src/app/services/realtime.service';
 
 interface PacienteAmbulatorio {
   id: number;
@@ -59,7 +60,9 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
     private ambulatorioService: AmbulatorioService,
     private snackBar: MatSnackBar,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private realtimeService: RealtimeService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -69,6 +72,12 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
   this.subs.add(
     interval(30000).subscribe(() => this.carregarDados())
   );
+
+  // 🔄 Ouvir por novos pacientes chegando em tempo real
+  this.realtimeService.on('patient:arrived', (event: any) => {
+    console.log('[FilaAmbulatorio] Paciente chegou em tempo real:', event);
+    this.carregarDados();
+  });
 }
 
   ngOnDestroy() {
@@ -139,14 +148,17 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
             // Atualiza estatísticas locais (por_classificacao e tempo medio)
             this.atualizarEstatisticas();
             this.carregando = false;
+            this.cdr.detectChanges();
           } catch (err) {
             this.carregando = false;
             this.snackBar.open('Erro ao processar atendimentos', 'Fechar', { duration: 3000 });
+            this.cdr.detectChanges();
           }
         },
         error: () => {
           this.carregando = false;
           this.snackBar.open('Erro ao carregar atendimentos', 'Fechar', { duration: 3000 });
+          this.cdr.detectChanges();
         }
       })
     );
@@ -157,10 +169,12 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
         next: (resp) => {
           if (resp.por_classificacao) {
             this.estatisticas.por_classificacao = resp.por_classificacao;
+            this.cdr.detectChanges();
           }
         },
         error: () => {
           this.snackBar.open('Erro ao carregar estatísticas', 'Fechar', { duration: 3000 });
+          this.cdr.detectChanges();
         }
       })
     );

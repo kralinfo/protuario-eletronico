@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -10,10 +10,12 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { Router } from '@angular/router';
-import { interval, Subscription, firstValueFrom } from 'rxjs';
+import { interval, Subscription, firstValueFrom, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TriagemEventService } from 'src/app/services/triagem-event.service';
 import { TriagemService } from 'src/app/services/triagem.service';
+import { RealtimeService } from 'src/app/services/realtime.service';
 
 interface PacienteTriagem {
   id: number;
@@ -79,7 +81,9 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     private triagemEventService: TriagemEventService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private realtimeService: RealtimeService,
+    private cdr: ChangeDetectorRef
   ) {}
 
     abrirDialogClassificacao() {
@@ -91,10 +95,27 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.carregarDados();
     this.iniciarAtualizacaoAutomatica();
+
+    // 🔌 Conectar WebSocket ao módulo triagem
+    this.realtimeService.connect('triagem')
+      .then(() => console.log('✅ [FilaTriagem] Realtime conectado ao módulo triagem'))
+      .catch((err: any) => console.warn('⚠️ [FilaTriagem] Realtime indisponível:', err?.message));
+
+    // 🔄 Ouvir por mudanças em tempo real
+    this.realtimeService.on('patient:transferred_out', (event: any) => {
+      console.log('[FilaTriagem] Paciente saiu da triagem em tempo real:', event);
+      this.carregarDados(false); // Recarregar sem loading
+    });
+
+    this.realtimeService.on('patient:arrived', (event: any) => {
+      console.log('[FilaTriagem] Novo paciente em triagem em tempo real:', event);
+      this.carregarDados(false);
+    });
   }
 
   ngOnDestroy() {
     this.atualizacaoSubscription?.unsubscribe();
+    this.realtimeService.disconnect();
   }
 
   private iniciarAtualizacaoAutomatica() {
@@ -139,6 +160,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       });
     } finally {
       this.carregando = false;
+      this.cdr.detectChanges();
     }
   }
 

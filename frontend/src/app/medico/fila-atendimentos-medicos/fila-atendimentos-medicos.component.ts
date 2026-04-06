@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { MedicoService } from '../medico.service';
+import { RealtimeService, PatientArrivedEvent } from 'src/app/services/realtime.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -17,7 +20,9 @@ import { MatChipsModule } from '@angular/material/chips';
   standalone: true,
   imports: [CommonModule, FormsModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule]
 })
-export class FilaAtendimentosMedicosComponent implements OnInit {
+export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   estatisticas: any = {
     por_classificacao: {
       vermelho: 0,
@@ -48,7 +53,9 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
   constructor(
     private medicoService: MedicoService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private realtimeService: RealtimeService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   abrirDialogClassificacao() {
@@ -193,7 +200,7 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  carregarDados(): void {
     this.medicoService.getAtendimentosPorStatus([
       'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
     ]).subscribe((atendimentos: any[]) => {
@@ -210,7 +217,9 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
         const status = (a.status || '').toLowerCase().replace(/_/g, ' ').replace(/-/g, ' ');
         return status.includes('encaminhado para sala médica');
       }).length;
+      this.cdr.detectChanges();
     });
+
     const statusList = [
       'encaminhado para sala médica',
       'em atendimento médico',
@@ -221,8 +230,11 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
       'transferido',
       'óbito'
     ];
+
     this.medicoService.getAtendimentosPorStatus(statusList).subscribe((data: any[]) => {
-      this.atendimentos = data;
+      // Nova referência para garantir atualização
+      this.atendimentos = [...(data || [])];
+
       // Atualiza estatísticas por classificação apenas para atendimentos até 24h
       const agora = new Date();
       const por_classificacao = {
@@ -232,7 +244,8 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
         verde: 0,
         azul: 0
       };
-      for (const p of data || []) {
+
+      for (const p of this.atendimentos) {
         let campoData = p.created_at || p.data_hora_atendimento;
         if (!campoData) continue;
         const dataAtendimento = new Date(campoData);
@@ -250,7 +263,37 @@ export class FilaAtendimentosMedicosComponent implements OnInit {
         }
       }
       this.estatisticas.por_classificacao = por_classificacao;
+      this.cdr.detectChanges();
     });
+
     this.calcularEncaminhadosParaAmbulatorio();
+  }
+
+  ngOnInit(): void {
+    this.carregarDados();
+
+    // 🔌 Conectar WebSocket ao módulo médico
+    this.realtimeService.connect('medico')
+      .then(() => console.log('✅ [FilaMedico] Realtime conectado ao módulo medico'))
+      .catch((err: any) => console.warn('⚠️ [FilaMedico] Realtime indisponível:', err?.message));
+
+    // 🔄 Ouvir por novos pacientes chegando em tempo real
+    this.realtimeService.on('patient:arrived', (event: PatientArrivedEvent) => {
+      console.log('[FilaMedico] Paciente chegou em tempo real:', event);
+      // Recarregar a fila ao receber notificação de novo paciente
+      this._recarregarFila();
+    });
+  }
+
+  private _recarregarFila(): void {
+    console.log('[FilaMedico] Recarregando fila...');
+    this.carregarDados();
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.realtimeService.disconnect();
   }
 }

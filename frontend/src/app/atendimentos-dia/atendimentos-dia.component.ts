@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { AtendimentoService } from '../services/atendimento.service';
+import { PdfGeneratorService } from '../services/pdf-generator.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
 import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
@@ -54,7 +55,7 @@ export class AtendimentosDiaComponent implements OnInit {
     return this.authService.getSelectedModule() !== 'recepcao';
   }
 
-  constructor(private atendimentoService: AtendimentoService, private dialog: MatDialog, private router: Router, private authService: AuthService) {}
+  constructor(private atendimentoService: AtendimentoService, private pdfGeneratorService: PdfGeneratorService, private dialog: MatDialog, private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
     // Inicializar com a data atual
@@ -135,7 +136,35 @@ export class AtendimentosDiaComponent implements OnInit {
   }
 
   imprimirAtendimento(atendimento: any) {
-    // Criar uma nova janela para impressão
+    const dataFormatada = new Date().toLocaleDateString('pt-BR');
+    const formatarSexo = (s: string) => {
+      if (s === 'M') return 'Masculino';
+      if (s === 'F') return 'Feminino';
+      if (s === 'I') return 'Ignorado';
+      return s || 'Não informado';
+    };
+
+    const calcularIdade = (nascimento: string) => {
+      if (!nascimento) return 'Não informado';
+      const nasc = new Date(nascimento);
+      if (isNaN(nasc.getTime())) return 'Data inválida';
+      const hoje = new Date();
+      let anos = hoje.getFullYear() - nasc.getFullYear();
+      let meses = hoje.getMonth() - nasc.getMonth();
+      let dias = hoje.getDate() - nasc.getDate();
+      if (dias < 0) { meses--; dias += new Date(hoje.getFullYear(), hoje.getMonth(), 0).getDate(); }
+      if (meses < 0) { anos--; meses += 12; }
+      let texto = '';
+      if (anos > 0) texto += `${anos} ano${anos !== 1 ? 's' : ''}`;
+      if (meses > 0) { if (texto) texto += ', '; texto += `${meses} mês${meses !== 1 ? 'es' : ''}`; }
+      if (dias > 0) { if (texto) texto += ' e '; texto += `${dias} dia${dias !== 1 ? 's' : ''}`; }
+      return texto || 'Recém-nascido';
+    };
+
+    const formatarValor = (valor: any, padrao: string = 'Não informado') => {
+      return (typeof valor === 'string' && valor.trim()) ? valor.trim() : padrao;
+    };
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       this.dialog.open(FeedbackDialogComponent, {
@@ -150,73 +179,323 @@ export class AtendimentosDiaComponent implements OnInit {
 
     const printContent = `
       <!DOCTYPE html>
-      <html>
+      <html lang="pt-BR">
       <head>
+        <meta charset="UTF-8">
         <title>Ficha de Atendimento - ${atendimento.paciente_nome}</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .title { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
-          .info { margin-bottom: 10px; }
-          .label { font-weight: bold; }
-          .status {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
+          body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #fff;
+            padding: 0;
+            margin: 0;
           }
-          .status.abandonado { background-color: #fee2e2; color: #dc2626; }
-          .status.concluido { background-color: #dcfce7; color: #16a34a; }
-          .status.recepcao { background-color: #fef3c7; color: #d97706; }
-          .status.triagem { background-color: #dbeafe; color: #2563eb; }
+
+          .container {
+            max-width: 900px;
+            margin: 0;
+            background: #fff;
+            padding: 8px 12px;
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+          }
+
+          .logo {
+            flex-shrink: 0;
+          }
+
+          .logo img {
+            height: 60px;
+            object-fit: contain;
+          }
+
+          .info {
+            flex: 1;
+            text-align: left;
+          }
+
+          .info h1 {
+            margin: 0;
+            font-size: 14px;
+            color: #333;
+          }
+
+          .info p {
+            margin: 0 0;
+            font-size: 10px;
+            color: #555;
+            line-height: 1.2;
+          }
+
+          .title-section {
+            text-align: center;
+            margin-bottom: 8px;
+          }
+
+          .title-section h2 {
+            margin: 0;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            color: #333;
+          }
+
+          .title-section p {
+            margin: 2px 0;
+            font-size: 10px;
+            color: #666;
+          }
+
+          fieldset {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 6px 10px 8px;
+            margin-bottom: 8px;
+          }
+
+          legend {
+            padding: 0 6px;
+            font-weight: bold;
+            font-size: 11px;
+            color: #333;
+          }
+
+          .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+          }
+
+          .full {
+            grid-column: span 2;
+          }
+
+          .field {
+            display: flex;
+            flex-direction: column;
+            font-size: 11px;
+          }
+
+          .label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 1px;
+            font-size: 10px;
+          }
+
+          .value {
+            padding: 3px 4px;
+            background: #f9fafb;
+            border-radius: 3px;
+            min-height: 14px;
+            font-size: 10px;
+            line-height: 1.2;
+          }
+
+          .line {
+            border-bottom: 1px solid #ccc;
+            height: 14px;
+          }
+
+          .signature {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+          }
+
+          .signature div {
+            flex: 1;
+            text-align: center;
+          }
+
+          .signature-line {
+            margin-top: 12px;
+            border-top: 1px solid #000;
+            padding-top: 2px;
+            font-size: 10px;
+            font-weight: 600;
+          }
+
+          footer {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 9px;
+            color: #999;
+          }
+
           @media print {
-            body { margin: 0; }
-            .no-print { display: none; }
+            body { margin: 0; padding: 0; }
+            .container { box-shadow: none; border-radius: 0; }
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="title">FICHA DE ATENDIMENTO</div>
+
+      <div class="container">
+
+        <header>
+          <div class="logo">
+            <img src="assets/brasao-alianca.png" alt="Brasão da Aliança">
+          </div>
+          <div class="info">
+            <h1>PREFEITURA DA ALIANÇA</h1>
+            <p>SECRETARIA MUNICIPAL DE SAÚDE</p>
+            <p>UNIDADE MISTA MUNICIPAL DE ALIANÇA</p>
+            <p>Rua Marechal Deodoro, s/n - Aliança - PE - CEP: 55.890-000</p>
+            <p>Fones: 3637.1340 / 3637.1388 | E-mail: unidademista2009@hotmail.com</p>
+          </div>
+        </header>
+
+        <div class="title-section">
+          <h2>FICHA DE ATENDIMENTO</h2>
+          <p>Gerado em: ${dataFormatada}</p>
         </div>
 
-        <div class="info">
-          <span class="label">Paciente:</span> ${atendimento.paciente_nome}
+        <fieldset>
+          <legend>DADOS PESSOAIS</legend>
+          <div class="grid">
+            <div class="field">
+              <div class="label">Nome</div>
+              <div class="value">${formatarValor(atendimento.paciente_nome)}</div>
+            </div>
+            <div class="field">
+              <div class="label">Nome da Mãe</div>
+              <div class="value">${formatarValor(atendimento.paciente_mae)}</div>
+            </div>
+            <div class="field">
+              <div class="label">Data de Nascimento</div>
+              <div class="value">${atendimento.paciente_nascimento ? new Date(atendimento.paciente_nascimento).toLocaleDateString('pt-BR') : 'Não informado'}</div>
+            </div>
+            <div class="field">
+              <div class="label">Idade</div>
+              <div class="value">${calcularIdade(atendimento.paciente_nascimento)}</div>
+            </div>
+            <div class="field">
+              <div class="label">Sexo</div>
+              <div class="value">${formatarSexo(atendimento.paciente_sexo)}</div>
+            </div>
+            <div class="field">
+              <div class="label">Estado Civil</div>
+              <div class="value">${formatarValor(atendimento.paciente_estado_civil)}</div>
+            </div>
+            <div class="field">
+              <div class="label">Telefone</div>
+              <div class="value">${formatarValor(atendimento.paciente_telefone)}</div>
+            </div>
+            <div class="field">
+              <div class="label">Cartão SUS</div>
+              <div class="value">${formatarValor(atendimento.paciente_sus)}</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>ENDEREÇO</legend>
+          <div class="grid">
+            <div class="field full">
+              <div class="label">Endereço</div>
+              <div class="value">${formatarValor(atendimento.paciente_endereco)}</div>
+            </div>
+            <div class="field">
+              <div class="label">Bairro</div>
+              <div class="value">${formatarValor(atendimento.paciente_bairro)}</div>
+            </div>
+            <div class="field">
+              <div class="label">Município</div>
+              <div class="value">${formatarValor(atendimento.paciente_municipio)}</div>
+            </div>
+            <div class="field">
+              <div class="label">UF</div>
+              <div class="value">${formatarValor(atendimento.paciente_uf)}</div>
+            </div>
+            <div class="field">
+              <div class="label">CEP</div>
+              <div class="value">${formatarValor(atendimento.paciente_cep)}</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>DADOS DO ATENDIMENTO</legend>
+          <div class="grid">
+            <div class="field">
+              <div class="label">Data/Hora</div>
+              <div class="value">${new Date(atendimento.data_hora_atendimento).toLocaleString('pt-BR')}</div>
+            </div>
+            <div class="field">
+              <div class="label">Status</div>
+              <div class="value">${atendimento.abandonado ? 'ABANDONADO' : (atendimento.status?.charAt(0).toUpperCase() + atendimento.status?.slice(1).toLowerCase() || 'Não informado')}</div>
+            </div>
+            <div class="field full">
+              <div class="label">Motivo</div>
+              <div class="value">${formatarValor(atendimento.motivo)}</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>DADOS CLÍNICOS</legend>
+          <div class="grid">
+            <div class="field">
+              <div class="label">Pressão Arterial</div>
+              <div class="line"></div>
+            </div>
+            <div class="field">
+              <div class="label">Temperatura</div>
+              <div class="line"></div>
+            </div>
+            <div class="field">
+              <div class="label">Frequência Cardíaca</div>
+              <div class="line"></div>
+            </div>
+            <div class="field">
+              <div class="label">Saturação</div>
+              <div class="line"></div>
+            </div>
+            <div class="field full">
+              <div class="label">Queixa Principal</div>
+              <div class="line"></div>
+            </div>
+            <div class="field full">
+              <div class="label">Observações</div>
+              <div class="line"></div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="signature">
+          <div>
+            <div class="signature-line">Assinatura do Profissional</div>
+          </div>
+          <div>
+            <div class="signature-line">Assinatura do Paciente</div>
+          </div>
         </div>
 
-        <div class="info">
-          <span class="label">Motivo:</span> ${atendimento.motivo}
-        </div>
+        <footer>
+          <div>Gerado em: ${dataFormatada} às ${new Date().toLocaleTimeString('pt-BR')}</div>
+          <div>Sistema e-Prontuário - Unidade Mista Municipal de Aliança-PE</div>
+        </footer>
 
-        ${atendimento.observacoes ? `<div class="info"><span class="label">Observações:</span> ${atendimento.observacoes}</div>` : ''}
+      </div>
 
-        ${atendimento.acompanhante ? `<div class="info"><span class="label">Acompanhante:</span> ${atendimento.acompanhante}</div>` : ''}
-
-        ${atendimento.procedencia ? `<div class="info"><span class="label">Procedência:</span> ${atendimento.procedencia}</div>` : ''}
-
-        <div class="info">
-          <span class="label">Data/Hora:</span> ${new Date(atendimento.data_hora_atendimento).toLocaleString('pt-BR')}
-        </div>
-
-        <div class="info">
-          <span class="label">Status:</span>
-          <span class="status ${atendimento.abandonado ? 'abandonado' : atendimento.status}">
-            ${atendimento.abandonado ? 'ABANDONADO' : atendimento.status?.toUpperCase()}
-          </span>
-        </div>
-
-        ${atendimento.abandonado && atendimento.motivo_abandono ?
-          `<div class="info"><span class="label">Motivo do Abandono:</span> ${atendimento.motivo_abandono}</div>` : ''}
-
-        <script>
-          window.onload = function() {
-            window.print();
-            window.onafterprint = function() {
-              window.close();
-            };
-          }
-        </script>
+      <script>
+        window.onload = function() {
+          window.print();
+          window.onafterprint = function() { window.close(); };
+        }
+      </script>
       </body>
       </html>
     `;
@@ -227,101 +506,34 @@ export class AtendimentosDiaComponent implements OnInit {
 
   async gerarAtendimentoPDF(atendimento: any) {
     try {
-      // Importar jsPDF dinamicamente
-      let jsPDF;
+      // Mapear dados do atendimento para a estrutura esperada pelo serviço
+      const paciente = {
+        nome: atendimento.paciente_nome,
+        mae: atendimento.paciente_mae,
+        nascimento: atendimento.paciente_nascimento,
+        sexo: atendimento.paciente_sexo,
+        estado_civil: atendimento.paciente_estado_civil,
+        telefone: atendimento.paciente_telefone,
+        sus: atendimento.paciente_sus,
+        endereco: atendimento.paciente_endereco,
+        bairro: atendimento.paciente_bairro,
+        municipio: atendimento.paciente_municipio,
+        uf: atendimento.paciente_uf,
+        cep: atendimento.paciente_cep
+      };
 
-      // Tentar importar jsPDF
-      try {
-        const jsPDFModule = await import('jspdf');
-        jsPDF = jsPDFModule.default;
-      } catch (importError) {
-        // Fallback para window.jsPDF se a importação falhar
-        if ((window as any).jsPDF) {
-          jsPDF = (window as any).jsPDF;
-        } else {
-          throw new Error('jsPDF não encontrado');
-        }
-      }
+      // Chamar serviço de geração de PDF
+      await this.pdfGeneratorService.gerarFichaAtendimento(atendimento, paciente);
 
-      if (!jsPDF) {
-        const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
-          data: {
-            title: 'Erro',
-            message: 'Biblioteca de geração de PDF não encontrada. Verifique se o jsPDF está instalado.',
-            type: 'error'
-          }
-        });
-        setTimeout(() => feedbackRef.close(), 3000);
-        return;
-      }
-
-      // Gerar PDF do atendimento
-      const doc = new jsPDF();
-
-      // Configurar fonte e título
-      doc.setFontSize(16);
-      doc.text('FICHA DE ATENDIMENTO', 20, 20);
-
-      doc.setFontSize(12);
-      let yPosition = 40;
-
-      // Dados do paciente
-      doc.text(`Paciente: ${atendimento.paciente_nome}`, 20, yPosition);
-      yPosition += 10;
-
-      doc.text(`Motivo: ${atendimento.motivo}`, 20, yPosition);
-      yPosition += 10;
-
-      if (atendimento.observacoes) {
-        doc.text(`Observações: ${atendimento.observacoes}`, 20, yPosition);
-        yPosition += 10;
-      }
-
-      if (atendimento.acompanhante) {
-        doc.text(`Acompanhante: ${atendimento.acompanhante}`, 20, yPosition);
-        yPosition += 10;
-      }
-
-      if (atendimento.procedencia) {
-        doc.text(`Procedência: ${atendimento.procedencia}`, 20, yPosition);
-        yPosition += 10;
-      }
-
-      doc.text(`Data/Hora: ${new Date(atendimento.data_hora_atendimento).toLocaleString('pt-BR')}`, 20, yPosition);
-      yPosition += 10;
-
-      doc.text(`Status: ${atendimento.status?.toUpperCase()}`, 20, yPosition);
-      yPosition += 10;
-
-      if (atendimento.abandonado) {
-        doc.text(`ATENDIMENTO ABANDONADO`, 20, yPosition);
-        if (atendimento.motivo_abandono) {
-          yPosition += 10;
-          doc.text(`Motivo do Abandono: ${atendimento.motivo_abandono}`, 20, yPosition);
-        }
-      }
-
-      // Salvar o PDF
-      doc.save(`atendimento_${atendimento.paciente_nome}_${atendimento.id}.pdf`);
-
-      // Mostrar feedback de sucesso
       const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
-        data: {
-          title: 'Sucesso',
-          message: 'PDF gerado com sucesso!',
-          type: 'success'
-        }
+        data: { title: 'Sucesso', message: 'PDF gerado com sucesso!', type: 'success' }
       });
       setTimeout(() => feedbackRef.close(), 2000);
 
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
       const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
-        data: {
-          title: 'Erro',
-          message: `Erro ao gerar PDF: ${error?.message || 'Erro desconhecido'}`,
-          type: 'error'
-        }
+        data: { title: 'Erro', message: `Erro ao gerar PDF: ${error?.message || 'Erro desconhecido'}`, type: 'error' }
       });
       setTimeout(() => feedbackRef.close(), 3000);
     }
@@ -336,32 +548,37 @@ export class AtendimentosDiaComponent implements OnInit {
       width: '500px'
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.atendimentoService.registrarAbandono(atendimento.id, result).subscribe({
-          next: () => {
-            this.carregarAtendimentos();
-            const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
-              data: {
-                title: 'Abandono Registrado',
-                message: 'Atendimento marcado como abandonado com sucesso!',
-                type: 'success'
-              }
-            });
-            setTimeout(() => feedbackRef.close(), 2000);
-          },
-          error: (error: any) => {
-            console.error('Erro ao registrar abandono:', error);
-            const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
-              data: {
-                title: 'Erro',
-                message: 'Falha ao registrar abandono. Tente novamente.',
-                type: 'error'
-              }
-            });
-            setTimeout(() => feedbackRef.close(), 2500);
-          }
-        });
+    dialogRef.afterClosed().subscribe({
+      next: (result) => {
+        if (result) {
+          this.atendimentoService.registrarAbandono(atendimento.id, result).subscribe({
+            next: () => {
+              this.carregarAtendimentos();
+              const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Abandono Registrado',
+                  message: 'Atendimento marcado como abandonado com sucesso!',
+                  type: 'success'
+                }
+              });
+              setTimeout(() => feedbackRef.close(), 2000);
+            },
+            error: (error: any) => {
+              console.error('Erro ao registrar abandono:', error);
+              const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Erro',
+                  message: 'Falha ao registrar abandono. Tente novamente.',
+                  type: 'error'
+                }
+              });
+              setTimeout(() => feedbackRef.close(), 2500);
+            }
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Erro ao abrir dialog de abandono:', error);
       }
     });
   }
@@ -373,31 +590,36 @@ export class AtendimentosDiaComponent implements OnInit {
         message: 'Deseja realmente remover este atendimento?'
       }
     });
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.atendimentoService.removerAtendimento(id).subscribe({
-          next: () => {
-            this.carregarAtendimentos();
-            const dialogRef = this.dialog.open(FeedbackDialogComponent, {
-              data: {
-                title: 'Sucesso',
-                message: 'Atendimento excluído com sucesso!',
-                type: 'success'
-              }
-            });
-            setTimeout(() => dialogRef.close(), 1800);
-          },
-          error: () => {
-            const dialogRef = this.dialog.open(FeedbackDialogComponent, {
-              data: {
-                title: 'Erro',
-                message: 'Falha ao excluir atendimento. Tente novamente.',
-                type: 'error'
-              }
-            });
-            setTimeout(() => dialogRef.close(), 2200);
-          }
-        });
+    dialogRef.afterClosed().subscribe({
+      next: (result) => {
+        if (result) {
+          this.atendimentoService.removerAtendimento(id).subscribe({
+            next: () => {
+              this.carregarAtendimentos();
+              const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Sucesso',
+                  message: 'Atendimento excluído com sucesso!',
+                  type: 'success'
+                }
+              });
+              setTimeout(() => feedbackRef.close(), 1800);
+            },
+            error: () => {
+              const feedbackRef = this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Erro',
+                  message: 'Falha ao excluir atendimento. Tente novamente.',
+                  type: 'error'
+                }
+              });
+              setTimeout(() => feedbackRef.close(), 2200);
+            }
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Erro ao abrir dialog de confirmação de exclusão:', error);
       }
     });
   }
@@ -411,39 +633,44 @@ export class AtendimentosDiaComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // Atualizar status para 'concluido', mantendo outros dados
-        const dadosAtualizacao = {
-          motivo: atendimento.motivo,
-          observacoes: atendimento.observacoes,
-          status: 'concluido',
-          procedencia: atendimento.procedencia,
-          acompanhante: atendimento.acompanhante
-        };
+    dialogRef.afterClosed().subscribe({
+      next: (result) => {
+        if (result) {
+          // Atualizar status para 'concluido', mantendo outros dados
+          const dadosAtualizacao = {
+            motivo: atendimento.motivo,
+            observacoes: atendimento.observacoes,
+            status: 'concluido',
+            procedencia: atendimento.procedencia,
+            acompanhante: atendimento.acompanhante
+          };
 
-        this.atendimentoService.atualizarAtendimento(atendimento.id, dadosAtualizacao).subscribe({
-          next: () => {
-            this.dialog.open(FeedbackDialogComponent, {
-              data: {
-                title: 'Sucesso',
-                message: 'Atendimento finalizado com sucesso!',
-                type: 'success'
-              }
-            });
-            // Recarregar lista
-            this.carregarAtendimentos();
-          },
-          error: (err) => {
-            this.dialog.open(FeedbackDialogComponent, {
-              data: {
-                title: 'Erro',
-                message: err?.error?.message || 'Erro ao finalizar atendimento.',
-                type: 'error'
-              }
-            });
-          }
-        });
+          this.atendimentoService.atualizarAtendimento(atendimento.id, dadosAtualizacao).subscribe({
+            next: () => {
+              this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Sucesso',
+                  message: 'Atendimento finalizado com sucesso!',
+                  type: 'success'
+                }
+              });
+              // Recarregar lista
+              this.carregarAtendimentos();
+            },
+            error: (err) => {
+              this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Erro',
+                  message: err?.error?.message || 'Erro ao finalizar atendimento.',
+                  type: 'error'
+                }
+              });
+            }
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Erro ao abrir dialog de confirmação de finalização:', error);
       }
     });
   }
