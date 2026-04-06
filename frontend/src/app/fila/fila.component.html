@@ -1,0 +1,44 @@
+<div class="fila-container" [ngClass]="getTargetClass()">
+  <!-- Cabeçalho do Painel -->
+  <header class="fila-header">
+    <div class="logo">
+      <h1>SISTEMA DE PRONTUÁRIO ELETRÔNICO</h1>
+    </div>
+    <div class="unidade">
+      <span>UNIDADE DE SAÚDE</span>
+    </div>
+  </header>
+
+  <!-- Área Principal: Destaque -->
+  <main class="destaque-container">
+    <div *ngIf="!pacienteAtual" class="sem-paciente">
+       <span>Aguardando chamadas...</span>
+    </div>
+
+    <div *ngIf="pacienteAtual" class="paciente-destaque-card animate-blink">
+       <div class="paciente-nome">
+         {{ pacienteAtual.patientName | uppercase }}
+       </div>
+       <div class="mensagem-direcionamento">
+         {{ getMensagemDirecionamento() }}
+       </div>
+    </div>
+  </main>
+
+  <!-- Histórico / Lista de chamadas -->
+  <footer class="historico-container">
+    <h2 class="historico-titulo">Últimas Chamadas</h2>
+    <div class="historico-lista">
+      <div *ngFor="let item of historicoChamadas; let i = index"
+           class="historico-item"
+           [ngClass]="'target-' + item.target">
+        <span class="historico-nome">{{ item.patientName | uppercase }}</span>
+        <span class="historico-target">{{ item.target === 'triagem' ? 'TRIAGEM' : 'CONSULTÓRIO' }}</span>
+        <span class="historico-hora">{{ item.timestamp | date:'HH:mm' }}</span>
+      </div>
+      <div *ngIf="historicoChamadas.length === 0" class="historico-vazio">
+        Nenhum paciente anterior.
+      </div>
+    </div>
+  </footer>
+</div>

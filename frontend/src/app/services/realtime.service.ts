@@ -68,6 +68,7 @@ export class RealtimeService implements OnDestroy {
   private triagemFinished$ = new Subject<any>();
   private atendimentoStarted$ = new Subject<any>();
   private atendimentoFinished$ = new Subject<any>();
+  private patientCalled$ = new Subject<any>();
   private connectionError$ = new Subject<string>();
 
   constructor(private ngZone: NgZone) {}
@@ -88,7 +89,7 @@ export class RealtimeService implements OnDestroy {
         });
 
         // Obter token do localStorage - testar múltiplas chaves possíveis
-        const token = localStorage.getItem('token') 
+        const token = localStorage.getItem('token')
           || localStorage.getItem('auth_token')
           || sessionStorage.getItem('token')
           || sessionStorage.getItem('auth_token');
@@ -117,7 +118,7 @@ export class RealtimeService implements OnDestroy {
         this.socket.on('connect', () => {
           this.ngZone.run(() => {
             console.log('✅ Conectado ao servidor WebSocket:', this.socket?.id);
-            
+
             // Entrar no módulo específico
             this.socket?.emit('join:module', { module });
 
@@ -207,6 +208,14 @@ export class RealtimeService implements OnDestroy {
           this.ngZone.run(() => {
             console.log('✅ Atendimento finalizado:', data);
             this.atendimentoFinished$.next(data);
+          });
+        });
+
+        // Event handlers - Chamada de Paciente (Painel Fila)
+        this.socket.on('fila:called', (data: any) => {
+          this.ngZone.run(() => {
+            console.log('📢 Paciente chamado para o painel:', data);
+            this.patientCalled$.next(data);
           });
         });
 
@@ -316,6 +325,13 @@ export class RealtimeService implements OnDestroy {
   }
 
   /**
+   * Obtém observable de pacientes chamados (Painel Fila)
+   */
+  onPatientCalled(): Observable<any> {
+    return this.patientCalled$.asObservable();
+  }
+
+  /**
    * Obtém observable de erros de conexão
    */
   onConnectionError(): Observable<string> {
@@ -394,6 +410,7 @@ export class RealtimeService implements OnDestroy {
     this.triagemFinished$.complete();
     this.atendimentoStarted$.complete();
     this.atendimentoFinished$.complete();
+    this.patientCalled$.complete();
     this.connectionError$.complete();
   }
 }
