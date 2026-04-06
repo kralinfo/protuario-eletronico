@@ -70,10 +70,18 @@ export const protectSQLQueries = (req, res, next) => {
     return false;
   };
   
-  // Verificar body, query e params
-  const hasValidTables = req.body || req.query || req.params;
+  // Verificar TODAS as fontes de entrada: body, query, params, headers e cookies
+  const allInputSources = {
+    ...req.body,
+    ...req.query,
+    ...req.params,
+    ...req.headers,
+    ...req.cookies
+  };
   
-  if (hasValidTables && checkForDangerousSQL({ ...req.body, ...req.query, ...req.params })) {
+  const hasInputData = Object.keys(allInputSources).length > 0;
+  
+  if (hasInputData && checkForDangerousSQL(allInputSources)) {
     console.log('🚨 [SECURITY] Tentativa de SQL injection detectada:', req.ip);
     return res.status(400).json({
       status: 'BLOCKED',
@@ -112,13 +120,14 @@ export const auditLog = (req, res, next) => {
 };
 
 /**
- * Middleware de rate limiting por IP
+ * Middleware de rate limiting por IP E por usuário autenticado
  */
 const rateLimitStore = new Map();
 
-export const rateLimit = (windowMs = 15 * 60 * 1000, maxRequests = 100) => {
+export const rateLimit = (windowMs = 15 * 60 * 1000, maxRequests = 100, maxRequestsPerUser = 300) => {
   return (req, res, next) => {
     const ip = req.ip;
+    const userId = req.user?.id ? `user:${req.user.id}` : null;
     const now = Date.now();
     
     // Limpar entradas antigas
@@ -128,7 +137,7 @@ export const rateLimit = (windowMs = 15 * 60 * 1000, maxRequests = 100) => {
       }
     }
     
-    // Verificar rate limit para este IP
+    // 🔒 Primeiro verificar rate limit por IP (para todos)
     const ipData = rateLimitStore.get(ip) || { count: 0, resetTime: now };
     
     if (now - ipData.resetTime > windowMs) {
@@ -148,8 +157,38 @@ export const rateLimit = (windowMs = 15 * 60 * 1000, maxRequests = 100) => {
         retryAfter: windowMs / 1000
       });
     }
+
+    // 🔒 Se usuário está autenticado, verificar rate limit POR USUÁRIO também
+    if (userId) {
+      const userData = rateLimitStore.get(userId) || { count: 0, resetTime: now };
+      
+      if (now - userData.resetTime > windowMs) {
+        userData.count = 0;
+        userData.resetTime = now;
+      }
+      
+      userData.count++;
+      rateLimitStore.set(userId, userData);
+      
+      if (userData.count > maxRequestsPerUser) {
+        console.log(`🚫 [SECURITY] Rate limit excedido para Usuário: ${userId} (IP: ${ip})`);
+        return res.status(429).json({
+          status: 'ERROR',
+          message: 'Muitas requisições para este usuário. Tente novamente mais tarde.',
+          code: 'USER_RATE_LIMIT_EXCEEDED',
+          retryAfter: windowMs / 1000
+        });
+      }
+
+      // Headers para usuário autenticado
+      res.set({
+        'X-User-RateLimit-Limit': maxRequestsPerUser,
+        'X-User-RateLimit-Remaining': maxRequestsPerUser - userData.count,
+        'X-User-RateLimit-Reset': new Date(userData.resetTime + windowMs).toISOString()
+      });
+    }
     
-    // Headers informativos
+    // Headers informativos padrão para IP
     res.set({
       'X-RateLimit-Limit': maxRequests,
       'X-RateLimit-Remaining': maxRequests - ipData.count,
