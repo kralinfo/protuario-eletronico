@@ -96,6 +96,7 @@ class EventBus extends EventEmitter {
 
     const subscribers = this.subscribers.get(eventName);
     const handlers = [...subscribers]; // Copy para evitar modificações durante execução
+    const onceSubscriptions = [];
 
     // Executar handlers
     for (const subscription of handlers) {
@@ -110,13 +111,24 @@ class EventBus extends EventEmitter {
           await result;
         }
 
-        // Se é um subscriber único, remover
+        // Marcar para remoção depois que TODOS forem executados
         if (subscription.once) {
-          this.unsubscribe(eventName, subscription.id);
+          onceSubscriptions.push(subscription.id);
         }
       } catch (error) {
         console.error(`❌ Erro ao executar handler para evento '${eventName}':`, error);
       }
+    }
+
+    // ✅ CORREÇÃO MEMORY LEAK: Remover todos os once subscriptions DEPOIS que todos handlers forem executados
+    // Isso evita que o array seja modificado durante a iteração e referências sejam deixadas na memória
+    for (const subscriptionId of onceSubscriptions) {
+      this.unsubscribe(eventName, subscriptionId);
+    }
+
+    // ✅ LIMPEZA ADICIONAL: Se não houver mais subscribers para este evento, remover a chave inteira do Map
+    if (this.subscribers.has(eventName) && this.subscribers.get(eventName).length === 0) {
+      this.subscribers.delete(eventName);
     }
   }
 

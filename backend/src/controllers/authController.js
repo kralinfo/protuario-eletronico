@@ -423,12 +423,8 @@ class AuthController {
         reset_token_expira: new Date(Date.now() + 60 * 60 * 1000), // 1 hora
         reset_token_usado: false
       });
-      // Logs para desenvolvimento
-      console.log('=== TOKEN DE RECUPERAÇÃO DE SENHA ===');
-      console.log(`Usuário: ${usuario.nome} (${usuario.email})`);
-      console.log(`Token: ${resetToken}`);
-      console.log(`Link de recuperação: ${config.FRONTEND_URL}/reset-password?token=${resetToken}`);
-      console.log('=====================================');
+      // Apenas log que o token foi gerado, NUNCA logar o token completo em produção
+      console.log(`✅ [AUTH] Token de recuperação gerado para: ${usuario.email}`);
       try {
         await emailService.sendPasswordResetEmail(usuario.email, resetToken, usuario.nome);
         console.log(`✅ Email de recuperação enviado para: ${usuario.email}`);

@@ -361,12 +361,8 @@ app.post('/api/forgot-password', async (req, res) => {
       { expiresIn: '1h' } // Token expira em 1 hora
     );
 
-    // Logs para desenvolvimento
-    console.log('=== TOKEN DE RECUPERAÇÃO DE SENHA ===');
-    console.log(`Usuário: ${usuario.nome} (${usuario.email})`);
-    console.log(`Token: ${resetToken}`);
-    console.log(`Link de recuperação: ${process.env.FRONTEND_URL || 'http://localhost:4200'}/reset-password?token=${resetToken}`);
-    console.log('=====================================');
+      // Apenas log que o token foi gerado, NUNCA logar o token completo em produção
+      console.log(`✅ [AUTH] Token de recuperação gerado para: ${usuario.email}`);
 
     try {
       // Enviar e-mail de recuperação
@@ -792,11 +788,39 @@ app.options('*', cors());
 
 const PORT = process.env.PORT || 3001;
 
+// Verificar credenciais padrão e impedir inicialização em produção
+function validateCredentials() {
+  const defaultCredentials = [
+    { value: process.env.JWT_SECRET, default: 'seu_jwt_secret_super_secreto_aqui', name: 'JWT_SECRET' },
+    { value: process.env.EMAIL_PASS, default: 'sua_senha_de_app_aqui', name: 'EMAIL_PASS' },
+    { value: process.env.SENDGRID_API_KEY, default: 'SG.COLOQUE_SUA_API_KEY_AQUI', name: 'SENDGRID_API_KEY' },
+  ];
+
+  const invalidCredentials = defaultCredentials.filter(cred => 
+    cred.value && cred.value.trim() === cred.default
+  );
+
+  if (invalidCredentials.length > 0) {
+    console.error('❌ ❌ ❌ ERRO CRÍTICO DE SEGURANÇA ❌ ❌ ❌');
+    console.error('Credenciais padrão encontradas. O servidor NÃO PODE ser iniciado!');
+    invalidCredentials.forEach(cred => {
+      console.error(`❌ ${cred.name} ainda está com o valor padrão: ${cred.default}`);
+    });
+    console.error('\n🛑 Altere essas variáveis de ambiente antes de iniciar o servidor em produção.');
+    process.exit(1);
+  }
+
+  console.log('✅ Todas as credenciais foram validadas');
+}
+
 // Inicializar servidor e banco
 async function startServer() {
   try {
     console.log('🚀 Iniciando servidor...');
     
+    // ✅ VALIDAÇÃO DE SEGURANÇA: Verificar credenciais padrão ANTES de qualquer coisa
+    validateCredentials();
+
     // Configurar transportador de email
     await createEmailTransporter();
     
