@@ -112,6 +112,14 @@ class TriagemController {
         });
       }
 
+      // Notificar painel de chamada (Módulo Fila)
+      PatientEventService.emitPatientCalled({
+        patientId: id,
+        patientName: atendimento.paciente_nome || 'Paciente',
+        target: 'triagem',
+        timestamp: new Date()
+      });
+
       res.json({
         message: 'Triagem iniciada com sucesso',
         atendimento

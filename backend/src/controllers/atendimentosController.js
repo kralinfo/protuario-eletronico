@@ -64,6 +64,7 @@ const reports = async (req, res) => {
 };
 import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
+import PatientEventService from '../services/PatientEventService.js';
 
 const registrar = async (req, res) => {
   try {
@@ -129,6 +130,17 @@ const atualizarStatus = async (req, res) => {
     if (!atendimento) {
       return res.status(404).json({ error: 'Atendimento não encontrado.' });
     }
+
+    // Notificar painel de chamada se o status for de início de atendimento médico
+    if (status === 'em atendimento médico' || status === 'em_atendimento_medico') {
+      PatientEventService.emitPatientCalled({
+        patientId: id,
+        patientName: atendimento.paciente_nome || 'Paciente',
+        target: 'medico',
+        timestamp: new Date()
+      });
+    }
+
     return res.json(atendimento);
   } catch (error) {
     console.error('Erro ao atualizar status do atendimento:', error);

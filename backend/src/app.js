@@ -23,6 +23,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import realtimeManager from './realtime/RealtimeManager.js';
 import TriagemRealtimeModule from './realtime/modules/TriagemRealtimeModule.js';
 import AmbulatoriRealtimeModule from './realtime/modules/AmbulatoriRealtimeModule.js';
+import FilaRealtimeModule from './realtime/modules/FilaRealtimeModule.js';
 
 // Rotas
 import apiRoutes from './routes/index.js';
@@ -154,6 +155,7 @@ class App {
       // Inicializar módulos de realtime
       TriagemRealtimeModule.initialize();
       AmbulatoriRealtimeModule.initialize();
+      FilaRealtimeModule.initialize();
 
       const httpServer = server.listen(this.port, () => {
         console.log('🚀 ================================');
