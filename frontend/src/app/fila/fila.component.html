@@ -1,81 +1,78 @@
-<div class="min-h-screen flex flex-col py-10" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
-
-  <!-- Destaque do Paciente Chamado (Painel de TV) -->
-  <div *ngIf="exibirDestaque && currentCall"
-       class="w-full max-w-[1400px] mx-auto mb-8 animate-bounce">
-    <div class="bg-blue-700 text-white rounded-2xl shadow-2xl p-12 text-center border-8 border-white">
-      <h1 class="text-4xl font-bold mb-4 opacity-80 uppercase tracking-widest">PACIENTE CHAMADO</h1>
-      <div class="text-8xl font-black mb-8 uppercase break-words">
-        {{ currentCall.patientName }}
-      </div>
-      <div class="inline-block px-10 py-5 rounded-full bg-white text-blue-800 text-5xl font-bold shadow-lg">
-        {{ getMensagemDirecionamento() | uppercase }}
-      </div>
-    </div>
-  </div>
-
-  <!-- Fila de Espera (Aviso quando h√° mais na fila) -->
-  <div *ngIf="callQueue.length > 0" class="w-full max-w-[1400px] mx-auto mb-4 px-6 text-gray-600 font-bold flex items-center gap-2">
-    <span class="animate-pulse flex h-3 w-3 rounded-full bg-orange-500"></span>
-    Pr√≥ximos na fila: {{ callQueue.length }} paciente(s) aguardando chamada...
-  </div>
-
-  <!-- T√≠tulo e Card da Tabela (Padr√£o do Sistema) -->
-  <div class="w-full max-w-[1400px] mx-auto bg-white rounded-lg shadow p-6 mb-8">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-        Painel de Chamadas - Hist√≥rico Recente
-      </h2>
-      <div class="text-gray-500 font-medium">
-        {{ now | date:'HH:mm:ss' }}
+<div class="fila-panel animate-fade-in">
+  
+  <!-- ?? PARTE SUPERIOR (FULL WIDTH) - CHAMADAS ATIVAS -->
+  <header class="active-calls-area">
+    
+    <!-- Se n„o houver chamadas ativas -->
+    <div *ngIf="!currentTriagem && !currentMedico" class="waiting-screen">
+      <div class="waiting-content">
+        <i class="fas fa-hospital-user waiting-icon"></i>
+        <p>Aguardando PrÛximo Paciente...</p>
+        <span class="system-tag">SISTEMA DE GEST√O HOSPITALAR</span>
       </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-left border border-gray-200 rounded-lg overflow-hidden border-collapse">
-        <thead class="bg-gray-50 text-gray-700 uppercase text-sm font-bold border-b">
-          <tr>
-            <th class="px-6 py-4 border-r">Hora</th>
-            <th class="px-6 py-4 border-r">Paciente</th>
-            <th class="px-6 py-4 text-center">Destino</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 text-gray-800">
-          <tr *ngFor="let item of historicoChamadas"
-              [ngClass]="{'bg-yellow-50 border-l-8 border-yellow-400': currentCall?.patientId === item.patientId && exibirDestaque}"
-              class="hover:bg-gray-50 transition-all duration-300">
-            <td class="px-6 py-4 font-mono text-gray-500 border-r w-32">
-              {{ item.timestamp | date:'HH:mm' }}
-            </td>
-            <td class="px-6 py-4 font-bold text-lg uppercase border-r">
-              {{ item.patientName }}
-            </td>
-            <td class="px-6 py-4 text-center w-64">
-              <span [ngClass]="{
-                'bg-green-100 text-green-800 border-green-200': item.target === 'triagem',
-                'bg-blue-100 text-blue-800 border-blue-200': item.target === 'consultorio'
-              }" class="px-4 py-2 rounded-full text-sm font-bold uppercase border">
-                {{ item.target === 'triagem' ? 'Triagem' : 'Consult√≥rio' }}
-              </span>
-            </td>
-          </tr>
-
-          <tr *ngIf="historicoChamadas.length === 0">
-            <td colspan="3" class="px-6 py-20 text-center text-gray-400 italic text-xl">
-              Nenhuma chamada realizada recentemente. Aguardando novos pacientes...
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Bloco Triagem -->
+    <div *ngIf="currentTriagem" class="call-block call-block--triagem animate-pulse-border">
+      <div class="call-header">
+        <span class="call-status-tag">PACIENTE CHAMADO</span>
+      </div>
+      <div class="call-body">
+        <h1 class="patient-name">{{ currentTriagem.patientName }}</h1>
+        <div class="destination-badge destination-badge--triagem">
+          TRIAGEM
+        </div>
+        <p class="instruction-text">Dirija-se ao guichÍ de triagem</p>
+      </div>
     </div>
-  </div>
 
-  <!-- Rodap√© discreto -->
-  <div class="mt-auto py-6 text-center text-gray-500 font-medium w-full max-w-[1400px] mx-auto">
-    &copy; {{ now | date:'yyyy' }} Sistema de Prontu√°rio Eletr√¥nico - M√≥dulo de Gest√£o em Tempo Real
-  </div>
+    <!-- Bloco MÈdico -->
+    <div *ngIf="currentMedico" class="call-block call-block--medico animate-pulse-border">
+      <div class="call-header">
+        <span class="call-status-tag">PACIENTE CHAMADO</span>
+      </div>
+      <div class="call-body">
+        <h1 class="patient-name">{{ currentMedico.patientName }}</h1>
+        <div class="destination-badge destination-badge--medico">
+          CONSULT”RIO M…DICO
+        </div>
+        <p class="instruction-text">Dirija-se ao consultÛrio indicado</p>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- ?? PARTE INFERIOR (GRID 2 COLUNAS) -->
+  <footer class="bottom-grid">
+    
+    <!-- Esquerda: HistÛrico -->
+    <section class="history-section">
+      <div class="section-title">
+        <i class="fas fa-history"></i> ⁄LTIMAS CHAMADAS
+      </div>
+      <div class="history-list">
+        <div *ngFor="let h of historicoChamadas" class="history-item" [ngClass]="'history-item--' + h.target">
+          <span class="history-time">{{ h.timestamp | date:'HH:mm' }}</span>
+          <span class="history-name">{{ h.patientName }}</span>
+          <span class="history-dest">{{ h.target === 'triagem' ? 'TRIAGEM' : 'M…DICO' }}</span>
+        </div>
+        <div *ngIf="historicoChamadas.length === 0" class="history-empty">
+          Nenhum registro recente
+        </div>
+      </div>
+    </section>
+
+    <!-- Direita: RelÛgio -->
+    <section class="clock-section">
+      <div class="clock-container">
+        <div class="clock-time">{{ now | date:'HH:mm:ss' }}</div>
+        <div class="clock-date">{{ now | date:'dd/MM/yyyy' }}</div>
+      </div>
+      <div class="info-footer">
+        PAINEL DE ATENDIMENTO
+      </div>
+    </section>
+
+  </footer>
+
 </div>
-

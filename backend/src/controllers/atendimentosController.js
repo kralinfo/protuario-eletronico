@@ -63,6 +63,7 @@ const reports = async (req, res) => {
   }
 };
 import Atendimento from '../models/Atendimento.js';
+import Paciente from '../models/Paciente.js';
 import db from '../config/database.js';
 import PatientEventService from '../services/PatientEventService.js';
 
@@ -133,9 +134,21 @@ const atualizarStatus = async (req, res) => {
 
     // Notificar painel de chamada se o status for de início de atendimento médico
     if (status === 'em atendimento médico' || status === 'em_atendimento_medico') {
+      // Buscar nome do paciente para o evento realtime
+      let pacienteNome = 'Paciente';
+      try {
+        const paciente = await Paciente.findById(atendimento.paciente_id);
+        if (paciente) {
+          pacienteNome = paciente.nome;
+        }
+      } catch (err) {
+        console.error('Erro ao buscar nome do paciente para chamada médica:', err);
+      }
+
+      console.log(`[REALTIME] Emitindo chamada médica para Paciente: ${pacienteNome} (ID: ${atendimento.paciente_id})`);
       PatientEventService.emitPatientCalled({
         patientId: id,
-        patientName: atendimento.paciente_nome || 'Paciente',
+        patientName: pacienteNome,
         target: 'medico',
         timestamp: new Date()
       });

@@ -1,4 +1,5 @@
 import Atendimento from '../models/Atendimento.js';
+import Paciente from '../models/Paciente.js';
 import db from '../config/database.js';
 import PatientEventService from '../services/PatientEventService.js';
 
@@ -112,10 +113,22 @@ class TriagemController {
         });
       }
 
+      // Buscar nome do paciente para o evento realtime
+      let pacienteNome = 'Paciente';
+      try {
+        const paciente = await Paciente.findById(atendimento.paciente_id);
+        if (paciente) {
+          pacienteNome = paciente.nome;
+        }
+      } catch (err) {
+        console.error('Erro ao buscar nome do paciente para chamada:', err);
+      }
+
       // Notificar painel de chamada (Módulo Fila)
+      console.log(`[REALTIME] Emitindo chamada para Paciente: ${pacienteNome} (ID: ${atendimento.paciente_id})`);
       PatientEventService.emitPatientCalled({
         patientId: id,
-        patientName: atendimento.paciente_nome || 'Paciente',
+        patientName: pacienteNome,
         target: 'triagem',
         timestamp: new Date()
       });
