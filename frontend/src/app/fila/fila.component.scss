@@ -182,13 +182,28 @@
 }
 
 /* Animações */
-.animate-blink {
-  animation: blink-card 1.5s infinite alternate ease-in-out;
+.animate-enter {
+  animation: enter-card 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both,
+             pulse-card 2s infinite ease-in-out 0.8s;
 }
 
-@keyframes blink-card {
+@keyframes enter-card {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(100px);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes pulse-card {
   0% { transform: scale(1); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); }
-  100% { transform: scale(1.03); box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6); }
+  50% { transform: scale(1.02); box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5); }
+  100% { transform: scale(1); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); }
 }
 
 /* Responsividade Básica p/ Fontes Grandes */

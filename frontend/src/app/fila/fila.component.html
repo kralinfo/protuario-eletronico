@@ -11,11 +11,11 @@
 
   <!-- Área Principal: Destaque -->
   <main class="destaque-container">
-    <div *ngIf="!pacienteAtual" class="sem-paciente">
+    <div *ngIf="!exibirDestaque" class="sem-paciente">
        <span>Aguardando chamadas...</span>
     </div>
 
-    <div *ngIf="pacienteAtual" class="paciente-destaque-card animate-blink">
+    <div *ngIf="exibirDestaque && pacienteAtual" class="paciente-destaque-card animate-enter">
        <div class="paciente-nome">
          {{ pacienteAtual.patientName | uppercase }}
        </div>
