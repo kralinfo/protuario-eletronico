@@ -1,44 +1,73 @@
-<div class="fila-container" [ngClass]="getTargetClass()">
-  <!-- Cabeçalho do Painel -->
-  <header class="fila-header">
-    <div class="logo">
-      <h1>SISTEMA DE PRONTUÁRIO ELETRÔNICO</h1>
-    </div>
-    <div class="unidade">
-      <span>UNIDADE DE SAÚDE</span>
-    </div>
-  </header>
+<div class="min-h-screen flex flex-col py-10" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
 
-  <!-- Área Principal: Destaque -->
-  <main class="destaque-container">
-    <div *ngIf="!exibirDestaque" class="sem-paciente">
-       <span>Aguardando chamadas...</span>
-    </div>
-
-    <div *ngIf="exibirDestaque && pacienteAtual" class="paciente-destaque-card animate-enter">
-       <div class="paciente-nome">
-         {{ pacienteAtual.patientName | uppercase }}
-       </div>
-       <div class="mensagem-direcionamento">
-         {{ getMensagemDirecionamento() }}
-       </div>
-    </div>
-  </main>
-
-  <!-- Histórico / Lista de chamadas -->
-  <footer class="historico-container">
-    <h2 class="historico-titulo">Últimas Chamadas</h2>
-    <div class="historico-lista">
-      <div *ngFor="let item of historicoChamadas; let i = index"
-           class="historico-item"
-           [ngClass]="'target-' + item.target">
-        <span class="historico-nome">{{ item.patientName | uppercase }}</span>
-        <span class="historico-target">{{ item.target === 'triagem' ? 'TRIAGEM' : 'CONSULTÓRIO' }}</span>
-        <span class="historico-hora">{{ item.timestamp | date:'HH:mm' }}</span>
+  <!-- Destaque do Paciente Chamado (Painel de TV) -->
+  <div *ngIf="exibirDestaque && pacienteAtual"
+       class="w-full max-w-[1400px] mx-auto mb-8 animate-bounce">
+    <div class="bg-blue-700 text-white rounded-2xl shadow-2xl p-12 text-center border-8 border-white">
+      <h1 class="text-4xl font-bold mb-4 opacity-80 uppercase tracking-widest">PACIENTE CHAMADO</h1>
+      <div class="text-8xl font-black mb-8 uppercase break-words">
+        {{ pacienteAtual.patientName }}
       </div>
-      <div *ngIf="historicoChamadas.length === 0" class="historico-vazio">
-        Nenhum paciente anterior.
+      <div class="inline-block px-10 py-5 rounded-full bg-white text-blue-800 text-5xl font-bold shadow-lg">
+        {{ getMensagemDirecionamento() | uppercase }}
       </div>
     </div>
-  </footer>
+  </div>
+
+  <!-- Título e Card da Tabela (Padrão do Sistema) -->
+  <div class="w-full max-w-[1400px] mx-auto bg-white rounded-lg shadow p-6 mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        Painel de Chamadas - Histórico Recente
+      </h2>
+      <div class="text-gray-500 font-medium">
+        {{ now | date:'HH:mm:ss' }}
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-left border border-gray-200 rounded-lg overflow-hidden border-collapse">
+        <thead class="bg-gray-50 text-gray-700 uppercase text-sm font-bold border-b">
+          <tr>
+            <th class="px-6 py-4 border-r">Hora</th>
+            <th class="px-6 py-4 border-r">Paciente</th>
+            <th class="px-6 py-4 text-center">Destino</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 text-gray-800">
+          <tr *ngFor="let item of historicoChamadas" class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 font-mono text-gray-500 border-r w-32">
+              {{ item.timestamp | date:'HH:mm' }}
+            </td>
+            <td class="px-6 py-4 font-bold text-lg uppercase border-r">
+              {{ item.patientName }}
+            </td>
+            <td class="px-6 py-4 text-center w-64">
+              <span [ngClass]="{
+                'bg-green-100 text-green-800 border-green-200': item.target === 'triagem',
+                'bg-blue-100 text-blue-800 border-blue-200': item.target === 'consultorio'
+              }" class="px-4 py-2 rounded-full text-sm font-bold uppercase border">
+                {{ item.target === 'triagem' ? 'Triagem' : 'Consultório' }}
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="historicoChamadas.length === 0">
+            <td colspan="3" class="px-6 py-20 text-center text-gray-400 italic text-xl">
+              Nenhuma chamada realizada recentemente. Aguardando novos pacientes...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Rodapé discreto -->
+  <div class="mt-auto py-6 text-center text-gray-500 font-medium w-full max-w-[1400px] mx-auto">
+    &copy; {{ now | date:'yyyy' }} Sistema de Prontuário Eletrônico - Módulo de Gestão em Tempo Real
+  </div>
 </div>
+

@@ -22,14 +22,20 @@ interface PacienteChamado {
 export class FilaComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private resetTimer$ = new Subject<void>();
+  now = new Date();
 
-  pacienteAtual: PacienteChamado | null = null;
-  historicoChamadas: PacienteChamado[] = [];
+  pacienteAtual: any = null;
+  historicoChamadas: any[] = [];
   exibirDestaque = false;
 
   constructor(private realtimeService: RealtimeService) {}
 
   ngOnInit(): void {
+    // Atualizar relógio do topo
+    setInterval(() => {
+      this.now = new Date();
+    }, 1000);
+
     // Conectar ao módulo de fila
     this.realtimeService.connect('fila');
 
@@ -41,30 +47,35 @@ export class FilaComponent implements OnInit, OnDestroy {
       });
   }
 
-  processarChamada(data: PacienteChamado): void {
+  processarChamada(data: any): void {
     // Reiniciar timer se houver uma nova chamada
     this.resetTimer$.next();
 
-    // 1. Move o paciente atual para o histórico se ele existir
-    if (this.pacienteAtual) {
-      this.historicoChamadas.unshift({...this.pacienteAtual});
-      // Mantém apenas as últimas 5 chamadas no histórico
-      if (this.historicoChamadas.length > 5) {
-        this.historicoChamadas.pop();
-      }
-    }
-
-    // 2. Define o novo paciente atual
-    this.pacienteAtual = {
+    const novoPaciente = {
       ...data,
-      timestamp: new Date(data.timestamp)
+      timestamp: new Date()
     };
+
+    // 1. Atualiza o paciente em destaque
+    this.pacienteAtual = novoPaciente;
     this.exibirDestaque = true;
+
+    // 2. Gerencia o histórico da tabela
+    // Remove se já existir e adiciona ao topo
+    this.historicoChamadas = this.historicoChamadas.filter(p =>
+      p.patientId !== novoPaciente.patientId || p.target !== novoPaciente.target
+    );
+    this.historicoChamadas.unshift(novoPaciente);
+
+    // Limita o histórico
+    if (this.historicoChamadas.length > 10) {
+      this.historicoChamadas.pop();
+    }
 
     // 3. Tocar um som de alerta
     this.reproduzirAlerta();
 
-    // 4. Temporizador para ocultar o destaque após 15 segundos
+    // 4. Temporizador para remover o destaque visual (15 seg)
     timer(15000)
       .pipe(takeUntil(this.resetTimer$), takeUntil(this.destroy$))
       .subscribe(() => {
