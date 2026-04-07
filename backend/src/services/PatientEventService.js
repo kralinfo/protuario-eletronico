@@ -137,6 +137,26 @@ class PatientEventService {
   static notifyAmbulatoriPatientArrival(module, patientData) {
     AmbulatoriRealtimeModule.notifyPatientArrival(module, patientData);
   }
+
+  /**
+   * Emite evento quando novo atendimento é registrado na recepção
+   * @param {Object} data - Dados do atendimento registrado
+   */
+  static async emitAtendimentoRegistrado(data) {
+    const eventData = {
+      patientId: data.pacienteId,
+      patientName: data.pacienteName,
+      userId: data.userId,
+      timestamp: new Date()
+    };
+
+    // [REALTIME DEBUG] LOG 3: NOVO ATENDIMENTO REGISTRADO
+    const debugTimestamp3 = new Date().toISOString();
+    console.log(`[REALTIME DEBUG] PatientEventService.emitAtendimentoRegistrado | patientId=${data.pacienteId} | pacienteName=${data.pacienteName} | timestamp=${debugTimestamp3}`);
+
+    await eventBus.emit('patient:atendimento_registrado', eventData);
+    console.log(`✅ Evento 'patient:atendimento_registrado' emitido para ${data.pacienteName}`);
+  }
 }
 
 export default PatientEventService;
