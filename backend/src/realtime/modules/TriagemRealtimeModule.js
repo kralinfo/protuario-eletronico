@@ -58,6 +58,16 @@ class TriagemRealtimeModule {
       { priority: 10 }
     );
 
+    /**
+     * Evento: Novo atendimento registrado na recepção
+     * Quando um paciente é registrado, ele chega na triagem
+     */
+    eventBus.subscribe(
+      'patient:atendimento_registrado',
+      (data) => this._onAtendimentoRegistrado(data),
+      { priority: 10 }
+    );
+
     console.log('📍 Event handlers da triagem registrados');
   }
 
@@ -152,6 +162,37 @@ class TriagemRealtimeModule {
       patientName,
       classificationRisk,
       finishedBy: userId,
+      timestamp
+    });
+  }
+
+  /**
+   * Manipula novo atendimento registrado na recepção
+   * Quando um paciente é registrado na recepção, ele entra na fila de triagem
+   * @private
+   */
+  static async _onAtendimentoRegistrado(data) {
+    const { patientId, patientName, userId, timestamp } = data;
+
+    // [REALTIME DEBUG] LOG 8: TRIAGEM RECEBE NOTIFICAÇÃO DE NOVO ATENDIMENTO
+    const debugTimestamp8 = new Date().toISOString();
+    console.log(`[REALTIME DEBUG] TriagemRealtimeModule._onAtendimentoRegistrado | patientId=${patientId} | patientName=${patientName} | timestamp=${debugTimestamp8}`);
+
+    console.log(`🎯 Novo atendimento registrado indo para triagem: ${patientName}`);
+
+    // [REALTIME DEBUG] LOG 9: EMITINDO 'patient:arrived' PARA MÓDULO TRIAGEM
+    const debugTimestamp9 = new Date().toISOString();
+    console.log(`[REALTIME DEBUG] Emitindo 'patient:arrived' para triagem | patientId=${patientId} | timestamp=${debugTimestamp9}`);
+
+    // Notificar triagem sobre novo paciente
+    realtimeManager.emitToModule(this.MODULE_NAME, 'patient:arrived', {
+      patientId,
+      patientName,
+      originModule: 'recepcao',
+      destinationModule: 'triagem',
+      status: 'aguardando_triagem',
+      classificationRisk: 'pendente',
+      transferredBy: userId,
       timestamp
     });
   }
