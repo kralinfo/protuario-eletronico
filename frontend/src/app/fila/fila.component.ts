@@ -1,13 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { RealtimeService } from '../services/realtime.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { environment } from '../../environments/environment';
 
 const MIN_DISPLAY_MS = 30000; // 30 segundos mínimos antes de aceitar substituição
-const STORAGE_KEY = 'fila_state';
 
 interface ChamadaAtiva {
   patientId: number;
@@ -19,8 +21,7 @@ interface ChamadaAtiva {
 
 @Component({
   selector: 'app-fila',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HttpClientModule],
   templateUrl: './fila.component.html',
   styleUrls: ['./fila.component.scss']
 })
@@ -40,13 +41,14 @@ export class FilaComponent implements OnInit, OnDestroy {
   historicoChamadas: ChamadaAtiva[] = [];
 
   constructor(
+    private http: HttpClient,
     private realtimeService: RealtimeService,
     private router: Router,
     public authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.carregarEstado();
+    this.carregarEstadoDoBackend();
     this.clockInterval = setInterval(() => { this.now = new Date(); }, 1000);
     this.realtimeService.connect('fila');
     this.realtimeService.onPatientCalled()
@@ -72,43 +74,36 @@ export class FilaComponent implements OnInit, OnDestroy {
     }
   }
 
-  private salvarEstado(): void {
-    try {
-      const state = {
-        currentTriagem: this.currentTriagem,
-        currentMedico: this.currentMedico,
-        historicoChamadas: this.historicoChamadas
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {}
-  }
-
-  private carregarEstado(): void {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const state = JSON.parse(raw);
-      // Rehydrate Dates
-      if (state.currentTriagem) {
-        state.currentTriagem.timestamp = new Date(state.currentTriagem.timestamp);
-        state.currentTriagem.displayedAt = new Date(state.currentTriagem.displayedAt);
-        this.currentTriagem = state.currentTriagem;
+  private carregarEstadoDoBackend(): void {
+    this.http.get<any>(`${environment.apiUrl}/fila/estado`).subscribe({
+      next: (res) => {
+        const data = res.data;
+        if (data.currentTriagem) {
+          this.currentTriagem = {
+            ...data.currentTriagem,
+            timestamp: new Date(data.currentTriagem.timestamp),
+            displayedAt: new Date(data.currentTriagem.displayedAt)
+          };
+        }
+        if (data.currentMedico) {
+          this.currentMedico = {
+            ...data.currentMedico,
+            timestamp: new Date(data.currentMedico.timestamp),
+            displayedAt: new Date(data.currentMedico.displayedAt)
+          };
+        }
+        if (Array.isArray(data.historico)) {
+          this.historicoChamadas = data.historico.map((h: any) => ({
+            ...h,
+            timestamp: new Date(h.timestamp),
+            displayedAt: new Date(h.displayedAt)
+          }));
+        }
+      },
+      error: (err) => {
+        console.warn('[Fila] Não foi possível carregar estado do backend:', err.message);
       }
-      if (state.currentMedico) {
-        state.currentMedico.timestamp = new Date(state.currentMedico.timestamp);
-        state.currentMedico.displayedAt = new Date(state.currentMedico.displayedAt);
-        this.currentMedico = state.currentMedico;
-      }
-      if (Array.isArray(state.historicoChamadas)) {
-        this.historicoChamadas = state.historicoChamadas.map((h: any) => ({
-          ...h,
-          timestamp: new Date(h.timestamp),
-          displayedAt: new Date(h.displayedAt)
-        }));
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    });
   }
 
   private agendarExibicao(chamada: ChamadaAtiva, tipo: 'triagem' | 'medico'): void {
@@ -146,7 +141,6 @@ export class FilaComponent implements OnInit, OnDestroy {
     } else {
       this.currentMedico = chamada;
     }
-    this.salvarEstado();
     this.reproduzirAlerta();
   }
 
@@ -156,7 +150,6 @@ export class FilaComponent implements OnInit, OnDestroy {
     );
     this.historicoChamadas.unshift(paciente);
     if (this.historicoChamadas.length > 10) this.historicoChamadas.pop();
-    this.salvarEstado();
   }
 
   reproduzirAlerta(): void {

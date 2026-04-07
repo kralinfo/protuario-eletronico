@@ -31,6 +31,7 @@ import atendimentosRouter from './routes/atendimentos.js';
 import triagemRouter from './routes/triagem.js';
 import historicoRouter from './routes/historico.routes.js';
 import dashboardRouter from './routes/dashboard.js';
+import filaRouter from './routes/fila.js';
 
 class App {
   constructor() {
@@ -108,6 +109,7 @@ class App {
     this.app.use('/api/triagem', triagemRouter);
     this.app.use('/api', historicoRouter);
     this.app.use('/api/dashboard', dashboardRouter);
+    this.app.use('/api/fila', filaRouter);
   }
 
   setupErrorHandling() {
