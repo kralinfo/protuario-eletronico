@@ -23,6 +23,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import realtimeManager from './realtime/RealtimeManager.js';
 import TriagemRealtimeModule from './realtime/modules/TriagemRealtimeModule.js';
 import AmbulatoriRealtimeModule from './realtime/modules/AmbulatoriRealtimeModule.js';
+import AtendimentosRealtimeModule from './realtime/modules/AtendimentosRealtimeModule.js';
 
 // Rotas
 import apiRoutes from './routes/index.js';
@@ -152,6 +153,7 @@ class App {
       realtimeManager.initialize(server, corsOptions);
 
       // Inicializar módulos de realtime
+      AtendimentosRealtimeModule.initialize();
       TriagemRealtimeModule.initialize();
       AmbulatoriRealtimeModule.initialize();
 
