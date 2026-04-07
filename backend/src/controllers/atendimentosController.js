@@ -64,6 +64,7 @@ const reports = async (req, res) => {
 };
 import Atendimento from '../models/Atendimento.js';
 import db from '../config/database.js';
+import PatientEventService from '../services/PatientEventService.js';
 
 const registrar = async (req, res) => {
   try {
@@ -82,10 +83,12 @@ const registrar = async (req, res) => {
     }
     
     // Valida se paciente existe
-    const paciente = await db.query('SELECT id FROM pacientes WHERE id = $1', [pacienteIdNum]);
+    const paciente = await db.query('SELECT id, nome FROM pacientes WHERE id = $1', [pacienteIdNum]);
     if (paciente.rowCount === 0) {
       return res.status(404).json({ error: 'Paciente não encontrado.' });
     }
+    
+    const pacienteName = paciente.rows[0].nome;
     
     // Cria atendimento
     const atendimento = await Atendimento.criar({ 
@@ -97,6 +100,25 @@ const registrar = async (req, res) => {
       status: status || 'encaminhado para triagem', // Garante status correto
       motivo_interrupcao 
     });
+    
+    // 🔌 EMITIR EVENTO DE REALTIME - Novo atendimento entra na fila de triagem
+    const userId = req.user?.id || 'system';
+    const finalStatus = status || 'encaminhado para triagem';
+    
+    if (finalStatus === 'encaminhado para triagem') {
+      await PatientEventService.emitPatientTransferred({
+        patientId: atendimento.paciente_id,
+        patientName: pacienteName,
+        originModule: 'atendimentos',
+        destinationModule: 'triagem',
+        status: finalStatus,
+        classificationRisk: null, // Ainda não foi classificado
+        userId
+      });
+      
+      console.log(`✅ Evento de transferência de atendimentos para triagem emitido para ${pacienteName}`);
+    }
+    
     return res.status(201).json(atendimento);
   } catch (error) {
     console.error('Erro ao registrar atendimento:', error);
@@ -125,10 +147,41 @@ const atualizarStatus = async (req, res) => {
     if (status === 'interrompido' && (!motivo_interrupcao || motivo_interrupcao.trim() === '')) {
       return res.status(400).json({ error: 'Motivo da interrupção é obrigatório quando status for interrompido.' });
     }
+    
+    // Buscar dados atuais do atendimento (incluindo nome do paciente)
+    const atendimentoAtual = await db.query(`
+      SELECT a.*, p.nome as paciente_nome
+      FROM atendimentos a
+      JOIN pacientes p ON p.id = a.paciente_id
+      WHERE a.id = $1
+    `, [id]);
+    
+    if (atendimentoAtual.rowCount === 0) {
+      return res.status(404).json({ error: 'Atendimento não encontrado.' });
+    }
+    
     const atendimento = await Atendimento.atualizarStatus(id, status, status === 'interrompido' ? motivo_interrupcao : 'N/A');
     if (!atendimento) {
       return res.status(404).json({ error: 'Atendimento não encontrado.' });
     }
+    
+    // 🔌 EMITIR EVENTO DE REALTIME - Status foi mudado para triagem
+    const userId = req.user?.id || 'system';
+    
+    if (status === 'encaminhado para triagem') {
+      await PatientEventService.emitPatientTransferred({
+        patientId: atendimento.paciente_id,
+        patientName: atendimentoAtual.rows[0].paciente_nome,
+        originModule: 'atendimentos',
+        destinationModule: 'triagem',
+        status,
+        classificationRisk: null, // Ainda não foi classificado
+        userId
+      });
+      
+      console.log(`✅ Evento de transferência de atendimentos para triagem emitido para ${atendimentoAtual.rows[0].paciente_nome}`);
+    }
+    
     return res.json(atendimento);
   } catch (error) {
     console.error('Erro ao atualizar status do atendimento:', error);
