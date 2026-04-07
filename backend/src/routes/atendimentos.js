@@ -1,18 +1,26 @@
 import express from 'express';
-import controller from '../controllers/atendimentosController.js';
 import knex from '../db.js';
 import { 
+  registrar,
+  listarDoDia,
+  reports,
+  listarTodos,
+  buscarPorId,
+  atualizarStatus,
+  registrarAbandono,
+  atualizar,
+  remover,
+  salvarDadosMedico,
+  salvarAlteracoesTriagem,
   atendimentosPorSemana, 
   atendimentosPorMes, 
   atendimentosPorAno,
   tempoMedioPorSemana,
   tempoMedioPorMes,
-  tempoMedioPorAno,
   classificacaoRiscoPorSemana,
   classificacaoRiscoPorMes,
   classificacaoRiscoPorAno,
-  detalhesAtendimentos,
-  atendimentosPorClassificacao
+  detalhesAtendimentos
 } from '../controllers/atendimentosController.js';
 
 const router = express.Router();
@@ -62,15 +70,11 @@ router.get('/por-ano', atendimentosPorAno);
 // Endpoints para tempo médio de espera
 router.get('/tempo-medio/semana', tempoMedioPorSemana);
 router.get('/tempo-medio/mes', tempoMedioPorMes);
-router.get('/tempo-medio/ano', tempoMedioPorAno);
 
 // Endpoints para classificação de risco
 router.get('/classificacao-risco/semana', classificacaoRiscoPorSemana);
 router.get('/classificacao-risco/mes', classificacaoRiscoPorMes);
 router.get('/classificacao-risco/ano', classificacaoRiscoPorAno);
-
-// Endpoint para buscar atendimentos por classificação de risco
-router.get('/por-classificacao', atendimentosPorClassificacao);
 
 // Endpoint de debug para listar todas as classificações existentes
 router.get('/debug/classificacoes', async (req, res) => {
@@ -88,21 +92,20 @@ router.get('/debug/classificacoes', async (req, res) => {
 // Endpoint para detalhes de atendimentos por período
 router.get('/detalhes-periodo', detalhesAtendimentos);
 
-router.post('/', controller.registrar);
-router.get('/', controller.listarDoDia); // Novo endpoint para atendimentos do dia
-router.get('/reports', controller.reports); // Rota de relatórios ANTES da rota paramétrica
-router.get('/todos', controller.listarTodos); // Novo endpoint para todos os atendimentos
-router.get('/:id', controller.buscarPorId); // Rota RESTful para buscar atendimento por ID
-router.get('/:pacienteId', controller.listarPorPaciente);
-router.patch('/:id/status', controller.atualizarStatus);
-router.patch('/:id/abandono', controller.registrarAbandono);
-router.put('/:id', controller.atualizar); // Nova rota para atualizar atendimento completo
-router.delete('/:id', controller.remover);
+router.post('/', registrar);
+router.get('/', listarDoDia); // Novo endpoint para atendimentos do dia
+router.get('/reports', reports); // Rota de relatórios ANTES da rota paramétrica
+router.get('/todos', listarTodos); // Novo endpoint para todos os atendimentos
+router.get('/:id', buscarPorId); // Rota RESTful para buscar atendimento por ID
+router.patch('/:id/status', atualizarStatus);
+router.patch('/:id/abandono', registrarAbandono);
+router.put('/:id', atualizar); // Nova rota para atualizar atendimento completo
+router.delete('/:id', remover);
 
 // Novo endpoint para salvar apenas dados do atendimento médico
-router.put('/:id/salvar-medico', controller.salvarDadosMedico);
+router.put('/:id/salvar-medico', salvarDadosMedico);
 
 // Novo endpoint para salvar apenas alterações da triagem
-router.put('/:id/salvar-triagem', controller.salvarAlteracoesTriagem);
+router.put('/:id/salvar-triagem', salvarAlteracoesTriagem);
 
 export default router;
