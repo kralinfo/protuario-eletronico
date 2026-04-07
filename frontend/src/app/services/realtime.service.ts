@@ -389,13 +389,13 @@ export class RealtimeService implements OnDestroy {
    */
   private _getServerUrl(): string {
     // Em desenvolvimento, usar localhost
-    // Em produção, usar o mesmo host da aplicação
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:3001';  // ✅ Corrigido: era 3000, agora é 3001 (porta do backend em Docker)
+      return 'http://localhost:3001';
     }
 
-    // Usar o mesmo protocolo e host da aplicação
-    return window.location.origin;
+    // Em produção, usar a URL real do backend (Render)
+    // O frontend está no Vercel, mas o WebSocket precisa conectar ao backend no Render
+    return 'https://protuario-eletronico-1.onrender.com';
   }
 
   /**

@@ -35,7 +35,13 @@ class RealtimeManager extends EventEmitter {
 
     this.io = new SocketIOServer(server, {
       cors: {
-        origin: corsOptions.origin || ['http://localhost:4200', 'http://localhost:3000'],
+        origin: corsOptions.origin || [
+          'http://localhost:4200',
+          'http://localhost:3000',
+          'https://prontuario-eletronico-five.vercel.app',
+          /^https:\/\/prontuario-eletronico.*\.vercel\.app$/,
+          /^https:\/\/protuario-eletronico.*\.vercel\.app$/
+        ],
         methods: ['GET', 'POST'],
         credentials: true,
         allowedHeaders: ['Authorization', 'Content-Type']
