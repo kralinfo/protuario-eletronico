@@ -150,8 +150,19 @@ const atualizarStatus = async (req, res) => {
         patientId: id,
         patientName: pacienteNome,
         target: 'medico',
+        classificationRisk: atendimento.classificacao_risco || null,
         timestamp: new Date()
       });
+    }
+
+    // Limpar card do médico no painel de fila assim que o status sair de 'em atendimento médico'
+    if (status !== 'em atendimento médico' && status !== 'em_atendimento_medico') {
+      PatientEventService.emitAtendimentoFinished({
+        patientId: id,
+        patientName: '',
+        module: 'medico',
+        timestamp: new Date()
+      }).catch(err => console.error('[REALTIME] Erro ao emitir atendimento_finished:', err.message));
     }
 
     return res.json(atendimento);

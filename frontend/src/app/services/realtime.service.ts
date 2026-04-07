@@ -69,6 +69,7 @@ export class RealtimeService implements OnDestroy {
   private atendimentoStarted$ = new Subject<any>();
   private atendimentoFinished$ = new Subject<any>();
   private patientCalled$ = new Subject<any>();
+  private patientCleared$ = new Subject<any>();
   private connectionError$ = new Subject<string>();
 
   constructor(private ngZone: NgZone) {}
@@ -219,6 +220,14 @@ export class RealtimeService implements OnDestroy {
           });
         });
 
+        // Event handlers - Limpeza de card (Painel Fila)
+        this.socket.on('fila:cleared', (data: any) => {
+          this.ngZone.run(() => {
+            console.log('🧹 Card removido do painel:', data);
+            this.patientCleared$.next(data);
+          });
+        });
+
         // Event handlers - Notificações de usuário
         this.socket.on('user:joined', (data) => {
           this.ngZone.run(() => {
@@ -329,6 +338,13 @@ export class RealtimeService implements OnDestroy {
    */
   onPatientCalled(): Observable<any> {
     return this.patientCalled$.asObservable();
+  }
+
+  /**
+   * Obtém observable de cards removidos do painel de fila
+   */
+  onPatientCleared(): Observable<any> {
+    return this.patientCleared$.asObservable();
   }
 
   /**

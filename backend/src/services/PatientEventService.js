@@ -103,6 +103,7 @@ class PatientEventService {
       patientId: data.patientId,
       patientName: data.patientName,
       target: data.target, // 'triagem' | 'medico'
+      classificationRisk: data.classificationRisk || null,
       timestamp: data.timestamp || new Date()
     };
 

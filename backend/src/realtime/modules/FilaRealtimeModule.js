@@ -97,6 +97,18 @@ class FilaRealtimeModule {
       (data) => this._onPatientCalled(data),
       { priority: 10 }
     );
+
+    eventBus.subscribe(
+      'patient:triagem_finished',
+      (data) => this._onTriagemFinished(data),
+      { priority: 10 }
+    );
+
+    eventBus.subscribe(
+      'patient:atendimento_finished',
+      (data) => this._onAtendimentoFinished(data),
+      { priority: 10 }
+    );
   }
 
   /**
@@ -111,6 +123,7 @@ class FilaRealtimeModule {
       patientId: data.patientId,
       patientName: data.patientName,
       target: data.target,
+      classificationRisk: data.classificationRisk || null,
       timestamp: data.timestamp || new Date(),
       displayedAt: new Date()
     };
@@ -138,6 +151,34 @@ class FilaRealtimeModule {
 
     // Emite para todos os clientes conectados ao módulo 'fila'
     realtimeManager.emitToModule(this.MODULE_NAME, 'fila:called', chamada);
+  }
+
+  /**
+   * Limpa o card de triagem quando o paciente sai de 'em triagem'
+   * @private
+   */
+  static _onTriagemFinished(data) {
+    if (!this.state.currentTriagem) return;
+    console.log(`[FilaRealtimeModule] Triagem finalizada, limpando card. patientId=${data.patientId}`);
+    this.state.currentTriagem = null;
+    realtimeManager.emitToModule(this.MODULE_NAME, 'fila:cleared', {
+      target: 'triagem',
+      patientId: data.patientId
+    });
+  }
+
+  /**
+   * Limpa o card do médico quando o paciente sai de 'em atendimento médico'
+   * @private
+   */
+  static _onAtendimentoFinished(data) {
+    if (!this.state.currentMedico) return;
+    console.log(`[FilaRealtimeModule] Atendimento médico finalizado, limpando card. patientId=${data.patientId}`);
+    this.state.currentMedico = null;
+    realtimeManager.emitToModule(this.MODULE_NAME, 'fila:cleared', {
+      target: 'medico',
+      patientId: data.patientId
+    });
   }
 
   /**

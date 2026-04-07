@@ -15,6 +15,7 @@ interface ChamadaAtiva {
   patientId: number;
   patientName: string;
   target: 'triagem' | 'medico';
+  classificationRisk?: string | null;
   timestamp: Date;
   displayedAt: Date;
 }
@@ -54,6 +55,10 @@ export class FilaComponent implements OnInit, OnDestroy {
     this.realtimeService.onPatientCalled()
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.receberChamada(data));
+
+    this.realtimeService.onPatientCleared()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.limparCard(data));
   }
 
   receberChamada(data: any): void {
@@ -61,6 +66,7 @@ export class FilaComponent implements OnInit, OnDestroy {
       patientId: data.patientId,
       patientName: data.patientName || 'Paciente não identificado',
       target: data.target,
+      classificationRisk: data.classificationRisk || null,
       timestamp: new Date(),
       displayedAt: new Date()
     };
@@ -158,6 +164,21 @@ export class FilaComponent implements OnInit, OnDestroy {
       audio.volume = 0.4;
       audio.play().catch(() => {});
     } catch {}
+  }
+
+  limparCard(data: any): void {
+    if (data.target === 'triagem') {
+      this.currentTriagem = null;
+      this.queueTriagem = [];
+    } else if (data.target === 'medico') {
+      this.currentMedico = null;
+      this.queueMedico = [];
+    }
+  }
+
+  getRiskClass(risk?: string | null): string {
+    if (!risk) return '';
+    return `tv-card--${risk.toLowerCase()}`;
   }
 
   sair(): void {

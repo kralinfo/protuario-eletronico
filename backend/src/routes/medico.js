@@ -1,5 +1,6 @@
 import express from 'express';
 import knex from '../db.js';
+import PatientEventService from '../services/PatientEventService.js';
 const router = express.Router();
 router.get('/estatisticas', async (req, res) => {
   try {
@@ -182,6 +183,14 @@ router.post('/consulta', async (req, res) => {
       await knex('atendimentos')
         .where('id', payload.atendimento_id)
         .update({ status: statusToSave, status_destino: statusToSave });
+
+      // Emitir evento para limpar card do médico no painel de fila (qualquer destino diferente de em_atendimento_medico)
+      PatientEventService.emitAtendimentoFinished({
+        patientId: payload.atendimento_id,
+        patientName: '',
+        module: 'medico',
+        timestamp: new Date()
+      }).catch(err => console.error('[medico.js] Erro ao emitir atendimento_finished (POST):', err.message));
     }
     
     console.log('[CONSULTA POST] Executando insert...');
@@ -245,6 +254,14 @@ router.put('/consulta/:id', async (req, res) => {
       await knex('atendimentos')
         .where('id', payload.atendimento_id)
         .update({ status: statusToSave, status_destino: statusToSave });
+
+      // Emitir evento para limpar card do médico no painel de fila (qualquer destino diferente de em_atendimento_medico)
+      PatientEventService.emitAtendimentoFinished({
+        patientId: payload.atendimento_id,
+        patientName: '',
+        module: 'medico',
+        timestamp: new Date()
+      }).catch(err => console.error('[medico.js] Erro ao emitir atendimento_finished (PUT):', err.message));
     }
     
     res.json({ success: true });
