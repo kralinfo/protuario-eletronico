@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 
 const MIN_DISPLAY_MS = 30000; // 30 segundos mínimos antes de aceitar substituição
+const STORAGE_KEY = 'fila_state';
 
 interface ChamadaAtiva {
   patientId: number;
@@ -45,6 +46,7 @@ export class FilaComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.carregarEstado();
     this.clockInterval = setInterval(() => { this.now = new Date(); }, 1000);
     this.realtimeService.connect('fila');
     this.realtimeService.onPatientCalled()
@@ -67,6 +69,45 @@ export class FilaComponent implements OnInit, OnDestroy {
       this.agendarExibicao(chamada, 'triagem');
     } else {
       this.agendarExibicao(chamada, 'medico');
+    }
+  }
+
+  private salvarEstado(): void {
+    try {
+      const state = {
+        currentTriagem: this.currentTriagem,
+        currentMedico: this.currentMedico,
+        historicoChamadas: this.historicoChamadas
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {}
+  }
+
+  private carregarEstado(): void {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      // Rehydrate Dates
+      if (state.currentTriagem) {
+        state.currentTriagem.timestamp = new Date(state.currentTriagem.timestamp);
+        state.currentTriagem.displayedAt = new Date(state.currentTriagem.displayedAt);
+        this.currentTriagem = state.currentTriagem;
+      }
+      if (state.currentMedico) {
+        state.currentMedico.timestamp = new Date(state.currentMedico.timestamp);
+        state.currentMedico.displayedAt = new Date(state.currentMedico.displayedAt);
+        this.currentMedico = state.currentMedico;
+      }
+      if (Array.isArray(state.historicoChamadas)) {
+        this.historicoChamadas = state.historicoChamadas.map((h: any) => ({
+          ...h,
+          timestamp: new Date(h.timestamp),
+          displayedAt: new Date(h.displayedAt)
+        }));
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
     }
   }
 
@@ -105,6 +146,7 @@ export class FilaComponent implements OnInit, OnDestroy {
     } else {
       this.currentMedico = chamada;
     }
+    this.salvarEstado();
     this.reproduzirAlerta();
   }
 
@@ -114,6 +156,7 @@ export class FilaComponent implements OnInit, OnDestroy {
     );
     this.historicoChamadas.unshift(paciente);
     if (this.historicoChamadas.length > 10) this.historicoChamadas.pop();
+    this.salvarEstado();
   }
 
   reproduzirAlerta(): void {

@@ -17,7 +17,7 @@
         <span>DESTINO</span>
       </div>
       <div class="tv-card-body">
-        <div class="tv-patient">{{ currentTriagem.patientName }}</div>
+        <div class="tv-patient">{{ currentTriagem.patientName.length > 26 ? (currentTriagem.patientName | slice:0:23) + '...' : currentTriagem.patientName }}</div>
         <div class="tv-destino">TRIAGEM</div>
       </div>
     </div>
@@ -29,7 +29,7 @@
         <span>DESTINO</span>
       </div>
       <div class="tv-card-body">
-        <div class="tv-patient">{{ currentMedico.patientName }}</div>
+        <div class="tv-patient">{{ currentMedico.patientName.length > 26 ? (currentMedico.patientName | slice:0:23) + '...' : currentMedico.patientName }}</div>
         <div class="tv-destino">CONSULTÓRIO</div>
       </div>
     </div>
