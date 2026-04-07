@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -18,7 +19,9 @@ export class MedicoService {
    * Lista todos os atendimentos
    */
   getTodosAtendimentos(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/todos`);
+    return this.http.get<any>(`${environment.apiUrl}/atendimentos/todos`).pipe(
+      map(response => response.data || [])
+    );
   }
   constructor(private http: HttpClient) {}
 
@@ -28,7 +31,9 @@ export class MedicoService {
    */
   getAtendimentosPorStatus(statusList: string[]): Observable<any[]> {
     const statusParam = statusList.join(',');
-    return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/por-status?status=${encodeURIComponent(statusParam)}`);
+    return this.http.get<any>(`${environment.apiUrl}/atendimentos/por-status?status=${encodeURIComponent(statusParam)}`).pipe(
+      map(response => response.data || [])
+    );
   }
 
   /**
