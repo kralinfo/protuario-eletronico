@@ -33,10 +33,6 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription = new Subscription();
   private alertasInterval: any;
   private atualizacaoPendente: any;
-  private ocultarAlertaTimeout: any;
-
-  mostrarAlertaAtualizacao: boolean = false;
-  alertaEstado: 'carregando' | 'sucesso' | 'erro' = 'carregando';
   
   estatisticas: EstatisticasTriagem = {
     pacientes_aguardando: 0,
@@ -278,80 +274,46 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     // Escutar quando triagem é iniciada
     this.subscriptions.add(this.realtimeService.onTriagemStarted().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Triagem iniciada, atualizando dashboard...', data);
-      this.processarAtualizacaoSocket();
+      this.atualizarDashboard();
     }));
 
     // Escutar quando triagem é finalizada
     this.subscriptions.add(this.realtimeService.onTriagemFinished().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Triagem finalizada, atualizando dashboard...', data);
-      this.processarAtualizacaoSocket();
+      this.atualizarDashboard();
     }));
 
     // Escutar quando paciente é transferido
     this.subscriptions.add(this.realtimeService.onPatientTransferred().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Paciente transferido, atualizando dashboard...', data);
-      this.processarAtualizacaoSocket();
+      this.atualizarDashboard();
     }));
 
     // Escutar quando paciente chega
     this.subscriptions.add(this.realtimeService.onPatientArrived().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Paciente chegou, atualizando dashboard...', data);
-      this.processarAtualizacaoSocket();
+      this.atualizarDashboard();
     }));
 
     // Escutar atualizações gerais da fila
     this.subscriptions.add(this.realtimeService.onQueueUpdated().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Fila atualizada, atualizando dashboard...', data);
-      this.processarAtualizacaoSocket();
+      this.atualizarDashboard();
     }));
 
     // Escutar erros de conexão
     this.subscriptions.add(this.realtimeService.onConnectionError().subscribe((error) => {
       console.error('❌ Erro de conexão WebSocket:', error);
-      this.mostrarAlertaErro();
     }));
   }
 
   /**
    * Mostra alerta de erro de conexão
    */
-  mostrarAlertaErro() {
-    this.mostrarAlertaAtualizacao = true;
-    this.alertaEstado = 'erro';
-    if (this.ocultarAlertaTimeout) clearTimeout(this.ocultarAlertaTimeout);
-    this.ocultarAlertaTimeout = setTimeout(() => {
-      this.mostrarAlertaAtualizacao = false;
-    }, 5000);
-  }
-
   /**
    * Processa atualização do WebSocket com debounce para evitar múltiplas chamadas simultâneas
    */
-  processarAtualizacaoSocket() {
-    if (this.ocultarAlertaTimeout) {
-      clearTimeout(this.ocultarAlertaTimeout);
-    }
-
-    this.mostrarAlertaAtualizacao = true;
-    this.alertaEstado = 'carregando';
-
-    if (this.atualizacaoPendente) {
-      clearTimeout(this.atualizacaoPendente);
-    }
-
-    this.atualizacaoPendente = setTimeout(() => {
-      this.atualizarDashboard();
-
-      setTimeout(() => {
-        this.alertaEstado = 'sucesso';
-        this.ocultarAlertaTimeout = setTimeout(() => {
-          this.mostrarAlertaAtualizacao = false;
-        }, 5000);
-      }, 500);
-
-      this.atualizacaoPendente = null;
-    }, 800);
-  }
+  
 
   /**
    * Atualiza todos os dados do dashboard

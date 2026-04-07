@@ -23,9 +23,6 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 export class DashboardMedicoComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription = new Subscription();
   private atualizacaoPendente: any;
-  mostrarAlertaAtualizacao: boolean = false;
-  alertaEstado: 'carregando' | 'sucesso' | 'erro' = 'carregando';
-  private ocultarAlertaTimeout: any;
   private alertasInterval: any;
 
   constructor(
@@ -185,59 +182,25 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
   configurarRealtime() {
     this.subscriptions.add(this.realtimeService.onPatientArrived().subscribe((data) => {
       console.log('🔄 Dashboard Medico (WebSocket): Paciente chegou, atualizando dashboard...', data);
-      this.processarAtualizacaoSocket();
+      this.atualizarDashboard();
     }));
 
     this.subscriptions.add(this.realtimeService.onPatientTransferred().subscribe((data) => {
       console.log('🔄 Dashboard Medico (WebSocket): Paciente transferido, atualizando dashboard...', data);
-      this.processarAtualizacaoSocket();
+      this.atualizarDashboard();
     }));
 
     this.subscriptions.add(this.realtimeService.onQueueUpdated().subscribe((data) => {
       console.log('🔄 Dashboard Medico (WebSocket): Fila atualizada, atualizando dashboard...', data);
-      this.processarAtualizacaoSocket();
+      this.atualizarDashboard();
     }));
 
     this.subscriptions.add(this.realtimeService.onConnectionError().subscribe((error) => {
       console.error('❌ Erro de conexão WebSocket:', error);
-      this.mostrarAlertaErro();
     }));
   }
 
-  mostrarAlertaErro() {
-    this.mostrarAlertaAtualizacao = true;
-    this.alertaEstado = 'erro';
-    if (this.ocultarAlertaTimeout) clearTimeout(this.ocultarAlertaTimeout);
-    this.ocultarAlertaTimeout = setTimeout(() => {
-      this.mostrarAlertaAtualizacao = false;
-    }, 5000);
-  }
-
-  processarAtualizacaoSocket() {
-    if (this.ocultarAlertaTimeout) {
-      clearTimeout(this.ocultarAlertaTimeout);
-    }
-
-    this.mostrarAlertaAtualizacao = true;
-    this.alertaEstado = 'carregando';
-
-    if (this.atualizacaoPendente) {
-      clearTimeout(this.atualizacaoPendente);
-    }
-
-    this.atualizacaoPendente = setTimeout(() => {
-      this.atualizarDashboard();
-
-      setTimeout(() => {
-        this.alertaEstado = 'sucesso';
-        this.ocultarAlertaTimeout = setTimeout(() => {
-          this.mostrarAlertaAtualizacao = false;
-        }, 5000);
-      }, 500);
-
-      this.atualizacaoPendente = null;
-    }, 800);
-  }
+  
 
   atualizarDashboard() {
     // Resetar variáveis locais para garantir atualização total (NÃO resetar quantidadeEncaminhados)
