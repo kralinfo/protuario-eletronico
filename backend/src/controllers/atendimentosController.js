@@ -6,6 +6,7 @@
 
 import db from '../config/database.js';
 import { EventEmitter } from 'events';
+import PatientEventService from '../services/PatientEventService.js';
 import {
   validarIDPositivo,
   validarPacienteExiste,
@@ -95,7 +96,18 @@ export const registrar = async (req, res) => {
       classificacao_risco
     });
 
-    // Emitir evento em tempo real
+    // [REALTIME DEBUG] LOG 2: NOVO ATENDIMENTO CRIADO NO BANCO
+    const debugTimestamp2 = new Date().toISOString();
+    console.log(`[REALTIME DEBUG] atendimentosController.registrar() | atendimentoId=${atendimento.id} | pacienteId=${pacienteId} | timestamp=${debugTimestamp2}`);
+
+    // Emitir evento em tempo real - NOVO: via PatientEventService
+    await PatientEventService.emitAtendimentoRegistrado({
+      pacienteId,
+      pacienteName: 'Paciente', // Será atualizado com nome real se disponível
+      userId: req.user?.id || 0
+    });
+
+    // Emitir evento legado (mantido por compatibilidade)
     eventEmitter.emit('atendimentoCriado', {
       atendimento,
       timestamp: new Date()
