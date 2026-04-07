@@ -16,6 +16,26 @@
       </button>
     </div>
 
+    <!-- Alerta visual de atualização via WebSocket -->
+    <div *ngIf="mostrarAlertaAtualizacao" class="mb-6 p-4 rounded-lg shadow-sm border-l-4 flex items-center justify-between transition-all duration-500 ease-in-out" [ngClass]="{'bg-blue-50 border-blue-500': alertaEstado === 'carregando', 'bg-green-50 border-green-500': alertaEstado === 'sucesso', 'bg-red-50 border-red-500': alertaEstado === 'erro'}">
+      <div class="flex items-center">
+        <mat-icon class="mr-4 text-3xl" [ngClass]="{'animate-spin text-blue-500': alertaEstado === 'carregando', 'text-green-500': alertaEstado === 'sucesso', 'text-red-500': alertaEstado === 'erro'}" style="height: 36px; width: 36px; font-size: 36px;">
+          {{ alertaEstado === 'carregando' ? 'sync' : (alertaEstado === 'sucesso' ? 'check_circle' : 'error') }}
+        </mat-icon>
+        <div>
+          <h3 class="text-base font-bold" [ngClass]="{'text-blue-800': alertaEstado === 'carregando', 'text-green-800': alertaEstado === 'sucesso', 'text-red-800': alertaEstado === 'erro'}">
+            {{ alertaEstado === 'carregando' ? 'Novos pacientes na fila. Carregando dados...' : (alertaEstado === 'sucesso' ? 'Dashboard atualizado em tempo real' : 'Erro na comunicação em tempo real') }}
+          </h3>
+          <p class="text-sm mt-1" [ngClass]="{'text-blue-700': alertaEstado === 'carregando', 'text-green-700': alertaEstado === 'sucesso', 'text-red-700': alertaEstado === 'erro'}">
+            {{ alertaEstado === 'carregando' ? 'Aguarde um instante enquanto as estatísticas de triagem são atualizadas via WebSocket.' : (alertaEstado === 'sucesso' ? 'Os pacientes e estatísticas mais recentes já estão disponíveis na sua tela.' : 'Não foi possível sincronizar os dados. Tente atualizar manualmente.') }}
+          </p>
+        </div>
+      </div>
+      <button mat-icon-button (click)="mostrarAlertaAtualizacao = false">
+        <mat-icon class="text-gray-500 hover:text-gray-800">close</mat-icon>
+      </button>
+    </div>
+
     <!-- Cards de estatísticas principais -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- Pacientes Aguardando -->
