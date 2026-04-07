@@ -23,7 +23,7 @@
     </div>
 
     <!-- Card Consultorio -->
-    <div *ngIf="currentMedico" class="tv-card">
+    <div *ngIf="currentMedico" class="tv-card" [ngClass]="getRiskClass(currentMedico.classificationRisk)">
       <div class="tv-card-header">
         <span>PACIENTE</span>
         <span>DESTINO</span>
