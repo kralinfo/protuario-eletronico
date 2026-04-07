@@ -109,11 +109,35 @@ export class AtendimentosDiaComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Retorna items filtrados SEM paginação (usado para contadores)
+   */
+  get atendimentosFiltradosSemPaginacao(): any[] {
+    return this.getFilteredItems();
+  }
+
+  /**
    * Retorna items filtrados e paginados
    */
   get atendimentosFiltrados(): any[] {
     const filtrados = this.getFilteredItems();
     return this.paginationService.paginate(filtrados);
+  }
+
+  /**
+   * Aplica filtro por data
+   */
+  aplicarFiltroData(): void {
+    this.loadAtendimentos();
+  }
+
+  /**
+   * Limpa filtro de data
+   */
+  limparFiltroData(): void {
+    const hoje = new Date();
+    this.dataInicial = hoje.toISOString().slice(0, 10);
+    this.dataFinal = hoje.toISOString().slice(0, 10);
+    this.loadAtendimentos();
   }
 
   /**
@@ -196,6 +220,21 @@ export class AtendimentosDiaComponent implements OnInit, OnDestroy {
     return this.paginationService.currentPage;
   }
 
+  set paginaAtual(page: number) {
+    this.paginationService.goToFirstPage();
+    // Navigate to specific page if needed
+    const diff = page - this.paginationService.currentPage;
+    if (diff > 0) {
+      for (let i = 0; i < diff; i++) {
+        this.paginationService.nextPage();
+      }
+    } else if (diff < 0) {
+      for (let i = 0; i < Math.abs(diff); i++) {
+        this.paginationService.previousPage();
+      }
+    }
+  }
+
   get itensPorPagina(): number {
     return this.paginationService.pageSize;
   }
@@ -246,10 +285,17 @@ export class AtendimentosDiaComponent implements OnInit, OnDestroy {
 
   gerarPDF(atendimento: any): void {
     try {
-      this.pdfGeneratorService.gerarPDFAtendimento(atendimento);
+      this.pdfGeneratorService.gerarFichaAtendimento(atendimento, atendimento);
     } catch (error: any) {
       this.showError(`Erro ao gerar PDF: ${error?.message}`);
     }
+  }
+
+  /**
+   * Gera PDF do atendimento (alias para gerarPDF)
+   */
+  gerarAtendimentoPDF(atendimento: any): void {
+    this.gerarPDF(atendimento);
   }
 
   registrarAbandono(atendimento: any): void {
@@ -305,7 +351,10 @@ export class AtendimentosDiaComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.atendimentoService.atualizarStatus(atendimento.id, 'finalizado').subscribe(
+        this.atendimentoService.atualizarAtendimento(atendimento.id, { 
+          motivo: atendimento.motivo || '',
+          status: 'finalizado' 
+        }).subscribe(
           () => {
             this.loadAtendimentos();
             this.showSuccess('Atendimento finalizado com sucesso!');
