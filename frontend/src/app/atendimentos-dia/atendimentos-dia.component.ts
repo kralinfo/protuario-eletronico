@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { AtendimentoService } from '../services/atendimento.service';
 import { PdfGeneratorService } from '../services/pdf-generator.service';
@@ -8,6 +8,7 @@ import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dial
 import { AbandonoDialogComponent } from '../shared/abandono-dialog/abandono-dialog.component';
 import { AuthService } from '../auth/auth.service';
 import { DatePipe } from '@angular/common';
+import { RealtimeService } from '../services/realtime.service';
 
 @Component({
   selector: 'app-atendimentos-dia',
@@ -16,7 +17,7 @@ import { DatePipe } from '@angular/common';
   standalone: false,
   providers: [DatePipe]
 })
-export class AtendimentosDiaComponent implements OnInit {
+export class AtendimentosDiaComponent implements OnInit, OnDestroy {
   atendimentos: any[] = [];
   filtro = '';
   paginaAtual = 1;
@@ -55,14 +56,81 @@ export class AtendimentosDiaComponent implements OnInit {
     return this.authService.getSelectedModule() !== 'recepcao';
   }
 
-  constructor(private atendimentoService: AtendimentoService, private pdfGeneratorService: PdfGeneratorService, private dialog: MatDialog, private router: Router, private authService: AuthService) {}
+  constructor(
+    private atendimentoService: AtendimentoService, 
+    private pdfGeneratorService: PdfGeneratorService, 
+    private dialog: MatDialog, 
+    private router: Router, 
+    private authService: AuthService,
+    private realtimeService: RealtimeService
+  ) {
+    console.log('🚀 [AtendimentosDiaComponent] Inicializando componente');
+  }
 
   ngOnInit() {
+    console.log('🔌 [AtendimentosDiaComponent] Configurando listeners de realtime');
+    
     // Inicializar com a data atual
     const hoje = new Date();
     this.dataInicial = hoje.toISOString().slice(0, 10);
     this.dataFinal = hoje.toISOString().slice(0, 10);
     this.carregarAtendimentos();
+
+    // Conectar ao WebSocket de atendimentos
+    this.realtimeService.connect('atendimentos').then(() => {
+      console.log('✅ [AtendimentosDiaComponent] Conectado ao módulo de atendimentos');
+      this._setupRealtimeListeners();
+    }).catch(error => {
+      console.error('❌ [AtendimentosDiaComponent] Erro ao conectar ao WebSocket:', error);
+    });
+  }
+
+  /**
+   * Configura listeners de eventos em tempo real
+   * @private
+   */
+  private _setupRealtimeListeners(): void {
+    console.log('📡 [AtendimentosDiaComponent] Registrando listeners');
+
+    // Listener: Paciente foi transferido de atendimentos
+    this.realtimeService.onPatientTransferred().subscribe(data => {
+      console.log('📤 [AtendimentosDiaComponent] Paciente saiu - removendo da fila:', {
+        patientId: data.patientId,
+        patientName: data.patientName,
+        timestamp: new Date().toISOString()
+      });
+
+      // Remover do array de atendimentos
+      const index = this.atendimentos.findIndex(a => a.paciente_id === data.patientId);
+      if (index > -1) {
+        const removido = this.atendimentos[index];
+        this.atendimentos.splice(index, 1);
+        console.log('✅ [AtendimentosDiaComponent] Fila atualizada. Total:', this.atendimentos.length);
+      }
+    });
+
+    // Listener: Novo paciente chegou
+    this.realtimeService.onPatientArrived().subscribe(data => {
+      console.log('🆕 [AtendimentosDiaComponent] Novo paciente chegou:', {
+        patientId: data.patientId,
+        patientName: data.patientName,
+        timestamp: new Date().toISOString()
+      });
+
+      // Recarregar atendimentos para adicionar novo
+      this.carregarAtendimentos();
+    });
+
+    console.log('✅ [AtendimentosDiaComponent] Listeners configurados');
+  }
+
+  /**
+   * Cleanup ao destruir componente
+   */
+  ngOnDestroy(): void {
+    console.log('🔌 [AtendimentosDiaComponent] Destruindo componente');
+    this.realtimeService.disconnect();
+    console.log('✅ [AtendimentosDiaComponent] Desconectado do WebSocket');
   }
 
   carregarAtendimentos() {
