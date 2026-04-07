@@ -4,9 +4,10 @@ import { TriagemService, PacienteTriagem } from '../../services/triagem.service'
 import { TriagemEventService } from '../../services/triagem-event.service';
 import { AuthService } from '../../auth/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subject, interval, takeUntil } from 'rxjs';
+import { Subject, Subscription, interval, takeUntil } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
+import { RealtimeService } from '../../services/realtime.service';
 
 interface EstatisticasTriagem {
   pacientes_aguardando: number;
@@ -29,6 +30,14 @@ interface EstatisticasTriagem {
   standalone: false
 })
 export class DashboardTriagemComponent implements OnInit, OnDestroy {
+  private subscriptions: Subscription = new Subscription();
+  private alertasInterval: any;
+  private atualizacaoPendente: any;
+  private ocultarAlertaTimeout: any;
+
+  mostrarAlertaAtualizacao: boolean = false;
+  alertaEstado: 'carregando' | 'sucesso' | 'erro' = 'carregando';
+  
   estatisticas: EstatisticasTriagem = {
     pacientes_aguardando: 0,
     pacientes_em_triagem: 0,
@@ -97,7 +106,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private realtimeService: RealtimeService
   ) {
     this.usuarioLogado = this.authService.user;
   }
@@ -122,7 +132,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     }, 500);
 
     // Escutar notificações de atualização
-    this.triagemEventService.atualizarDashboard$
+    this.subscriptions.add(this.triagemEventService.atualizarDashboard$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         console.log('Dashboard: Recebida notificação para atualizar');
@@ -131,38 +141,36 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
         this.carregarFilaEmTriagem();
         this.carregarPosTriagemPreview();
         this.carregarAlertasTempo();
-      });
+      }));
 
     // Escutar evento global de novo atendimento
-    this.triagemEventService.novoAtendimento$
+    this.subscriptions.add(this.triagemEventService.novoAtendimento$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.snackBar.open('Novo atendimento registrado!', 'Fechar', { duration: 3000 });
+      }));
+
+    // 🔌 Conectar WebSocket ao módulo triagem
+    this.realtimeService.connect('triagem')
+      .then(() => {
+        console.log('✅ [DashboardTriagem] Realtime conectado ao módulo triagem');
+        this.configurarRealtime();
+      })
+      .catch((err: any) => {
+        console.warn('⚠️ [DashboardTriagem] Realtime indisponível:', err?.message);
+        this.configurarRealtime(); // configura mesmo assim (observables falharão silenciosamente)
       });
 
-    // Atualiza as estatísticas a cada 30 segundos
-    interval(30000)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.carregarEstatisticas();
-        this.carregarFilaDisponiveis();
-        this.carregarFilaEmTriagem();
-        this.carregarPosTriagemPreview();
-        this.carregarAlertasTempo();
-      });
+    // Verificador de tempo: A cada 60 segundos ele busca os atendimentos
+    // e recalcula quem está estourando o tempo limite (Manchester)
+    this.alertasInterval = setInterval(() => {
+      this.carregarAlertasTempo();
+    }, 60000);
 
     // Atualiza a hora a cada minuto
     interval(60000)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.horaAtual = new Date());
-
-    // Escutar quando a página fica visível novamente (volta de outra tela)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        console.log('Dashboard: Página ficou visível - atualizando card classificação');
-        this.atualizarCardPorClassificacao();
-      }
-    });
   }
 
   private readonly LIMITES_RISCO: Record<string, number> = {
@@ -251,8 +259,115 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+    if (this.alertasInterval) {
+      clearInterval(this.alertasInterval);
+    }
+    if (this.atualizacaoPendente) {
+      clearTimeout(this.atualizacaoPendente);
+    }
     this.destroy$.next();
     this.destroy$.complete();
+    this.realtimeService.disconnect();
+  }
+
+  /**
+   * Configura os listeners de WebSocket para atualizar o dashboard em tempo real
+   */
+  configurarRealtime() {
+    // Escutar quando triagem é iniciada
+    this.subscriptions.add(this.realtimeService.onTriagemStarted().subscribe((data) => {
+      console.log('🔄 Dashboard Triagem (WebSocket): Triagem iniciada, atualizando dashboard...', data);
+      this.processarAtualizacaoSocket();
+    }));
+
+    // Escutar quando triagem é finalizada
+    this.subscriptions.add(this.realtimeService.onTriagemFinished().subscribe((data) => {
+      console.log('🔄 Dashboard Triagem (WebSocket): Triagem finalizada, atualizando dashboard...', data);
+      this.processarAtualizacaoSocket();
+    }));
+
+    // Escutar quando paciente é transferido
+    this.subscriptions.add(this.realtimeService.onPatientTransferred().subscribe((data) => {
+      console.log('🔄 Dashboard Triagem (WebSocket): Paciente transferido, atualizando dashboard...', data);
+      this.processarAtualizacaoSocket();
+    }));
+
+    // Escutar quando paciente chega
+    this.subscriptions.add(this.realtimeService.onPatientArrived().subscribe((data) => {
+      console.log('🔄 Dashboard Triagem (WebSocket): Paciente chegou, atualizando dashboard...', data);
+      this.processarAtualizacaoSocket();
+    }));
+
+    // Escutar atualizações gerais da fila
+    this.subscriptions.add(this.realtimeService.onQueueUpdated().subscribe((data) => {
+      console.log('🔄 Dashboard Triagem (WebSocket): Fila atualizada, atualizando dashboard...', data);
+      this.processarAtualizacaoSocket();
+    }));
+
+    // Escutar erros de conexão
+    this.subscriptions.add(this.realtimeService.onConnectionError().subscribe((error) => {
+      console.error('❌ Erro de conexão WebSocket:', error);
+      this.mostrarAlertaErro();
+    }));
+  }
+
+  /**
+   * Mostra alerta de erro de conexão
+   */
+  mostrarAlertaErro() {
+    this.mostrarAlertaAtualizacao = true;
+    this.alertaEstado = 'erro';
+    if (this.ocultarAlertaTimeout) clearTimeout(this.ocultarAlertaTimeout);
+    this.ocultarAlertaTimeout = setTimeout(() => {
+      this.mostrarAlertaAtualizacao = false;
+    }, 5000);
+  }
+
+  /**
+   * Processa atualização do WebSocket com debounce para evitar múltiplas chamadas simultâneas
+   */
+  processarAtualizacaoSocket() {
+    if (this.ocultarAlertaTimeout) {
+      clearTimeout(this.ocultarAlertaTimeout);
+    }
+
+    this.mostrarAlertaAtualizacao = true;
+    this.alertaEstado = 'carregando';
+
+    if (this.atualizacaoPendente) {
+      clearTimeout(this.atualizacaoPendente);
+    }
+
+    this.atualizacaoPendente = setTimeout(() => {
+      this.atualizarDashboard();
+
+      setTimeout(() => {
+        this.alertaEstado = 'sucesso';
+        this.ocultarAlertaTimeout = setTimeout(() => {
+          this.mostrarAlertaAtualizacao = false;
+        }, 5000);
+      }, 500);
+
+      this.atualizacaoPendente = null;
+    }, 800);
+  }
+
+  /**
+   * Atualiza todos os dados do dashboard
+   */
+  private atualizarDashboard() {
+    console.log('🔄 Dashboard Triagem: Atualizando via WebSocket...');
+    this.carregarEstatisticas();
+    this.carregarFilaDisponiveis();
+    this.carregarFilaEmTriagem();
+    this.carregarPosTriagemPreview();
+    this.carregarAlertasTempo();
+    
+    // Força atualização do card por classificação com delay
+    setTimeout(() => {
+      this.atualizarCardPorClassificacao();
+    }, 300);
   }
 
   carregarEstatisticas() {
