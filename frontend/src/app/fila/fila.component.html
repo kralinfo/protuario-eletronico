@@ -1,78 +1,71 @@
-<div class="fila-panel animate-fade-in">
-  
-  <!-- ?? PARTE SUPERIOR (FULL WIDTH) - CHAMADAS ATIVAS -->
-  <header class="active-calls-area">
-    
-    <!-- Se não houver chamadas ativas -->
-    <div *ngIf="!currentTriagem && !currentMedico" class="waiting-screen">
-      <div class="waiting-content">
-        <i class="fas fa-hospital-user waiting-icon"></i>
-        <p>Aguardando Próximo Paciente...</p>
-        <span class="system-tag">SISTEMA DE GESTÃO HOSPITALAR</span>
+<div class="tv-container">
+
+  <!-- CHAMADOS ATIVOS -->
+  <div class="tv-top">
+
+    <!-- Aguardando -->
+    <div *ngIf="!currentTriagem && !currentMedico" class="tv-card tv-card--waiting">
+      <div class="tv-card-body" style="justify-content:center;">
+        <div class="tv-patient">AGUARDANDO PACIENTE...</div>
       </div>
     </div>
 
-    <!-- Bloco Triagem -->
-    <div *ngIf="currentTriagem" class="call-block call-block--triagem animate-pulse-border">
-      <div class="call-header">
-        <span class="call-status-tag">PACIENTE CHAMADO</span>
+    <!-- Card Triagem -->
+    <div *ngIf="currentTriagem" class="tv-card">
+      <div class="tv-card-header">
+        <span>PACIENTE</span>
+        <span>DESTINO</span>
       </div>
-      <div class="call-body">
-        <h1 class="patient-name">{{ currentTriagem.patientName }}</h1>
-        <div class="destination-badge destination-badge--triagem">
-          TRIAGEM
-        </div>
-        <p class="instruction-text">Dirija-se ao guichê de triagem</p>
+      <div class="tv-card-body">
+        <div class="tv-patient">{{ currentTriagem.patientName }}</div>
+        <div class="tv-destino">TRIAGEM</div>
       </div>
     </div>
 
-    <!-- Bloco Médico -->
-    <div *ngIf="currentMedico" class="call-block call-block--medico animate-pulse-border">
-      <div class="call-header">
-        <span class="call-status-tag">PACIENTE CHAMADO</span>
+    <!-- Card Consultorio -->
+    <div *ngIf="currentMedico" class="tv-card">
+      <div class="tv-card-header">
+        <span>PACIENTE</span>
+        <span>DESTINO</span>
       </div>
-      <div class="call-body">
-        <h1 class="patient-name">{{ currentMedico.patientName }}</h1>
-        <div class="destination-badge destination-badge--medico">
-          CONSULTÓRIO MÉDICO
-        </div>
-        <p class="instruction-text">Dirija-se ao consultório indicado</p>
+      <div class="tv-card-body">
+        <div class="tv-patient">{{ currentMedico.patientName }}</div>
+        <div class="tv-destino">CONSULTÃ“RIO</div>
       </div>
     </div>
 
-  </header>
+  </div>
 
-  <!-- ?? PARTE INFERIOR (GRID 2 COLUNAS) -->
-  <footer class="bottom-grid">
-    
-    <!-- Esquerda: Histórico -->
-    <section class="history-section">
-      <div class="section-title">
-        <i class="fas fa-history"></i> ÚLTIMAS CHAMADAS
-      </div>
-      <div class="history-list">
-        <div *ngFor="let h of historicoChamadas" class="history-item" [ngClass]="'history-item--' + h.target">
-          <span class="history-time">{{ h.timestamp | date:'HH:mm' }}</span>
-          <span class="history-name">{{ h.patientName }}</span>
-          <span class="history-dest">{{ h.target === 'triagem' ? 'TRIAGEM' : 'MÉDICO' }}</span>
-        </div>
-        <div *ngIf="historicoChamadas.length === 0" class="history-empty">
-          Nenhum registro recente
-        </div>
-      </div>
-    </section>
+  <!-- PARTE INFERIOR -->
+  <div class="tv-bottom">
 
-    <!-- Direita: Relógio -->
-    <section class="clock-section">
-      <div class="clock-container">
-        <div class="clock-time">{{ now | date:'HH:mm:ss' }}</div>
-        <div class="clock-date">{{ now | date:'dd/MM/yyyy' }}</div>
-      </div>
-      <div class="info-footer">
-        PAINEL DE ATENDIMENTO
-      </div>
-    </section>
+    <!-- Historico -->
+    <div class="tv-history">
+      <div class="tv-history-title">HistÃ³rico Recente</div>
 
-  </footer>
+      <div class="tv-row tv-row--header">
+        <div>Hora</div>
+        <div>Paciente</div>
+        <div>Destino</div>
+      </div>
+
+      <div *ngFor="let h of historicoChamadas" class="tv-row">
+        <div>{{ h.timestamp | date:'HH:mm' }}</div>
+        <div>{{ h.patientName }}</div>
+        <div class="tv-badge">{{ h.target === 'triagem' ? 'Triagem' : 'ConsultÃ³rio' }}</div>
+      </div>
+
+      <div *ngIf="historicoChamadas.length === 0" class="tv-row">
+        <div style="grid-column:span 3; text-align:center; opacity:0.5;">Nenhum chamado recente</div>
+      </div>
+    </div>
+
+    <!-- Relogio -->
+    <div class="tv-clock">
+      <div class="tv-time">{{ now | date:'HH:mm:ss' }}</div>
+      <div class="tv-date">{{ now | date:'dd/MM/yyyy' }}</div>
+    </div>
+
+  </div>
 
 </div>
