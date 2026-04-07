@@ -15,7 +15,7 @@ import { takeUntil } from 'rxjs/operators';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TriagemEventService } from 'src/app/services/triagem-event.service';
 import { TriagemService } from 'src/app/services/triagem.service';
-import { RealtimeService } from 'src/app/services/realtime.service';
+import { RealtimeService, PatientTransferredEvent } from 'src/app/services/realtime.service';
 
 interface PacienteTriagem {
   id: number;
@@ -84,7 +84,9 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     private router: Router,
     private realtimeService: RealtimeService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    console.log('🚀 [FilaTriagemComponent] Inicializando componente');
+  }
 
     abrirDialogClassificacao() {
       this.dialog.open(ClassificacaoDialogComponent, {
@@ -93,24 +95,70 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     }
 
   ngOnInit() {
+    console.log('🔌 [FilaTriagemComponent] Configurando listeners de realtime');
+    
     this.carregarDados();
     this.iniciarAtualizacaoAutomatica();
 
     // 🔌 Conectar WebSocket ao módulo triagem
     this.realtimeService.connect('triagem')
-      .then(() => console.log('✅ [FilaTriagem] Realtime conectado ao módulo triagem'))
-      .catch((err: any) => console.warn('⚠️ [FilaTriagem] Realtime indisponível:', err?.message));
+      .then(() => {
+        console.log('✅ [FilaTriagemComponent] Realtime conectado ao módulo triagem');
+        this._setupRealtimeListeners();
+      })
+      .catch((err: any) => console.error('❌ [FilaTriagemComponent] Erro ao conectar Realtime:', err?.message));
+  }
 
-    // 🔄 Ouvir por mudanças em tempo real
-    this.realtimeService.on('patient:transferred_out', (event: any) => {
-      console.log('[FilaTriagem] Paciente saiu da triagem em tempo real:', event);
+  /**
+   * Configura listeners de eventos em tempo real
+   * @private
+   */
+  private _setupRealtimeListeners(): void {
+    console.log('📡 [FilaTriagemComponent] Registrando listeners');
+
+    // 🎉 Listener: Novo paciente chegou na triagem
+    this.realtimeService.onPatientArrived().subscribe(data => {
+      console.log('🎉 [FilaTriagemComponent] Novo paciente chegou:', {
+        patientId: data.patientId,
+        patientName: data.patientName,
+        timestamp: new Date().toISOString()
+      });
       this.carregarDados(false); // Recarregar sem loading
     });
 
-    this.realtimeService.on('patient:arrived', (event: any) => {
-      console.log('[FilaTriagem] Novo paciente em triagem em tempo real:', event);
+    // 🔄 Listener: Triagem iniciada
+    this.realtimeService.onTriagemStarted().subscribe(data => {
+      console.log('🔄 [FilaTriagemComponent] Triagem iniciada:', {
+        patientId: data.patientId,
+        patientName: data.patientName,
+        timestamp: new Date().toISOString()
+      });
       this.carregarDados(false);
     });
+
+    // ✅ Listener: Triagem finalizada
+    this.realtimeService.onTriagemFinished().subscribe(data => {
+      console.log('✅ [FilaTriagemComponent] Triagem concluída:', {
+        patientId: data.patientId,
+        patientName: data.patientName,
+        classificationRisk: data.classificationRisk,
+        timestamp: new Date().toISOString()
+      });
+      this.carregarDados(false);
+    });
+
+    // 📤 Listener: Paciente saiu da triagem
+    this.realtimeService.onPatientTransferred().subscribe((data: PatientTransferredEvent) => {
+      console.log('📤 [FilaTriagemComponent] Paciente saiu da triagem:', {
+        patientId: data.patientId,
+        patientName: data.patientName,
+        destinationModule: data.destinationModule,
+        timestamp: new Date().toISOString()
+      });
+      this.carregarDados(false);
+    });
+
+    console.log('✅ [FilaTriagemComponent] Listeners configurados');
   }
 
   ngOnDestroy() {
