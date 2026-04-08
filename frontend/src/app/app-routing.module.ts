@@ -16,6 +16,7 @@ import { FilaTriagemComponent } from './triagem/fila-triagem/fila-triagem.compon
 import { DashboardTriagemComponent } from './triagem/dashboard/dashboard-triagem.component';
 import { RealizarTriagemUltraSeguroComponent } from './triagem/triagem/realizar-triagem-ultra-seguro.component';
 import { FilaPosTriagemComponent } from './triagem/fila-pos-triagem/fila-pos-triagem.component';
+import { FilaComponent } from './fila/fila.component';
 
 const routes: Routes = [
   {
@@ -241,6 +242,16 @@ const routes: Routes = [
       breadcrumb: 'Redefinir Senha',
       icon: 'lock_reset',
       hideInBreadcrumb: true
+    }
+  },
+  {
+    path: 'fila',
+    component: FilaComponent,
+    canActivate: [AuthGuard], // Apenas logado, sem trava de módulo específica para o painel
+    data: {
+      breadcrumb: 'Painel de Fila',
+      icon: 'monitor',
+      title: 'Painel de Chamada em Tempo Real'
     }
   },
   { path: '**', redirectTo: '/login' }

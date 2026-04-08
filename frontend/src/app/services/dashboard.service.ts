@@ -19,6 +19,7 @@ export interface PorClassificacao {
   amarelo: number;
   verde: number;
   azul: number;
+  aguardando?: number;
 }
 
 /** Retorno de /api/dashboard/overview */
@@ -62,7 +63,12 @@ export interface DadosOperacional {
 
 /** Retorno de /api/dashboard/atendimentos-por-hora */
 export interface AtendimentoHora {
-  hora:  string;  // ex: "08:00"
+  hora?: string;  // ex: "08:00" ou "Semana 1"
+  ano?:  number;  // ex: 2024 (para drill-down multi-ano personalizado)
+  mes?:  number;  // 1-12 (para drill-down anual)
+  semana?: number; // 1-5 (para drill-down mensal)
+  dia?: number;    // 1-31 (para drill-down semanal)
+  data?: string;   // ISO string da data completa (para drill-down de semana)
   total: number;
 }
 
@@ -72,6 +78,35 @@ export interface MedicoProdutividade {
   atendimentos: number;
   tempoMedio:  number;
   tempoEspera: number;
+  medicoId:    number;
+}
+
+/** Interface para os atendimentos detalhados de um médico */
+export interface AtendimentoMedicoDetalhe {
+  consultaId: number;
+  atendimentoId: number;
+  pacienteNome: string;
+  status: string;
+  dataHoraInicio: string;
+  dataHoraFim: string;
+  classificacao: string;
+}
+
+/** Item da tabela paginada de atendimentos do dashboard */
+export interface AtendimentoDashboard {
+  id: number;
+  pacienteNome: string;
+  status: string;
+  classificacaoRisco: string;
+  dataHoraAtendimento: string;
+  dataHoraFim: string;
+  medicoNome: string | null;
+}
+
+/** Resposta paginada de atendimentos */
+export interface RespostaAtendimentosPaginados {
+  dados: AtendimentoDashboard[];
+  total: number;
 }
 
 /** Agregado completo do dashboard */
@@ -85,11 +120,18 @@ export type PeriodoDashboard = 'dia' | 'semana' | 'mes' | 'ano';
 
 /** Filtro opcional passado nos endpoints */
 export interface FiltroDashboard {
-  periodo?: PeriodoDashboard; // padrão: 'dia'
+  periodo?: PeriodoDashboard | 'personalizado'; // padrão: 'dia'
   data?: string;              // YYYY-MM-DD — sobrescreve periodo
   dataInicio?: string;        // YYYY-MM-DD — limite inferior do intervalo personalizado
   dataFim?: string;           // YYYY-MM-DD — limite superior do intervalo personalizado
+  originalDataInicio?: string; // Limite original do range personalizado (preservado durante drill-down)
+  originalDataFim?: string;    // Limite original do range personalizado (preservado durante drill-down)
+  originalPeriodo?: string;    // Período de origem antes do drill-down (ex: 'semana')
   medicoId?: number;
+  classificacao?: string;      // Filtro por classificação de risco (VERMELHO, AMARELO, etc.)
+  hora?: string;               // Filtro por hora específica (HH:00)
+  resetNavigation?: boolean;   // Se true, indica que o filtro veio de um reset de navegação de outra rota
+  manualFilter?: boolean;      // Se true, indica que o filtro veio de uma ação manual no gráfico/seletor
 }
 
 // ─── Service ─────────────────────────────────────────────────────────────────
@@ -100,17 +142,14 @@ export class DashboardService {
 
   /**
    * Emissor central de atualizações — Preparado para WebSocket.
-   * Ao implementar WebSocket, basta chamar refreshDashboard() dentro do
-   * listener do socket (ex: socket.on('dashboard:update', () => this.refreshDashboard()))
-   * e todos os componentes subscritos se atualizarão automaticamente.
    */
-  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  private readonly refresh$ = new BehaviorSubject<FiltroDashboard | undefined>(undefined);
 
   constructor(private http: HttpClient) {}
 
   /** Força uma atualização imediata em todos os componentes que escutam o stream. */
-  refreshDashboard(): void {
-    this.refresh$.next();
+  refreshDashboard(filtro?: FiltroDashboard): void {
+    this.refresh$.next(filtro);
   }
 
   /**
@@ -118,9 +157,9 @@ export class DashboardService {
    * Emite dados na inicialização e sempre que refreshDashboard() for chamado.
    * shareReplay(1) evita múltiplas requisições quando há vários inscritos.
    */
-  getDashboardStream(filtro?: FiltroDashboard): Observable<DadosDashboard> {
+  getDashboardStream(): Observable<DadosDashboard> {
     return this.refresh$.pipe(
-      switchMap(() => this.getTudo(filtro)),
+      switchMap((filtro) => this.getTudo(filtro)),
       shareReplay(1)
     );
   }
@@ -146,6 +185,32 @@ export class DashboardService {
     );
   }
 
+  getAtendimentosPaginados(page: number, limit: number, filtro?: FiltroDashboard): Observable<RespostaAtendimentosPaginados> {
+    let p = this._toParams(filtro).set('page', String(page)).set('limit', String(limit));
+    return this.http.get<RespostaAtendimentosPaginados>(`${this.base}/atendimentos`, { params: p });
+  }
+
+  getAtendimentosPorMedico(medicoId: number, filtro?: FiltroDashboard): Observable<AtendimentoMedicoDetalhe[]> {
+    return this.http.get<AtendimentoMedicoDetalhe[]>(
+      `${this.base}/atendimento-por-medico/${medicoId}`,
+      { params: this._toParams(filtro) }
+    );
+  }
+
+  getAtendimentosPorEtapa(etapa: string, filtro?: FiltroDashboard): Observable<AtendimentoMedicoDetalhe[]> {
+    return this.http.get<AtendimentoMedicoDetalhe[]>(
+      `${this.base}/pacientes-por-etapa-detalhe/${etapa}`,
+      { params: this._toParams(filtro) }
+    );
+  }
+
+  getAtendimentosPorRisco(nivel: string, filtro?: FiltroDashboard): Observable<AtendimentoMedicoDetalhe[]> {
+    return this.http.get<AtendimentoMedicoDetalhe[]>(
+      `${this.base}/pacientes-por-risco-detalhe/${nivel}`,
+      { params: this._toParams(filtro) }
+    );
+  }
+
   /** Carrega tudo em paralelo — usado pelo stream e pelo carregamento manual. */
   getTudo(filtro?: FiltroDashboard): Observable<DadosDashboard> {
     return forkJoin({
@@ -158,11 +223,13 @@ export class DashboardService {
   /** Converte FiltroDashboard em HttpParams tipados (nenhum `any`). */
   private _toParams(filtro?: FiltroDashboard): HttpParams {
     let p = new HttpParams();
-    if (filtro?.periodo)    p = p.set('periodo',    filtro.periodo);
-    if (filtro?.data)       p = p.set('data',       filtro.data);
-    if (filtro?.dataInicio) p = p.set('dataInicio', filtro.dataInicio);
-    if (filtro?.dataFim)    p = p.set('dataFim',    filtro.dataFim);
-    if (filtro?.medicoId)   p = p.set('medicoId',   String(filtro.medicoId));
+    if (filtro?.periodo)       p = p.set('periodo',       filtro.periodo);
+    if (filtro?.data)          p = p.set('data',          filtro.data);
+    if (filtro?.dataInicio)    p = p.set('dataInicio',    filtro.dataInicio);
+    if (filtro?.dataFim)       p = p.set('dataFim',       filtro.dataFim);
+    if (filtro?.medicoId)      p = p.set('medicoId',      String(filtro.medicoId));
+    if (filtro?.classificacao) p = p.set('classificacao', filtro.classificacao);
+    if (filtro?.hora)          p = p.set('hora',          filtro.hora);
     return p;
   }
 }

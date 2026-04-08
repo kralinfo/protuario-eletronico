@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MedicoService } from 'src/app/medico/medico.service';
 
 @Component({
   selector: 'app-medico-consulta-form',
   templateUrl: './medico-consulta-form.component.html',
-  styleUrls: ['./medico-consulta-form.component.scss'],
   standalone: true,
-  imports: [FormsModule]
+  imports: [FormsModule, CommonModule]
 })
 export class MedicoConsultaFormComponent implements OnInit {
   consulta: any = {};

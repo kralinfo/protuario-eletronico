@@ -4,6 +4,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subject, interval, takeUntil } from 'rxjs';
 import {
@@ -24,6 +28,10 @@ const INTERVALO_POLLING_MS = 30_000;
     MatButtonModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatPaginatorModule,
+    FormsModule,
     RouterModule
   ]
 })
@@ -44,6 +52,11 @@ export class DashboardOperacionalComponent implements OnInit, OnDestroy {
   horaAtualizacao = new Date();
   carregando = true;
   erro = false;
+
+  // Paginação Alertas
+  pageSize = 5;
+  pageIndex = 0;
+  pageSizeOptions = [5, 10, 15, 25, 50];
 
   private destroy$ = new Subject<void>();
 
@@ -79,6 +92,17 @@ export class DashboardOperacionalComponent implements OnInit, OnDestroy {
         this.snackBar.open('Erro ao atualizar o dashboard.', 'Fechar', { duration: 3000 });
       }
     });
+  }
+
+  get alertasPaginados(): AlertaCritico[] {
+    const start = this.pageIndex * this.pageSize;
+    const end = start + this.pageSize;
+    return this.dados.alertas_criticos.slice(start, end);
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.pageIndex = event.pageIndex;
   }
 
   getCorClassificacao(classificacao: string): string {

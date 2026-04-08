@@ -1,0 +1,71 @@
+<div class="tv-container">
+
+  <!-- CHAMADOS ATIVOS -->
+  <div class="tv-top">
+
+    <!-- Aguardando -->
+    <div *ngIf="!currentTriagem && !currentMedico" class="tv-card tv-card--waiting">
+      <div class="tv-card-body" style="justify-content:center;">
+        <div class="tv-patient">AGUARDANDO PACIENTE...</div>
+      </div>
+    </div>
+
+    <!-- Card Triagem -->
+    <div *ngIf="currentTriagem" class="tv-card">
+      <div class="tv-card-header">
+        <span>PACIENTE</span>
+        <span>DESTINO</span>
+      </div>
+      <div class="tv-card-body">
+        <div class="tv-patient">{{ currentTriagem.patientName.length > 26 ? (currentTriagem.patientName | slice:0:23) + '...' : currentTriagem.patientName }}</div>
+        <div class="tv-destino">TRIAGEM</div>
+      </div>
+    </div>
+
+    <!-- Card Consultorio -->
+    <div *ngIf="currentMedico" class="tv-card" [ngClass]="getRiskClass(currentMedico.classificationRisk)">
+      <div class="tv-card-header">
+        <span>PACIENTE</span>
+        <span>DESTINO</span>
+      </div>
+      <div class="tv-card-body">
+        <div class="tv-patient">{{ currentMedico.patientName.length > 26 ? (currentMedico.patientName | slice:0:23) + '...' : currentMedico.patientName }}</div>
+        <div class="tv-destino">CONSULTÓRIO</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PARTE INFERIOR -->
+  <div class="tv-bottom">
+
+    <!-- Historico -->
+    <div class="tv-history">
+      <div class="tv-history-title">Histórico Recente</div>
+
+      <div class="tv-row tv-row--header">
+        <div>Hora</div>
+        <div>Paciente</div>
+        <div>Destino</div>
+      </div>
+
+      <div *ngFor="let h of historicoChamadas" class="tv-row">
+        <div>{{ h.timestamp | date:'HH:mm' }}</div>
+        <div>{{ h.patientName }}</div>
+        <div class="tv-badge">{{ h.target === 'triagem' ? 'Triagem' : 'Consultório' }}</div>
+      </div>
+
+      <div *ngIf="historicoChamadas.length === 0" class="tv-row">
+        <div style="grid-column:span 3; text-align:center; opacity:0.5;">Nenhum chamado recente</div>
+      </div>
+    </div>
+
+    <!-- Relogio -->
+    <div class="tv-clock">
+      <div class="tv-time">{{ now | date:'HH:mm:ss' }}</div>
+      <div class="tv-date">{{ now | date:'dd/MM/yyyy' }}</div>
+    </div>
+
+  </div>
+
+</div>

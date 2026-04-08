@@ -1,14 +1,14 @@
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-  <div class="container mx-auto px-4 py-8 max-w-screen-xl">
+  <div class="container mx-auto px-4 py-4 max-w-screen-xl">
 
     <!-- ═══════════════════════════════════ CABEÇALHO ═════════════════════════════════════ -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
       <div>
-        <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <mat-icon class="text-blue-600">dashboard</mat-icon>
           Dashboard Operacional
         </h1>
-        <p class="text-sm text-gray-500 mt-1 ml-9">
+        <p class="text-xs text-gray-500 mt-0.5 ml-8">
           Atualizado em
           <span class="font-medium text-gray-700">{{ horaAtualizacao | date:'dd/MM/yyyy HH:mm:ss' }}</span>
           &nbsp;·&nbsp;
@@ -16,10 +16,10 @@
         </p>
       </div>
 
-      <div class="flex flex-col items-end gap-2">
+      <div class="flex flex-col items-end gap-1.5">
 
         <!-- Seletor de período -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
           <div class="flex rounded-lg overflow-hidden border border-gray-300 shadow-sm">
             <button
               *ngFor="let p of periodos"
@@ -27,32 +27,38 @@
               [class.bg-blue-600]="periodoSelecionado === p.valor"
               [class.text-white]="periodoSelecionado === p.valor"
               [class.text-gray-700]="periodoSelecionado !== p.valor"
-              class="px-4 py-2 text-sm font-medium border-r border-gray-300 last:border-r-0 transition-colors hover:bg-blue-50">
+              class="px-3 py-1.5 text-xs font-medium border-r border-gray-300 last:border-r-0 transition-colors hover:bg-blue-50">
               {{ p.label }}
             </button>
           </div>
 
           <button mat-icon-button color="primary" (click)="refreshManual()" [disabled]="carregando"
-                  matTooltip="Atualizar agora">
-            <mat-icon [class.animate-spin]="carregando">refresh</mat-icon>
+                  matTooltip="Atualizar agora" class="!w-9 !h-9 !leading-9">
+            <mat-icon [class.animate-spin]="carregando" class="!text-xl">refresh</mat-icon>
           </button>
         </div>
 
         <!-- Intervalo personalizado (visível apenas quando selecionado) -->
         <div *ngIf="periodoSelecionado === 'personalizado'"
-             class="flex items-center gap-2 bg-white border border-blue-200 rounded-lg px-3 py-2 shadow-sm">
-          <label class="text-xs text-gray-500 font-medium">De</label>
+             class="flex items-center gap-2 bg-white border border-blue-200 rounded-lg px-2 py-1 shadow-sm">
+          <label class="text-[10px] text-gray-500 font-medium caps">De</label>
           <input type="date" [(ngModel)]="dataInicio" [max]="dataMaxima"
-                 class="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
-          <label class="text-xs text-gray-500 font-medium">Até</label>
+                 class="text-xs border border-gray-200 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400">
+          <label class="text-[10px] text-gray-500 font-medium caps">Até</label>
           <input type="date" [(ngModel)]="dataFim" [min]="dataInicio" [max]="dataMaxima"
-                 class="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                 class="text-xs border border-gray-200 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400">
           <button mat-stroked-button color="primary"
                   (click)="aplicarPersonalizado()"
                   [disabled]="!dataInicio || !dataFim || carregando"
-                  class="!text-sm !py-1 !px-3">
-            <mat-icon class="!text-sm">search</mat-icon>
+                  class="!text-[10px] !py-0 !h-7 !px-2 !min-w-0">
+            <mat-icon class="!text-xs !w-3 !h-3 !mr-1">check</mat-icon>
             Aplicar
+          </button>
+          <button mat-stroked-button
+                  (click)="limparPersonalizado()"
+                  class="!text-[10px] !py-0 !h-7 !px-2 !min-w-0 !text-gray-500 !border-gray-300 hover:!text-red-500 hover:!border-red-300">
+            <mat-icon class="!text-xs !w-3 !h-3 !mr-1">close</mat-icon>
+            Limpar
           </button>
         </div>
 
@@ -61,96 +67,67 @@
 
     <!-- Banner de erro -->
     <div *ngIf="erro && !carregando"
-         class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700 text-sm">
-      <mat-icon>error_outline</mat-icon>
+         class="mb-4 bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-3 text-red-700 text-xs">
+      <mat-icon class="!text-lg">error_outline</mat-icon>
       Não foi possível carregar dados. Verifique a conexão com o servidor.
     </div>
 
-    <!-- ═══════════════════════════════════ 1. TOPO — KPIs ════════════════════════════════ -->
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- ══════════════════ 0. INFORMAÇÕES DO DIA (independente de filtro) ═══════════════ -->
+    <app-dashboard-info-hoje
+      [periodo]="periodoSelecionado"
+      [filtro]="filtro"
+      class="block mb-4">
+    </app-dashboard-info-hoje>
 
-      <app-dashboard-kpi-card
-        titulo="Total no Dia"
-        [valor]="operacional.total_hoje"
-        icone="people"
-        cor="gray"
-        subtitulo="Atendimentos abertos hoje"
-        [carregando]="carregando">
-      </app-dashboard-kpi-card>
+    <!-- ════════════════════════════════ 1. MEIO — Gráficos ══════════════════════════════ -->
+    <section class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
 
-      <app-dashboard-kpi-card
-        titulo="Em Atendimento"
-        [valor]="operacional.em_atendimento"
-        icone="medical_services"
-        cor="blue"
-        subtitulo="Médico ou ambulatorial"
-        [carregando]="carregando">
-      </app-dashboard-kpi-card>
-
-      <app-dashboard-kpi-card
-        titulo="Espera p/ Triagem"
-        [valor]="operacional.tempo_medio_espera"
-        unidade="min"
-        icone="hourglass_empty"
-        cor="orange"
-        [subtitulo]="operacional.aguardando_triagem + ' aguardando'"
-        [carregando]="carregando">
-      </app-dashboard-kpi-card>
-
-      <app-dashboard-kpi-card
-        titulo="Finalizados"
-        [valor]="operacional.concluidos"
-        icone="check_circle"
-        cor="green"
-        [subtitulo]="taxaConclusao + '% de conclusão'"
-        [carregando]="carregando">
-      </app-dashboard-kpi-card>
-
-    </section>
-
-    <!-- ════════════════════════════════ 2. MEIO — Gráficos ══════════════════════════════ -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-
-      <!-- Linha + Etapas (2 colunas) -->
-      <div class="lg:col-span-2">
+      <!-- Linha + Etapas (3 colunas) -->
+      <div class="lg:col-span-3">
         <app-dashboard-flow-chart
           [dadosHora]="porHora"
           [operacional]="operacional"
           [periodo]="periodoSelecionado"
-          [carregando]="carregando">
+          [filtro]="filtro"
+          [carregando]="carregando"
+          (filtered)="aoFiltrarPeloGrafico($event)">
         </app-dashboard-flow-chart>
       </div>
 
-      <!-- Donut de risco -->
-      <div>
+      <!-- Donut de risco (2 colunas) -->
+      <div class="lg:col-span-2">
         <app-dashboard-risk-chart
           [dados]="operacional.por_classificacao"
-          [carregando]="carregando">
+          [filtro]="filtro"
+          [carregando]="carregando"
+          (filtered)="aoFiltrarPeloGrafico($event)">
         </app-dashboard-risk-chart>
       </div>
 
     </section>
 
-    <!-- ════════════════════════════════ 3. BASE — Tabela médicos ════════════════════════ -->
-    <section class="mb-6">
+    <!-- ═══════════════════════════ 2. BASE — TABELA DE ATENDIMENTOS ════════════════════════════ -->
+    <section class="mb-4">
+      <app-dashboard-atendimentos-table
+        [filtro]="filtro">
+      </app-dashboard-atendimentos-table>
+    </section>
+
+    <!-- ════════════════════════════════ 3. RODAPÉ — Tabela médicos ════════════════════════ -->
+    <section class="flex-none mb-2 shrink-0" *ngIf="isAdmin">
       <app-dashboard-doctors-table
         [medicos]="medicos"
-        [carregando]="carregando">
+        [carregando]="carregando"
+        [periodo]="periodoSelecionado"
+        [filtro]="filtro"
+        (medicoSelecionado)="abrirDetalhesMedico($event)">
       </app-dashboard-doctors-table>
     </section>
 
-    <!-- ══════════════════════════════ 4. LISTA CRÍTICA ══════════════════════════════════ -->
-    <section class="mb-6">
-      <app-dashboard-critical-list
-        [alertas]="operacional.alertas_criticos"
-        [carregando]="carregando">
-      </app-dashboard-critical-list>
-    </section>
-
     <!-- ════════════════════════════════ Rodapé de info ══════════════════════════════════ -->
-    <footer class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 pb-6 text-xs text-gray-400">
-      <span>Atualização automática a cada 30 segundos</span>
-      <div class="flex items-center gap-4">
+    <footer class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1 pb-4 text-[11px] text-gray-400">
+      <span>Informações do dia atualizam automaticamente a cada 30 segundos</span>
+      <div class="flex items-center gap-3">
         <span>Abandonos: <strong class="text-gray-600">{{ operacional.abandonos }}</strong></span>
         <span>Pós-triagem: <strong class="text-gray-600">{{ operacional.pos_triagem }}</strong></span>
         <span>Em triagem: <strong class="text-gray-600">{{ operacional.em_triagem }}</strong></span>

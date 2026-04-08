@@ -1,0 +1,108 @@
+<div class="mb-4 rounded-xl overflow-hidden shadow-sm border border-gray-200">
+
+  <!-- ══ Barra de cabeçalho (sempre visível) ══ -->
+  <div
+    class="flex items-center justify-between px-4 py-2 bg-white cursor-pointer select-none"
+    [class.border-b]="expandido"
+    [class.border-gray-200]="expandido"
+    (click)="toggleExpand()">
+
+    <!-- Título + badge "tempo real" -->
+    <div class="flex items-center gap-2">
+      <mat-icon class="text-blue-600 !text-xl">today</mat-icon>
+      <span class="font-semibold text-gray-700 text-xs">Informações do Dia</span>
+      <span class="hidden sm:inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-green-100 text-green-700 border border-green-200">
+        <span class="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
+        tempo real
+      </span>
+    </div>
+
+    <!-- Resumo compacto (visível apenas quando recolhido) -->
+    <div *ngIf="!expandido && !carregando"
+         class="hidden sm:flex items-center gap-4 text-xs text-gray-600 mx-4">
+      <span>
+        <strong class="text-gray-800">{{ operacional.total_hoje }}</strong>
+        <span class="text-gray-400 ml-1">total</span>
+      </span>
+      <span>
+        <strong class="text-blue-600">{{ operacional.em_atendimento }}</strong>
+        <span class="text-gray-400 ml-1">pós-triagem</span>
+      </span>
+      <span>
+        <strong class="text-green-600">{{ operacional.concluidos }}</strong>
+        <span class="text-gray-400 ml-1">concluídos</span>
+      </span>
+      <span *ngIf="operacional.alertas_criticos.length > 0"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">
+        <mat-icon class="!text-[10px] !w-2.5 !h-2.5">warning</mat-icon>
+        {{ operacional.alertas_criticos.length }} alerta(s)
+      </span>
+    </div>
+
+    <!-- Botão toggle -->
+    <button mat-icon-button class="!text-gray-400 !ml-auto flex-shrink-0 !w-8 !h-8 !leading-8"
+            [attr.aria-label]="expandido ? 'Recolher' : 'Expandir'"
+            (click)="$event.stopPropagation(); toggleExpand()">
+      <mat-icon class="!text-lg">{{ expandido ? 'expand_less' : 'expand_more' }}</mat-icon>
+    </button>
+  </div>
+
+  <!-- ══ Conteúdo expansível ══ -->
+  <div *ngIf="expandido" class="bg-white p-3 border-t border-gray-100">
+
+    <!-- Skeleton -->
+    <div *ngIf="carregando" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
+      <div *ngFor="let _ of [1,2,3,4]" class="h-20 bg-white/70 rounded-lg animate-pulse border border-gray-100"></div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div *ngIf="!carregando" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+
+      <app-dashboard-kpi-card
+        titulo="Total no Dia"
+        [valor]="operacional.total_hoje"
+        icone="people"
+        cor="gray"
+        subtitulo="Atendimentos abertos"
+        [carregando]="false">
+      </app-dashboard-kpi-card>
+
+      <app-dashboard-kpi-card
+        titulo="Pós-Triagem"
+        [valor]="operacional.em_atendimento"
+        icone="medical_services"
+        cor="blue"
+        subtitulo="Em fluxo pós-triagem"
+        [carregando]="false">
+      </app-dashboard-kpi-card>
+
+      <app-dashboard-kpi-card
+        titulo="Espera p/ Triagem"
+        [valor]="operacional.tempo_medio_espera"
+        unidade="min"
+        icone="hourglass_empty"
+        cor="orange"
+        [subtitulo]="operacional.aguardando_triagem + ' pacientes'"
+        [carregando]="false">
+      </app-dashboard-kpi-card>
+
+      <app-dashboard-kpi-card
+        titulo="Finalizados"
+        [valor]="operacional.concluidos"
+        icone="check_circle"
+        cor="green"
+        [subtitulo]="taxaConclusao + '% de conclusão'"
+        [carregando]="false">
+      </app-dashboard-kpi-card>
+
+    </div>
+
+    <!-- Alertas Críticos -->
+    <app-dashboard-critical-list
+      [alertas]="operacional.alertas_criticos"
+      [carregando]="carregando">
+    </app-dashboard-critical-list>
+
+  </div>
+
+</div>

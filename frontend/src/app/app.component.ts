@@ -22,7 +22,7 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('sidenavContainer') sidenavContainer!: MatSidenavContainer;
   @ViewChild('sobreDialog') sobreDialog!: TemplateRef<any>;
   @ViewChild('userMenu', { static: true }) userMenu!: MatMenu;
-  
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -39,8 +39,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('[AppComponent] ngOnInit() iniciado');
-    // notification bell removed; notifications still emitted via NotificationService (toasts)
-    
     // Detectar quando navegar para fora da página de login
     this.router.events
       .pipe(
@@ -72,7 +70,7 @@ export class AppComponent implements OnInit, OnDestroy {
   // no header notification state
   private _initializeRealtime(): void {
     console.log('[AppComponent._initializeRealtime()] Iniciando...');
-    
+
     // Não conectar em rotas de login/autenticação
     const currentUrl = this.router.url;
     console.log('[AppComponent._initializeRealtime()] Rota atual:', currentUrl);
@@ -85,7 +83,7 @@ export class AppComponent implements OnInit, OnDestroy {
     const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
     console.log('[AppComponent._initializeRealtime()] Token:', token ? 'EXISTS' : 'NOT FOUND');
     console.log('[AppComponent._initializeRealtime()] isAuthenticated():', this.authService.isAuthenticated());
-    
+
     if (!token || !this.authService.isAuthenticated()) {
       console.log('[AppComponent._initializeRealtime()] CANCELADO: Token inválido ou não autenticado');
       return;
@@ -95,7 +93,7 @@ export class AppComponent implements OnInit, OnDestroy {
     const module = this.authService.getSelectedModule() || 'default';
     console.log('[AppComponent._initializeRealtime()] Módulo selecionado:', module);
     console.log('[AppComponent._initializeRealtime()] isConnected():', this.realtimeService.isConnected());
-    
+
     if (!this.realtimeService.isConnected()) {
       console.log('[AppComponent._initializeRealtime()] Chamando connect()...');
       this.realtimeService.connect(module)
@@ -198,6 +196,11 @@ export class AppComponent implements OnInit, OnDestroy {
   isLoginRoute(): boolean {
     // Esconde o header global nas rotas de login e redefinir senha
     return this.router.url === '/login' || this.router.url.startsWith('/redefinir-senha') || this.router.url.startsWith('/reset-password');
+  }
+
+  isFilaRoute(): boolean {
+    // Oculta sidenav e breadcrumb no painel de chamadas
+    return this.router.url === '/fila';
   }
 
   logout() {

@@ -24,6 +24,7 @@ import realtimeManager from './realtime/RealtimeManager.js';
 import TriagemRealtimeModule from './realtime/modules/TriagemRealtimeModule.js';
 import AmbulatoriRealtimeModule from './realtime/modules/AmbulatoriRealtimeModule.js';
 import AtendimentosRealtimeModule from './realtime/modules/AtendimentosRealtimeModule.js';
+import FilaRealtimeModule from './realtime/modules/FilaRealtimeModule.js';
 
 // Rotas
 import apiRoutes from './routes/index.js';
@@ -31,6 +32,7 @@ import atendimentosRouter from './routes/atendimentos.js';
 import triagemRouter from './routes/triagem.js';
 import historicoRouter from './routes/historico.routes.js';
 import dashboardRouter from './routes/dashboard.js';
+import filaRouter from './routes/fila.js';
 
 class App {
   constructor() {
@@ -108,6 +110,7 @@ class App {
     this.app.use('/api/triagem', triagemRouter);
     this.app.use('/api', historicoRouter);
     this.app.use('/api/dashboard', dashboardRouter);
+    this.app.use('/api/fila', filaRouter);
   }
 
   setupErrorHandling() {
@@ -156,6 +159,7 @@ class App {
       AtendimentosRealtimeModule.initialize();
       TriagemRealtimeModule.initialize();
       AmbulatoriRealtimeModule.initialize();
+      FilaRealtimeModule.initialize();
 
       const httpServer = server.listen(this.port, () => {
         console.log('🚀 ================================');

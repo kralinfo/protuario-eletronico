@@ -46,6 +46,7 @@ import { ClassificacaoDialogComponent } from './classificacao-dialog/classificac
 import { PaginationComponent } from './shared/components/pagination/pagination.component';
 import { NotificationContainerComponent } from './shared/components/notification-container.component';
 import { RealtimeStatusComponent } from './shared/components/realtime-status.component';
+import { FilaComponent } from './fila/fila.component';
 
 @NgModule({
   declarations: [
@@ -93,6 +94,7 @@ import { RealtimeStatusComponent } from './shared/components/realtime-status.com
     PaginationComponent,
     NotificationContainerComponent,
     RealtimeStatusComponent,
+    FilaComponent,
 
     // Remover diretivas e componentes dos imports, manter apenas módulos
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule

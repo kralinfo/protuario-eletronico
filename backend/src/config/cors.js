@@ -4,6 +4,7 @@ import config from './env.js';
 const allowedOrigins = [
   'http://localhost:4200',
   'https://prontuario-eletronico-five.vercel.app',
+  /^https:\/\/prontuario-eletronico.*\.vercel\.app$/,
   /^https:\/\/protuario-eletronico.*\.vercel\.app$/
 ];
 

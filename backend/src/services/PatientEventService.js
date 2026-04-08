@@ -95,6 +95,23 @@ class PatientEventService {
   }
 
   /**
+   * Emite evento de paciente chamado
+   * @param {Object} data - Dados da chamada
+   */
+  static async emitPatientCalled(data) {
+    const eventData = {
+      patientId: data.patientId,
+      patientName: data.patientName,
+      target: data.target, // 'triagem' | 'medico'
+      classificationRisk: data.classificationRisk || null,
+      timestamp: data.timestamp || new Date()
+    };
+
+    await eventBus.emit('patient:called', eventData);
+    console.log(`✅ Evento 'patient:called' emitido para ${data.patientName} (${data.target})`);
+  }
+
+  /**
    * Emite evento de atendimento finalizado
    */
   static async emitAtendimentoFinished(data) {

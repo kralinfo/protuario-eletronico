@@ -12,13 +12,16 @@ import dashboardService from '../services/dashboardService.js';
 
 const PERIODOS_VALIDOS = ['dia', 'semana', 'mes', 'ano'];
 const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_LIMIT = 100;
 
 function extrairParams(req) {
-  const data      = req.query.data      && RE_DATA.test(req.query.data)      ? req.query.data      : null;
-  const dataInicio = req.query.dataInicio && RE_DATA.test(req.query.dataInicio) ? req.query.dataInicio : null;
-  const dataFim   = req.query.dataFim   && RE_DATA.test(req.query.dataFim)   ? req.query.dataFim   : null;
-  const periodo   = PERIODOS_VALIDOS.includes(req.query.periodo) ? req.query.periodo : 'dia';
-  return { periodo, data, dataInicio, dataFim };
+  const data       = req.query.data       && RE_DATA.test(req.query.data)       ? req.query.data       : null;
+  const dataInicio  = req.query.dataInicio  && RE_DATA.test(req.query.dataInicio)  ? req.query.dataInicio  : null;
+  const dataFim     = req.query.dataFim     && RE_DATA.test(req.query.dataFim)     ? req.query.dataFim     : null;
+  const periodo     = PERIODOS_VALIDOS.includes(req.query.periodo) ? req.query.periodo : 'dia';
+  const classificacao = req.query.classificacao || null;
+  const hora          = req.query.hora          || null;
+  return { periodo, data, dataInicio, dataFim, classificacao, hora };
 }
 
 class DashboardController {
@@ -78,6 +81,30 @@ class DashboardController {
     }
   }
 
+  static async pacientesPorEtapaDetalhe(req, res) {
+    try {
+      const { etapa } = req.params;
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.pacientesPorEtapaDetalhe(etapa, periodo, data, dataInicio, dataFim);
+      res.json(resultado);
+    } catch (error) {
+      console.error('[DashboardController] pacientesPorEtapaDetalhe:', error);
+      res.status(500).json({ message: 'Erro interno ao carregar detalhe da etapa.' });
+    }
+  }
+
+  static async pacientesPorRiscoDetalhe(req, res) {
+    try {
+      const { nivel } = req.params;
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.pacientesPorRiscoDetalhe(nivel, periodo, data, dataInicio, dataFim);
+      res.json(resultado);
+    } catch (error) {
+      console.error('[DashboardController] pacientesPorRiscoDetalhe:', error);
+      res.status(500).json({ message: 'Erro interno ao carregar detalhe do risco.' });
+    }
+  }
+
   static async pacientesCriticos(req, res) {
     try {
       const { periodo, data, dataInicio, dataFim } = extrairParams(req);
@@ -86,6 +113,31 @@ class DashboardController {
     } catch (error) {
       console.error('[DashboardController] pacientesCriticos:', error);
       res.status(500).json({ message: 'Erro interno ao carregar pacientes críticos.' });
+    }
+  }
+
+  static async atendimentoPorMedico(req, res) {
+    try {
+      const { medicoId } = req.params;
+      const { periodo, data, dataInicio, dataFim } = extrairParams(req);
+      const resultado = await dashboardService.atendimentosPorMedico(medicoId, periodo, data, dataInicio, dataFim);
+      res.json(resultado);
+    } catch (error) {
+      console.error('[DashboardController] atendimentoPorMedico:', error);
+      res.status(500).json({ message: 'Erro interno ao carregar atendimentos do médico.' });
+    }
+  }
+
+  static async atendimentosPaginados(req, res) {
+    try {
+      const { periodo, data, dataInicio, dataFim, classificacao, hora } = extrairParams(req);
+      const page  = Math.max(1, parseInt(req.query.page)  || 1);
+      const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(req.query.limit) || 10));
+      const resultado = await dashboardService.atendimentosPaginados(page, limit, periodo, data, dataInicio, dataFim, classificacao, hora);
+      res.json(resultado);
+    } catch (error) {
+      console.error('[DashboardController] atendimentosPaginados:', error);
+      res.status(500).json({ message: 'Erro interno ao carregar atendimentos.' });
     }
   }
 

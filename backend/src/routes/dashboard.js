@@ -6,10 +6,14 @@ const router = Router();
 
 // ── Novos endpoints (contrato camelCase) ──────────────────────────────────
 router.get('/overview',              authenticateToken, DashboardController.overview);
+router.get('/atendimentos',          authenticateToken, DashboardController.atendimentosPaginados);
 router.get('/atendimentos-por-hora', authenticateToken, DashboardController.atendimentosPorHora);
 router.get('/classificacao-risco',   authenticateToken, DashboardController.classificacaoRisco);
 router.get('/pacientes-por-etapa',   authenticateToken, DashboardController.pacientesPorEtapa);
+router.get('/pacientes-por-etapa-detalhe/:etapa', authenticateToken, DashboardController.pacientesPorEtapaDetalhe);
+router.get('/pacientes-por-risco-detalhe/:nivel', authenticateToken, DashboardController.pacientesPorRiscoDetalhe);
 router.get('/produtividade-medicos', authenticateToken, DashboardController.produtividadeMedicos);
+router.get('/atendimento-por-medico/:medicoId', authenticateToken, DashboardController.atendimentoPorMedico);
 router.get('/pacientes-criticos',    authenticateToken, DashboardController.pacientesCriticos);
 
 // ── Legado: mantidos para compatibilidade com o frontend existente ─────────

@@ -68,6 +68,8 @@ export class RealtimeService implements OnDestroy {
   private triagemFinished$ = new Subject<any>();
   private atendimentoStarted$ = new Subject<any>();
   private atendimentoFinished$ = new Subject<any>();
+  private patientCalled$ = new Subject<any>();
+  private patientCleared$ = new Subject<any>();
   private connectionError$ = new Subject<string>();
 
   constructor(private ngZone: NgZone) {}
@@ -88,7 +90,7 @@ export class RealtimeService implements OnDestroy {
         });
 
         // Obter token do localStorage - testar múltiplas chaves possíveis
-        const token = localStorage.getItem('token') 
+        const token = localStorage.getItem('token')
           || localStorage.getItem('auth_token')
           || sessionStorage.getItem('token')
           || sessionStorage.getItem('auth_token');
@@ -117,7 +119,7 @@ export class RealtimeService implements OnDestroy {
         this.socket.on('connect', () => {
           this.ngZone.run(() => {
             console.log('✅ Conectado ao servidor WebSocket:', this.socket?.id);
-            
+
             // Entrar no módulo específico
             this.socket?.emit('join:module', { module });
 
@@ -207,6 +209,22 @@ export class RealtimeService implements OnDestroy {
           this.ngZone.run(() => {
             console.log('✅ Atendimento finalizado:', data);
             this.atendimentoFinished$.next(data);
+          });
+        });
+
+        // Event handlers - Chamada de Paciente (Painel Fila)
+        this.socket.on('fila:called', (data: any) => {
+          this.ngZone.run(() => {
+            console.log('📢 Paciente chamado para o painel:', data);
+            this.patientCalled$.next(data);
+          });
+        });
+
+        // Event handlers - Limpeza de card (Painel Fila)
+        this.socket.on('fila:cleared', (data: any) => {
+          this.ngZone.run(() => {
+            console.log('🧹 Card removido do painel:', data);
+            this.patientCleared$.next(data);
           });
         });
 
@@ -316,6 +334,20 @@ export class RealtimeService implements OnDestroy {
   }
 
   /**
+   * Obtém observable de pacientes chamados (Painel Fila)
+   */
+  onPatientCalled(): Observable<any> {
+    return this.patientCalled$.asObservable();
+  }
+
+  /**
+   * Obtém observable de cards removidos do painel de fila
+   */
+  onPatientCleared(): Observable<any> {
+    return this.patientCleared$.asObservable();
+  }
+
+  /**
    * Obtém observable de erros de conexão
    */
   onConnectionError(): Observable<string> {
@@ -373,13 +405,13 @@ export class RealtimeService implements OnDestroy {
    */
   private _getServerUrl(): string {
     // Em desenvolvimento, usar localhost
-    // Em produção, usar o mesmo host da aplicação
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:3001';  // ✅ Corrigido: era 3000, agora é 3001 (porta do backend em Docker)
+      return 'http://localhost:3001';
     }
 
-    // Usar o mesmo protocolo e host da aplicação
-    return window.location.origin;
+    // Em produção, usar a URL real do backend (Render)
+    // O frontend está no Vercel, mas o WebSocket precisa conectar ao backend no Render
+    return 'https://protuario-eletronico-1.onrender.com';
   }
 
   /**
@@ -394,6 +426,7 @@ export class RealtimeService implements OnDestroy {
     this.triagemFinished$.complete();
     this.atendimentoStarted$.complete();
     this.atendimentoFinished$.complete();
+    this.patientCalled$.complete();
     this.connectionError$.complete();
   }
 }
