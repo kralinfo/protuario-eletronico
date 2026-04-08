@@ -50,7 +50,7 @@
       </div>
 
       <div *ngFor="let h of historicoChamadas" class="tv-row">
-        <div>{{ h.timestamp | date:'HH:mm' }}</div>
+        <div>{{ h.timestamp | date:'dd/MM HH:mm' }}</div>
         <div>{{ h.patientName }}</div>
         <div class="tv-badge">{{ h.target === 'triagem' ? 'Triagem' : 'Consultório' }}</div>
       </div>

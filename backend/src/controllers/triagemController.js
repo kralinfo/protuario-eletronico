@@ -127,7 +127,7 @@ class TriagemController {
       // Notificar painel de chamada (Módulo Fila)
       console.log(`[REALTIME] Emitindo chamada para Paciente: ${pacienteNome} (ID: ${atendimento.paciente_id})`);
       PatientEventService.emitPatientCalled({
-        patientId: id,
+        patientId: parseInt(id),
         patientName: pacienteNome,
         target: 'triagem',
         timestamp: new Date()

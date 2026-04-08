@@ -59,6 +59,16 @@ export class FilaComponent implements OnInit, OnDestroy {
     this.realtimeService.onPatientCleared()
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.limparCard(data));
+
+    this.realtimeService.onHistoricoUpdated()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        this.historicoChamadas = data.map((h: any) => ({
+          ...h,
+          timestamp: new Date(h.timestamp),
+          displayedAt: new Date(h.displayedAt)
+        }));
+      });
   }
 
   receberChamada(data: any): void {
@@ -71,8 +81,7 @@ export class FilaComponent implements OnInit, OnDestroy {
       displayedAt: new Date()
     };
 
-    this.atualizarHistorico(chamada);
-
+    // Histórico é gerenciado exclusivamente pelo backend via fila:update_historico
     if (chamada.target === 'triagem') {
       this.agendarExibicao(chamada, 'triagem');
     } else {
@@ -148,14 +157,6 @@ export class FilaComponent implements OnInit, OnDestroy {
       this.currentMedico = chamada;
     }
     this.reproduzirAlerta();
-  }
-
-  atualizarHistorico(paciente: ChamadaAtiva): void {
-    this.historicoChamadas = this.historicoChamadas.filter(p =>
-      p.patientId !== paciente.patientId || p.target !== paciente.target
-    );
-    this.historicoChamadas.unshift(paciente);
-    if (this.historicoChamadas.length > 10) this.historicoChamadas.pop();
   }
 
   reproduzirAlerta(): void {

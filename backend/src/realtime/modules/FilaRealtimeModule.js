@@ -67,11 +67,33 @@ class FilaRealtimeModule {
   static async _carregarEstadoInicial() {
     try {
       const db = await database.getConnection();
+      // SQL inteligente:
+      // 1. Pega os últimos movimentos de cada paciente
+      // 2. Filtra aqueles que já passaram por triagem E médico
+      // 3. Retorna o histórico "limpo" (quem ainda não concluiu os dois passos ou é re-chamada ao médico)
       const result = await db.query(
-        `SELECT patient_id, patient_name, target, chamado_em
-         FROM fila_historico
-         ORDER BY chamado_em DESC
-         LIMIT $1`,
+        `WITH 
+          -- Pega todos os movimentos recentes
+          movimentos AS (
+            SELECT DISTINCT ON (patient_id, target) 
+              patient_id, patient_name, target, chamado_em
+            FROM fila_historico
+            ORDER BY patient_id, target, chamado_em DESC
+          ),
+          -- Identifica quem já completou o fluxo (tem triagem E médico)
+          fluxos_completos AS (
+            SELECT patient_id
+            FROM movimentos
+            GROUP BY patient_id
+            HAVING COUNT(DISTINCT target) >= 2
+          )
+        -- Retorna o histórico excluindo quem já completou os dois passos
+        SELECT m.patient_id, m.patient_name, m.target, m.chamado_em
+        FROM movimentos m
+        LEFT JOIN fluxos_completos f ON m.patient_id = f.patient_id
+        WHERE f.patient_id IS NULL
+        ORDER BY m.chamado_em DESC
+        LIMIT $1`,
         [MAX_HISTORICO]
       );
       this.state.historico = result.rows.map(r => ({
@@ -81,7 +103,7 @@ class FilaRealtimeModule {
         timestamp: r.chamado_em,
         displayedAt: r.chamado_em
       }));
-      console.log(`✅ Histórico da fila carregado: ${this.state.historico.length} registros`);
+      console.log(`✅ Histórico da fila carregado e filtrado: ${this.state.historico.length} registros`);
     } catch (err) {
       console.error('⚠️  Erro ao carregar histórico da fila:', err.message);
     }
@@ -120,7 +142,7 @@ class FilaRealtimeModule {
     console.log(`[FilaRealtimeModule] Paciente chamado: ${data.patientName} para ${data.target}`);
 
     const chamada = {
-      patientId: data.patientId,
+      patientId: Number(data.patientId), // Normaliza para número — req.params.id chega como string em alguns controllers
       patientName: data.patientName,
       target: data.target,
       classificationRisk: data.classificationRisk || null,
@@ -135,11 +157,22 @@ class FilaRealtimeModule {
       this.state.currentMedico = chamada;
     }
 
-    // Atualiza histórico em memória (remove duplicata, insere no topo, limita tamanho)
-    this.state.historico = this.state.historico.filter(
-      h => !(h.patientId === chamada.patientId && h.target === chamada.target)
-    );
-    this.state.historico.unshift(chamada);
+    // Identifica se o paciente concluiu o fluxo (se tem triagem registrada e agora é médico chamando)
+    const hasTriagem = this.state.historico.some(h => h.patientId === chamada.patientId && h.target === 'triagem');
+    const isMedicoCalling = chamada.target === 'medico';
+
+    if (hasTriagem && isMedicoCalling) {
+      console.log(`[FilaRealtimeModule] Fluxo COMPLETO para ${chamada.patientName}. Removendo do histórico.`);
+      // Remove o paciente do histórico pois o ciclo se completou
+      this.state.historico = this.state.historico.filter(h => h.patientId !== chamada.patientId);
+    } else {
+      // Se não concluiu o fluxo (ex: apenas triagem, ou 2ª vinda do médico sem triagem nova), normaliza e adiciona
+      this.state.historico = this.state.historico.filter(
+        h => !(h.patientId === chamada.patientId && h.target === chamada.target)
+      );
+      this.state.historico.unshift(chamada);
+    }
+
     if (this.state.historico.length > MAX_HISTORICO) {
       this.state.historico = this.state.historico.slice(0, MAX_HISTORICO);
     }
@@ -150,6 +183,8 @@ class FilaRealtimeModule {
     );
 
     // Emite para todos os clientes conectados ao módulo 'fila'
+    // Wrap em objeto pois emitToModule faz spread (...data), que quebra arrays
+    realtimeManager.emitToModule(this.MODULE_NAME, 'fila:update_historico', { historico: this.state.historico });
     realtimeManager.emitToModule(this.MODULE_NAME, 'fila:called', chamada);
   }
 

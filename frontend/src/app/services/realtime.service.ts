@@ -70,6 +70,7 @@ export class RealtimeService implements OnDestroy {
   private atendimentoFinished$ = new Subject<any>();
   private patientCalled$ = new Subject<any>();
   private patientCleared$ = new Subject<any>();
+  private historicoUpdated$ = new Subject<any[]>();
   private connectionError$ = new Subject<string>();
 
   constructor(private ngZone: NgZone) {}
@@ -220,6 +221,15 @@ export class RealtimeService implements OnDestroy {
           });
         });
 
+        // Event handlers - Atualização de histórico (Painel Fila)
+        this.socket.on('fila:update_historico', (data: any) => {
+          this.ngZone.run(() => {
+            const historico = Array.isArray(data?.historico) ? data.historico : [];
+            console.log('📜 Histórico atualizado:', historico);
+            this.historicoUpdated$.next(historico);
+          });
+        });
+
         // Event handlers - Limpeza de card (Painel Fila)
         this.socket.on('fila:cleared', (data: any) => {
           this.ngZone.run(() => {
@@ -338,6 +348,13 @@ export class RealtimeService implements OnDestroy {
    */
   onPatientCalled(): Observable<any> {
     return this.patientCalled$.asObservable();
+  }
+
+  /**
+   * Obtém observable de histórico atualizado (Painel Fila)
+   */
+  onHistoricoUpdated(): Observable<any[]> {
+    return this.historicoUpdated$.asObservable();
   }
 
   /**
