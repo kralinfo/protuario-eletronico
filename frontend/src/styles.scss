@@ -442,6 +442,35 @@ app-fila {
     gap: 20px;
     overflow: hidden;
     font-family: "Segoe UI", Arial, sans-serif;
+    position: relative;
+  }
+
+  .tv-som-banner {
+    position: fixed;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    background: rgba(26, 35, 126, 0.92);
+    color: #fff;
+    padding: 8px 24px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    animation: pulse-banner 2s ease-in-out infinite;
+    white-space: nowrap;
+
+    &:hover {
+      background: rgba(40, 53, 180, 0.98);
+    }
+  }
+
+  @keyframes pulse-banner {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
   }
 
   .tv-top {

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RealtimeService } from '../services/realtime.service';
+import { AudioService } from '../services/audio.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -44,6 +45,7 @@ export class FilaComponent implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private realtimeService: RealtimeService,
+    private audioService: AudioService,
     private router: Router,
     public authService: AuthService
   ) {}
@@ -125,9 +127,15 @@ export class FilaComponent implements OnInit, OnDestroy {
     const current = tipo === 'triagem' ? this.currentTriagem : this.currentMedico;
     const queue = tipo === 'triagem' ? this.queueTriagem : this.queueMedico;
 
-    // Evitar duplicidade
-    if (current?.patientId === chamada.patientId) return;
-    if (queue.some(c => c.patientId === chamada.patientId)) return;
+    // Evitar duplicidade no display — mas tocar o som mesmo assim (segunda chamada)
+    if (current?.patientId === chamada.patientId) {
+      this.reproduzirAlerta();
+      return;
+    }
+    if (queue.some(c => c.patientId === chamada.patientId)) {
+      this.reproduzirAlerta();
+      return;
+    }
 
     if (!current) {
       this.exibir(chamada, tipo);
@@ -159,12 +167,17 @@ export class FilaComponent implements OnInit, OnDestroy {
     this.reproduzirAlerta();
   }
 
-  reproduzirAlerta(): void {
-    try {
-      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-      audio.volume = 0.4;
-      audio.play().catch(() => {});
-    } catch {}
+  ativarSom(): void {
+    this.audioService.desbloquear();
+    this.audioService.tocarAlerta();
+  }
+
+  get somAtivado(): boolean {
+    return this.audioService.pronto;
+  }
+
+  private reproduzirAlerta(): void {
+    this.audioService.tocarAlerta();
   }
 
   limparCard(data: any): void {

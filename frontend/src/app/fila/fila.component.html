@@ -1,5 +1,10 @@
 <div class="tv-container">
 
+  <!-- Barra de ativação de som — discreta, no canto inferior, some após clique -->
+  <div *ngIf="!somAtivado" class="tv-som-banner" (click)="ativarSom()">
+    🔔 Clique em qualquer lugar para ativar o som
+  </div>
+
   <!-- CHAMADOS ATIVOS -->
   <div class="tv-top">
 

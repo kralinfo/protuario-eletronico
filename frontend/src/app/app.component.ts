@@ -1,4 +1,4 @@
-import { Component, ViewChild, TemplateRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, ViewChild, TemplateRef, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { MatSidenav, MatSidenavContainer } from '@angular/material/sidenav';
 import { PacientesComponent } from './pacientes/pacientes.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -7,6 +7,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { MatMenu } from '@angular/material/menu';
 import { FeedbackDialogComponent } from './shared/feedback-dialog/feedback-dialog.component';
 import { RealtimeService } from './services/realtime.service';
+import { AudioService } from './services/audio.service';
 import { Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
@@ -28,12 +29,20 @@ export class AppComponent implements OnInit, OnDestroy {
     public authService: AuthService,
     private router: Router,
     private dialog: MatDialog,
-    private realtimeService: RealtimeService
+    private realtimeService: RealtimeService,
+    private audioService: AudioService
   ) {
     this.currentUser = this.authService.user;
     this.authService.user$.subscribe(user => {
       this.currentUser = user;
     });
+  }
+
+  @HostListener('document:click')
+  @HostListener('document:keydown')
+  @HostListener('document:touchstart')
+  onPrimeiraInteracao(): void {
+    this.audioService.desbloquear();
   }
 
   ngOnInit(): void {
