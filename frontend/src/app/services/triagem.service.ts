@@ -126,6 +126,13 @@ export class TriagemService {
     return this.http.post(`${this.baseUrl}/${atendimentoId}/finalizar`, body, this.getDevHeaders());
   }
 
+  /**
+   * Reverte o status de um atendimento para o status anterior (ex: ao clicar em Voltar sem salvar)
+   */
+  revertStatus(atendimentoId: number, status: string): Observable<any> {
+    return this.http.patch(`${environment.apiUrl}/atendimentos/${atendimentoId}/status`, { status }, this.getDevHeaders());
+  }
+
   // === CONFIGURAÇÕES ===
 
   obterClassificacaoRisco(): Observable<ClassificacaoRisco> {

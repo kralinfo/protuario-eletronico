@@ -229,6 +229,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
   async iniciarTriagem(paciente: PacienteTriagem) {
     try {
       console.log('Iniciando triagem para paciente ID:', paciente.id);
+      const statusAnterior = paciente.status; // Salva o status atual para reverter se o usuário voltar sem salvar
       await firstValueFrom(this.triagemService.iniciarTriagem(paciente.id));
       console.log('Triagem iniciada com sucesso');
 
@@ -242,15 +243,18 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       // Pequeno delay para garantir que a mudança foi commitada no banco
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Navegar para tela de triagem com dados de prefill
+      // Navegar para tela de triagem com dados de prefill e status anterior
       console.log('Navegando para tela de triagem...');
       this.router.navigate(['/triagem/realizar', paciente.id], {
-        state: { prefill: {
-          paciente_nome: paciente.paciente_nome,
-          paciente_nascimento: paciente.paciente_nascimento,
-          paciente_sexo: paciente.paciente_sexo,
-          queixa_principal: paciente.queixa_principal
-        }}
+        state: {
+          statusAnterior,
+          prefill: {
+            paciente_nome: paciente.paciente_nome,
+            paciente_nascimento: paciente.paciente_nascimento,
+            paciente_sexo: paciente.paciente_sexo,
+            queixa_principal: paciente.queixa_principal
+          }
+        }
       });
     } catch (error) {
       console.error('Erro ao iniciar triagem:', error);

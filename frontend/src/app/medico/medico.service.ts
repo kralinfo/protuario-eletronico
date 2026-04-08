@@ -9,6 +9,13 @@ export class MedicoService {
     return this.http.put<any>(`${environment.apiUrl}/medico/consulta/${id}`, consulta);
   }
   /**
+   * Busca um atendimento pelo ID (usado para obter o status anterior antes de alterar)
+   */
+  getAtendimento(id: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/atendimentos/${id}`);
+  }
+
+  /**
    * Atualiza o status do atendimento
    */
   atualizarStatus(id: string, status: string): Observable<any> {

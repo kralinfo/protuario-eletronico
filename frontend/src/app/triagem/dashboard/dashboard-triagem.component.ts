@@ -462,17 +462,21 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     // Se está disponível para iniciar, dispara a abertura (iniciar triagem) e navega
     if (DISPONIVEIS.has(p.status)) {
       console.log('Dashboard: Iniciando triagem para', p.id);
+      const statusAnterior = p.status; // Salva o status atual para reverter se o usuário voltar sem salvar
       this.triagemService.iniciarTriagem(p.id).subscribe({
         next: () => {
           // Notificação de novo atendimento registrado
           this.snackBar.open('Novo atendimento registrado!', 'Fechar', { duration: 3000 });
           // pequeno delay para garantir persistência antes da navegação
-          setTimeout(() => this.router.navigate(['/triagem/realizar', p.id], { state: { prefill: {
-            paciente_nome: p.paciente_nome,
-            paciente_nascimento: p.paciente_nascimento,
-            paciente_sexo: p.paciente_sexo,
-            queixa_principal: p.queixa_principal
-          } } }), 300);
+          setTimeout(() => this.router.navigate(['/triagem/realizar', p.id], { state: {
+            statusAnterior,
+            prefill: {
+              paciente_nome: p.paciente_nome,
+              paciente_nascimento: p.paciente_nascimento,
+              paciente_sexo: p.paciente_sexo,
+              queixa_principal: p.queixa_principal
+            }
+          } }), 300);
         },
         error: (err) => {
           console.error('Dashboard: Erro ao iniciar triagem:', err);

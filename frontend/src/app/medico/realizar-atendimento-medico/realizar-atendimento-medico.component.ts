@@ -74,6 +74,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   salvando = false;
   nomePaciente = 'Carregando...';
   statusAtendimento = '';
+  statusAnterior: string | null = null; // Status antes de entrar na tela (para reverter ao Voltar)
   modoVisualizacao = false; // Controla se é modo visualizacao
   consultaRealizada = false; // Controla se é uma consulta já realizada
   edicaoHabilitada = false; // Controla se a edição foi habilitada pelo usuário
@@ -147,13 +148,29 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       return;
     }
 
-    // Para atendimentos normais, altera status para 'em atendimento médico' ao abrir a tela
-    this.medicoService.atualizarStatus(String(this.atendimentoId), 'em atendimento médico').subscribe({
-      next: () => {
-        this.carregarDadosAtendimento();
+    // Para atendimentos normais, salva o status atual e altera para 'em atendimento médico'
+    this.medicoService.getAtendimento(String(this.atendimentoId)).subscribe({
+      next: (dados) => {
+        this.statusAnterior = dados?.status || null;
+        this.medicoService.atualizarStatus(String(this.atendimentoId), 'em atendimento médico').subscribe({
+          next: () => {
+            this.carregarDadosAtendimento();
+          },
+          error: () => {
+            this.snackBar.open('Erro ao atualizar status do atendimento.', 'Fechar', { duration: 5000 });
+          }
+        });
       },
       error: () => {
-        this.snackBar.open('Erro ao atualizar status do atendimento.', 'Fechar', { duration: 5000 });
+        // Fallback: atualiza o status mesmo sem saber o anterior
+        this.medicoService.atualizarStatus(String(this.atendimentoId), 'em atendimento médico').subscribe({
+          next: () => {
+            this.carregarDadosAtendimento();
+          },
+          error: () => {
+            this.snackBar.open('Erro ao atualizar status do atendimento.', 'Fechar', { duration: 5000 });
+          }
+        });
       }
     });
   }
@@ -475,6 +492,18 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   }
 
   voltar() {
+    // Se abriu um atendimento ativo (não é visualização) e temos o status anterior,
+    // reverte o status para que o paciente volte à posição correta na fila
+    if (!this.consultaRealizada && this.statusAnterior && this.statusAnterior !== 'em atendimento médico') {
+      this.medicoService.atualizarStatus(String(this.atendimentoId), this.statusAnterior).subscribe({
+        complete: () => this._navegarVoltar()
+      });
+    } else {
+      this._navegarVoltar();
+    }
+  }
+
+  private _navegarVoltar() {
     if (this.origemCard === 'dashboard') {
       this.router.navigate(['/dashboard']);
     } else if (this.origemCard === 'consultas') {
