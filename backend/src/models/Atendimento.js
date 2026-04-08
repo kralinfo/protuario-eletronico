@@ -2,6 +2,14 @@ import db from '../config/database.js';
 
 
 class Atendimento {
+  static async findByAtendimentoId(id) {
+    const result = await db.query(
+      'SELECT * FROM atendimentos WHERE id = $1',
+      [id]
+    );
+    return result.rows[0];
+  }
+
   static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'encaminhado para triagem', motivo_interrupcao = 'N/A' }) {
     const result = await db.query(
       `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia, data_hora_atendimento)

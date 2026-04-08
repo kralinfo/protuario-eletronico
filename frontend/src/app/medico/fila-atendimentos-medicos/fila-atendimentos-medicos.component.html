@@ -111,6 +111,14 @@
           <mat-icon>play_arrow</mat-icon>
           {{ paciente.status === 'em atendimento médico' ? 'Continuar Atendimento' : 'Iniciar Atendimento' }}
         </button>
+        <button *ngIf="paciente.status === 'encaminhado para sala médica'"
+                mat-stroked-button
+                color="accent"
+                [disabled]="chamandoPaciente[paciente.id]"
+                (click)="chamarPaciente(paciente)">
+          <mat-icon>campaign</mat-icon>
+          {{ chamandoPaciente[paciente.id] ? 'Chamando...' : 'Chamar' }}
+        </button>
       </mat-card-actions>
     </mat-card>
   </div>

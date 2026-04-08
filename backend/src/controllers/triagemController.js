@@ -121,17 +121,17 @@ class TriagemController {
           pacienteNome = paciente.nome;
         }
       } catch (err) {
-        console.error('Erro ao buscar nome do paciente para chamada:', err);
+        console.error('Erro ao buscar nome do paciente para logs:', err);
       }
 
-      // Notificar painel de chamada (Módulo Fila)
-      console.log(`[REALTIME] Emitindo chamada para Paciente: ${pacienteNome} (ID: ${atendimento.paciente_id})`);
-      PatientEventService.emitPatientCalled({
-        patientId: parseInt(id),
+      console.log(`[TRIAGEM] Triagem iniciada para Paciente: ${pacienteNome} (ID: ${atendimento.paciente_id})`);
+
+      // Notifica o painel de TV: histórico só aparece agora que o atendimento começou
+      PatientEventService.emitTriagemStarted({
+        patientId: Number(id),
         patientName: pacienteNome,
-        target: 'triagem',
-        timestamp: new Date()
-      });
+        userId: usuario_id
+      }).catch(err => console.error('[REALTIME] Erro ao emitir triagem_started:', err.message));
 
       res.json({
         message: 'Triagem iniciada com sucesso',

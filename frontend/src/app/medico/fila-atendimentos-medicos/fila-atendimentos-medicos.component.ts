@@ -4,6 +4,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { MedicoService } from '../medico.service';
 import { RealtimeService, PatientArrivedEvent } from 'src/app/services/realtime.service';
+import { FilaService } from 'src/app/services/fila.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -18,7 +20,7 @@ import { MatChipsModule } from '@angular/material/chips';
   templateUrl: './fila-atendimentos-medicos.component.html',
   styleUrls: ['./fila-atendimentos-medicos.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule]
+  imports: [CommonModule, FormsModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule, MatSnackBarModule]
 })
 export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -50,11 +52,15 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
     })?.length || 0;
   }
   filtroStatus: string = 'encaminhado para sala médica';
+  chamandoPaciente: Record<number, boolean> = {};
+
   constructor(
     private medicoService: MedicoService,
     private router: Router,
     private dialog: MatDialog,
     private realtimeService: RealtimeService,
+    private filaService: FilaService,
+    private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -289,6 +295,21 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
     console.log('[FilaMedico] Recarregando fila...');
     this.carregarDados();
     this.cdr.detectChanges();
+  }
+
+  chamarPaciente(paciente: any): void {
+    this.chamandoPaciente[paciente.id] = true;
+    this.filaService.chamarPaciente(paciente.id, 'medico').subscribe({
+      next: () => {
+        this.snackBar.open(`${paciente.paciente_nome} chamado(a) para o consultório`, 'Fechar', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Erro ao chamar paciente', 'Fechar', { duration: 4000 });
+      },
+      complete: () => {
+        setTimeout(() => { this.chamandoPaciente[paciente.id] = false; }, 3000);
+      }
+    });
   }
 
   ngOnDestroy(): void {

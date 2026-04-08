@@ -12,6 +12,9 @@ O Painel de Fila é uma aplicação "read-only" projetada para ser exibida em TV
 - **Template:** [frontend/src/app/fila/fila.component.html](frontend/src/app/fila/fila.component.html)
 - **Estilos (TV Optimized):** [frontend/src/app/fila/fila.component.scss](frontend/src/app/fila/fila.component.scss)
 - **Serviço de Realtime:** [frontend/src/app/services/realtime.service.ts](frontend/src/app/services/realtime.service.ts)
+- **Serviço de Fila:** [frontend/src/app/services/fila.service.ts](frontend/src/app/services/fila.service.ts)
+- **Fila de Triagem (botão Chamar):** [frontend/src/app/triagem/fila-triagem/fila-triagem.component.ts](frontend/src/app/triagem/fila-triagem/fila-triagem.component.ts)
+- **Fila Médica (botão Chamar):** [frontend/src/app/medico/fila-atendimentos-medicos/fila-atendimentos-medicos.component.ts](frontend/src/app/medico/fila-atendimentos-medicos/fila-atendimentos-medicos.component.ts)
 
 ### Backend (Node.js)
 - **Módulo de Lógica:** [backend/src/realtime/modules/FilaRealtimeModule.js](backend/src/realtime/modules/FilaRealtimeModule.js)
@@ -20,26 +23,41 @@ O Painel de Fila é uma aplicação "read-only" projetada para ser exibida em TV
 
 ## ⚙️ Funcionamento do Fluxo
 
-### 1. Chamada de Paciente
-O fluxo de chamada é iniciado pelos controllers de atendimento ou triagem:
-1. O profissional clica em "Chamar" no seu respectivo módulo.
-2. O backend emite um evento interno `patient:called`.
-3. O `FilaRealtimeModule` captura esse evento e:
-   - Normaliza o `patientId` para número.
-   - Atualiza o card ativo (Triagem ou Consultório).
-   - Executa a **Lógica de Fluxo Concluído**.
+### Estados do Atendimento (Fila)
+- `encaminhado para triagem` → aparece na fila de triagem
+- `encaminhado para sala médica` → aparece na fila do médico
+- `em_triagem` e `em atendimento médico` → **NÃO** aparecem nas filas de espera
+
+### 1. Encaminhamento (sem chamada automática)
+Quando o paciente é encaminhado para triagem ou para sala médica, seu status muda mas **nenhum evento WebSocket é disparado**. O paciente apenas entra na fila de espera.
+
+### 2. Chamada Manual (botão "Chamar")
+O profissional clica em **"Chamar"** na tela de fila para anunciar o paciente na TV:
+1. O frontend chama `POST /api/fila/chamar` com `{ patientId, destino }` via `FilaService`.
+2. O backend valida e emite o evento interno `patient:called`.
+3. O `FilaRealtimeModule` captura o evento e:
+   - Normaliza o `patientId` para número (`Number()`).
+   - Executa a **Lógica de Fluxo Concluído** (ver seção 4).
    - Persiste o chamado na tabela `fila_historico`.
-   - Emite via WebSocket os eventos `fila:called` (para o alerta sonoro/card) e `fila:update_historico` (para a tabela).
+   - Emite via WebSocket `fila:called` (alerta sonoro + card) e `fila:update_historico` (tabela).
+4. **Todas as TVs** recebem a atualização simultaneamente.
 
-### 2. Lógica de "Fluxo Concluído" (Auto-Hiding)
-Para manter o painel limpo, um paciente some do histórico automaticamente sob as seguintes condições:
-- **Regra:** O paciente deve ter passado pelos dois destinos: `triagem` **E** `medico`.
-- **Comportamento:** Assim que o médico chama um paciente que já possui um registro de triagem no histórico atual, o backend o remove da lista e notifica todas as TVs para esconderem o nome da tabela.
-- **Exceção (Re-chamada):** Se o médico chamar o paciente novamente (ex: após retorno do ambulatório), o ciclo é resetado e ele volta a aparecer normalmente.
+### 3. Abertura do Atendimento
+Quando o profissional abre o atendimento (clica em "Iniciar Triagem" / "Iniciar Atendimento"):
+- Triagem iniciada → status muda para `em_triagem` → paciente some da fila de triagem.
+- Atendimento médico iniciado → status muda para `em atendimento médico` → paciente some da fila médica.
+- **Nenhum WebSocket disparado aqui.**
 
-### 3. Sincronização Multi-TV
-- **Estado Inicial:** Ao abrir uma TV, o frontend faz um `GET /api/fila/estado` para carregar as chamadas atuais e o histórico filtrado do banco.
-- **Realtime:** Todas as TVs conectadas ao módulo `fila` recebem as mesmas atualizações simultâneas via WebSocket, garantindo que o histórico seja idêntico em todos os monitores.
+### 4. Lógica de "Fluxo Concluído" (Auto-Hiding na TV)
+Para manter o painel limpo, um paciente some do histórico automaticamente:
+- **Regra:** O paciente deve ter sido chamado para `triagem` **E** para `medico`.
+- **Comportamento:** Assim que o médico chama um paciente que já possui registro de triagem no histórico atual, o backend remove da lista e notifica todas as TVs.
+- **Exceção (Re-chamada):** Se o médico chamar novamente (ex: após ambulatório), o ciclo é resetado e o paciente volta ao histórico.
+
+### 5. Sincronização Multi-TV
+- **Estado Inicial:** GET `/api/fila/estado` retorna o histórico filtrado do banco.
+- **Realtime:** WebSocket via `emitToModule('fila', ...)` — **somente** o módulo `fila` recebe.
+- Banco PostgreSQL é a fonte de verdade persistente.
 
 ## 🔊 Padrões de UI/UX
 - **Alerta Sonoro:** O arquivo `fila.component.ts` reproduz um som de "ding" a cada nova chamada via `reproduzirAlerta()`.
@@ -47,6 +65,9 @@ Para manter o painel limpo, um paciente some do histórico automaticamente sob a
 - **Cores de Risco:** Os cards de consultório aplicam classes CSS dinâmicas baseadas na classificação de risco (Verde, Amarelo, Vermelho).
 
 ## 🛠️ Manutenção
-- **Histórico não limpa:** Verifique se o `patientId` está sendo passado como `Number` em ambos os controllers (Triagem/Médico).
+- **Botão "Chamar" não aparece:** Verifique se o `status` do paciente é exatamente `'encaminhado para triagem'` ou `'encaminhado para sala médica'`.
+- **Histórico não limpa na TV:** Verifique se o `patientId` está chegando como `Number` nos dois destinos (triagem e médico). Use `Number()` no `FilaRealtimeModule`.
+- **TV não atualiza em tempo real:** Confirme que o frontend está conectado ao módulo `fila` via `realtimeService.connect('fila')` e que o backend usa `emitToModule('fila', ...)`.
 - **Sem som:** Verifique a URL do asset de áudio no método `reproduzirAlerta()`.
-- **Tabela fila_historico:** O esquema é gerenciado pelo método `_ensureTable()` dentro do modulo backend.
+- **Tabela fila_historico:** O esquema é gerenciado pelo método `_ensureTable()` dentro do `FilaRealtimeModule`.
+- **NÃO** adicionar chamadas automáticas nos controllers de triagem ou atendimento — a chamada é sempre manual via `POST /api/fila/chamar`.

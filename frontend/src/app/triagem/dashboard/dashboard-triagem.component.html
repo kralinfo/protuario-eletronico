@@ -211,12 +211,22 @@
                   </div>
                 </div>
               </div>
-              <div
-                class="text-xs font-semibold px-2 py-1 rounded"
-                [style.background-color]="getCorStatus(p.status)"
-                style="color: white"
-              >
-                {{ formatarTempo(p.tempo_espera) }}
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button
+                  class="w-7 h-7 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 transition-colors text-white disabled:opacity-50"
+                  [disabled]="chamandoPaciente[p.id]"
+                  (click)="chamarPaciente(p, $event)"
+                  [title]="chamandoPaciente[p.id] ? 'Chamando...' : 'Chamar paciente na TV'"
+                >
+                  <mat-icon class="!text-sm !w-4 !h-4 !leading-4" [class.animate-pulse]="chamandoPaciente[p.id]">campaign</mat-icon>
+                </button>
+                <div
+                  class="text-xs font-semibold px-2 py-1 rounded"
+                  [style.background-color]="getCorStatus(p.status)"
+                  style="color: white"
+                >
+                  {{ formatarTempo(p.tempo_espera) }}
+                </div>
               </div>
             </li>
           </ul>

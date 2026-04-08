@@ -132,27 +132,14 @@ const atualizarStatus = async (req, res) => {
       return res.status(404).json({ error: 'Atendimento não encontrado.' });
     }
 
-    // Notificar painel de chamada se o status for de início de atendimento médico
+    // Se começou o atendimento agora, avisar o sistema de fila para limpar o banner "Chamado"
     if (status === 'em atendimento médico' || status === 'em_atendimento_medico') {
-      // Buscar nome do paciente para o evento realtime
-      let pacienteNome = 'Paciente';
-      try {
-        const paciente = await Paciente.findById(atendimento.paciente_id);
-        if (paciente) {
-          pacienteNome = paciente.nome;
-        }
-      } catch (err) {
-        console.error('Erro ao buscar nome do paciente para chamada médica:', err);
-      }
-
-      console.log(`[REALTIME] Emitindo chamada médica para Paciente: ${pacienteNome} (ID: ${atendimento.paciente_id})`);
-      PatientEventService.emitPatientCalled({
+      PatientEventService.emitAtendimentoStarted({
         patientId: id,
-        patientName: pacienteNome,
-        target: 'medico',
-        classificationRisk: atendimento.classificacao_risco || null,
+        patientName: atendimento.paciente_nome || 'Paciente',
+        module: 'medico',
         timestamp: new Date()
-      });
+      }).catch(err => console.error('[REALTIME] Erro ao emitir atendimento_started via atualizarStatus:', err.message));
     }
 
     // Limpar card do médico no painel de fila assim que o status sair de 'em atendimento médico'
@@ -376,6 +363,27 @@ const salvarDadosMedico = async (req, res) => {
     if (!result.rows[0]) {
       return res.status(404).json({ error: 'Atendimento não encontrado' });
     }
+
+    // Notifica o painel de TV quando o médico inicia o atendimento
+    if (statusCorrigido === 'em atendimento médico' || statusCorrigido === 'em_atendimento_medico') {
+      (async () => {
+        try {
+          const pacNomeRes = await db.query(
+            `SELECT p.nome FROM atendimentos a JOIN pacientes p ON p.id = a.paciente_id WHERE a.id = $1`,
+            [id]
+          );
+          await PatientEventService.emitAtendimentoStarted({
+            patientId: Number(id),
+            patientName: pacNomeRes.rows[0]?.nome || 'Paciente',
+            module: 'medico',
+            timestamp: new Date()
+          });
+        } catch (err) {
+          console.error('[REALTIME] Erro ao emitir atendimento_started via salvarDadosMedico:', err.message);
+        }
+      })();
+    }
+
     res.json({ message: 'Dados do atendimento médico salvos com sucesso', atendimento: result.rows[0] });
   } catch (error) {
     console.error('Erro ao salvar dados do atendimento médico:', error);

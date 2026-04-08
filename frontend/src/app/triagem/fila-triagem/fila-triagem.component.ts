@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TriagemEventService } from 'src/app/services/triagem-event.service';
 import { TriagemService } from 'src/app/services/triagem.service';
 import { RealtimeService } from 'src/app/services/realtime.service';
+import { FilaService } from 'src/app/services/fila.service';
 
 interface PacienteTriagem {
   id: number;
@@ -64,6 +65,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
   };
   carregando = true;
   filtroStatus: string = 'encaminhado para triagem'; // Ajustado para corresponder ao valor retornado pela API
+  chamandoPaciente: Record<number, boolean> = {};
 
   private atualizacaoSubscription?: Subscription;
 
@@ -83,6 +85,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private router: Router,
     private realtimeService: RealtimeService,
+    private filaService: FilaService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -206,6 +209,21 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     };
     const arr = map[statusBase] || [statusBase];
     return new Set(arr);
+  }
+
+  chamarPaciente(paciente: PacienteTriagem): void {
+    this.chamandoPaciente[paciente.id] = true;
+    this.filaService.chamarPaciente(paciente.id, 'triagem').subscribe({
+      next: () => {
+        this.snackBar.open(`${paciente.paciente_nome} chamado(a) para triagem`, 'Fechar', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Erro ao chamar paciente', 'Fechar', { duration: 4000 });
+      },
+      complete: () => {
+        setTimeout(() => { this.chamandoPaciente[paciente.id] = false; }, 3000);
+      }
+    });
   }
 
   async iniciarTriagem(paciente: PacienteTriagem) {

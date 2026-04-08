@@ -4,6 +4,7 @@ import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/class
 import { MedicoService } from 'src/app/medico/medico.service';
 import { TriagemService } from 'src/app/services/triagem.service';
 import { RealtimeService } from 'src/app/services/realtime.service';
+import { FilaService } from 'src/app/services/fila.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -27,6 +28,7 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
   alertaEstado: 'carregando' | 'sucesso' | 'erro' = 'carregando';
   private ocultarAlertaTimeout: any;
   private alertasInterval: any;
+  chamandoPaciente: Record<number, boolean> = {};
 
   constructor(
     private medicoService: MedicoService,
@@ -34,8 +36,19 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
     private router: Router,
     private dialog: MatDialog,
     private realtimeService: RealtimeService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private filaService: FilaService
   ) {}
+
+  chamarPaciente(p: any, evento: Event): void {
+    evento.stopPropagation();
+    this.chamandoPaciente[p.id] = true;
+    this.filaService.chamarPaciente(p.id, 'medico').subscribe({
+      next: () => this.snackBar.open(`${p.paciente_nome} chamado(a) para sala médica`, 'Fechar', { duration: 3000 }),
+      error: () => this.snackBar.open('Erro ao chamar paciente', 'Fechar', { duration: 4000 }),
+      complete: () => setTimeout(() => { this.chamandoPaciente[p.id] = false; }, 3000)
+    });
+  }
 
   abrirDialogClassificacao() {
     this.dialog.open(ClassificacaoDialogComponent, {

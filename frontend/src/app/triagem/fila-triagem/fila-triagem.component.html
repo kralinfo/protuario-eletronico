@@ -155,6 +155,16 @@
               Iniciar Triagem
             </button>
 
+            <!-- Chamar paciente - apenas para "encaminhado para triagem" -->
+            <button *ngIf="isStatusEncaminhadoParaTriagem(paciente.status)"
+                    mat-stroked-button
+                    color="accent"
+                    [disabled]="chamandoPaciente[paciente.id]"
+                    (click)="chamarPaciente(paciente)">
+              <mat-icon>campaign</mat-icon>
+              {{ chamandoPaciente[paciente.id] ? 'Chamando...' : 'Chamar' }}
+            </button>
+
             <!-- Em Triagem - mostrar botão para continuar/editar -->
             <button *ngIf="isStatusEmTriagem(paciente.status)"
                     mat-raised-button

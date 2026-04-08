@@ -121,6 +121,18 @@ class FilaRealtimeModule {
     );
 
     eventBus.subscribe(
+      'patient:triagem_started',
+      (data) => this._onTriagemStarted(data),
+      { priority: 10 }
+    );
+
+    eventBus.subscribe(
+      'patient:atendimento_started',
+      (data) => this._onAtendimentoStarted(data),
+      { priority: 10 }
+    );
+
+    eventBus.subscribe(
       'patient:triagem_finished',
       (data) => this._onTriagemFinished(data),
       { priority: 10 }
@@ -142,7 +154,7 @@ class FilaRealtimeModule {
     console.log(`[FilaRealtimeModule] Paciente chamado: ${data.patientName} para ${data.target}`);
 
     const chamada = {
-      patientId: Number(data.patientId), // Normaliza para número — req.params.id chega como string em alguns controllers
+      patientId: Number(data.patientId),
       patientName: data.patientName,
       target: data.target,
       classificationRisk: data.classificationRisk || null,
@@ -150,25 +162,92 @@ class FilaRealtimeModule {
       displayedAt: new Date()
     };
 
-    // Atualiza chamada ativa
+    // Armazena chamada ativa — usada depois pelo _onTriagemStarted / _onAtendimentoStarted
     if (chamada.target === 'triagem') {
       this.state.currentTriagem = chamada;
     } else {
       this.state.currentMedico = chamada;
     }
 
-    // Identifica se o paciente concluiu o fluxo (se tem triagem registrada e agora é médico chamando)
-    const hasTriagem = this.state.historico.some(h => h.patientId === chamada.patientId && h.target === 'triagem');
-    const isMedicoCalling = chamada.target === 'medico';
+    // Emite APENAS o banner de chamada na TV.
+    // O histórico SÓ é atualizado quando o profissional clicar em "Iniciar Triagem" ou "Iniciar Atendimento".
+    realtimeManager.emitToModule(this.MODULE_NAME, 'fila:called', chamada);
+  }
 
-    if (hasTriagem && isMedicoCalling) {
+  /**
+   * Chamado quando o profissional clica em "Iniciar Triagem" (status → em_triagem).
+   * Adiciona o paciente ao histórico e persiste no banco.
+   * @private
+   */
+  static async _onTriagemStarted(data) {
+    console.log(`[FilaRealtimeModule] Triagem iniciada: ${data.patientName} (ID: ${data.patientId})`);
+
+    // Reutiliza dados da chamada ativa se for o mesmo paciente; senão cria entrada com dados mínimos
+    const chamada = (this.state.currentTriagem &&
+                     Number(this.state.currentTriagem.patientId) === Number(data.patientId))
+      ? this.state.currentTriagem
+      : {
+          patientId: Number(data.patientId),
+          patientName: data.patientName,
+          target: 'triagem',
+          timestamp: data.timestamp || new Date(),
+          displayedAt: new Date()
+        };
+
+    // Deduplica e adiciona ao histórico
+    this.state.historico = this.state.historico.filter(
+      h => !(h.patientId === chamada.patientId && h.target === 'triagem')
+    );
+    this.state.historico.unshift(chamada);
+
+    if (this.state.historico.length > MAX_HISTORICO) {
+      this.state.historico = this.state.historico.slice(0, MAX_HISTORICO);
+    }
+
+    this._persistirNoBanco(chamada).catch(err =>
+      console.error('⚠️  Erro ao persistir histórico de triagem:', err.message)
+    );
+    // Limpa o banner ativo de triagem na TV (paciente já está sendo atendido)
+    this.state.currentTriagem = null;
+    realtimeManager.emitToModule(this.MODULE_NAME, 'fila:cleared', { target: 'triagem', patientId: chamada.patientId });
+    realtimeManager.emitToModule(this.MODULE_NAME, 'fila:update_historico', { historico: this.state.historico });
+  }
+
+  /**
+   * Chamado quando o médico clica em "Iniciar Atendimento" (status → em atendimento médico).
+   * Se o paciente já passou pela triagem, o fluxo está completo e é removido do histórico.
+   * Caso contrário é adicionado ao histórico (ex: atendimento direto sem triagem).
+   * @private
+   */
+  static async _onAtendimentoStarted(data) {
+    console.log(`[FilaRealtimeModule] Atendimento médico iniciado: ${data.patientName} (ID: ${data.patientId})`);
+
+    const chamada = (this.state.currentMedico &&
+                     Number(this.state.currentMedico.patientId) === Number(data.patientId))
+      ? this.state.currentMedico
+      : {
+          patientId: Number(data.patientId),
+          patientName: data.patientName,
+          target: 'medico',
+          timestamp: data.timestamp || new Date(),
+          displayedAt: new Date()
+        };
+
+    const hasTriagem = this.state.historico.some(
+      h => h.patientId === chamada.patientId && h.target === 'triagem'
+    );
+
+    // No médico, sempre removemos do histórico para não poluir, 
+    // já que o paciente já passou pela triagem e agora está sendo atendido.
+    // Isso iguala ao comportamento da triagem que sai do banner e vai pro histórico,
+    // mas como o médico é o passo final, removemos o paciente da visão da TV.
+    if (hasTriagem) {
       console.log(`[FilaRealtimeModule] Fluxo COMPLETO para ${chamada.patientName}. Removendo do histórico.`);
-      // Remove o paciente do histórico pois o ciclo se completou
       this.state.historico = this.state.historico.filter(h => h.patientId !== chamada.patientId);
     } else {
-      // Se não concluiu o fluxo (ex: apenas triagem, ou 2ª vinda do médico sem triagem nova), normaliza e adiciona
+      // Caso não tenha triagem (atendimento direto), removemos chamadas anteriores do médico e adicionamos ao histórico
       this.state.historico = this.state.historico.filter(
-        h => !(h.patientId === chamada.patientId && h.target === chamada.target)
+        h => !(h.patientId === chamada.patientId && h.target === 'medico')
       );
       this.state.historico.unshift(chamada);
     }
@@ -177,15 +256,13 @@ class FilaRealtimeModule {
       this.state.historico = this.state.historico.slice(0, MAX_HISTORICO);
     }
 
-    // Persiste no banco de forma assíncrona (não bloqueia o evento)
     this._persistirNoBanco(chamada).catch(err =>
-      console.error('⚠️  Erro ao persistir chamada no banco:', err.message)
+      console.error('⚠️  Erro ao persistir histórico de atendimento médico:', err.message)
     );
-
-    // Emite para todos os clientes conectados ao módulo 'fila'
-    // Wrap em objeto pois emitToModule faz spread (...data), que quebra arrays
+    // Limpa o banner ativo de médico na TV (paciente já está sendo atendido)
+    this.state.currentMedico = null;
+    realtimeManager.emitToModule(this.MODULE_NAME, 'fila:cleared', { target: 'medico', patientId: chamada.patientId });
     realtimeManager.emitToModule(this.MODULE_NAME, 'fila:update_historico', { historico: this.state.historico });
-    realtimeManager.emitToModule(this.MODULE_NAME, 'fila:called', chamada);
   }
 
   /**
