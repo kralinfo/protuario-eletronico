@@ -8,6 +8,7 @@ import { Subject, Subscription, interval, takeUntil } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { RealtimeService } from '../../services/realtime.service';
+import { NotificationService } from 'src/app/services/notification.service';
 
 interface EstatisticasTriagem {
   pacientes_aguardando: number;
@@ -103,7 +104,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private realtimeService: RealtimeService
+    private realtimeService: RealtimeService,
+    private notificationService: NotificationService
   ) {
     this.usuarioLogado = this.authService.user;
   }
@@ -274,30 +276,53 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     // Escutar quando triagem é iniciada
     this.subscriptions.add(this.realtimeService.onTriagemStarted().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Triagem iniciada, atualizando dashboard...', data);
+      try {
+        this.notificationService.info('Triagem iniciada', `Triagem iniciada no módulo triagem`);
+      } catch (e) {}
       this.atualizarDashboard();
     }));
 
     // Escutar quando triagem é finalizada
     this.subscriptions.add(this.realtimeService.onTriagemFinished().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Triagem finalizada, atualizando dashboard...', data);
+      try {
+        const payload: any = data as any;
+        this.notificationService.triagemFinished(payload?.paciente_nome || 'Paciente', payload?.classificacao_risco || '');
+      } catch (e) {}
       this.atualizarDashboard();
     }));
 
     // Escutar quando paciente é transferido
     this.subscriptions.add(this.realtimeService.onPatientTransferred().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Paciente transferido, atualizando dashboard...', data);
+      try {
+        this.notificationService.info('Paciente transferido', `Paciente transferido para outro módulo`);
+      } catch (e) {}
       this.atualizarDashboard();
     }));
 
     // Escutar quando paciente chega
     this.subscriptions.add(this.realtimeService.onPatientArrived().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Paciente chegou, atualizando dashboard...', data);
+      try {
+        const payload: any = data as any;
+        const nome = payload?.paciente_nome || 'Paciente';
+        const origin = (payload?.originModule || payload?.origin || '').toLowerCase();
+        if (origin === 'recepcao' || origin === 'recepção') {
+          this.notificationService.info('Novo Paciente', `${nome} chegou da recepção`);
+        } else {
+          this.notificationService.patientArrived(nome, 'triagem', payload?.classificacao_risco || '');
+        }
+      } catch (e) {}
       this.atualizarDashboard();
     }));
 
     // Escutar atualizações gerais da fila
     this.subscriptions.add(this.realtimeService.onQueueUpdated().subscribe((data) => {
       console.log('🔄 Dashboard Triagem (WebSocket): Fila atualizada, atualizando dashboard...', data);
+      try {
+        this.notificationService.info('Fila atualizada', `Fila do módulo triagem atualizada`);
+      } catch (e) {}
       this.atualizarDashboard();
     }));
 

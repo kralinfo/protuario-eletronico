@@ -7,6 +7,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { MatMenu } from '@angular/material/menu';
 import { FeedbackDialogComponent } from './shared/feedback-dialog/feedback-dialog.component';
 import { RealtimeService } from './services/realtime.service';
+import { NotificationService, Notification } from './services/notification.service';
 import { Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
@@ -38,6 +39,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('[AppComponent] ngOnInit() iniciado');
+    // notification bell removed; notifications still emitted via NotificationService (toasts)
     
     // Detectar quando navegar para fora da página de login
     this.router.events
@@ -66,6 +68,8 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       });
   }
+
+  // no header notification state
   private _initializeRealtime(): void {
     console.log('[AppComponent._initializeRealtime()] Iniciando...');
     

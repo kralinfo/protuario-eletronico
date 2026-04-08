@@ -43,6 +43,9 @@ export class NotificationService {
   private notificationId = 0;
   private audioEnabled = true;
   private desktopNotificationsEnabled = false;
+  // dedupe map to prevent duplicate messages in short window
+  private _lastNotificationTimestamps: Map<string, number> = new Map();
+  private _dedupeWindowMs = 5000;
 
   constructor() {
     this._requestDesktopPermission();
@@ -57,6 +60,17 @@ export class NotificationService {
     message: string,
     options: Partial<Notification> = {}
   ): string {
+    const key = `${type}||${title}||${message}`;
+    const now = Date.now();
+    const last = this._lastNotificationTimestamps.get(key) || 0;
+    if (now - last < this._dedupeWindowMs) {
+      // skip duplicate notification within window
+      console.log(`🔕 Duplicate notification suppressed: ${title}`);
+      return '';
+    }
+
+    this._lastNotificationTimestamps.set(key, now);
+
     const id = `notification-${++this.notificationId}`;
 
     const notification: Notification = {
@@ -129,17 +143,11 @@ export class NotificationService {
    * Paciente chegou (notificação especializada)
    */
   patientArrived(patientName: string, module: string, classification: string): string {
-    return this.notify('success', 'Novo Paciente', 
-      `${patientName} chegou no ${module} (Classificação: ${classification})`,
+    return this.notify('success', 'Novo Paciente',
+      `${patientName} chegou no ${module}`,
       {
         duration: 10000,
-        icon: '👥',
-        action: {
-          label: 'Ver',
-          callback: () => {
-            console.log('Navigating to patient:', patientName);
-          }
-        }
+        icon: '👥'
       }
     );
   }
@@ -149,7 +157,7 @@ export class NotificationService {
    */
   triagemFinished(patientName: string, classification: string): string {
     return this.notify('success', 'Triagem Concluída',
-      `Triagem de ${patientName} finalizada. Classificação: ${classification}`,
+      `Triagem de ${patientName} finalizada.`,
       {
         duration: 7000,
         icon: '✅'

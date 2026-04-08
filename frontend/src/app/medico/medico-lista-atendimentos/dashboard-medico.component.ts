@@ -4,6 +4,7 @@ import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/class
 import { MedicoService } from 'src/app/medico/medico.service';
 import { TriagemService } from 'src/app/services/triagem.service';
 import { RealtimeService } from 'src/app/services/realtime.service';
+import { NotificationService } from 'src/app/services/notification.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -24,6 +25,7 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription = new Subscription();
   private atualizacaoPendente: any;
   private alertasInterval: any;
+  private _recentArrivalTimestamps: Map<number, number> = new Map();
 
   constructor(
     private medicoService: MedicoService,
@@ -31,7 +33,8 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
     private router: Router,
     private dialog: MatDialog,
     private realtimeService: RealtimeService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationService
   ) {}
 
   abrirDialogClassificacao() {
@@ -182,16 +185,39 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
   configurarRealtime() {
     this.subscriptions.add(this.realtimeService.onPatientArrived().subscribe((data) => {
       console.log('🔄 Dashboard Medico (WebSocket): Paciente chegou, atualizando dashboard...', data);
+      try {
+        const payload: any = data as any;
+        const pacienteId = payload?.patientId || payload?.patientId === 0 ? payload.patientId : (payload?.patientId || payload?.patientId === 0 ? payload.patientId : undefined);
+        const now = Date.now();
+        if (pacienteId) {
+          const last = this._recentArrivalTimestamps.get(pacienteId) || 0;
+          if (now - last < 5000) {
+            console.log('🔕 Duplicate arrival suppressed for patientId', pacienteId);
+          } else {
+            this._recentArrivalTimestamps.set(pacienteId, now);
+            this.notificationService.patientArrived(payload?.paciente_nome || 'Paciente', 'módulo médico', payload?.classificacao_risco || '');
+          }
+        } else {
+          // fallback when no id provided
+          this.notificationService.patientArrived(payload?.paciente_nome || 'Paciente', 'módulo triagem', payload?.classificacao_risco || '');
+        }
+      } catch (e) {}
       this.atualizarDashboard();
     }));
 
     this.subscriptions.add(this.realtimeService.onPatientTransferred().subscribe((data) => {
       console.log('🔄 Dashboard Medico (WebSocket): Paciente transferido, atualizando dashboard...', data);
+      try {
+        this.notificationService.info('Paciente transferido', `Paciente transferido para o módulo médico`);
+      } catch (e) {}
       this.atualizarDashboard();
     }));
 
     this.subscriptions.add(this.realtimeService.onQueueUpdated().subscribe((data) => {
       console.log('🔄 Dashboard Medico (WebSocket): Fila atualizada, atualizando dashboard...', data);
+      try {
+        this.notificationService.info('Fila atualizada', `Fila do módulo médico atualizada`);
+      } catch (e) {}
       this.atualizarDashboard();
     }));
 
