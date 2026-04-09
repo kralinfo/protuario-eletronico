@@ -1,6 +1,9 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { EncaminhamentoService } from '../../../services/encaminhamento.service';
+import { EncaminhamentoService } from '../../services/encaminhamento.service';
 
 interface Encaminhamento {
   id: number;
@@ -18,6 +21,8 @@ interface Encaminhamento {
 
 @Component({
   selector: 'app-encaminhamentos-panel',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatIconModule, DatePipe],
   templateUrl: './encaminhamentos-panel.component.html',
   styleUrls: ['./encaminhamentos-panel.component.scss']
 })

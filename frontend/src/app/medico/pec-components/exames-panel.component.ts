@@ -1,6 +1,9 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ExameSolicitadoService } from '../../../services/exame-solicitado.service';
+import { ExameSolicitadoService } from '../../services/exame-solicitado.service';
 
 interface ExameSolicitado {
   id: number;
@@ -18,6 +21,8 @@ interface ExameSolicitado {
 
 @Component({
   selector: 'app-exames-panel',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatIconModule, DatePipe],
   templateUrl: './exames-panel.component.html',
   styleUrls: ['./exames-panel.component.scss']
 })

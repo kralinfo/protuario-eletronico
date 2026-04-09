@@ -1,8 +1,14 @@
 import { Component, EventEmitter, Output, OnInit } from '@angular/core';
-import { CID10_TABLE, CID10Entry } from '../../../utils/cid10-table';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CID10_TABLE, CID10Entry } from '../../utils/cid10-table';
 
 @Component({
   selector: 'app-cid10-search',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './cid10-search.component.html',
   styleUrls: ['./cid10-search.component.scss']
 })
@@ -34,7 +40,7 @@ export class Cid10SearchComponent implements OnInit {
     const termo = this.termoBusca.toLowerCase().trim();
 
     // Busca por codigo ou descricao
-    this.resultados = CID10_TABLE.filter(entry =>
+    this.resultados = CID10_TABLE.filter((entry: CID10Entry) =>
       entry.code.toLowerCase().includes(termo) ||
       entry.description.toLowerCase().includes(termo)
     ).slice(0, 50); // Limita a 50 resultados
