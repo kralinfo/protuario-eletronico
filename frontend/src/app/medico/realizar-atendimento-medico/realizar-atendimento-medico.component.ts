@@ -223,13 +223,19 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
         this.nomeMedicoResponsavel = consultaData.medico_nome || '';
 
         // ID do paciente (para encaminhamentos/exames)
-        this.pacienteId = data.paciente_id || data.atendimento?.paciente_id || null;
+        this.pacienteId = data.triagem?.paciente_id || data.paciente_id || data.atendimento?.paciente_id || null;
+        console.log('[RealizarAtendimento] pacienteId extraído:', this.pacienteId);
 
         // Diagnostic principal e CID
-        this.diagnosticoPrincipal = consultaData.diagnostico_principal || '';
+        this.diagnosticoPrincipal = consultaData.diagnostico_principal || consultaData.hipotese_diagnostica || '';
         this.cidPrincipal = consultaData.cid_principal || '';
         const cidSec = consultaData.cid_secundarios || '';
         this.cidSecundarios = cidSec ? cidSec.split(',').map((c: string) => c.trim()).filter((c: string) => c) : [];
+
+        // Sincronizar diagnosticoPrincipal com o formControl hipotese_diagnostica
+        if (this.diagnosticoPrincipal) {
+          this.atendimentoForm.patchValue({ hipotese_diagnostica: this.diagnosticoPrincipal });
+        }
 
         this.atendimentoForm.patchValue({
           // Dados da triagem (prioridade para carregar primeiro)
@@ -386,7 +392,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       atendimento_id: this.atendimentoId,
 
       // Novos campos detalhados
-      diagnostico_principal: this.diagnosticoPrincipal,
+      diagnostico_principal: this.atendimentoForm.get('hipotese_diagnostica')?.value || this.diagnosticoPrincipal,
       cid_principal: this.cidPrincipal,
       cid_secundarios: this.cidSecundarios.join(','),
       medicamentos_prescritos: this.atendimentoForm.get('medicamentos_prescritos')?.value,

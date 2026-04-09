@@ -68,11 +68,11 @@ VALUES
 INSERT INTO usuarios (
   email, senha, nome, nivel, modulos, reset_token, reset_token_expira, reset_token_usado
 ) VALUES
-  ('admin@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Administrador', 'admin', '{recepcao,triagem,medico,ambulatorio}', NULL, NULL, FALSE),
+  ('admin@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Administrador', 'admin', '{recepcao,triagem,medico,ambulatorio,fila}', NULL, NULL, FALSE),
   ('medico@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. João Silva', 'editor', '{medico,ambulatorio}', NULL, NULL, FALSE),
   ('medico1@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Dr. Teste', 'editor', '{medico}', NULL, NULL, FALSE),
   ('enfermeiro@alianca.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Enfermeiro Paulo', 'visualizador', '{triagem}', NULL, NULL, FALSE),
-  ('fpsjunior87@gmail.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Fernando Junior', 'admin', '{recepcao,triagem,medico,ambulatorio}', NULL, NULL, FALSE),
+  ('fpsjunior87@gmail.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Fernando Junior', 'admin', '{recepcao,triagem,medico,ambulatorio,fila}', NULL, NULL, FALSE),
   ('visual@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Visualizador', 'visualizador', '{recepcao}', NULL, NULL, FALSE),
   ('editor@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Editor', 'editor', '{ambulatorio}', NULL, NULL, FALSE),
   ('multi@teste.com', '$2b$12$fTaXt0BM9Hz/e4PfjvI..uk2yr8d.iqBdXwEsP0gIhKiRtS5bCpfS', 'Multi Módulos', 'editor', '{recepcao,ambulatorio}', NULL, NULL, FALSE),

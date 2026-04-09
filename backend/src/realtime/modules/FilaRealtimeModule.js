@@ -44,8 +44,7 @@ class FilaRealtimeModule {
    */
   static async _ensureTable() {
     try {
-      const db = await database.getConnection();
-      await db.query(`
+      await database.query(`
         CREATE TABLE IF NOT EXISTS fila_historico (
           id SERIAL PRIMARY KEY,
           patient_id INTEGER NOT NULL,
@@ -66,12 +65,11 @@ class FilaRealtimeModule {
    */
   static async _carregarEstadoInicial() {
     try {
-      const db = await database.getConnection();
       // SQL inteligente:
       // 1. Pega os últimos movimentos de cada paciente
       // 2. Filtra aqueles que já passaram por triagem E médico
       // 3. Retorna o histórico "limpo" (quem ainda não concluiu os dois passos ou é re-chamada ao médico)
-      const result = await db.query(
+      const result = await database.query(
         `WITH 
           -- Pega todos os movimentos recentes
           movimentos AS (
@@ -298,8 +296,7 @@ class FilaRealtimeModule {
    * @private
    */
   static async _persistirNoBanco(chamada) {
-    const db = await database.getConnection();
-    await db.query(
+    await database.query(
       `INSERT INTO fila_historico (patient_id, patient_name, target, chamado_em)
        VALUES ($1, $2, $3, $4)`,
       [chamada.patientId, chamada.patientName, chamada.target, chamada.timestamp]

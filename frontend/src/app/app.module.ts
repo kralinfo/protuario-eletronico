@@ -67,12 +67,12 @@ import { PainelTitularComponent } from './lgpd/painel-titular/painel-titular.com
     BreadcrumbComponent,
     DashboardTriagemComponent,
     ClassificacaoDialogComponent,
-    FeedbackDialogComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    FeedbackDialogComponent,
     RelatorioAtendimentosComponent,
     FilaTriagemComponent,
     PaginationComponent,

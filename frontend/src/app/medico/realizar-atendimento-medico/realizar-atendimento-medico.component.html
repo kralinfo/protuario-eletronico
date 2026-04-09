@@ -31,7 +31,7 @@
       </span>
     </div>
   </div>
-  
+
   <!-- Assinatura do Médico (visível em modo de visualização ou quando concluída) -->
   <div *ngIf="consultaRealizada && nomeMedicoResponsavel" class="mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-r-lg shadow-sm flex items-center justify-between">
     <div class="flex items-center gap-4">
@@ -73,11 +73,9 @@
         </button>
       </div>
       <textarea class="w-full p-3 border border-gray-300 rounded focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
-                [ngModel]="diagnosticoPrincipal"
-                (ngModelChange)="diagnosticoPrincipal = $event"
+                formControlName="hipotese_diagnostica"
                 rows="3"
                 placeholder="Descreva a hipótese diagnóstica (campo obrigatório)"
-                [disabled]="!edicaoHabilitada"
                 required></textarea>
 
       <!-- CID Principal -->
