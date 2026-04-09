@@ -378,7 +378,27 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       return;
     }
 
-    if (this.atendimentoForm.invalid) return;
+    // Sincronizar diagnosticoPrincipal com o formControl
+    const hipoteseValue = this.atendimentoForm.get('hipotese_diagnostica')?.value;
+    if (hipoteseValue) {
+      this.diagnosticoPrincipal = hipoteseValue;
+    }
+
+    // Validar e mostrar feedback se form inválido
+    if (this.atendimentoForm.invalid) {
+      this.atendimentoForm.markAllAsTouched();
+      const camposInvalidos: string[] = [];
+      const controls = this.atendimentoForm.controls;
+      for (const key of Object.keys(controls)) {
+        if (controls[key].invalid) {
+          camposInvalidos.push(key);
+        }
+      }
+      console.warn('Formulário inválido. Campos com erro:', camposInvalidos);
+      this.snackBar.open(`Preencha os campos obrigatórios: ${camposInvalidos.join(', ')}`, 'Fechar', { duration: 5000 });
+      return;
+    }
+
     this.salvando = true;
     const medicoId = this.authService.user?.id || null;
     const motivoConsulta = this.atendimentoForm.get('motivo_consulta')?.value || '';
@@ -472,6 +492,274 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
         this.salvando = false;
       }
     });
+  }
+
+  /**
+   * Gera uma janela de impressão com os dados do atendimento formatados.
+   * Coleta todos os campos do formulário e dados auxiliares para
+   * montar um layout limpo e profissional para impressão.
+   */
+  imprimirAtendimento(): void {
+    const form = this.atendimentoForm.getRawValue();
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+    const horaAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    /** Formata a data de retorno, se existir */
+    const formatarDataRetorno = (valor: any): string => {
+      if (!valor) return '';
+      const data = new Date(valor);
+      return isNaN(data.getTime()) ? '' : data.toLocaleDateString('pt-BR');
+    };
+
+    /** Gera uma seção HTML somente se o valor estiver preenchido */
+    const secao = (titulo: string, valor: string | null | undefined): string => {
+      if (!valor || !valor.trim()) return '';
+      return `
+        <div class="secao">
+          <h3>${titulo}</h3>
+          <p>${valor.replace(/\n/g, '<br>')}</p>
+        </div>`;
+    };
+
+    /** Gera uma linha de campo chave/valor somente se preenchido */
+    const campo = (label: string, valor: string | number | null | undefined): string => {
+      if (valor === null || valor === undefined || valor === '') return '';
+      return `<tr><td class="label">${label}</td><td>${valor}</td></tr>`;
+    };
+
+    // Montar seções condicionais
+    let sinaisVitaisHtml = '';
+    const sinais = [
+      campo('Pressão Arterial', form.pressao_arterial),
+      campo('Temperatura', form.temperatura ? `${form.temperatura} °C` : ''),
+      campo('Frequência Cardíaca', form.frequencia_cardiaca ? `${form.frequencia_cardiaca} bpm` : ''),
+      campo('Saturação O₂', form.saturacao_oxigenio ? `${form.saturacao_oxigenio}%` : '')
+    ].filter(s => s).join('');
+    if (sinais) {
+      sinaisVitaisHtml = `
+        <div class="secao">
+          <h3>Sinais Vitais</h3>
+          <table>${sinais}</table>
+        </div>`;
+    }
+
+    let atestadoHtml = '';
+    if (form.atestado_emitido) {
+      const linhasAtestado = [
+        campo('CID', form.atestado_cid),
+        campo('Dias de Afastamento', form.atestado_dias),
+        campo('Detalhes', form.atestado_detalhes)
+      ].filter(s => s).join('');
+      atestadoHtml = `
+        <div class="secao">
+          <h3>Atestado Médico</h3>
+          <table>${linhasAtestado}</table>
+        </div>`;
+    }
+
+    let observacaoHtml = '';
+    if (form.necessita_observacao) {
+      const linhasObs = [
+        campo('Tempo de Observação', form.tempo_observacao_horas ? `${form.tempo_observacao_horas} horas` : ''),
+        campo('Motivo', form.motivo_observacao)
+      ].filter(s => s).join('');
+      observacaoHtml = `
+        <div class="secao">
+          <h3>Observação Médica</h3>
+          <table>${linhasObs}</table>
+        </div>`;
+    }
+
+    let retornoHtml = '';
+    if (form.retorno_agendado) {
+      const linhasRetorno = [
+        campo('Data do Retorno', formatarDataRetorno(form.data_retorno)),
+        campo('Observações', form.observacoes_retorno)
+      ].filter(s => s).join('');
+      retornoHtml = `
+        <div class="secao">
+          <h3>Retorno Agendado</h3>
+          <table>${linhasRetorno}</table>
+        </div>`;
+    }
+
+    const cidInfo = this.cidPrincipal ? ` (CID: ${this.cidPrincipal})` : '';
+    const cidSecundariosInfo = this.cidSecundarios.length > 0 ? `<br><small>CIDs Secundários: ${this.cidSecundarios.join(', ')}</small>` : '';
+
+    /** Mapa de status para rótulo legível */
+    const statusLabels: Record<string, string> = {
+      'encaminhado para ambulatório': 'Ambulatório',
+      'encaminhado para exames': 'Exames',
+      'atendimento_concluido': 'Alta'
+    };
+    const statusDestino = statusLabels[form.status_destino] || form.status_destino || '';
+
+    const htmlConteudo = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>Atendimento Médico - ${this.nomePaciente}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            color: #333;
+            padding: 20px 30px;
+            line-height: 1.5;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #1976d2;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+          }
+          .header h1 {
+            font-size: 18px;
+            color: #1976d2;
+            margin-bottom: 4px;
+          }
+          .header p {
+            font-size: 11px;
+            color: #666;
+          }
+          .paciente-info {
+            background: #f0f7ff;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .paciente-info .nome {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1565c0;
+          }
+          .paciente-info .data {
+            font-size: 11px;
+            color: #666;
+            text-align: right;
+          }
+          .secao {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+          }
+          .secao h3 {
+            font-size: 13px;
+            color: #1976d2;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 3px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .secao p {
+            font-size: 12px;
+            white-space: pre-wrap;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          table td {
+            padding: 3px 8px;
+            vertical-align: top;
+            font-size: 12px;
+          }
+          table td.label {
+            font-weight: 600;
+            color: #555;
+            width: 200px;
+            white-space: nowrap;
+          }
+          .encaminhamento {
+            margin-top: 16px;
+            padding: 10px 14px;
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            color: #2e7d32;
+            font-size: 13px;
+          }
+          .assinatura {
+            margin-top: 40px;
+            text-align: center;
+            border-top: 1px solid #ccc;
+            padding-top: 8px;
+          }
+          .assinatura .nome-medico {
+            font-weight: 700;
+            font-size: 14px;
+          }
+          .assinatura .rodape {
+            font-size: 10px;
+            color: #999;
+            margin-top: 6px;
+          }
+          @media print {
+            body { padding: 10px 20px; }
+            .no-print { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Prontuário Eletrônico</h1>
+          <p>Ficha de Atendimento Médico</p>
+        </div>
+
+        <div class="paciente-info">
+          <div>
+            <span class="nome">${this.nomePaciente}</span>
+          </div>
+          <div class="data">
+            Data: ${dataAtual}<br>
+            Hora: ${horaAtual}
+          </div>
+        </div>
+
+        ${secao('Motivo da Consulta', form.motivo_consulta)}
+        ${secao('Queixa Principal', form.queixa_principal)}
+        ${sinaisVitaisHtml}
+        ${secao('Hipótese Diagnóstica', (form.hipotese_diagnostica || '') + cidInfo + cidSecundariosInfo)}
+        ${secao('Exame Físico', form.exame_fisico)}
+        ${secao('Conduta / Prescrição', form.conduta_prescricao)}
+        ${secao('Medicamentos Prescritos', form.medicamentos_prescritos)}
+        ${secao('Medicamentos para Ambulatório', form.medicamentos_ambulatorio)}
+        ${secao('Procedimentos Realizados', form.procedimentos_realizados)}
+        ${atestadoHtml}
+        ${observacaoHtml}
+        ${secao('Orientações ao Paciente', form.orientacoes_paciente)}
+        ${retornoHtml}
+        ${secao('Alergias Identificadas', form.alergias_identificadas)}
+        ${secao('Histórico Familiar Relevante', form.historico_familiar_relevante)}
+        ${secao('Detalhes do Destino', form.detalhes_destino)}
+        ${secao('Observações', form.observacoes)}
+
+        ${statusDestino ? `<div class="encaminhamento">Encaminhamento: ${statusDestino}</div>` : ''}
+
+        <div class="assinatura">
+          <p class="nome-medico">${this.nomeMedicoResponsavel || this.authService.user?.nome || 'Médico Responsável'}</p>
+          <p class="rodape">Documento gerado eletronicamente em ${dataAtual} às ${horaAtual}</p>
+        </div>
+
+        <script>window.onload = function() { window.print(); }</script>
+      </body>
+      </html>`;
+
+    const janelaImpressao = window.open('', '_blank', 'width=800,height=900');
+    if (janelaImpressao) {
+      janelaImpressao.document.write(htmlConteudo);
+      janelaImpressao.document.close();
+    } else {
+      this.snackBar.open('Não foi possível abrir a janela de impressão. Verifique o bloqueador de pop-ups.', 'Fechar', { duration: 5000 });
+    }
   }
 
   habilitarEdicao() {
