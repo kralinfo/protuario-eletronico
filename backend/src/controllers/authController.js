@@ -1,5 +1,6 @@
 import Usuario from '../models/Usuario.js';
 import { generateToken } from '../middleware/auth.js';
+import TokenBlacklistService from '../services/tokenBlacklistService.js';
 import { AppError } from '../middleware/errorHandler.js';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
@@ -231,16 +232,30 @@ class AuthController {
   }
 
   /**
-   * Logout (invalidar token - implementação básica)
+   * Logout (invalidar token via blacklist - LGPD)
    */
   static async logout(req, res) {
     try {
-      // Em uma implementação completa, você poderia adicionar o token a uma blacklist
-      console.log(`✅ [AUTH] Logout realizado: ${req.user?.email}`);
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+
+      if (token && req.user) {
+        // Decodificar para obter jti e exp
+        const decoded = jwt.decode(token);
+        if (decoded && decoded.jti) {
+          await TokenBlacklistService.blacklistToken(
+            token,
+            req.user.id,
+            decoded.jti,
+            new Date(decoded.exp * 1000),
+            'logout'
+          );
+        }
+      }
 
       res.json({
         status: 'SUCCESS',
-        message: 'Logout realizado com sucesso'
+        message: 'Logout realizado com sucesso. Token invalidado.'
       });
 
     } catch (error) {

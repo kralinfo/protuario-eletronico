@@ -38,33 +38,61 @@ const auth = (roles = []) => {
 
 export default auth;
 import jwt from 'jsonwebtoken';
+import { randomBytes } from 'crypto';
 import config from '../config/env.js';
+import TokenBlacklistService from '../services/tokenBlacklistService.js';
 
 /**
- * Middleware de autenticação JWT
+ * Middleware de autenticação JWT com verificacao de blacklist (LGPD)
  */
-export const authenticateToken = (req, res, next) => {
+export const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       status: 'ERROR',
       message: 'Token de acesso requerido',
       code: 'NO_TOKEN'
     });
   }
 
+  // Decodificar sem verificar para checar blacklist primeiro
+  let decoded;
+  try {
+    decoded = jwt.decode(token);
+    if (!decoded) {
+      throw new Error('Token invalido');
+    }
+  } catch (err) {
+    return res.status(403).json({
+      status: 'ERROR',
+      message: 'Token invalido',
+      code: 'INVALID_TOKEN'
+    });
+  }
+
+  // Verificar se token esta na blacklist (logout/revogacao)
+  const jti = decoded.jti;
+  if (jti && await TokenBlacklistService.isBlacklisted(jti)) {
+    return res.status(403).json({
+      status: 'ERROR',
+      message: 'Token revogado. Faca login novamente.',
+      code: 'TOKEN_REVOKED'
+    });
+  }
+
+  // Verificar assinatura e expiracao
   jwt.verify(token, config.JWT_SECRET, (err, user) => {
     if (err) {
-      console.log('❌ Token inválido:', err.message);
-      return res.status(403).json({ 
+      console.log('❌ Token invalido:', err.message);
+      return res.status(403).json({
         status: 'ERROR',
-        message: 'Token inválido ou expirado',
+        message: 'Token invalido ou expirado',
         code: 'INVALID_TOKEN'
       });
     }
-    
+
     req.user = user;
     next();
   });
@@ -107,12 +135,21 @@ export const requirePermission = (permission) => {
 };
 
 /**
- * Gerar token JWT
+ * Gerar token JWT com JTI unico para rastreabilidade (LGPD)
  */
 export const generateToken = (payload) => {
-  return jwt.sign(payload, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRES_IN
-  });
+  const jti = randomBytes(16).toString('hex'); // JWT ID unico
+
+  return jwt.sign(
+    {
+      ...payload,
+      jti // Unique identifier para blacklist
+    },
+    config.JWT_SECRET,
+    {
+      expiresIn: config.JWT_EXPIRES_IN
+    }
+  );
 };
 
 /**
