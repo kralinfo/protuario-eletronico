@@ -1,4 +1,7 @@
 import database from '../config/database.js';
+import { encryptFields, decryptFields, SENSITIVE_FIELDS } from '../config/encryption.js';
+
+const PACIENTE_SENSITIVE_FIELDS = SENSITIVE_FIELDS.paciente;
 
 class Paciente {
   constructor(data) {
@@ -31,8 +34,12 @@ class Paciente {
         'SELECT * FROM pacientes WHERE id = $1',
         [id]
       );
-      
-      return result.rows.length > 0 ? new Paciente(result.rows[0]) : null;
+
+      if (result.rows.length === 0) return null;
+
+      // Descriptografar campos sensiveis (LGPD Art. 46)
+      const dadosDescriptografados = decryptFields(result.rows[0], PACIENTE_SENSITIVE_FIELDS);
+      return new Paciente(dadosDescriptografados);
     } catch (error) {
       throw new Error(`Erro ao buscar paciente por ID: ${error.message}`);
     }
@@ -49,6 +56,13 @@ class Paciente {
         cep, telefone, sus
       } = pacienteData;
 
+      // Criptografar campos sensiveis antes de salvar (LGPD Art. 46)
+      const dadosCriptografados = encryptFields({
+        nome, mae, nascimento, sexo, estado_civil, profissao,
+        escolaridade, raca, endereco, bairro, municipio, uf,
+        cep, telefone, sus
+      }, PACIENTE_SENSITIVE_FIELDS);
+
       const result = await database.query(
         `INSERT INTO pacientes (
           nome, mae, nascimento, sexo, estado_civil, profissao,
@@ -58,12 +72,14 @@ class Paciente {
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP
         ) RETURNING *`,
         [
-          nome, mae, nascimento, sexo, estado_civil, profissao,
-          escolaridade, raca, endereco, bairro, municipio, uf,
-          cep, telefone, sus
+          dadosCriptografados.nome, dadosCriptografados.mae, dadosCriptografados.nascimento,
+          dadosCriptografados.sexo, dadosCriptografados.estado_civil, dadosCriptografados.profissao,
+          dadosCriptografados.escolaridade, dadosCriptografados.raca, dadosCriptografados.endereco,
+          dadosCriptografados.bairro, dadosCriptografados.municipio, dadosCriptografados.uf,
+          dadosCriptografados.cep, dadosCriptografados.telefone, dadosCriptografados.sus
         ]
       );
-      
+
       return new Paciente(result.rows[0]);
     } catch (error) {
       throw new Error(`Erro ao criar paciente: ${error.message}`);
@@ -86,11 +102,20 @@ class Paciente {
         'cep', 'telefone', 'sus'
       ];
 
-      // Construir query dinâmica
+      // Criptografar campos sensiveis antes de salvar (LGPD Art. 46)
+      const dadosParaAtualizar = {};
       allowedFields.forEach(field => {
         if (pacienteData[field] !== undefined) {
+          dadosParaAtualizar[field] = pacienteData[field];
+        }
+      });
+      const dadosCriptografados = encryptFields(dadosParaAtualizar, PACIENTE_SENSITIVE_FIELDS);
+
+      // Construir query dinâmica com dados já criptografados
+      allowedFields.forEach(field => {
+        if (dadosCriptografados[field] !== undefined) {
           updates.push(`${field} = $${paramIndex}`);
-          values.push(pacienteData[field]);
+          values.push(dadosCriptografados[field]);
           paramIndex++;
         }
       });
@@ -100,16 +125,20 @@ class Paciente {
       }
 
       values.push(id);
-      
+
       const result = await database.query(
-        `UPDATE pacientes 
-         SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP 
-         WHERE id = $${paramIndex} 
+        `UPDATE pacientes
+         SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $${paramIndex}
          RETURNING *`,
         values
       );
-      
-      return result.rows.length > 0 ? new Paciente(result.rows[0]) : null;
+
+      if (result.rows.length === 0) return null;
+
+      // Descriptografar campos sensiveis no retorno
+      const dadosDescriptografados = decryptFields(result.rows[0], PACIENTE_SENSITIVE_FIELDS);
+      return new Paciente(dadosDescriptografados);
     } catch (error) {
       throw new Error(`Erro ao atualizar paciente: ${error.message}`);
     }
@@ -203,8 +232,12 @@ class Paciente {
       params.push(limit, offset);
 
       const result = await database.query(query, params);
-      
-      return result.rows.map(row => new Paciente(row));
+
+      // Descriptografar campos sensiveis em cada registro (LGPD Art. 46)
+      return result.rows.map(row => {
+        const dadosDescriptografados = decryptFields(row, PACIENTE_SENSITIVE_FIELDS);
+        return new Paciente(dadosDescriptografados);
+      });
     } catch (error) {
       throw new Error(`Erro ao listar pacientes: ${error.message}`);
     }
@@ -268,8 +301,12 @@ class Paciente {
         'SELECT * FROM pacientes WHERE nome ILIKE $1 ORDER BY nome',
         [`%${nome}%`]
       );
-      
-      return result.rows.map(row => new Paciente(row));
+
+      // Descriptografar campos sensiveis (LGPD Art. 46)
+      return result.rows.map(row => {
+        const dadosDescriptografados = decryptFields(row, PACIENTE_SENSITIVE_FIELDS);
+        return new Paciente(dadosDescriptografados);
+      });
     } catch (error) {
       throw new Error(`Erro ao buscar paciente por nome: ${error.message}`);
     }
@@ -295,7 +332,11 @@ class Paciente {
       }
 
       const result = await database.query(query, params);
-      return result.rows.map(row => new Paciente(row));
+      // Descriptografar campos sensiveis (LGPD Art. 46)
+      return result.rows.map(row => {
+        const dadosDescriptografados = decryptFields(row, PACIENTE_SENSITIVE_FIELDS);
+        return new Paciente(dadosDescriptografados);
+      });
     } catch (error) {
       throw new Error(`Erro ao verificar SUS: ${error.message}`);
     }
@@ -576,8 +617,12 @@ class Paciente {
       console.log('🔍 [SQL] Parâmetros:', params);
 
       const result = await database.query(query, params);
-      
-      return result.rows.map(row => new Paciente(row));
+
+      // Descriptografar campos sensiveis (LGPD Art. 46)
+      return result.rows.map(row => {
+        const dadosDescriptografados = decryptFields(row, PACIENTE_SENSITIVE_FIELDS);
+        return new Paciente(dadosDescriptografados);
+      });
     } catch (error) {
       console.error('❌ [PACIENTE] Erro ao buscar pacientes para relatórios:', error);
       throw new Error(`Erro ao buscar pacientes para relatórios: ${error.message}`);
