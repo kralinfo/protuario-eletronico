@@ -11,7 +11,7 @@ export const config = {
   DATABASE_URL: process.env.DATABASE_URL,
   
   // JWT
-  JWT_SECRET: process.env.JWT_SECRET || 'seu_jwt_secret_super_secreto_aqui', // Compatível com produção
+  JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
   
   // Email

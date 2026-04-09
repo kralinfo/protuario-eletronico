@@ -8,21 +8,23 @@ services:
     repo: https://github.com/fpjunior/protuario-eletronico
     branch: main
     rootDir: backend
+    # ATENCAO: As variaveis de ambiente sensiveis (DATABASE_URL, JWT_SECRET, EMAIL_PASS)
+    # devem ser configuradas APENAS no painel do Render (Settings -> Environment Variables).
+    # NUNCA commite credenciais reais neste arquivo.
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3001
       - key: DATABASE_URL
-        value: postgresql://mydb_l01f_user:9SMTVGi0Sb1QgSesdVxAmGZuCXnMEtKJ@dpg-d1jjelemcj7s739u1vjg-a.oregon-postgres.render.com/mydb_l01f
+        sync: false
       - key: JWT_SECRET
-        value: jwt_secret_production_2025_alianca_pe_secure_key_12345
+        sync: false
       - key: FRONTEND_URL
         value: https://prontuario-eletronico-five.vercel.app
-      # Configurações de Email (Gmail)
       - key: EMAIL_USER
-        value: kralinfo18@gmail.com
+        sync: false
       - key: EMAIL_PASS
-        value: pmcrdimhpqtigdfz
+        sync: false
       - key: EMAIL_FROM
         value: e-Prontuario Alianca-PE <noreply@alianca.com>

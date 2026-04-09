@@ -6,6 +6,7 @@ import http from 'http';
 
 // Configurações
 import { config } from './config/env.js';
+import { validateRequiredEnvVars } from './config/envValidation.js';
 import corsOptions from './config/cors.js';
 import database from './config/database.js';
 
@@ -122,6 +123,11 @@ class App {
 
   async start() {
     try {
+      // Validar variaveis de ambiente obrigatorias (LGPD - seguranca)
+      if (!validateRequiredEnvVars()) {
+        process.exit(1);
+      }
+
       // Testar conexão com banco com retries e backoff
       const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       const maxAttempts = process.env.DB_CONNECT_RETRIES ? Number(process.env.DB_CONNECT_RETRIES) : 8;
