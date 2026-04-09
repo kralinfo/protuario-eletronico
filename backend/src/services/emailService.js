@@ -21,15 +21,15 @@ class EmailService {
           sgMail.setApiKey(process.env.SENDGRID_API_KEY);
           this.useSendGrid = true;
           console.log('✅ SendGrid configurado com sucesso!');
-          return;
+          // Não retorna aqui: continua para configurar Gmail como fallback
         } catch (error) {
           console.error('❌ Erro ao configurar SendGrid:', error.message);
         }
       }
       
-      // FALLBACK: Gmail SMTP (para desenvolvimento)
+      // FALLBACK: Gmail SMTP (sempre inicializado se credenciais disponíveis)
       if (process.env.EMAIL_USER && process.env.EMAIL_PASS && process.env.EMAIL_PASS !== 'sua_senha_de_app_aqui') {
-        console.log('📧 Fallback: Configurando Gmail SMTP...');
+        console.log('📧 Configurando Gmail SMTP como fallback...');
         this.transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
@@ -37,8 +37,10 @@ class EmailService {
             pass: process.env.EMAIL_PASS
           }
         });
-      } else {
-        // Use Ethereal para teste (email de desenvolvimento)
+        await this.transporter.verify();
+        console.log('✅ Gmail SMTP configurado com sucesso!');
+      } else if (!this.useSendGrid) {
+        // Só usa Ethereal se não tiver nem SendGrid nem Gmail
         console.log('🧪 Configurando Ethereal (email de teste) para desenvolvimento...');
         const testAccount = await nodemailer.createTestAccount();
         this.transporter = nodemailer.createTransport({
@@ -54,11 +56,9 @@ class EmailService {
         console.log('📧 Credenciais de teste criadas:');
         console.log('   User:', testAccount.user);
         console.log('   Pass:', testAccount.pass);
+        await this.transporter.verify();
+        console.log('✅ Conexão de email estabelecida com sucesso!');
       }
-      
-      // Verificar conexão
-      await this.transporter.verify();
-      console.log('✅ Conexão de email estabelecida com sucesso!');
     } catch (error) {
       console.error('❌ Erro na conexão de email:', error.message);
     }
