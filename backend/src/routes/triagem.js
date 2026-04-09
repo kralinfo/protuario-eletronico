@@ -1,6 +1,7 @@
 import express from 'express';
 import TriagemController from '../controllers/triagemController.js';
 import triagemAuth from '../middleware/triagemAuth.js';
+import auditMiddleware from '../middleware/auditMiddleware.js';
 
 const router = express.Router();
 
@@ -24,16 +25,28 @@ router.get('/status-destino', triagemAuth, TriagemController.obterStatusDestino)
 // === ROTAS DE ATENDIMENTO ===
 
 // Iniciar triagem de um paciente
-router.post('/:id/iniciar', triagemAuth, TriagemController.iniciarTriagem);
+router.post('/:id/iniciar',
+  triagemAuth,
+  auditMiddleware('CREATE', 'triagem'),
+  TriagemController.iniciarTriagem
+);
 
 // Obter dados completos do atendimento para triagem
 router.get('/:id/dados', triagemAuth, TriagemController.obterDadosTriagem);
 
 // Salvar dados da triagem (parcial)
-router.put('/:id/salvar', triagemAuth, TriagemController.salvarTriagem);
+router.put('/:id/salvar',
+  triagemAuth,
+  auditMiddleware('UPDATE', 'triagem'),
+  TriagemController.salvarTriagem
+);
 
 // Finalizar triagem
-router.post('/:id/finalizar', triagemAuth, TriagemController.finalizarTriagem);
+router.post('/:id/finalizar',
+  triagemAuth,
+  auditMiddleware('UPDATE', 'triagem'),
+  TriagemController.finalizarTriagem
+);
 
 // === ROTAS DE RELATÓRIOS ===
 

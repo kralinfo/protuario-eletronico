@@ -1,5 +1,6 @@
 import express from 'express';
 import controller from '../controllers/atendimentosController.js';
+import auditMiddleware from '../middleware/auditMiddleware.js';
 import knex from '../db.js';
 import { 
   atendimentosPorSemana, 
@@ -88,21 +89,42 @@ router.get('/debug/classificacoes', async (req, res) => {
 // Endpoint para detalhes de atendimentos por período
 router.get('/detalhes-periodo', detalhesAtendimentos);
 
-router.post('/', controller.registrar);
+router.post('/',
+  auditMiddleware('CREATE', 'atendimento'),
+  controller.registrar
+);
 router.get('/', controller.listarDoDia); // Novo endpoint para atendimentos do dia
 router.get('/reports', controller.reports); // Rota de relatórios ANTES da rota paramétrica
 router.get('/todos', controller.listarTodos); // Novo endpoint para todos os atendimentos
 router.get('/:id', controller.buscarPorId); // Rota RESTful para buscar atendimento por ID
 router.get('/:pacienteId', controller.listarPorPaciente);
-router.patch('/:id/status', controller.atualizarStatus);
-router.patch('/:id/abandono', controller.registrarAbandono);
-router.put('/:id', controller.atualizar); // Nova rota para atualizar atendimento completo
-router.delete('/:id', controller.remover);
+router.patch('/:id/status',
+  auditMiddleware('UPDATE', 'atendimento'),
+  controller.atualizarStatus
+);
+router.patch('/:id/abandono',
+  auditMiddleware('UPDATE', 'atendimento'),
+  controller.registrarAbandono
+);
+router.put('/:id',
+  auditMiddleware('UPDATE', 'atendimento'),
+  controller.atualizar
+); // Nova rota para atualizar atendimento completo
+router.delete('/:id',
+  auditMiddleware('DELETE', 'atendimento'),
+  controller.remover
+);
 
 // Novo endpoint para salvar apenas dados do atendimento médico
-router.put('/:id/salvar-medico', controller.salvarDadosMedico);
+router.put('/:id/salvar-medico',
+  auditMiddleware('UPDATE', 'atendimento'),
+  controller.salvarDadosMedico
+);
 
 // Novo endpoint para salvar apenas alterações da triagem
-router.put('/:id/salvar-triagem', controller.salvarAlteracoesTriagem);
+router.put('/:id/salvar-triagem',
+  auditMiddleware('UPDATE', 'atendimento'),
+  controller.salvarAlteracoesTriagem
+);
 
 export default router;
