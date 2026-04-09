@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import consentimentoController from '../controllers/consentimentoController.js';
 import auditMiddleware from '../middleware/auditMiddleware.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
 
 // Todas as rotas de consentimento requerem autenticacao
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 // Registrar consentimento
 router.post('/',
