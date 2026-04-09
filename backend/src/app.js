@@ -27,6 +27,7 @@ import AmbulatoriRealtimeModule from './realtime/modules/AmbulatoriRealtimeModul
 import FilaRealtimeModule from './realtime/modules/FilaRealtimeModule.js';
 
 // Rotas
+import consentimentoRouter from './routes/consentimentos.js';
 import apiRoutes from './routes/index.js';
 import atendimentosRouter from './routes/atendimentos.js';
 import triagemRouter from './routes/triagem.js';
@@ -111,6 +112,7 @@ class App {
     this.app.use('/api', historicoRouter);
     this.app.use('/api/dashboard', dashboardRouter);
     this.app.use('/api/fila', filaRouter);
+    this.app.use('/api/consentimentos', consentimentoRouter);
   }
 
   setupErrorHandling() {
