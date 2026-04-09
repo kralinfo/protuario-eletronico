@@ -47,6 +47,9 @@ import { PaginationComponent } from './shared/components/pagination/pagination.c
 import { NotificationContainerComponent } from './shared/components/notification-container.component';
 import { RealtimeStatusComponent } from './shared/components/realtime-status.component';
 import { FilaComponent } from './fila/fila.component';
+import { PoliticaPrivacidadeComponent } from './lgpd/politica-privacidade/politica-privacidade.component';
+import { ModalConsentimentoComponent } from './lgpd/modal-consentimento/modal-consentimento.component';
+import { PainelTitularComponent } from './lgpd/painel-titular/painel-titular.component';
 
 @NgModule({
   declarations: [
@@ -60,6 +63,9 @@ import { FilaComponent } from './fila/fila.component';
     BreadcrumbComponent,
     DashboardTriagemComponent,
     ClassificacaoDialogComponent,
+    PoliticaPrivacidadeComponent,
+    ModalConsentimentoComponent,
+    PainelTitularComponent,
   ],
   imports: [
     BrowserModule,

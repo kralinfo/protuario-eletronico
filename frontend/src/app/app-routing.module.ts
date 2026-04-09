@@ -17,6 +17,7 @@ import { DashboardTriagemComponent } from './triagem/dashboard/dashboard-triagem
 import { RealizarTriagemUltraSeguroComponent } from './triagem/triagem/realizar-triagem-ultra-seguro.component';
 import { FilaPosTriagemComponent } from './triagem/fila-pos-triagem/fila-pos-triagem.component';
 import { FilaComponent } from './fila/fila.component';
+import { PoliticaPrivacidadeComponent } from './lgpd/politica-privacidade/politica-privacidade.component';
 
 const routes: Routes = [
   {
@@ -252,6 +253,15 @@ const routes: Routes = [
       breadcrumb: 'Painel de Fila',
       icon: 'monitor',
       title: 'Painel de Chamada em Tempo Real'
+    }
+  },
+  {
+    path: 'politica-privacidade',
+    component: PoliticaPrivacidadeComponent,
+    data: {
+      breadcrumb: 'Politica de Privacidade',
+      icon: 'privacy_tip',
+      title: 'Politica de Privacidade (LGPD)'
     }
   },
   { path: '**', redirectTo: '/login' }

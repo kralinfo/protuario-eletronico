@@ -1,0 +1,24 @@
+.container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+section h2 {
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+ul li::marker {
+  color: #3b82f6;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+table th {
+  font-weight: 600;
+}
+
+table td, table th {
+  border-bottom: 1px solid #e5e7eb;
+}

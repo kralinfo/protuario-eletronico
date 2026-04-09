@@ -1,0 +1,112 @@
+<div class="bg-white rounded-lg shadow-md p-6">
+  <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+    <span class="material-icons text-blue-600">security</span>
+    Meus Dados (LGPD)
+  </h2>
+
+  <!-- Acoes principais -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+    <!-- Exportar Dados -->
+    <div class="border rounded-lg p-4 hover:shadow-md transition">
+      <h3 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+        <span class="material-icons text-green-600">download</span>
+        Exportar Meus Dados
+      </h3>
+      <p class="text-sm text-gray-500 mb-3">
+        Receba todos os seus dados pessoais em formato JSON estruturado (portabilidade).
+      </p>
+      <button
+        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50"
+        (click)="exportarDados()"
+        [disabled]="exportando"
+      >
+        {{exportando ? 'Exportando...' : 'Exportar Dados'}}
+      </button>
+    </div>
+
+    <!-- Solicitar Exclusao -->
+    <div class="border rounded-lg p-4 hover:shadow-md transition">
+      <h3 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+        <span class="material-icons text-red-600">delete_forever</span>
+        Solicitar Exclusao
+      </h3>
+      <p class="text-sm text-gray-500 mb-3">
+        Solicite a exclusao dos seus dados pessoais. A solicitacao sera analisada pelo administrador.
+      </p>
+      <textarea
+        class="w-full border rounded p-2 text-sm mb-2 resize-none"
+        rows="2"
+        placeholder="Motivo da solicitacao (opcional)"
+        [(ngModel)]="motivoExclusao"
+      ></textarea>
+      <button
+        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm disabled:opacity-50"
+        (click)="solicitarExclusao()"
+        [disabled]="solicitandoExclusao"
+      >
+        {{solicitandoExclusao ? 'Solicitando...' : 'Solicitar Exclusao'}}
+      </button>
+    </div>
+  </div>
+
+  <!-- Consentimentos -->
+  <div class="border-t pt-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-semibold text-gray-700 flex items-center gap-2">
+        <span class="material-icons text-blue-600">verified_user</span>
+        Meus Consentimentos
+      </h3>
+      <button
+        class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+        (click)="abrirModalConsentimento()"
+      >
+        Novo Consentimento
+      </button>
+    </div>
+
+    <div *ngIf="carregando" class="text-center py-8 text-gray-400">
+      <span class="material-icons animate-spin">refresh</span>
+      <p>Carregando consentimentos...</p>
+    </div>
+
+    <div *ngIf="!carregando && consentimentos.length === 0" class="text-center py-8 text-gray-400">
+      <span class="material-icons text-4xl">shield</span>
+      <p>Nenhum consentimento registrado.</p>
+    </div>
+
+    <div *ngIf="!carregando && consentimentos.length > 0" class="space-y-3">
+      <div
+        *ngFor="let c of consentimentos"
+        class="border rounded-lg p-4 flex items-center justify-between"
+        [class.bg-green-50]="c.ativo"
+        [class.bg-gray-50]="!c.ativo"
+      >
+        <div>
+          <p class="font-medium text-gray-800 capitalize">{{c.tipo}}</p>
+          <p class="text-sm text-gray-500">
+            Versao: {{c.versao_termos}} | Registrado em: {{c.data_consentimento | date:'dd/MM/yyyy HH:mm'}}
+          </p>
+          <p *ngIf="!c.ativo" class="text-sm text-red-600">
+            Revogado em: {{c.data_revogacao | date:'dd/MM/yyyy HH:mm'}}
+          </p>
+          <span
+            class="inline-block mt-1 px-2 py-0.5 text-xs rounded-full"
+            [class.bg-green-200]="c.ativo"
+            [class.text-green-800]="c.ativo"
+            [class.bg-red-200]="!c.ativo"
+            [class.text-red-800]="!c.ativo"
+          >
+            {{c.ativo ? 'Ativo' : 'Revogado'}}
+          </span>
+        </div>
+        <button
+          *ngIf="c.ativo"
+          class="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+          (click)="revogarConsentimento(c.id)"
+        >
+          Revogar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

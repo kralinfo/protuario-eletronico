@@ -1,0 +1,13 @@
+:host {
+  display: block;
+  max-width: 600px;
+  padding: 2rem;
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
