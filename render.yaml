@@ -23,6 +23,6 @@ services:
       - key: EMAIL_USER
         value: kralinfo18@gmail.com
       - key: EMAIL_PASS
-        value: pmcrdimhpqtigdfz
+        value: rubbimpgoeuqdyqz
       - key: EMAIL_FROM
         value: e-Prontuario Alianca-PE <noreply@alianca.com>
