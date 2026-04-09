@@ -237,7 +237,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     // O botão de entrar só será habilitado se o campo módulo estiver preenchido (form válido)
     this.loading = true;
     this.errorMessage = '';
-    this.authService.login({ email, senha }).subscribe({
+    const permanente = moduloSelecionado === 'fila';
+    this.authService.login({ email, senha, permanente }).subscribe({
       next: (response) => {
         this.loading = false;
         this.authService.setSelectedModule(moduloSelecionado);

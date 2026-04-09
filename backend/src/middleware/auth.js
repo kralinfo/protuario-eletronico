@@ -108,11 +108,12 @@ export const requirePermission = (permission) => {
 
 /**
  * Gerar token JWT
+ * @param {object} payload - Dados do usuário
+ * @param {object} opts - Opções adicionais (permanente: true para token sem expiração)
  */
-export const generateToken = (payload) => {
-  return jwt.sign(payload, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRES_IN
-  });
+export const generateToken = (payload, opts = {}) => {
+  const options = opts.permanente ? {} : { expiresIn: config.JWT_EXPIRES_IN };
+  return jwt.sign(payload, config.JWT_SECRET, options);
 };
 
 /**

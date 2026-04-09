@@ -129,13 +129,14 @@ class AuthController {
 
 
       // Gerar token JWT incluindo o campo nivel e modulos
+      // Se permanente=true, gera token sem expiração (para TVs de fila)
       const token = generateToken({
         id: usuario.id,
         email: usuario.email,
         nome: usuario.nome,
         nivel: usuario.nivel,
         modulos: usuario.modulos
-      });
+      }, { permanente: req.body.permanente === true });
 
       console.log(`✅ [AUTH] Login realizado: ${usuario.email}`);
 

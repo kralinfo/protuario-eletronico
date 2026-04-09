@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 export interface LoginCredentials {
   email: string;
   senha: string;
+  permanente?: boolean;
 }
 
 export interface LoginResponse {
@@ -143,7 +144,8 @@ export class AuthService {
       if (parts.length !== 3) return false;
       const payload = JSON.parse(atob(parts[1]));
       if (!payload || typeof payload !== 'object') return false;
-      if (!payload.exp) return false;
+      // Tokens sem exp são permanentes (ex: TV de fila)
+      if (!payload.exp) return true;
       // exp é em segundos desde epoch
       const now = Math.floor(Date.now() / 1000);
       return payload.exp > now;
