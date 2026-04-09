@@ -19,6 +19,9 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { LOCALE_ID } from '@angular/core';
+import { Cid10SearchComponent } from '../pec-components/cid10-search.component';
+import { EncaminhamentosPanelComponent } from '../pec-components/encaminhamentos-panel.component';
+import { ExamesPanelComponent } from '../pec-components/exames-panel.component';
 
 // Formato personalizado para data brasileira
 export const MY_DATE_FORMATS = {
@@ -55,7 +58,10 @@ registerLocaleData(localePt);
     MatExpansionModule,
     MatCheckboxModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    Cid10SearchComponent,
+    EncaminhamentosPanelComponent,
+    ExamesPanelComponent
   ],
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'pt-BR' },
@@ -81,6 +87,13 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   podeEditarPorStatus = true; // Controla se o status permite edição (do dashboard)
   origemCard = ''; // De qual card veio a navegação
   nomeMedicoResponsavel = ''; // Nome do médico que realizou o atendimento
+  pacienteId: number | null = null; // ID do paciente para encaminhamentos/exames
+
+  // CID-10
+  mostrandoBuscaCid = false;
+  diagnosticoPrincipal = '';
+  cidPrincipal = '';
+  cidSecundarios: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -209,6 +222,15 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
         // Nome do médico responsável (assinatura)
         this.nomeMedicoResponsavel = consultaData.medico_nome || '';
 
+        // ID do paciente (para encaminhamentos/exames)
+        this.pacienteId = data.paciente_id || data.atendimento?.paciente_id || null;
+
+        // Diagnostic principal e CID
+        this.diagnosticoPrincipal = consultaData.diagnostico_principal || '';
+        this.cidPrincipal = consultaData.cid_principal || '';
+        const cidSec = consultaData.cid_secundarios || '';
+        this.cidSecundarios = cidSec ? cidSec.split(',').map((c: string) => c.trim()).filter((c: string) => c) : [];
+
         this.atendimentoForm.patchValue({
           // Dados da triagem (prioridade para carregar primeiro)
           queixa_principal: triagemData.queixa_principal || consultaData.queixa_principal || '',
@@ -327,6 +349,22 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     });
   }
 
+  // CID-10 handlers
+  abrirBuscaCid(): void {
+    this.mostrandoBuscaCid = true;
+  }
+
+  onCidSelecionado(cid: { code: string; description: string }): void {
+    this.cidPrincipal = cid.code;
+    if (!this.diagnosticoPrincipal) {
+      this.diagnosticoPrincipal = cid.description;
+    }
+  }
+
+  removerCidSecundario(code: string): void {
+    this.cidSecundarios = this.cidSecundarios.filter(c => c !== code);
+  }
+
   salvarAtendimento() {
     // Impedir salvamento se estiver em modo de visualização e edição não foi habilitada
     if (this.consultaRealizada && !this.edicaoHabilitada) {
@@ -348,6 +386,9 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       atendimento_id: this.atendimentoId,
 
       // Novos campos detalhados
+      diagnostico_principal: this.diagnosticoPrincipal,
+      cid_principal: this.cidPrincipal,
+      cid_secundarios: this.cidSecundarios.join(','),
       medicamentos_prescritos: this.atendimentoForm.get('medicamentos_prescritos')?.value,
       medicamentos_ambulatorio: this.atendimentoForm.get('medicamentos_ambulatorio')?.value,
       atestado_emitido: this.atendimentoForm.get('atestado_emitido')?.value,

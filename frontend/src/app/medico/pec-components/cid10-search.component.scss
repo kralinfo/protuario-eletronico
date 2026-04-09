@@ -1,0 +1,152 @@
+.cid10-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 60px;
+}
+
+.cid10-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cid10-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 4px;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #111827;
+  }
+}
+
+.cid10-search {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 12px;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: #3b82f6;
+  }
+}
+
+.search-icon {
+  color: #9ca3af;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 15px;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 2px;
+
+  &:hover { color: #111827; }
+}
+
+.cid10-results {
+  overflow-y: auto;
+  max-height: 50vh;
+  padding: 8px 0;
+}
+
+.loading, .hint, .no-results {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.hint-icon { color: #3b82f6; }
+
+.results-list {
+  padding: 0 12px;
+}
+
+.results-count {
+  font-size: 12px;
+  color: #6b7280;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f0f9ff;
+  }
+
+  .result-code {
+    font-weight: 700;
+    color: #1e40af;
+    font-size: 14px;
+    min-width: 60px;
+    flex-shrink: 0;
+  }
+
+  .result-desc {
+    flex: 1;
+    color: #374151;
+    font-size: 14px;
+  }
+
+  .result-chapter {
+    font-size: 11px;
+    color: #9ca3af;
+    flex-shrink: 0;
+  }
+}

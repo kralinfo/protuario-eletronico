@@ -1,0 +1,88 @@
+<div class="ex-panel">
+  <div class="ex-header">
+    <h3 class="text-md font-semibold text-gray-700 flex items-center gap-2">
+      <mat-icon class="text-purple-600">biotech</mat-icon>
+      Exames Solicitados
+    </h3>
+    <button class="btn-add" (click)="mostrandoForm = !mostrandoForm" *ngIf="!mostrandoForm">
+      <mat-icon>add</mat-icon>
+      Novo
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  <div class="ex-form" *ngIf="mostrandoForm">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo de Exame *</label>
+        <select [(ngModel)]="novoExame.tipo_exame">
+          <option value="laboratorial">Laboratorial</option>
+          <option value="imagem">Imagem (Raio-X, USG, TC, RM)</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group full-grow">
+        <label>Nome do Exame *</label>
+        <input type="text" [(ngModel)]="novoExame.nome_exame"
+               placeholder="Ex: Hemograma Completo, Raio-X de Torax" />
+      </div>
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select [(ngModel)]="novoExame.prioridade">
+          <option value="normal">Normal</option>
+          <option value="urgente">Urgente</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Questao Clinica</label>
+        <input type="text" [(ngModel)]="novoExame.questao_clinica"
+               placeholder="Qual pergunta clinica o exame deve responder?" />
+      </div>
+    </div>
+
+    <div class="form-group full">
+      <label>Observacoes</label>
+      <textarea [(ngModel)]="novoExame.observacoes"
+                rows="2" placeholder="Jejum, coleta especial, etc."></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-cancel" (click)="mostrandoForm = false">Cancelar</button>
+      <button class="btn-save" (click)="salvar()">Solicitar Exame</button>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="ex-list">
+    <div *ngIf="carregando" class="loading">Carregando...</div>
+    <div *ngIf="!carregando && exames.length === 0 && !mostrandoForm" class="empty">
+      Nenhum exame solicitado.
+    </div>
+    <div *ngFor="let ex of exames" class="ex-item">
+      <div class="ex-item-header">
+        <div class="ex-type-row">
+          <span class="ex-type-badge" [class]="'type-' + ex.tipo_exame">{{ex.tipo_exame}}</span>
+          <span class="ex-name">{{ex.nome_exame}}</span>
+        </div>
+        <span class="ex-status-badge" [class]="'status-' + ex.status.replace('_','-')">{{ex.status}}</span>
+      </div>
+      <p *ngIf="ex.questao_clinica" class="ex-questao">{{ex.questao_clinica}}</p>
+      <p *ngIf="ex.observacoes" class="ex-obs">Obs: {{ex.observacoes}}</p>
+      <div *ngIf="ex.resultado" class="ex-resultado">
+        <strong>Resultado:</strong> {{ex.resultado}}
+      </div>
+      <div class="ex-item-footer">
+        <span *ngIf="ex.profissional_nome" class="ex-prof">
+          Solicitado por: {{ex.profissional_nome}}
+        </span>
+        <span *ngIf="ex.prioridade !== 'normal'" class="ex-priority priority-urgente">
+          {{ex.prioridade}}
+        </span>
+        <span class="ex-date">{{ex.data_solicitacao | date:'dd/MM/yyyy HH:mm'}}</span>
+      </div>
+    </div>
+  </div>
+</div>

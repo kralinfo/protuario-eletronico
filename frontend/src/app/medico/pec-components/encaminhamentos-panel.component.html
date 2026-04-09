@@ -1,0 +1,83 @@
+<div class="enc-panel">
+  <div class="enc-header">
+    <h3 class="text-md font-semibold text-gray-700 flex items-center gap-2">
+      <mat-icon class="text-blue-600">transfer_within_a_station</mat-icon>
+      Encaminhamentos
+    </h3>
+    <button class="btn-add" (click)="mostrandoForm = !mostrandoForm" *ngIf="!mostrandoForm">
+      <mat-icon>add</mat-icon>
+      Novo
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  <div class="enc-form" *ngIf="mostrandoForm">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo / Especialidade *</label>
+        <input type="text" [(ngModel)]="novoEncaminhamento.tipo_encaminhamento"
+               placeholder="Ex: Cardiologia, Ortopedia, Neurologia" />
+      </div>
+      <div class="form-group">
+        <label>Estabelecimento Destino</label>
+        <input type="text" [(ngModel)]="novoEncaminhamento.estabelecimento_destino"
+               placeholder="Ex: UBS Centro, Hospital Municipal" />
+      </div>
+    </div>
+
+    <div class="form-group full">
+      <label>Motivo do Encaminhamento *</label>
+      <textarea [(ngModel)]="novoEncaminhamento.motivo_encaminhamento"
+                rows="2" placeholder="Justificativa clinica..."></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>CID Relacionado</label>
+        <input type="text" [(ngModel)]="novoEncaminhamento.cid_relacionado"
+               placeholder="Ex: I10" />
+      </div>
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select [(ngModel)]="novoEncaminhamento.prioridade">
+          <option value="normal">Normal</option>
+          <option value="urgente">Urgente</option>
+          <option value="emergencia">Emergencia</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Data Agendada</label>
+        <input type="date" [(ngModel)]="novoEncaminhamento.data_agendada" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-cancel" (click)="mostrandoForm = false">Cancelar</button>
+      <button class="btn-save" (click)="salvar()">Registrar Encaminhamento</button>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="enc-list">
+    <div *ngIf="carregando" class="loading">Carregando...</div>
+    <div *ngIf="!carregando && encaminhamentos.length === 0 && !mostrandoForm" class="empty">
+      Nenhum encaminhamento registrado.
+    </div>
+    <div *ngFor="let enc of encaminhamentos" class="enc-item" [class.status-pendente]="enc.status === 'pendente'">
+      <div class="enc-item-header">
+        <span class="enc-type">{{enc.tipo_encaminhamento}}</span>
+        <span class="enc-status-badge" [class]="'status-' + enc.status">{{enc.status}}</span>
+      </div>
+      <p class="enc-motive">{{enc.motivo_encaminhamento}}</p>
+      <div class="enc-item-footer">
+        <span *ngIf="enc.profissional_nome" class="enc-prof">
+          Prof: {{enc.profissional_nome}}
+        </span>
+        <span *ngIf="enc.prioridade !== 'normal'" class="enc-priority" [class]="'priority-' + enc.prioridade">
+          {{enc.prioridade}}
+        </span>
+        <span class="enc-date">{{enc.data_encaminhamento | date:'dd/MM/yyyy HH:mm'}}</span>
+      </div>
+    </div>
+  </div>
+</div>

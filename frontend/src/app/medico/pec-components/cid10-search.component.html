@@ -1,0 +1,57 @@
+<div class="cid10-overlay" (click)="fecharBusca()">
+  <div class="cid10-modal" (click)="$event.stopPropagation()">
+    <div class="cid10-header">
+      <h3 class="text-lg font-bold text-gray-800">Buscar CID-10</h3>
+      <button class="close-btn" (click)="fecharBusca()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="cid10-search">
+      <div class="search-input-wrapper">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input
+          id="cid10-input"
+          type="text"
+          class="search-input"
+          [(ngModel)]="termoBusca"
+          (input)="onBuscaChange()"
+          placeholder="Digite o codigo ou a descricao (ex: J06, gripe, diabetes)..."
+        />
+        <button *ngIf="termoBusca" class="clear-btn" (click)="termoBusca=''; onBuscaChange()">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="cid10-results">
+      <div *ngIf="carregando" class="loading">
+        <mat-spinner diameter="30"></mat-spinner>
+        <span>Buscando...</span>
+      </div>
+
+      <div *ngIf="!carregando && termoBusca.length < 2" class="hint">
+        <mat-icon class="hint-icon">info</mat-icon>
+        <span>Digite pelo menos 2 caracteres para buscar</span>
+      </div>
+
+      <div *ngIf="!carregando && termoBusca.length >= 2 && resultados.length === 0" class="no-results">
+        <mat-icon>search_off</mat-icon>
+        <span>Nenhum CID encontrado para "{{ termoBusca }}"</span>
+      </div>
+
+      <div *ngIf="!carregando && resultados.length > 0" class="results-list">
+        <p class="results-count">{{ resultados.length }} resultado(s)</p>
+        <button
+          *ngFor="let entry of resultados"
+          class="result-item"
+          (click)="selecionar(entry)"
+        >
+          <span class="result-code">{{ entry.code }}</span>
+          <span class="result-desc">{{ entry.description }}</span>
+          <span class="result-chapter">Cap. {{ entry.chapter }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
