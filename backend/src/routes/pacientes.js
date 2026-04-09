@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import PacientesController from '../controllers/pacientesController.js';
-import { 
-  validatePaciente, 
-  validatePacienteUpdate, 
+import TitularDadosController from '../controllers/titularDadosController.js';
+import {
+  validatePaciente,
+  validatePacienteUpdate,
   validateId,
-  sanitizeInput 
+  sanitizeInput
 } from '../middleware/validation.js';
 import { authenticateToken, optionalAuth } from '../middleware/auth.js';
 import { auditLog } from '../middleware/security.js';
@@ -189,6 +190,56 @@ router.patch('/:id',
 router.delete('/:id',
   validateId,
   PacientesController.destroy
+);
+
+/**
+ * =====================================================
+ * ROTAS LGPD - Direitos do titular de dados (Art. 17-22)
+ * =====================================================
+ */
+
+/**
+ * @route GET /api/pacientes/:id/exportar-dados
+ * @desc Exportar todos os dados do paciente (portabilidade)
+ * @access Private
+ */
+router.get('/:id/exportar-dados',
+  authenticateToken,
+  validateId,
+  TitularDadosController.exportarDados
+);
+
+/**
+ * @route POST /api/pacientes/:id/solicitar-exclusao
+ * @desc Solicitar exclusao de dados do paciente
+ * @access Private
+ */
+router.post('/:id/solicitar-exclusao',
+  authenticateToken,
+  validateId,
+  TitularDadosController.solicitarExclusao
+);
+
+/**
+ * @route DELETE /api/pacientes/:id/excluir
+ * @desc Executar exclusao definitiva dos dados (admin)
+ * @access Private - Admin only
+ */
+router.delete('/:id/excluir',
+  authenticateToken,
+  validateId,
+  TitularDadosController.executarExclusao
+);
+
+/**
+ * @route POST /api/pacientes/:id/anonimizar
+ * @desc Anonimizar dados do paciente (remove PII)
+ * @access Private - Admin only
+ */
+router.post('/:id/anonimizar',
+  authenticateToken,
+  validateId,
+  TitularDadosController.anonimizar
 );
 
 export default router;
