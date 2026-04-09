@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import consentimentoController from '../controllers/consentimentoController.js';
+import auditMiddleware from '../middleware/auditMiddleware.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
@@ -8,10 +9,16 @@ const router = Router();
 router.use(authMiddleware);
 
 // Registrar consentimento
-router.post('/', consentimentoController.registrar);
+router.post('/',
+  auditMiddleware('CREATE', 'consentimento'),
+  consentimentoController.registrar
+);
 
 // Revogar consentimento
-router.delete('/:id', consentimentoController.revogar);
+router.delete('/:id',
+  auditMiddleware('DELETE', 'consentimento'),
+  consentimentoController.revogar
+);
 
 // Buscar consentimentos do paciente
 router.get('/paciente/:pacienteId', consentimentoController.buscarPorPaciente);

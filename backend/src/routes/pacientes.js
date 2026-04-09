@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import PacientesController from '../controllers/pacientesController.js';
 import TitularDadosController from '../controllers/titularDadosController.js';
+import auditMiddleware from '../middleware/auditMiddleware.js';
 import {
   validatePaciente,
   validatePacienteUpdate,
@@ -157,6 +158,7 @@ router.get('/:id/atendimentos', validateId, async (req, res) => {
 router.post('/',
   sanitizeInput,
   validatePaciente,
+  auditMiddleware('CREATE', 'paciente'),
   PacientesController.store
 );
 
@@ -168,6 +170,7 @@ router.post('/',
 router.put('/:id',
   sanitizeInput,
   validatePacienteUpdate,
+  auditMiddleware('UPDATE', 'paciente'),
   PacientesController.update
 );
 
@@ -179,6 +182,7 @@ router.put('/:id',
 router.patch('/:id',
   sanitizeInput,
   validateId,
+  auditMiddleware('UPDATE', 'paciente'),
   PacientesController.update
 );
 
@@ -189,6 +193,7 @@ router.patch('/:id',
  */
 router.delete('/:id',
   validateId,
+  auditMiddleware('DELETE', 'paciente'),
   PacientesController.destroy
 );
 
