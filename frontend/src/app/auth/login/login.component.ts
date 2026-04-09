@@ -322,8 +322,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     if (this.showForgotPasswordForm) {
       // Pré-preencher o email se já foi digitado no login
-      const loginEmail = this.loginForm.get('email')?.value;
-      if (loginEmail && this.loginForm.get('email')?.valid) {
+      const loginEmail = this.loginForm.get('user_email')?.value;
+      if (loginEmail && this.loginForm.get('user_email')?.valid) {
         this.forgotPasswordForm.patchValue({ email: loginEmail });
       }
     }

@@ -1,145 +1,90 @@
-<main class="min-h-screen bg-gradient-to-br from-blue-50/50 to-indigo-100/50 p-4 sm:p-6">
+﻿<main class="min-h-screen bg-gradient-to-br from-blue-50/50 to-indigo-100/50 p-4 sm:p-6">
   <div class="max-w-[1400px] mx-auto">
-    <!-- Top action bar -->
     <div class="mb-6">
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6 w-full">
-        <div class="flex flex-row items-center w-full max-w-2xl mx-auto">
-          <div class="flex items-center bg-white rounded-lg shadow px-3 py-2 flex-grow min-w-0">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
-            <input
-              type="text"
-              class="border-none outline-none bg-transparent text-gray-700 w-full text-base sm:text-lg px-1"
-              placeholder="Pesquisar usuários..."
-              (input)="onSearchChange($any($event.target).value)"
-              style="min-width:180px; max-width:100%; font-size:1.05em;"
-            />
-          </div>
-          <button
-            *ngIf="podeCadastrar()"
-            type="button"
-            (click)="openCreateDialog()"
-            class="flex items-center gap-2 px-6 py-3 ml-2 rounded-lg bg-blue-700 text-white font-semibold shadow hover:bg-blue-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
-            style="height:44px; min-width:140px;"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-            Novo Usuário
-          </button>
+      <div class="flex flex-row items-center w-full max-w-2xl mx-auto gap-2">
+        <div class="flex items-center bg-white rounded-lg shadow px-3 py-2 flex-grow min-w-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
+          <input type="text" class="border-none outline-none bg-transparent text-gray-700 w-full text-base px-1" placeholder="Pesquisar usuarios..." (input)="onSearchChange($any($event.target).value)" />
         </div>
+        <button *ngIf="podeCadastrar()" type="button" (click)="openCreateDialog()" class="flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-700 text-white font-semibold shadow hover:bg-blue-800 transition whitespace-nowrap" style="height:44px;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          Novo Usuario
+        </button>
       </div>
     </div>
 
-    <section class="flex-1 flex flex-col h-full">
-      <article class="bg-white rounded-xl shadow-sm border border-gray-200/70 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col h-full">
-
+    <section>
+      <article class="bg-white rounded-xl shadow-sm border border-gray-200/70 overflow-hidden">
         <div class="p-4">
           <div *ngIf="loadingState().loading && !usuarios().length" class="flex items-center justify-center py-12">
-            <div class="text-center">
-              <svg class="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-              </svg>
-              <p class="text-gray-600 text-sm font-medium">Carregando usuários...</p>
-            </div>
+            <svg class="w-8 h-8 animate-spin text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
           </div>
 
           <div *ngIf="!loadingState().loading && filteredUsuarios().length === 0" class="flex flex-col items-center justify-center py-12 px-4">
-            <svg class="w-16 h-16 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7" />
-            </svg>
-            <h3 class="text-base font-medium text-gray-700 mb-1">Nenhum usuário encontrado</h3>
-            <p class="text-sm text-gray-500 text-center">Não há usuários cadastrados ou a pesquisa não retornou resultados.</p>
+            <h3 class="text-base font-medium text-gray-700 mb-1">Nenhum usuario encontrado</h3>
+            <p class="text-sm text-gray-500 text-center">Nao ha usuarios cadastrados ou a pesquisa nao retornou resultados.</p>
           </div>
 
           <div *ngIf="!loadingState().loading && paginatedUsuarios().length > 0" class="overflow-x-auto">
             <table class="min-w-[600px] w-full text-xs sm:text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
               <thead style="background: linear-gradient(90deg, #f5faff 0%, #e3f0ff 100%);">
                 <tr>
-                  <th class="px-2 py-2 font-semibold text-gray-700 min-w-[3.5rem] text-center">Ações</th>
-                  <th class="px-6 py-2 font-semibold text-gray-700 min-w-[12rem]">Usuário</th>
-                  <th class="px-4 py-2 font-semibold text-gray-700 min-w-[12rem]">E-mail</th>
-                  <th class="px-4 py-2 font-semibold text-gray-700 min-w-[3.5rem]">Nível</th>
-                  <th class="px-4 py-2 font-semibold text-gray-700">Módulos</th>
+                  <th class="px-2 py-2 font-semibold text-gray-700 text-center">Acoes</th>
+                  <th class="px-6 py-2 font-semibold text-gray-700">Usuario</th>
+                  <th class="px-4 py-2 font-semibold text-gray-700">E-mail</th>
+                  <th class="px-4 py-2 font-semibold text-gray-700">Nivel</th>
+                  <th class="px-4 py-2 font-semibold text-gray-700">Modulos</th>
                 </tr>
               </thead>
-
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr *ngFor="let usuario of paginatedUsuarios(); trackBy: trackByUserId" class="border-b hover:bg-gray-50">
                   <td class="px-2 py-2 text-center">
-                    <div class="action-menu-wrapper" style="position:relative;display:inline-block;">
-                      <button
-                        class="action-dots-btn"
-                        (click)="toggleMenu($event, usuario.id)"
-                        [disabled]="loadingState().loading || isVisualizador()"
-                        title="Ações"
-                        style="background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                          <circle cx="5" cy="12" r="1.5"/>
-                          <circle cx="12" cy="12" r="1.5"/>
-                          <circle cx="19" cy="12" r="1.5"/>
-                        </svg>
+                    <div style="position:relative;display:inline-block;">
+                      <button (click)="toggleMenu($event, usuario.id)" [disabled]="loadingState().loading || isVisualizador()" style="background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
                       </button>
-                      <div *ngIf="openMenuId === usuario.id"
-                           [style.top.px]="menuPos.top" [style.left.px]="menuPos.left"
-                           style="position:fixed;min-width:168px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.13);z-index:9999;overflow:hidden;">
-                        <button class="action-item" (click)="onEditUser(usuario); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#1e293b;font-size:.9rem;">
+                      <div *ngIf="openMenuId === usuario.id" [style.top.px]="menuPos.top" [style.left.px]="menuPos.left" style="position:fixed;min-width:168px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.13);z-index:9999;overflow:hidden;">
+                        <button (click)="onEditUser(usuario); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#1e293b;font-size:.9rem;">
                           <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h4l10.5-10.5a1.5 1.5 0 00-2.12-2.12L6 17.88V20z" /></svg>
                           <span>Editar</span>
                         </button>
                         <div style="height:1px;background:#f1f5f9;margin:2px 0;"></div>
-                        <button class="action-item" (click)="onDeleteUser(usuario); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#dc2626;font-size:.9rem;">
+                        <button (click)="onDeleteUser(usuario); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#dc2626;font-size:.9rem;">
                           <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h10" /></svg>
                           <span>Excluir</span>
                         </button>
                       </div>
                     </div>
                   </td>
-
                   <td class="px-6 py-2 font-medium text-gray-900">
                     <div class="text-sm font-medium">{{ usuario.nome }}</div>
                     <div class="text-xs text-gray-500" *ngIf="usuario.ultimoAcesso">Acesso: {{ formatDate(usuario.ultimoAcesso) }}</div>
                   </td>
-
                   <td class="px-4 py-2 text-gray-700">
                     <div class="text-sm text-gray-900">{{ usuario.email }}</div>
                     <div class="text-xs text-gray-500" *ngIf="usuario.criadoEm">Cadastrado em: {{ formatDate(usuario.criadoEm) }}</div>
                   </td>
-
                   <td class="px-4 py-2 text-gray-700">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                      [ngClass]="{
-                        'bg-green-100 text-green-800': usuario.nivel === 'admin',
-                        'bg-blue-100 text-blue-800': usuario.nivel === 'editor',
-                        'bg-gray-100 text-gray-800': usuario.nivel === 'visualizador'
-                      }">
-                      {{ getNivelLabel(usuario.nivel) }}
-                    </span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" [ngClass]="{'bg-green-100 text-green-800': usuario.nivel === 'admin', 'bg-blue-100 text-blue-800': usuario.nivel === 'editor', 'bg-gray-100 text-gray-800': usuario.nivel === 'visualizador'}">{{ getNivelLabel(usuario.nivel) }}</span>
                   </td>
-
                   <td class="px-4 py-2 text-gray-700">
                     <div class="flex flex-wrap gap-1 max-w-xs">
                       <span *ngFor="let modulo of usuario.modulos" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">{{ getModuloLabel(modulo) }}</span>
                     </div>
                   </td>
                 </tr>
-
-                <tr *ngFor="let _ of emptyRows()" class="bg-white">
-                  <td colspan="5" class="px-5 py-4">&nbsp;</td>
-                </tr>
+                <tr *ngFor="let _ of emptyRows()" class="bg-white"><td colspan="5" class="px-5 py-4">&nbsp;</td></tr>
               </tbody>
             </table>
 
-            <!-- Footer -->
             <div class="table-footer mt-3 flex items-center justify-between gap-4">
               <div class="table-footer-page-size">
-                <span>Itens por página:</span>
+                <span>Itens por pagina:</span>
                 <select (change)="onPageSizeChange($event)">
                   <option *ngFor="let size of tableConfig().pageSizeOptions" [value]="size" [selected]="size === tableConfig().pageSize">{{ size }}</option>
                 </select>
               </div>
-
               <div class="table-footer-count text-sm text-gray-600">Visualizando {{ paginatedUsuarios().length }} de {{ filteredUsuarios().length }} registros</div>
-
               <div class="table-footer-pagination">
                 <app-pagination [current]="tableConfig().currentPage + 1" [total]="tableConfig().totalPages" (change)="onPageChange($event)"></app-pagination>
               </div>
@@ -149,25 +94,92 @@
       </article>
     </section>
   </div>
-
-  <!-- Dialog template (hidden, opened via MatDialog) -->
-  <ng-template #usuarioDialog>
-    <article class="bg-white rounded-xl shadow-sm border border-gray-200/70 overflow-hidden max-w-3xl">
-      <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()" class="p-5 space-y-4">
-        <div>
-          <label for="nome" class="block text-sm font-medium text-gray-700">Nome</label>
-          <input id="nome" type="text" formControlName="nome" class="w-full mt-1 px-3 py-2 border rounded" />
-        </div>
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">E-mail</label>
-          <input id="email" type="email" formControlName="email" class="w-full mt-1 px-3 py-2 border rounded" />
-        </div>
-        <div class="flex justify-end gap-2">
-          <button type="button" (click)="dialogRef?.close()" class="px-4 py-2 bg-gray-100 rounded">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Salvar</button>
-        </div>
-      </form>
-    </article>
-  </ng-template>
-
 </main>
+
+<ng-template #usuarioDialog>
+  <div style="min-width:420px; max-width:580px; width:100%; overflow:hidden; border-radius:12px;">
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-700 p-5 flex items-center justify-between">
+      <h2 class="text-xl font-semibold text-white flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        {{ editandoUsuario() ? 'Editar Cadastro' : 'Novo Usuario' }}
+      </h2>
+      <button (click)="cancelarEdicao()" class="text-white/80 hover:text-white transition-colors p-1" title="Fechar">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </header>
+
+    <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()" class="p-5 space-y-4 bg-white">
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo <span class="text-red-500">*</span></label>
+        <input type="text" formControlName="nome" autocomplete="name" class="w-full px-4 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Dr. Joao da Silva" [class.border-red-400]="usuarioForm.get('nome')?.invalid && usuarioForm.get('nome')?.touched">
+      </div>
+
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-1">E-mail Institucional <span class="text-red-500">*</span></label>
+        <input type="email" formControlName="email" autocomplete="email" class="w-full px-4 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all" placeholder="usuario@alianca.saude.gov.br">
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" *ngIf="!editandoUsuario()">
+        <div class="form-group">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Senha <span class="text-red-500">*</span></label>
+          <input type="password" formControlName="senha" autocomplete="new-password" class="w-full px-4 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Minimo 6">
+        </div>
+        <div class="form-group">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar Senha <span class="text-red-500">*</span></label>
+          <input type="password" formControlName="repetirSenha" autocomplete="new-password" class="w-full px-4 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Repita">
+        </div>
+      </div>
+
+      <div class="bg-blue-50 rounded-lg p-3 border border-blue-100" *ngIf="editandoUsuario()">
+        <button type="button" (click)="recuperarSenha()" [disabled]="loadingState().loadingRecuperarSenha" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition text-sm flex items-center justify-center gap-2">
+          {{ loadingState().loadingRecuperarSenha ? 'Enviando...' : 'Enviar Link de Redefinicao' }}
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nivel de Acesso <span class="text-red-500">*</span></label>
+        <select formControlName="nivel" class="w-full px-4 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all bg-white text-gray-700">
+          <option *ngFor="let nivel of niveisAcesso" [value]="nivel.value">{{ nivel.label }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Modulos de Acesso <span class="text-red-500">*</span></label>
+        <div class="grid grid-cols-2 gap-2">
+          <label *ngFor="let modulo of modulosDisponiveis" class="flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer" [class.bg-blue-50]="usuarioForm.get('modulos')?.value?.includes(modulo.value)">
+            <input type="checkbox" [value]="modulo.value" (change)="onModuloCheckboxChange($event)" [checked]="usuarioForm.get('modulos')?.value?.includes(modulo.value)" class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded">
+            <span class="ml-2 text-xs font-medium text-gray-700">{{ modulo.label }}</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit" [disabled]="!podeSalvarUsuario" class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-70 flex items-center justify-center gap-2 text-sm">
+          {{ loadingState().loading ? 'Salvando...' : (editandoUsuario() ? 'Atualizar Usuario' : 'Cadastrar Usuario') }}
+        </button>
+        <button type="button" (click)="cancelarEdicao()" class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition text-sm">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-template>
+
+<div *ngIf="modalState().showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true"></div>
+    <div class="inline-block align-bottom bg-white rounded-xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+      <div class="bg-white px-6 py-5 rounded-t-xl text-center">
+        <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-4">
+          <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Excluir Usuario</h3>
+        <p class="text-sm text-gray-500">Tem certeza que deseja remover <strong>{{ selectedUser()?.nome }}</strong>? Esta acao nao pode ser desfeita.</p>
+      </div>
+      <div class="bg-gray-50 px-6 py-4 rounded-b-xl flex flex-col sm:flex-row-reverse gap-3">
+        <button (click)="confirmDelete()" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition shadow-sm">Sim, Excluir</button>
+        <button (click)="modalState().showDeleteModal = false" class="w-full sm:w-auto px-6 py-2.5 bg-white text-gray-700 text-sm font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>

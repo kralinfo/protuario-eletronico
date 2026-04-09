@@ -159,8 +159,10 @@ export class UsuariosComponent implements OnInit, OnDestroy {
   openCreateDialog(): void {
     this.resetForm();
     this.dialogRef = this.dialog.open(this.usuarioDialog, {
-      width: '900px',
-      maxHeight: '90vh'
+      width: '580px',
+      maxHeight: '90vh',
+      panelClass: 'usuario-dialog-panel',
+      autoFocus: false
     });
   }
 
@@ -321,10 +323,13 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     this.updateFormValidators(true);
 
     this.clearMessages();
-    // Abrir diálogo de edição
+
+    // Abrir dialog de edição
     this.dialogRef = this.dialog.open(this.usuarioDialog, {
-      width: '900px',
-      maxHeight: '90vh'
+      width: '580px',
+      maxHeight: '90vh',
+      panelClass: 'usuario-dialog-panel',
+      autoFocus: false
     });
   }
 
@@ -364,11 +369,7 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.editandoUsuario()) {
-      this.modalState.update(state => ({ ...state, showConfirmModal: true }));
-    } else {
-      this.saveUsuario();
-    }
+    this.saveUsuario();
   }
 
   confirmEdit(): void {
@@ -423,6 +424,7 @@ export class UsuariosComponent implements OnInit, OnDestroy {
         next: () => {
           this.showSuccessDialog('E-mail de recuperação enviado com sucesso!');
           this.setLoadingRecuperarSenha(false);
+          this.cancelarEdicao();
         },
         error: (err) => {
           this.handleError(err, 'Erro ao enviar e-mail de recuperação.');

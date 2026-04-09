@@ -11,7 +11,8 @@ export const MODULOS_DISPONIVEIS: { value: ModuloAcesso; label: string }[] = [
   { value: 'triagem', label: 'Triagem' },
   { value: 'medico', label: 'Médico' },
   { value: 'admin', label: 'Administração' },
-  { value: 'ambulatorio', label: 'Ambulatório' }
+  { value: 'ambulatorio', label: 'Ambulatório' },
+  { value: 'fila', label: 'Fila (TV)' }
 ];
 
 export const PAGINATION_CONFIG = {

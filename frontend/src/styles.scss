@@ -633,3 +633,21 @@ app-fila {
   50%  { transform: scale(1.02); box-shadow: 0 0 35px rgba(21,128,61,1);   }
   100% { transform: scale(1);    box-shadow: 0 0 10px rgba(21,128,61,0.5); }
 }
+
+// Dialog de usuario - remove padding/scrollbar do MatDialog
+.usuario-dialog-panel {
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+  .mdc-dialog__surface {
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+  }
+  .mat-mdc-dialog-surface {
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+  }
+}

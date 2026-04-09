@@ -22,7 +22,7 @@ export interface UsuarioFormData {
 
 export type NivelAcesso = 'admin' | 'editor' | 'visualizador';
 
-export type ModuloAcesso = 'recepcao' | 'triagem' | 'medico' | 'admin' | 'ambulatorio';
+export type ModuloAcesso = 'recepcao' | 'triagem' | 'medico' | 'admin' | 'ambulatorio' | 'fila';
 
 export interface UsuarioTableConfig {
   pageSize: number;
