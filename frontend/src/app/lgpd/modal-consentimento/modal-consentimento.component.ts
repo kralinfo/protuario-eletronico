@@ -1,10 +1,14 @@
 import { Component, OnInit, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { ConsentimentoService } from '../../services/consentimento.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-modal-consentimento',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatDialogModule, MatSnackBarModule],
   templateUrl: './modal-consentimento.component.html',
   styleUrls: ['./modal-consentimento.component.scss']
 })

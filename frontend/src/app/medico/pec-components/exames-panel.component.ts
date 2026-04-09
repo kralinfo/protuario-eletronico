@@ -10,6 +10,7 @@ interface ExameSolicitado {
   tipo_exame: string;
   nome_exame: string;
   observacoes: string;
+  questao_clinica: string;
   prioridade: string;
   status: string;
   resultado: string;

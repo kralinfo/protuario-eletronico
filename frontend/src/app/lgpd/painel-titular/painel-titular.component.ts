@@ -1,7 +1,10 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { ConsentimentoService } from '../../services/consentimento.service';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { ConsentimentoService } from '../../services/consentimento.service';
 import { ModalConsentimentoComponent } from '../modal-consentimento/modal-consentimento.component';
 
 interface Consentimento {
@@ -17,6 +20,8 @@ interface Consentimento {
 
 @Component({
   selector: 'app-painel-titular',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatIconModule, DatePipe],
   templateUrl: './painel-titular.component.html',
   styleUrls: ['./painel-titular.component.scss']
 })
@@ -65,11 +70,11 @@ export class PainelTitularComponent implements OnInit {
 
     this.exportando = true;
     try {
-      const res = await this.consentimentoService['http']
+      const res: any = await this.consentimentoService['http']
         .get(`/api/pacientes/${this.pacienteId}/exportar-dados`)
         .toPromise();
 
-      const dados = res.data;
+      const dados = res?.data || res;
       const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

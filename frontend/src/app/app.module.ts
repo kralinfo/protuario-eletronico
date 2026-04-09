@@ -1,10 +1,10 @@
-import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { PacientesComponent } from './pacientes/pacientes.component';
+import { PacientesFormComponent } from './pacientes/pacientes-form.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RelatoriosComponent } from './relatorios/relatorios.component';
 import { UsuariosComponent } from './usuarios/usuarios.component';
@@ -47,6 +47,10 @@ import { PaginationComponent } from './shared/components/pagination/pagination.c
 import { NotificationContainerComponent } from './shared/components/notification-container.component';
 import { RealtimeStatusComponent } from './shared/components/realtime-status.component';
 import { FilaComponent } from './fila/fila.component';
+import { RedefinirSenhaComponent } from './redefinir-senha/redefinir-senha.component';
+import { NovoAtendimentoComponent } from './atendimentos-dia/novo-atendimento.component';
+
+// LGPD - standalone components (imported, not declared)
 import { PoliticaPrivacidadeComponent } from './lgpd/politica-privacidade/politica-privacidade.component';
 import { ModalConsentimentoComponent } from './lgpd/modal-consentimento/modal-consentimento.component';
 import { PainelTitularComponent } from './lgpd/painel-titular/painel-titular.component';
@@ -63,9 +67,7 @@ import { PainelTitularComponent } from './lgpd/painel-titular/painel-titular.com
     BreadcrumbComponent,
     DashboardTriagemComponent,
     ClassificacaoDialogComponent,
-    PoliticaPrivacidadeComponent,
-    ModalConsentimentoComponent,
-    PainelTitularComponent,
+    FeedbackDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -73,6 +75,13 @@ import { PainelTitularComponent } from './lgpd/painel-titular/painel-titular.com
     BrowserAnimationsModule,
     RelatorioAtendimentosComponent,
     FilaTriagemComponent,
+    PaginationComponent,
+    NotificationContainerComponent,
+    RealtimeStatusComponent,
+    FilaComponent,
+    PoliticaPrivacidadeComponent,
+    ModalConsentimentoComponent,
+    PainelTitularComponent,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -94,16 +103,6 @@ import { PainelTitularComponent } from './lgpd/painel-titular/painel-titular.com
     MatCardModule,
     MatSlideToggleModule,
     MatTooltipModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule,
-    PaginationComponent,
-    NotificationContainerComponent,
-    RealtimeStatusComponent,
-    FilaComponent,
-
-    // Remover diretivas e componentes dos imports, manter apenas módulos
-    // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
   ],
   providers: [
     {
