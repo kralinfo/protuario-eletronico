@@ -12,28 +12,38 @@ export class AudioService {
   private desbloqueado = false;
 
   constructor() {
+    this.iniciarCtx();
+  }
+
+  private iniciarCtx() {
     try {
       this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Se já criou em estado running, o navegador já permite áudio (ex: TV, refresh após interação, etc)
+      if (this.ctx?.state === 'running') {
+        this.desbloqueado = true;
+      }
     } catch {}
   }
 
   /** Chama este método no primeiro clique/toque de qualquer componente raiz */
   desbloquear(): void {
-    if (this.desbloqueado) return;
+    if (this.pronto) return;
     if (!this.ctx) {
-      try {
-        this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      } catch {}
+      this.iniciarCtx();
     }
     if (this.ctx?.state === 'suspended') {
-      this.ctx.resume().then(() => { this.desbloqueado = true; }).catch(() => {});
-    } else {
+      this.ctx.resume().then(() => {
+        if (this.ctx?.state === 'running') {
+          this.desbloqueado = true;
+        }
+      }).catch(() => {});
+    } else if (this.ctx?.state === 'running') {
       this.desbloqueado = true;
     }
   }
 
   get pronto(): boolean {
-    return this.desbloqueado && !!this.ctx && this.ctx.state === 'running';
+    return (this.desbloqueado || this.ctx?.state === 'running') && !!this.ctx;
   }
 
   tocarAlerta(): void {
