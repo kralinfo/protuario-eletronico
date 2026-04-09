@@ -28,6 +28,9 @@ import FilaRealtimeModule from './realtime/modules/FilaRealtimeModule.js';
 
 // Rotas
 import consentimentoRouter from './routes/consentimentos.js';
+import encaminhamentoRouter from './routes/encaminhamentos.js';
+import examesSolicitadosRouter from './routes/exames-solicitados.js';
+import atestadosRouter from './routes/atestados.js';
 import apiRoutes from './routes/index.js';
 import atendimentosRouter from './routes/atendimentos.js';
 import triagemRouter from './routes/triagem.js';
@@ -113,6 +116,9 @@ class App {
     this.app.use('/api/dashboard', dashboardRouter);
     this.app.use('/api/fila', filaRouter);
     this.app.use('/api/consentimentos', consentimentoRouter);
+    this.app.use('/api/encaminhamentos', encaminhamentoRouter);
+    this.app.use('/api/exames-solicitados', examesSolicitadosRouter);
+    this.app.use('/api/atestados', atestadosRouter);
   }
 
   setupErrorHandling() {
