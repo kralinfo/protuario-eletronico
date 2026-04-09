@@ -49,19 +49,21 @@
       <div class="tv-history-title">Histórico Recente</div>
 
       <div class="tv-row tv-row--header">
+        <div>Data</div>
         <div>Hora</div>
         <div>Paciente</div>
         <div>Destino</div>
       </div>
 
       <div *ngFor="let h of historicoChamadas" class="tv-row">
-        <div>{{ h.timestamp | date:'dd/MM HH:mm' }}</div>
+        <div>{{ h.timestamp | date:'dd/MM' }}</div>
+        <div>{{ h.timestamp | date:'HH:mm' }}</div>
         <div>{{ h.patientName }}</div>
         <div class="tv-badge">{{ h.target === 'triagem' ? 'Triagem' : 'Consultório' }}</div>
       </div>
 
       <div *ngIf="historicoChamadas.length === 0" class="tv-row">
-        <div style="grid-column:span 3; text-align:center; opacity:0.5;">Nenhum chamado recente</div>
+        <div style="grid-column:span 4; text-align:center; opacity:0.5;">Nenhum chamado recente</div>
       </div>
     </div>
 
