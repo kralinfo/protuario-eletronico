@@ -5,6 +5,7 @@ import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/class
 import { MedicoService } from '../medico.service';
 import { RealtimeService, PatientArrivedEvent } from 'src/app/services/realtime.service';
 import { FilaService } from 'src/app/services/fila.service';
+import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -299,6 +300,33 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
 
   chamarPaciente(paciente: any): void {
     this.chamandoPaciente[paciente.id] = true;
+    this.filaService.getEstado().subscribe({
+      next: (res) => {
+        const chamadoAtual = res.data?.currentMedico;
+        if (chamadoAtual && chamadoAtual.patientId !== paciente.id) {
+          const ref = this.dialog.open(ConfirmDialogComponent, {
+            width: '420px',
+            data: {
+              title: 'Chamado em aberto',
+              message: `Existe um chamado aberto para ${chamadoAtual.patientName}. Deseja chamar ${paciente.paciente_nome} mesmo assim?`
+            }
+          });
+          ref.afterClosed().subscribe(confirmado => {
+            if (confirmado) {
+              this.executarChamadaMedico(paciente);
+            } else {
+              this.chamandoPaciente[paciente.id] = false;
+            }
+          });
+        } else {
+          this.executarChamadaMedico(paciente);
+        }
+      },
+      error: () => this.executarChamadaMedico(paciente)
+    });
+  }
+
+  private executarChamadaMedico(paciente: any): void {
     this.filaService.chamarPaciente(paciente.id, 'medico').subscribe({
       next: () => {
         this.snackBar.open(`${paciente.paciente_nome} chamado(a) para o consultório`, 'Fechar', { duration: 3000 });

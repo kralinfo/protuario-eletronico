@@ -10,8 +10,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment';
 
-const MIN_DISPLAY_MS = 30000; // 30 segundos mínimos antes de aceitar substituição
-
 interface ChamadaAtiva {
   patientId: number;
   patientName: string;
@@ -35,10 +33,6 @@ export class FilaComponent implements OnInit, OnDestroy {
   // Chamadas ativas independentes por destino
   currentTriagem: ChamadaAtiva | null = null;
   currentMedico: ChamadaAtiva | null = null;
-
-  // Filas separadas por destino
-  queueTriagem: ChamadaAtiva[] = [];
-  queueMedico: ChamadaAtiva[] = [];
 
   historicoChamadas: ChamadaAtiva[] = [];
 
@@ -85,9 +79,9 @@ export class FilaComponent implements OnInit, OnDestroy {
 
     // Histórico é gerenciado exclusivamente pelo backend via fila:update_historico
     if (chamada.target === 'triagem') {
-      this.agendarExibicao(chamada, 'triagem');
+      this.exibir(chamada, 'triagem');
     } else {
-      this.agendarExibicao(chamada, 'medico');
+      this.exibir(chamada, 'medico');
     }
   }
 
@@ -123,40 +117,6 @@ export class FilaComponent implements OnInit, OnDestroy {
     });
   }
 
-  private agendarExibicao(chamada: ChamadaAtiva, tipo: 'triagem' | 'medico'): void {
-    const current = tipo === 'triagem' ? this.currentTriagem : this.currentMedico;
-    const queue = tipo === 'triagem' ? this.queueTriagem : this.queueMedico;
-
-    // Evitar duplicidade no display — mas tocar o som mesmo assim (segunda chamada)
-    if (current?.patientId === chamada.patientId) {
-      this.reproduzirAlerta();
-      return;
-    }
-    if (queue.some(c => c.patientId === chamada.patientId)) {
-      this.reproduzirAlerta();
-      return;
-    }
-
-    if (!current) {
-      this.exibir(chamada, tipo);
-      return;
-    }
-
-    const tempoDecorrido = Date.now() - current.displayedAt.getTime();
-    const tempoRestante = Math.max(0, MIN_DISPLAY_MS - tempoDecorrido);
-
-    if (tempoRestante === 0) {
-      this.exibir(chamada, tipo);
-    } else {
-      queue.push(chamada);
-      setTimeout(() => {
-        const idx = queue.indexOf(chamada);
-        if (idx !== -1) queue.splice(idx, 1);
-        this.exibir(chamada, tipo);
-      }, tempoRestante);
-    }
-  }
-
   private exibir(chamada: ChamadaAtiva, tipo: 'triagem' | 'medico'): void {
     chamada.displayedAt = new Date();
     if (tipo === 'triagem') {
@@ -183,10 +143,8 @@ export class FilaComponent implements OnInit, OnDestroy {
   limparCard(data: any): void {
     if (data.target === 'triagem') {
       this.currentTriagem = null;
-      this.queueTriagem = [];
     } else if (data.target === 'medico') {
       this.currentMedico = null;
-      this.queueMedico = [];
     }
   }
 

@@ -5,6 +5,7 @@ import { MedicoService } from 'src/app/medico/medico.service';
 import { TriagemService } from 'src/app/services/triagem.service';
 import { RealtimeService } from 'src/app/services/realtime.service';
 import { FilaService } from 'src/app/services/fila.service';
+import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -43,6 +44,33 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
   chamarPaciente(p: any, evento: Event): void {
     evento.stopPropagation();
     this.chamandoPaciente[p.id] = true;
+    this.filaService.getEstado().subscribe({
+      next: (res) => {
+        const chamadoAtual = res.data?.currentMedico;
+        if (chamadoAtual && chamadoAtual.patientId !== p.id) {
+          const ref = this.dialog.open(ConfirmDialogComponent, {
+            width: '420px',
+            data: {
+              title: 'Chamado em aberto',
+              message: `Existe um chamado aberto para ${chamadoAtual.patientName}. Deseja chamar ${p.paciente_nome} mesmo assim?`
+            }
+          });
+          ref.afterClosed().subscribe(confirmado => {
+            if (confirmado) {
+              this.executarChamadaMedicoDash(p);
+            } else {
+              this.chamandoPaciente[p.id] = false;
+            }
+          });
+        } else {
+          this.executarChamadaMedicoDash(p);
+        }
+      },
+      error: () => this.executarChamadaMedicoDash(p)
+    });
+  }
+
+  private executarChamadaMedicoDash(p: any): void {
     this.filaService.chamarPaciente(p.id, 'medico').subscribe({
       next: () => this.snackBar.open(`${p.paciente_nome} chamado(a) para sala médica`, 'Fechar', { duration: 3000 }),
       error: () => this.snackBar.open('Erro ao chamar paciente', 'Fechar', { duration: 4000 }),

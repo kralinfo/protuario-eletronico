@@ -14,4 +14,8 @@ export class FilaService {
   chamarPaciente(patientId: number, destino: 'triagem' | 'medico'): Observable<any> {
     return this.http.post(`${this.baseUrl}/chamar`, { patientId, destino });
   }
+
+  getEstado(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/estado`);
+  }
 }

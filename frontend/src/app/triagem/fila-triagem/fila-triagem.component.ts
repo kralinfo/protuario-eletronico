@@ -17,6 +17,7 @@ import { TriagemEventService } from 'src/app/services/triagem-event.service';
 import { TriagemService } from 'src/app/services/triagem.service';
 import { RealtimeService } from 'src/app/services/realtime.service';
 import { FilaService } from 'src/app/services/fila.service';
+import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
 
 interface PacienteTriagem {
   id: number;
@@ -213,6 +214,33 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   chamarPaciente(paciente: PacienteTriagem): void {
     this.chamandoPaciente[paciente.id] = true;
+    this.filaService.getEstado().subscribe({
+      next: (res) => {
+        const chamadoAtual = res.data?.currentTriagem;
+        if (chamadoAtual && chamadoAtual.patientId !== paciente.id) {
+          const ref = this.dialog.open(ConfirmDialogComponent, {
+            width: '420px',
+            data: {
+              title: 'Chamado em aberto',
+              message: `Existe um chamado aberto para ${chamadoAtual.patientName}. Deseja chamar ${paciente.paciente_nome} mesmo assim?`
+            }
+          });
+          ref.afterClosed().subscribe(confirmado => {
+            if (confirmado) {
+              this.executarChamadaTriagem(paciente);
+            } else {
+              this.chamandoPaciente[paciente.id] = false;
+            }
+          });
+        } else {
+          this.executarChamadaTriagem(paciente);
+        }
+      },
+      error: () => this.executarChamadaTriagem(paciente)
+    });
+  }
+
+  private executarChamadaTriagem(paciente: PacienteTriagem): void {
     this.filaService.chamarPaciente(paciente.id, 'triagem').subscribe({
       next: () => {
         this.snackBar.open(`${paciente.paciente_nome} chamado(a) para triagem`, 'Fechar', { duration: 3000 });

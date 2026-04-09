@@ -8,6 +8,7 @@ import { Subject, interval, takeUntil } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { FilaService } from '../../services/fila.service';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 interface EstatisticasTriagem {
   pacientes_aguardando: number;
@@ -109,6 +110,33 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   chamarPaciente(p: any, evento: Event): void {
     evento.stopPropagation();
     this.chamandoPaciente[p.id] = true;
+    this.filaService.getEstado().subscribe({
+      next: (res) => {
+        const chamadoAtual = res.data?.currentTriagem;
+        if (chamadoAtual && chamadoAtual.patientId !== p.id) {
+          const ref = this.dialog.open(ConfirmDialogComponent, {
+            width: '420px',
+            data: {
+              title: 'Chamado em aberto',
+              message: `Existe um chamado aberto para ${chamadoAtual.patientName}. Deseja chamar ${p.paciente_nome} mesmo assim?`
+            }
+          });
+          ref.afterClosed().subscribe(confirmado => {
+            if (confirmado) {
+              this.executarChamadaTriagemDash(p);
+            } else {
+              this.chamandoPaciente[p.id] = false;
+            }
+          });
+        } else {
+          this.executarChamadaTriagemDash(p);
+        }
+      },
+      error: () => this.executarChamadaTriagemDash(p)
+    });
+  }
+
+  private executarChamadaTriagemDash(p: any): void {
     this.filaService.chamarPaciente(p.id, 'triagem').subscribe({
       next: () => this.snackBar.open(`${p.paciente_nome} chamado(a) para triagem`, 'Fechar', { duration: 3000 }),
       error: () => this.snackBar.open('Erro ao chamar paciente', 'Fechar', { duration: 4000 }),
