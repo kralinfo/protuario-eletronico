@@ -34,6 +34,52 @@
     </div>
   </div>
 
+  <!-- ==================== PRESCRIÇÃO MÉDICA (somente leitura) ==================== -->
+  <div class="mb-4 border-2 border-blue-400 rounded-lg overflow-hidden"
+       *ngIf="prescricaoMedica.hipoteseDiagnostica || prescricaoMedica.condutaPrescricao || prescricaoMedica.medicamentosPrescritos || prescricaoMedica.medicamentosAmbulatorio">
+    <div class="bg-blue-600 text-white px-4 py-2 flex items-center gap-2">
+      <mat-icon>assignment</mat-icon>
+      <h3 class="text-md font-bold">Prescrição Médica</h3>
+      <span *ngIf="prescricaoMedica.nomeMedico" class="ml-auto text-sm opacity-90">
+        Dr(a). {{prescricaoMedica.nomeMedico}}
+      </span>
+    </div>
+    <div class="bg-blue-50 p-3 space-y-3 text-sm">
+      <div *ngIf="prescricaoMedica.motivoConsulta">
+        <strong class="text-blue-700 text-xs uppercase">Motivo da Consulta:</strong>
+        <p class="whitespace-pre-wrap mt-1">{{prescricaoMedica.motivoConsulta}}</p>
+      </div>
+      <div *ngIf="prescricaoMedica.hipoteseDiagnostica">
+        <strong class="text-blue-700 text-xs uppercase">
+          Hipótese Diagnóstica
+          <span *ngIf="prescricaoMedica.cidPrincipal" class="ml-1 px-1 py-0.5 bg-blue-200 text-blue-800 rounded text-[10px]">CID: {{prescricaoMedica.cidPrincipal}}</span>
+        </strong>
+        <p class="whitespace-pre-wrap mt-1">{{prescricaoMedica.hipoteseDiagnostica}}</p>
+      </div>
+      <div *ngIf="prescricaoMedica.condutaPrescricao">
+        <strong class="text-blue-700 text-xs uppercase">Conduta / Prescrição:</strong>
+        <p class="whitespace-pre-wrap mt-1">{{prescricaoMedica.condutaPrescricao}}</p>
+      </div>
+      <div *ngIf="prescricaoMedica.medicamentosPrescritos" class="bg-white p-2 rounded border border-red-200">
+        <strong class="text-red-600 text-xs uppercase">Medicamentos Prescritos:</strong>
+        <p class="whitespace-pre-wrap mt-1">{{prescricaoMedica.medicamentosPrescritos}}</p>
+      </div>
+      <div *ngIf="prescricaoMedica.medicamentosAmbulatorio" class="bg-yellow-50 p-2 rounded border border-yellow-300">
+        <strong class="text-yellow-800 text-xs uppercase">Medicamentos para Aplicar no Ambulatório:</strong>
+        <p class="whitespace-pre-wrap mt-1 font-medium">{{prescricaoMedica.medicamentosAmbulatorio}}</p>
+      </div>
+      <div *ngIf="prescricaoMedica.orientacoesPaciente">
+        <strong class="text-blue-700 text-xs uppercase">Orientações ao Paciente:</strong>
+        <p class="whitespace-pre-wrap mt-1">{{prescricaoMedica.orientacoesPaciente}}</p>
+      </div>
+      <div *ngIf="prescricaoMedica.atestadoEmitido" class="bg-green-50 p-2 rounded border border-green-300">
+        <strong class="text-green-800 text-xs uppercase">Atestado Médico Emitido</strong>
+        <p *ngIf="prescricaoMedica.atestadoCid" class="mt-1">CID: {{prescricaoMedica.atestadoCid}}</p>
+        <p *ngIf="prescricaoMedica.atestadoDias">Dias: {{prescricaoMedica.atestadoDias}}</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Content -->
   <mat-accordion>
     <!-- Dados da Triagem -->

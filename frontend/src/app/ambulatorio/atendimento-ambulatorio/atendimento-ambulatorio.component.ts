@@ -84,6 +84,24 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
   nomePaciente: string = '';
   modoEdicao: boolean = true; // Padrão em edição
 
+  /** Dados da prescrição médica (somente leitura para o ambulatório) */
+  prescricaoMedica = {
+    hipoteseDiagnostica: '',
+    cidPrincipal: '',
+    motivoConsulta: '',
+    condutaPrescricao: '',
+    medicamentosPrescritos: '',
+    medicamentosAmbulatorio: '',
+    orientacoesPaciente: '',
+    examesSolicitados: '',
+    procedimentosRealizados: '',
+    atestadoEmitido: false,
+    atestadoCid: '',
+    atestadoDias: '',
+    atestadoDetalhes: '',
+    nomeMedico: ''
+  };
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -129,6 +147,24 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
           frequencia_cardiaca: triagemData.frequencia_cardiaca || '',
           classificacao_risco: triagemData.classificacao_risco || ''
         };
+        // Preencher dados da prescrição médica (somente leitura)
+        this.prescricaoMedica = {
+          hipoteseDiagnostica: consultaData.hipotese_diagnostica || consultaData.diagnostico_principal || '',
+          cidPrincipal: consultaData.cid_principal || '',
+          motivoConsulta: consultaData.motivo_consulta || '',
+          condutaPrescricao: consultaData.conduta_prescricao || '',
+          medicamentosPrescritos: consultaData.medicamentos_prescritos || '',
+          medicamentosAmbulatorio: consultaData.medicamentos_ambulatorio || '',
+          orientacoesPaciente: consultaData.orientacoes_paciente || '',
+          examesSolicitados: consultaData.exames_solicitados || '',
+          procedimentosRealizados: consultaData.procedimentos_realizados || '',
+          atestadoEmitido: consultaData.atestado_emitido === true || consultaData.atestado_emitido === 'true',
+          atestadoCid: consultaData.atestado_cid || '',
+          atestadoDias: consultaData.atestado_dias || '',
+          atestadoDetalhes: consultaData.atestado_detalhes || '',
+          nomeMedico: consultaData.medico_nome || ''
+        };
+
         this.atendimentoForm.patchValue({
           // Triagem
           queixa_principal: triagemData.queixa_principal || '',
@@ -141,7 +177,6 @@ export class AtendimentoAmbulatorioComponent implements OnInit {
           plano_terapeutico: consultaData.conduta_prescricao || consultaData.plano_terapeutico || '',
           medicamentos_prescritos: consultaData.medicamentos_prescritos || '',
           medicamentos_ambulatorio: consultaData.medicamentos_ambulatorio || '',
-          hipotese_diagnostica: consultaData.hipotese_diagnostica || '',
           necessita_observacao: consultaData.necessita_observacao || false,
           tempo_observacao_horas: consultaData.tempo_observacao_horas || '',
           motivo_observacao: consultaData.motivo_observacao || '',

@@ -34,6 +34,94 @@
     </div>
   </div>
 
+  <!-- ==================== PRESCRIÇÃO MÉDICA (somente leitura) ==================== -->
+  <div class="mb-6 border-2 border-blue-400 rounded-lg overflow-hidden"
+       *ngIf="prescricaoMedica.hipoteseDiagnostica || prescricaoMedica.condutaPrescricao || prescricaoMedica.medicamentosPrescritos || prescricaoMedica.medicamentosAmbulatorio">
+
+    <!-- Cabeçalho da prescrição -->
+    <div class="bg-blue-600 text-white px-4 py-3 flex items-center gap-2">
+      <mat-icon>assignment</mat-icon>
+      <h2 class="text-lg font-bold">Prescrição Médica</h2>
+      <span *ngIf="prescricaoMedica.nomeMedico" class="ml-auto text-sm opacity-90">
+        Dr(a). {{prescricaoMedica.nomeMedico}}
+      </span>
+    </div>
+
+    <div class="bg-blue-50 p-4 space-y-4">
+      <!-- Motivo da Consulta -->
+      <div *ngIf="prescricaoMedica.motivoConsulta">
+        <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Motivo da Consulta</h4>
+        <p class="text-sm text-gray-800 whitespace-pre-wrap bg-white p-2 rounded border border-blue-200">{{prescricaoMedica.motivoConsulta}}</p>
+      </div>
+
+      <!-- Hipótese Diagnóstica -->
+      <div *ngIf="prescricaoMedica.hipoteseDiagnostica">
+        <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">
+          Hipótese Diagnóstica
+          <span *ngIf="prescricaoMedica.cidPrincipal" class="ml-2 px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-[10px] font-bold">
+            CID: {{prescricaoMedica.cidPrincipal}}
+          </span>
+        </h4>
+        <p class="text-sm text-gray-800 whitespace-pre-wrap bg-white p-2 rounded border border-blue-200">{{prescricaoMedica.hipoteseDiagnostica}}</p>
+      </div>
+
+      <!-- Conduta / Prescrição -->
+      <div *ngIf="prescricaoMedica.condutaPrescricao">
+        <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Conduta / Prescrição</h4>
+        <p class="text-sm text-gray-800 whitespace-pre-wrap bg-white p-2 rounded border border-blue-200">{{prescricaoMedica.condutaPrescricao}}</p>
+      </div>
+
+      <!-- Medicamentos Prescritos -->
+      <div *ngIf="prescricaoMedica.medicamentosPrescritos">
+        <h4 class="text-xs font-bold text-red-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+          <mat-icon class="text-red-500" style="font-size:14px;width:14px;height:14px">medication</mat-icon>
+          Medicamentos Prescritos
+        </h4>
+        <p class="text-sm text-gray-800 whitespace-pre-wrap bg-white p-2 rounded border border-red-200">{{prescricaoMedica.medicamentosPrescritos}}</p>
+      </div>
+
+      <!-- Medicamentos para Ambulatório -->
+      <div *ngIf="prescricaoMedica.medicamentosAmbulatorio" class="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+        <h4 class="text-xs font-bold text-yellow-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+          <mat-icon class="text-yellow-600" style="font-size:14px;width:14px;height:14px">local_pharmacy</mat-icon>
+          Medicamentos para Aplicar no Ambulatório
+        </h4>
+        <p class="text-sm text-gray-900 font-medium whitespace-pre-wrap">{{prescricaoMedica.medicamentosAmbulatorio}}</p>
+      </div>
+
+      <!-- Exames Solicitados -->
+      <div *ngIf="prescricaoMedica.examesSolicitados">
+        <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Exames Solicitados</h4>
+        <p class="text-sm text-gray-800 whitespace-pre-wrap bg-white p-2 rounded border border-blue-200">{{prescricaoMedica.examesSolicitados}}</p>
+      </div>
+
+      <!-- Procedimentos Solicitados -->
+      <div *ngIf="prescricaoMedica.procedimentosRealizados">
+        <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Procedimentos</h4>
+        <p class="text-sm text-gray-800 whitespace-pre-wrap bg-white p-2 rounded border border-blue-200">{{prescricaoMedica.procedimentosRealizados}}</p>
+      </div>
+
+      <!-- Orientações ao Paciente -->
+      <div *ngIf="prescricaoMedica.orientacoesPaciente">
+        <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Orientações ao Paciente</h4>
+        <p class="text-sm text-gray-800 whitespace-pre-wrap bg-white p-2 rounded border border-blue-200">{{prescricaoMedica.orientacoesPaciente}}</p>
+      </div>
+
+      <!-- Atestado Médico -->
+      <div *ngIf="prescricaoMedica.atestadoEmitido" class="bg-green-50 border border-green-300 rounded-lg p-3">
+        <h4 class="text-xs font-bold text-green-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+          <mat-icon class="text-green-600" style="font-size:14px;width:14px;height:14px">description</mat-icon>
+          Atestado Médico Emitido
+        </h4>
+        <div class="text-sm text-gray-800 space-y-1">
+          <p *ngIf="prescricaoMedica.atestadoCid"><strong>CID:</strong> {{prescricaoMedica.atestadoCid}}</p>
+          <p *ngIf="prescricaoMedica.atestadoDias"><strong>Dias de afastamento:</strong> {{prescricaoMedica.atestadoDias}}</p>
+          <p *ngIf="prescricaoMedica.atestadoDetalhes"><strong>Detalhes:</strong> {{prescricaoMedica.atestadoDetalhes}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <form [formGroup]="atendimentoForm" (ngSubmit)="salvar()">
     <mat-accordion>
 

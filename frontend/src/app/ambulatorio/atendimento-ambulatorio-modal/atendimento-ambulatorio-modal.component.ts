@@ -37,6 +37,9 @@ export class AtendimentoAmbulatorioModalComponent implements OnInit {
   examesProcedimentos: any = {};
   informacoesComplementares: string = '';
 
+  /** Dados da prescrição médica (somente leitura) */
+  prescricaoMedica: any = {};
+
   constructor(
     public dialogRef: MatDialogRef<AtendimentoAmbulatorioModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -104,6 +107,25 @@ export class AtendimentoAmbulatorioModalComponent implements OnInit {
       this.ambulatorioService.getAtendimento(this.atendimento.id).subscribe({
         next: (dados: any) => {
           console.log('📦 Dados adicionais do backend:', dados);
+          const consultaData = dados.consulta || dados || {};
+
+          // Preencher dados da prescrição médica
+          this.prescricaoMedica = {
+            hipoteseDiagnostica: consultaData.hipotese_diagnostica || consultaData.diagnostico_principal || '',
+            cidPrincipal: consultaData.cid_principal || '',
+            motivoConsulta: consultaData.motivo_consulta || '',
+            condutaPrescricao: consultaData.conduta_prescricao || '',
+            medicamentosPrescritos: consultaData.medicamentos_prescritos || '',
+            medicamentosAmbulatorio: consultaData.medicamentos_ambulatorio || '',
+            orientacoesPaciente: consultaData.orientacoes_paciente || '',
+            examesSolicitados: consultaData.exames_solicitados || '',
+            procedimentosRealizados: consultaData.procedimentos_realizados || '',
+            atestadoEmitido: consultaData.atestado_emitido === true || consultaData.atestado_emitido === 'true',
+            atestadoCid: consultaData.atestado_cid || '',
+            atestadoDias: consultaData.atestado_dias || '',
+            atestadoDetalhes: consultaData.atestado_detalhes || '',
+            nomeMedico: consultaData.medico_nome || ''
+          };
 
           // Atualizar apenas se não temos dados ou se os dados do backend são mais completos
           if (!this.observacaoMedica && dados.observacao_medica) {
