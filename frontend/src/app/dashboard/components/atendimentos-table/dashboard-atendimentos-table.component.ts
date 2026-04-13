@@ -109,6 +109,22 @@ export class DashboardAtendimentosTableComponent implements OnChanges, AfterView
     this.router.navigate(['/atendimento', row.id]);
   }
 
+  abrirConsulta(row: AtendimentoDashboard): void {
+    // Salva os filtros atuais no sessionStorage para persistir no retorno
+    sessionStorage.setItem('dashboard_filtro_retorno', JSON.stringify(this.filtro));
+    sessionStorage.setItem('dashboard_periodo_retorno', this.filtro.periodo || 'dia');
+
+    // Navega para o atendimento em modo SOMENTE LEITURA (sem possibilidade de edição)
+    this.router.navigate(['/medico/atendimento', row.id], {
+      state: {
+        origemCard: 'dashboard',
+        modoVisualizacao: true,
+        consultaRealizada: true,
+        podeEditarPorStatus: false
+      }
+    });
+  }
+
   formatarStatus(status: string): string {
     const mapa: Record<string, string> = {
       'recepcao':                         'Recepção',

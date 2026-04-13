@@ -101,6 +101,7 @@ export interface AtendimentoDashboard {
   dataHoraAtendimento: string;
   dataHoraFim: string;
   medicoNome: string | null;
+  consultaMedicaId: number | null;
 }
 
 /** Resposta paginada de atendimentos */

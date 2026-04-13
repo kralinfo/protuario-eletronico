@@ -114,7 +114,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this._carregarStream();
 
-    // Ao voltar para /dashboard vindo de outra rota, reseta o filtro para "Hoje"
+    // Ao voltar para /dashboard vindo de outra rota, verifica se há filtros salvos
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       startWith(null),
@@ -124,8 +124,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
       // Se prev for null, é o primeiro carregamento da aplicação ou um RELOAD.
       // Se prev NÃO for null, o usuário navegou de outra rota para cá.
       if (prev !== null) {
-        // O usuário navegou de outra rota — reseta para "Hoje" e limpa cache
-        this._resetarParaHoje();
+        // Verifica se há filtros salvos de retorno (ex: veio do atendimento médico)
+        const filtroRetorno = sessionStorage.getItem('dashboard_filtro_retorno');
+        const periodoRetorno = sessionStorage.getItem('dashboard_periodo_retorno');
+
+        if (filtroRetorno && periodoRetorno) {
+          // Restaura os filtros salvos
+          this.filtro = JSON.parse(filtroRetorno);
+          this.periodoSelecionado = periodoRetorno as PeriodoDashboard | 'personalizado';
+
+          // Restaura datas se for personalizado
+          if (this.filtro.dataInicio) this.dataInicio = this.filtro.dataInicio;
+          if (this.filtro.dataFim) this.dataFim = this.filtro.dataFim;
+
+          // Limpa os filtros de retorno para não interferir em futuras navegações
+          sessionStorage.removeItem('dashboard_filtro_retorno');
+          sessionStorage.removeItem('dashboard_periodo_retorno');
+
+          // Sincroniza o service com o filtro recuperado
+          this.dashboardService.refreshDashboard(this.filtro);
+        } else {
+          // O usuário navegou de outra rota sem filtros salvos — reseta para "Hoje"
+          this._resetarParaHoje();
+        }
       }
     });
   }

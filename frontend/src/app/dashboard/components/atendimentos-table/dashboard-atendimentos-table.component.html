@@ -50,10 +50,15 @@
         <th mat-header-cell *matHeaderCellDef mat-sort-header
             class="!text-xs !font-semibold !text-gray-500 !px-4 !py-3">Paciente</th>
         <td mat-cell *matCellDef="let row" class="!px-4 !py-3">
-          <a (click)="abrirFicha(row)"
-             class="text-blue-600 font-medium hover:underline cursor-pointer">
-            {{ row.pacienteNome }}
-          </a>
+          <ng-container *ngIf="row.consultaMedicaId; else plainText">
+            <a (click)="abrirConsulta(row)"
+               class="text-blue-600 font-medium hover:underline cursor-pointer">
+              {{ row.pacienteNome }}
+            </a>
+          </ng-container>
+          <ng-template #plainText>
+            <span class="text-gray-700">{{ row.pacienteNome }}</span>
+          </ng-template>
         </td>
       </ng-container>
 

@@ -733,7 +733,8 @@ class DashboardService {
            a.classificacao_risco AS "classificacaoRisco",
            a.data_hora_atendimento AS "dataHoraAtendimento",
            a.updated_at   AS "dataHoraFim",
-           COALESCE(um.nome, u.nome) AS "medicoNome"
+           COALESCE(um.nome, u.nome) AS "medicoNome",
+           cm.id          AS "consultaMedicaId"
          FROM atendimentos a
          JOIN pacientes p ON a.paciente_id = p.id
          LEFT JOIN usuarios u ON a.usuario_id = u.id
