@@ -216,6 +216,39 @@ body.dark-mode .mat-tooltip {
   /* width controlled via [style.width] binding */
 }
 
+/* Garantir que ícones fiquem perfeitamente centralizados no modo compacto */
+.app-sidenav.compact .sidenav-item {
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 10px 0 !important;
+  min-height: 52px;
+  width: 100% !important;
+  box-sizing: border-box;
+  gap: 0 !important; /* Remover gap no modo compacto */
+}
+
+.app-sidenav.compact .sidenav-item .mat-icon {
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0;
+}
+
+/* Wrapper do item no modo compacto */
+.app-sidenav.compact .sidenav-item-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 2px 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.app-sidenav.compact .sidenav-item-wrapper .sidenav-item {
+  width: 100% !important;
+}
+
 /* sidenav-inner: row layout — menu col + toggle strip */
 .app-sidenav .sidenav-inner {
   display: flex;
@@ -317,6 +350,180 @@ body.dark-mode .mat-tooltip {
 .sidenav-item.active mat-icon { color: #fff !important; }
 .sidenav-item.active {
   box-shadow: 0 6px 18px rgba(96,165,250,0.08);
+}
+
+/* Estilos para submenus no sidebar */
+.sidenav-item-wrapper {
+  position: relative;
+}
+
+.sidenav-item-expandable {
+  position: relative;
+  cursor: pointer;
+}
+
+.sidenav-expand-icon {
+  margin-left: auto;
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  transition: transform 0.2s ease;
+  color: #6b7280 !important;
+  flex-shrink: 0;
+}
+
+.sidenav-expand-icon.rotated {
+  transform: rotate(180deg);
+}
+
+/* Popup de submenu no modo compacto */
+.sidenav-submenu-popup {
+  display: none;
+  position: fixed;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  min-width: 220px;
+  z-index: 9999;
+}
+
+.sidenav-submenu-popup.show {
+  display: block;
+  animation: fadeIn 0.15s ease;
+}
+
+/* Área invisível de conexão - preenche o espaço entre o ícone e o popup */
+.sidenav-submenu-popup::before {
+  content: '';
+  position: absolute;
+  left: -35px; /* Estende mais para a esquerda para cobrir o gap */
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  background: transparent;
+  pointer-events: auto;
+}
+
+/* Área invisível à esquerda do popup para criar ponte contínua */
+.sidenav-submenu-popup::after {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  width: 35px;
+  background: transparent;
+  pointer-events: auto;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidenav-submenu-popup .sidenav-submenu-item {
+  padding: 10px 16px !important;
+  font-size: 0.9em !important;
+  color: #4b5563 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.sidenav-submenu-popup .sidenav-submenu-item:hover {
+  background: #f3f4f6 !important;
+  color: #1f2937 !important;
+}
+
+.sidenav-submenu-popup .sidenav-submenu-item .mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  color: #6b7280 !important;
+  flex-shrink: 0;
+}
+
+.sidenav-submenu-popup .sidenav-submenu-item.active {
+  background: #e0e7ff !important;
+  color: #4338ca !important;
+}
+
+.sidenav-submenu-popup .sidenav-submenu-item.active .mat-icon {
+  color: #4338ca !important;
+}
+
+.sidenav-submenu-popup .sidenav-submenu-item span {
+  line-height: 1.2 !important;
+}
+
+.sidenav-submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin: 4px 8px;
+}
+
+.sidenav-submenu.expanded {
+  max-height: 200px;
+}
+
+.sidenav-submenu-item {
+  padding: 8px 16px !important;
+  font-size: 0.85em !important;
+  color: #4b5563 !important;
+  border-radius: 6px;
+  margin: 2px 0;
+  min-height: 40px;
+  line-height: 1.2 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sidenav-submenu-item:hover {
+  background: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+
+.sidenav-submenu-item.active {
+  background: #60a5fa !important;
+  color: #fff !important;
+}
+
+.sidenav-submenu-item .mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  color: #6b7280 !important;
+  margin-right: 0 !important;
+  flex-shrink: 0;
+}
+
+.sidenav-submenu-item.active .mat-icon {
+  color: #fff !important;
+}
+
+.sidenav-submenu-item span {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.2 !important;
+  flex: 1;
 }
 
 /* Ensure svg icons inside mat-icon also get the color */
