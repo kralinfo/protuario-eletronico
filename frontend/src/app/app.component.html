@@ -364,30 +364,139 @@
         <div class="sidenav-top"></div>
 
         <nav class="sidenav-menu px-2 py-2">
+          <!-- Início -->
           <a mat-list-item class="sidenav-item" (click)="irParaMenuPrincipal()" routerLinkActive="active" style="cursor: pointer;">
             <mat-icon>home</mat-icon>
             <span class="sidenav-label" *ngIf="!sidenavCompact">Início</span>
           </a>
+
+          <!-- Pacientes -->
           <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('pacientes')" routerLink="/pacientes" routerLinkActive="active">
             <mat-icon>person_search</mat-icon>
             <span class="sidenav-label" *ngIf="!sidenavCompact">Pacientes</span>
           </a>
+
+          <!-- Atendimentos -->
           <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('atendimentos')" routerLink="/atendimentos" routerLinkActive="active">
             <mat-icon>medical_services</mat-icon>
             <span class="sidenav-label" *ngIf="!sidenavCompact">Atendimentos</span>
           </a>
+
+          <!-- Triagem -->
           <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('triagem')" routerLink="/triagem" routerLinkActive="active">
             <mat-icon>local_hospital</mat-icon>
             <span class="sidenav-label" *ngIf="!sidenavCompact">Triagem</span>
           </a>
-          <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('relatorios')" routerLink="/relatorios/atendimentos" routerLinkActive="active">
-            <mat-icon>bar_chart</mat-icon>
-            <span class="sidenav-label" *ngIf="!sidenavCompact">Relatórios</span>
+
+          <!-- Dashboard -->
+          <a mat-list-item class="sidenav-item" routerLink="/dashboard" routerLinkActive="active">
+            <mat-icon>dashboard</mat-icon>
+            <span class="sidenav-label" *ngIf="!sidenavCompact">Dashboard</span>
           </a>
+
+          <!-- Relatórios com submenu -->
+          <div class="sidenav-item-wrapper" *ngIf="canAccessModule('relatorios')">
+            <!-- Modo expandido - submenu inline -->
+            <div class="sidenav-item sidenav-item-expandable" 
+                 [class.sidenav-item-expanded]="relatoriosExpanded"
+                 (click)="relatoriosExpanded = !relatoriosExpanded"
+                 style="cursor: pointer;"
+                 *ngIf="!sidenavCompact">
+              <mat-icon>bar_chart</mat-icon>
+              <span class="sidenav-label">Relatórios</span>
+              <mat-icon class="sidenav-expand-icon"
+                        [class.rotated]="relatoriosExpanded">expand_more</mat-icon>
+            </div>
+            <div class="sidenav-submenu" [class.expanded]="relatoriosExpanded" *ngIf="!sidenavCompact">
+              <div class="sidenav-submenu-item" routerLink="/relatorios/pacientes" routerLinkActive="active" style="cursor: pointer;">
+                <mat-icon>bar_chart</mat-icon>
+                <span>Relatório de Pacientes</span>
+              </div>
+              <div class="sidenav-submenu-item" routerLink="/relatorios/atendimentos" routerLinkActive="active" style="cursor: pointer;">
+                <mat-icon>assignment</mat-icon>
+                <span>Relatório de Atendimento</span>
+              </div>
+            </div>
+
+            <!-- Modo compacto - ícone com popup no hover -->
+            <div class="sidenav-item"
+                 (mouseenter)="showSubmenuPopup('relatorios', $event)"
+                 (mouseleave)="hideSubmenuPopup()"
+                 style="cursor: pointer;"
+                 *ngIf="sidenavCompact">
+              <mat-icon>bar_chart</mat-icon>
+            </div>
+            <div class="sidenav-submenu-popup" 
+                 [class.show]="activeSubmenu === 'relatorios'"
+                 [style.top.px]="popupPosition.top"
+                 [style.left.px]="popupPosition.left"
+                 (mouseenter)="showSubmenuPopup('relatorios')"
+                 (mouseleave)="hideSubmenuPopup()">
+              <div class="sidenav-submenu-item" routerLink="/relatorios/pacientes" routerLinkActive="active" style="cursor: pointer;">
+                <mat-icon>bar_chart</mat-icon>
+                <span>Relatório de Pacientes</span>
+              </div>
+              <div class="sidenav-submenu-item" routerLink="/relatorios/atendimentos" routerLinkActive="active" style="cursor: pointer;">
+                <mat-icon>assignment</mat-icon>
+                <span>Relatório de Atendimento</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Usuários -->
           <a mat-list-item class="sidenav-item" *ngIf="canAccessModule('usuarios')" routerLink="/usuarios" routerLinkActive="active">
             <mat-icon>group</mat-icon>
             <span class="sidenav-label" *ngIf="!sidenavCompact">Usuários</span>
           </a>
+
+          <!-- Impressão com submenu (sem restrição de permissão) -->
+          <div class="sidenav-item-wrapper">
+            <!-- Modo expandido - submenu inline -->
+            <div class="sidenav-item sidenav-item-expandable"
+                 [class.sidenav-item-expanded]="impressaoExpanded"
+                 (click)="impressaoExpanded = !impressaoExpanded"
+                 style="cursor: pointer;"
+                 *ngIf="!sidenavCompact">
+              <mat-icon>print</mat-icon>
+              <span class="sidenav-label">Impressão</span>
+              <mat-icon class="sidenav-expand-icon"
+                        [class.rotated]="impressaoExpanded">expand_more</mat-icon>
+            </div>
+            <div class="sidenav-submenu" [class.expanded]="impressaoExpanded" *ngIf="!sidenavCompact">
+              <div class="sidenav-submenu-item" (click)="imprimirFichaPacienteEmBrancoGlobal()" style="cursor: pointer;">
+                <mat-icon>print</mat-icon>
+                <span>Ficha de paciente em branco</span>
+              </div>
+              <div class="sidenav-submenu-item" (click)="imprimirFichaAtendimentoEmBrancoGlobal()" style="cursor: pointer;">
+                <mat-icon>print</mat-icon>
+                <span>Ficha de atendimento em branco</span>
+              </div>
+            </div>
+
+            <!-- Modo compacto - ícone com popup no hover -->
+            <div class="sidenav-item"
+                 (mouseenter)="showSubmenuPopup('impressao', $event)"
+                 (mouseleave)="hideSubmenuPopup()"
+                 style="cursor: pointer;"
+                 *ngIf="sidenavCompact">
+              <mat-icon>print</mat-icon>
+            </div>
+            <div class="sidenav-submenu-popup" 
+                 [class.show]="activeSubmenu === 'impressao'"
+                 [style.top.px]="popupPosition.top"
+                 [style.left.px]="popupPosition.left"
+                 (mouseenter)="showSubmenuPopup('impressao')"
+                 (mouseleave)="hideSubmenuPopup()">
+              <div class="sidenav-submenu-item" (click)="imprimirFichaPacienteEmBrancoGlobal()" style="cursor: pointer;">
+                <mat-icon>print</mat-icon>
+                <span>Ficha de paciente em branco</span>
+              </div>
+              <div class="sidenav-submenu-item" (click)="imprimirFichaAtendimentoEmBrancoGlobal()" style="cursor: pointer;">
+                <mat-icon>print</mat-icon>
+                <span>Ficha de atendimento em branco</span>
+              </div>
+            </div>
+          </div>
         </nav>
 
         <div class="sidenav-footer px-3 py-3">

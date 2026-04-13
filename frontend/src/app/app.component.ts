@@ -120,6 +120,60 @@ export class AppComponent implements OnInit, OnDestroy {
   sidenavCompact = true;
   sidenavOpened = true;
 
+  // Controle de expansão dos submenus (modo expandido)
+  relatoriosExpanded = false;
+  impressaoExpanded = false;
+
+  // Controle de popup dos submenus (modo compacto)
+  activeSubmenu: 'relatorios' | 'impressao' | null = null;
+  popupPosition: { top: number, left: number } = { top: 0, left: 0 };
+  private popupCloseTimeout: any = null;
+
+  showSubmenuPopup(submenu: 'relatorios' | 'impressao', event?: MouseEvent) {
+    // Cancelar qualquer timer de fechamento pendente
+    if (this.popupCloseTimeout) {
+      clearTimeout(this.popupCloseTimeout);
+      this.popupCloseTimeout = null;
+    }
+    
+    this.activeSubmenu = submenu;
+    
+    if (event) {
+      // Calcular posição baseada no elemento que disparou o evento
+      const target = event.currentTarget as HTMLElement;
+      const rect = target.getBoundingClientRect();
+      
+      // Verificar se há espaço suficiente abaixo, senão ajustar
+      const windowHeight = window.innerHeight;
+      const popupHeight = 150; // Altura estimada do popup
+      let top = rect.top;
+      
+      if (top + popupHeight > windowHeight) {
+        top = windowHeight - popupHeight - 10;
+      }
+      
+      this.popupPosition = {
+        top: Math.max(10, top),
+        left: rect.right - 5 // Popup sobrepõe levemente a área do ícone para eliminar gap
+      };
+    }
+  }
+
+  hideSubmenuPopup() {
+    // Adicionar um delay maior para permitir que o mouse chegue ao popup
+    this.popupCloseTimeout = setTimeout(() => {
+      this.activeSubmenu = null;
+      this.popupCloseTimeout = null;
+    }, 300);
+  }
+
+  getPopupStyle() {
+    return {
+      top: `${this.popupPosition.top}px`,
+      left: `${this.popupPosition.left}px`
+    };
+  }
+
   toggleSidenav() {
     this.sidenavCompact = !this.sidenavCompact;
     // Force Angular Material to recalculate content margins after width change
