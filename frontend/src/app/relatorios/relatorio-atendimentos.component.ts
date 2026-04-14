@@ -21,10 +21,70 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   get dataInicial() { return this.filtrosForm.get('dataInicial')?.value; }
   get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
   get status() { return this.filtrosForm.get('status')?.value; }
+  
+  // Dados brutos (TODOS os atendimentos - usados para contadores fixos)
+  todosAtendimentos: any[] = [];
+  
+  // Dados filtrados (exibidos na tabela)
   relatorio: any[] = [];
+  
   pageSizeOptions = [10, 25, 50];
   pageSize = 10;
   currentPage = 0;
+
+  // Mapeamento de ABA → STATUS(S) do banco
+  private readonly STATUS_MAP: Record<string, string[]> = {
+    todas: [],
+    triagem_pendente: [
+      'encaminhado para triagem',
+      'encaminhado_para_triagem',
+      'triagem pendente',
+      'triagem_pendente'
+    ],
+    em_triagem: [
+      'em triagem',
+      'em_triagem'
+    ],
+    aguardando_medico: [
+      'aguardando medico',
+      'aguardando médico',
+      'aguardando_medico',
+      'encaminhado para sala medica',
+      'encaminhado para sala médica',
+      'encaminhado_para_sala_medica',
+      'encaminhado para sala médica',
+      '3 - encaminhado para sala médica'
+    ],
+    em_atendimento: [
+      'em atendimento',
+      'em atendimento médico',
+      'em atendimento medico',
+      'em_atendimento',
+      'em_atendimento_medico',
+      'em atendimento ambulatorial',
+      'em_atendimento_ambulatorial',
+      '4 - em atendimento médico'
+    ],
+    finalizados: [
+      'atendimento concluido',
+      'atendimento concluído',
+      'atendimento_concluido',
+      'finalizado',
+      'alta medica',
+      'alta médica',
+      'alta_medica',
+      'alta ambulatorial',
+      'alta_ambulatorial',
+      'encaminhado para exames',
+      'encaminhado_para_exames',
+      '7 - encaminhado para exames',
+      '8 - atendimento concluído'
+    ],
+    interrompidos: [
+      'interrompido',
+      'abandonado'
+    ]
+  };
 
   get paginatedRelatorio() {
     const start = this.currentPage * this.pageSize;
@@ -59,14 +119,134 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     this.filtrosForm = this.fb.group({
       dataInicial: ['', [dataMaxHojeValidator]],
       dataFinal: ['', [dataMaxHojeValidator]],
-      status: [''],
-      nomePaciente: [''],
-      observacoes: ['']
+      sexo: [''],
+      municipio: [''],
+      uf: [''],
+      estadoCivil: [''],
+      escolaridade: ['']
     }, { validators: datasInicioFimValidator });
   }
 
   ngOnInit() {
-    this.carregarAtendimentosReais();
+    this.carregarTodosAtendimentos();
+  }
+
+  /**
+   * Carrega TODOS os atendimentos UMA VEZ (contadores fixos)
+   */
+  carregarTodosAtendimentos() {
+    this.loading = true;
+    this.atendimentoService.listarTodosAtendimentos().subscribe({
+      next: (atendimentos: any[]) => {
+        // Normaliza e salva TODOS os atendimentos (NUNCA muda)
+        this.todosAtendimentos = (atendimentos || []).map(a => ({
+          ...a,
+          createdAt: a.data_hora_atendimento
+            ? new Date(a.data_hora_atendimento)
+            : (a.created_at ? new Date(a.created_at) : null),
+          paciente_nome: a.paciente_nome || '',
+          observacoes: a.observacoes || '',
+          status: (a.status || '').toLowerCase().trim()
+        }));
+        
+        // Aplica o filtro inicial (aba "todas")
+        this.aplicarFiltrosLocais();
+      },
+      error: (error: any) => {
+        console.error('Erro ao buscar atendimentos:', error);
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Filtra LOCALMENTE os dados já carregados (sem chamar API)
+   */
+  aplicarFiltrosLocais() {
+    const filtros = this.filtrosForm.value;
+    const statusDaAba = this.STATUS_MAP[this.abaAtiva] || [];
+
+    let filtrados = [...this.todosAtendimentos];
+
+    // Filtrar por status da aba (se não for "todas")
+    if (this.abaAtiva !== 'todas' && statusDaAba.length > 0) {
+      filtrados = filtrados.filter(a => {
+        return statusDaAba.some(s => a.status === s.toLowerCase());
+      });
+    }
+
+    // Helper: parse date input (YYYY-MM-DD) como data local
+    const parseDateInputToLocal = (input: any): Date | null => {
+      if (!input && input !== 0) return null;
+      if (input instanceof Date) return new Date(input.getFullYear(), input.getMonth(), input.getDate());
+      const s = String(input);
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) {
+        return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      }
+      const dobj = new Date(s);
+      if (isNaN(dobj.getTime())) return null;
+      return new Date(dobj.getFullYear(), dobj.getMonth(), dobj.getDate());
+    };
+
+    // Filtro por Data Inicial
+    const dataInicialLocal = parseDateInputToLocal(filtros.dataInicial);
+    if (dataInicialLocal) {
+      dataInicialLocal.setHours(0, 0, 0, 0);
+      filtrados = filtrados.filter((a: any) => a.createdAt && a.createdAt.getTime() >= dataInicialLocal.getTime());
+    }
+
+    // Filtro por Data Final
+    const dataFinalLocal = parseDateInputToLocal(filtros.dataFinal);
+    if (dataFinalLocal) {
+      dataFinalLocal.setHours(23, 59, 59, 999);
+      filtrados = filtrados.filter((a: any) => a.createdAt && a.createdAt.getTime() <= dataFinalLocal.getTime());
+    }
+
+    // Filtro por Sexo
+    if (filtros.sexo) {
+      filtrados = filtrados.filter((a: any) => a.paciente_sexo === filtros.sexo);
+    }
+
+    // Filtro por Município
+    if (filtros.municipio) {
+      const municipioLower = String(filtros.municipio).toLowerCase();
+      filtrados = filtrados.filter((a: any) => (a.paciente_municipio || '').toLowerCase().includes(municipioLower));
+    }
+
+    // Filtro por UF
+    if (filtros.uf) {
+      filtrados = filtrados.filter((a: any) => (a.paciente_uf || '').toUpperCase() === filtros.uf.toUpperCase());
+    }
+
+    // Filtro por Estado Civil
+    if (filtros.estadoCivil) {
+      filtrados = filtrados.filter((a: any) => {
+        const estadoCivilPaciente = (a.paciente_estado_civil || '').toLowerCase().trim();
+        return estadoCivilPaciente === filtros.estadoCivil.toLowerCase();
+      });
+    }
+
+    // Filtro por Escolaridade
+    if (filtros.escolaridade) {
+      filtrados = filtrados.filter((a: any) => {
+        const escolaridadePaciente = (a.paciente_escolaridade || '').toLowerCase().trim();
+        return escolaridadePaciente === filtros.escolaridade.toLowerCase();
+      });
+    }
+
+    // Mapear para o formato de exibição (tabela)
+    this.relatorio = filtrados.map((a: any) => ({
+      data: a.createdAt || new Date(),
+      paciente_nome: a.paciente_nome || '',
+      profissional: a.usuario_id || '',
+      procedimento: a.procedencia || a.procedimento || '',
+      observacoes: a.observacoes || '',
+      status: a.status || ''
+    }));
+    
+    this.currentPage = 0;
+    this.loading = false;
   }
 
   ngAfterViewInit() {
@@ -78,7 +258,9 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
 
   setAba(aba: string, event: MouseEvent) {
     this.abaAtiva = aba;
+    this.currentPage = 0; // Resetar paginação
     this.updateIndicator(event.currentTarget as HTMLElement);
+    this.aplicarFiltrosLocais(); // Filtrar LOCALMENTE (sem chamar API)
   }
 
   private updateIndicator(el: HTMLElement) {
@@ -93,7 +275,30 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   }
 
   filtrarPorBusca(event: Event) {
-    // Placeholder para busca local futura
+    const input = event.target as HTMLInputElement;
+    const termo = input.value.toLowerCase().trim();
+    
+    if (!termo) {
+      // Se não há termo de busca, aplicar filtros normais
+      this.aplicarFiltrosLocais();
+      return;
+    }
+
+    // Filtrar por nome do paciente
+    const filtrados = this.todosAtendimentos.filter(a => 
+      (a.paciente_nome || '').toLowerCase().includes(termo)
+    );
+
+    this.relatorio = filtrados.map((a: any) => ({
+      data: a.createdAt || new Date(),
+      paciente_nome: a.paciente_nome || '',
+      profissional: a.usuario_id || '',
+      procedimento: a.procedencia || a.procedimento || '',
+      observacoes: a.observacoes || '',
+      status: a.status || ''
+    }));
+    
+    this.currentPage = 0;
   }
 
   carregarAtendimentosReais() {
@@ -125,67 +330,46 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     return this.relatorio.length;
   }
 
-  // Novos métodos para contadores de status específicos
+  // Novos métodos para contadores de status específicos (usando STATUS_MAP)
   getAtendimentosEncaminhadosTriagem(): number {
-    return this.relatorio.filter(a =>
-      a.status === 'triagem pendente' ||
-      a.status === 'triagem_pendente' ||
-      a.status === 'encaminhado para triagem' ||
-      a.status === 'encaminhado_para_triagem'
-    ).length;
+    return this.contarPorStatus('triagem_pendente');
   }
 
   getAtendimentosEmTriagem(): number {
-    return this.relatorio.filter(a =>
-      a.status === 'em_triagem' ||
-      a.status === 'em triagem'
-    ).length;
+    return this.contarPorStatus('em_triagem');
   }
 
   getAtendimentosEmObservacao(): number {
-    return this.relatorio.filter(a =>
-      a.status === 'em observação' ||
-      a.status === 'em_observacao'
-    ).length;
+    return this.contarPorStatus('em_observacao');
   }
 
   getAtendimentosAguardandoMedico(): number {
-    return this.relatorio.filter(a =>
-      a.status === 'encaminhado_para_sala_medica' ||
-      a.status === 'encaminhado para sala médica' ||
-      a.status === 'aguardando' ||
-      a.status === 'aguardando_atendimento' ||
-      a.status === 'aguardando atendimento'
-    ).length;
+    return this.contarPorStatus('aguardando_medico');
   }
 
   getAtendimentosEmAtendimento(): number {
-    return this.relatorio.filter(a =>
-      a.status === 'em_atendimento_medico' ||
-      a.status === 'em atendimento médico' ||
-      a.status === 'em_atendimento' ||
-      a.status === 'em atendimento' ||
-      a.status === 'em_atendimento_ambulatorial' ||
-      a.status === 'em atendimento ambulatorial'
-    ).length;
+    return this.contarPorStatus('em_atendimento');
   }
 
   getAtendimentosFinalizados(): number {
-    return this.relatorio.filter(a =>
-      a.status === 'atendimento_concluido' ||
-      a.status === 'atendimento concluido' ||
-      a.status === 'finalizado' ||
-      a.status === 'alta_ambulatorial' ||
-      a.status === 'encaminhado_para_exames' ||
-      a.status === 'encaminhado para exames'
-    ).length;
+    return this.contarPorStatus('finalizados');
   }
 
   getAtendimentosInterrompidos(): number {
-    return this.relatorio.filter(a =>
-      a.status === 'interrompido' ||
-      a.status === 'abandonado'
-    ).length;
+    return this.contarPorStatus('interrompidos');
+  }
+
+  /**
+   * Conta atendimentos baseado no STATUS_MAP (usando TODOS os atendimentos - contadores fixos)
+   */
+  private contarPorStatus(aba: string): number {
+    const statusList = this.STATUS_MAP[aba] || [];
+    if (statusList.length === 0) return 0;
+    
+    return this.todosAtendimentos.filter(a => {
+      const statusLower = (a.status || '').toLowerCase().trim();
+      return statusList.some(s => statusLower === s.toLowerCase());
+    }).length;
   }
   getStatusList(): { status: string, total: number }[] {
     // Status possíveis conforme cadastro
@@ -234,125 +418,21 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     return statusPossiveis.map(s => ({ status: s.label, total: statusMap[s.key] || 0 }));
   }
 
-  buscarRelatorio() {
-    this.loading = true;
-    this.atendimentoService.listarTodosAtendimentos().subscribe({
-      next: (atendimentos: any[]) => {
-        const filtros = this.filtrosForm.value;
-
-        // Normaliza os atendimentos usando data_hora_atendimento como campo principal
-        const atendimentosNorm = (atendimentos || []).map(a => ({
-          ...a,
-          // Usa data_hora_atendimento (data real do atendimento) com fallback para created_at
-          createdAt: a.data_hora_atendimento
-            ? new Date(a.data_hora_atendimento)
-            : (a.created_at ? new Date(a.created_at) : null),
-          paciente_nome: a.paciente_nome || '',
-          observacoes: a.observacoes || '',
-          status: (a.status || '').toLowerCase().trim()
-        }));
-
-        let filtrados = atendimentosNorm;
-
-        // Helper: parse date input (YYYY-MM-DD) como data local, evitando UTC shift
-        const parseDateInputToLocal = (input: any): Date | null => {
-          if (!input && input !== 0) return null;
-          if (input instanceof Date) return new Date(input.getFullYear(), input.getMonth(), input.getDate());
-          const s = String(input);
-          const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-          if (m) {
-            return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-          }
-          const dobj = new Date(s);
-          if (isNaN(dobj.getTime())) return null;
-          return new Date(dobj.getFullYear(), dobj.getMonth(), dobj.getDate());
-        };
-
-        // Filtro por Data Inicial
-        const dataInicialLocal = parseDateInputToLocal(filtros.dataInicial);
-        if (dataInicialLocal) {
-          dataInicialLocal.setHours(0, 0, 0, 0);
-          filtrados = filtrados.filter((a: any) => a.createdAt && a.createdAt.getTime() >= dataInicialLocal.getTime());
-        }
-
-        // Filtro por Data Final
-        const dataFinalLocal = parseDateInputToLocal(filtros.dataFinal);
-        if (dataFinalLocal) {
-          dataFinalLocal.setHours(23, 59, 59, 999);
-          filtrados = filtrados.filter((a: any) => a.createdAt && a.createdAt.getTime() <= dataFinalLocal.getTime());
-        }
-
-        // Filtro por Status — cobre todas as variações armazenadas no banco
-        if (filtros.status) {
-          filtrados = filtrados.filter((a: any) => {
-            const s = a.status; // já está em lowercase
-            switch (filtros.status) {
-              case 'encaminhado_para_triagem':
-                return ['encaminhado para triagem', 'encaminhado_para_triagem', 'triagem pendente', 'triagem_pendente'].includes(s);
-              case 'em_triagem':
-                return ['em triagem', 'em_triagem'].includes(s);
-              case 'encaminhado_para_sala_medica':
-                return ['encaminhado para sala médica', 'encaminhado para sala medica', 'encaminhado_para_sala_medica', 'em_sala_medica', '3 - encaminhado para sala médica'].includes(s);
-              case 'em_atendimento_medico':
-                return ['em atendimento médico', 'em atendimento medico', 'em_atendimento_medico', '4 - em atendimento médico'].includes(s);
-              case 'encaminhado_para_ambulatorio':
-                return ['encaminhado para ambulatório', 'encaminhado para ambulatorio', 'encaminhado_para_ambulatorio'].includes(s);
-              case 'em_atendimento_ambulatorial':
-                return ['em atendimento ambulatorial', 'em_atendimento_ambulatorial'].includes(s);
-              case 'em_observacao':
-                return ['em observação', 'em observacao', 'em_observacao'].includes(s);
-              case 'atendimento_concluido':
-                return ['atendimento concluido', 'atendimento_concluido', '8 - atendimento concluído', 'alta médica', 'alta_medica', 'alta ambulatorial', 'alta_ambulatorial'].includes(s);
-              case 'encaminhado_para_exames':
-                return ['encaminhado para exames', 'encaminhado_para_exames', '7 - encaminhado para exames'].includes(s);
-              case 'interrompido':
-                return s === 'interrompido';
-              case 'abandonado':
-                return s === 'abandonado';
-              default:
-                return s === filtros.status.toLowerCase();
-            }
-          });
-        }
-
-        // Filtro por Nome do Paciente
-        if (filtros.nomePaciente) {
-          const nomePacienteLower = String(filtros.nomePaciente).toLowerCase();
-          filtrados = filtrados.filter((a: any) => (a.paciente_nome || '').toLowerCase().includes(nomePacienteLower));
-        }
-
-        // Filtro por Observações
-        if (filtros.observacoes) {
-          const observacoesLower = String(filtros.observacoes).toLowerCase();
-          filtrados = filtrados.filter((a: any) => (a.observacoes || '').toLowerCase().includes(observacoesLower));
-        }
-
-        // Mapear para o formato de exibição
-        this.relatorio = filtrados.map((a: any) => ({
-          data: a.createdAt || new Date(),
-          paciente_nome: a.paciente_nome || '',
-          profissional: a.usuario_id || '',
-          procedimento: a.procedencia || a.procedimento || '',
-          observacoes: a.observacoes || '',
-          status: a.status || ''
-        }));
-        this.currentPage = 0;
-        this.loading = false;
-      },
-      error: (error: any) => {
-        console.error('Erro ao buscar atendimentos:', error);
-        this.loading = false;
-      }
-    });
-  }
-
   limparFiltros() {
     // Reseta o formulário de filtros e recarrega todos os atendimentos
-    this.filtrosForm.reset({ dataInicial: '', dataFinal: '', status: '', nomePaciente: '', observacoes: '' });
+    this.filtrosForm.reset({ 
+      dataInicial: '', 
+      dataFinal: '', 
+      sexo: '', 
+      municipio: '', 
+      uf: '', 
+      estadoCivil: '', 
+      escolaridade: '' 
+    });
+    this.abaAtiva = 'todas'; // Resetar aba para "todas"
     this.currentPage = 0;
-    this.relatorio = [];
-    // Recarregar atendimentos sem filtros
-    this.carregarAtendimentosReais();
+    // Aplica filtros locais (irá mostrar todos os dados)
+    this.aplicarFiltrosLocais();
   }
   gerarRelatorioSimples() {
     const doc = new jsPDF.jsPDF();
@@ -366,10 +446,10 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     y += 8;
     doc.setLineWidth(0.2);
     doc.line(20, y - 5, 190, y - 5);
-    this.relatorio.forEach(item => {
-      doc.text(new Date(item.data).toLocaleDateString('pt-BR'), 20, y);
+    this.todosAtendimentos.forEach(item => {
+      doc.text(new Date(item.data_hora_atendimento || item.created_at).toLocaleDateString('pt-BR'), 20, y);
       doc.text(item.paciente_nome, 60, y);
-      doc.text(item.profissional, 130, y);
+      doc.text(item.usuario_id || '', 130, y);
       y += 8;
       if (y > 270) {
         doc.addPage();
@@ -394,13 +474,13 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     y += 8;
     doc.setLineWidth(0.2);
     doc.line(20, y - 13, 190, y - 13);
-    this.relatorio.forEach(item => {
-      doc.text(new Date(item.data).toLocaleDateString('pt-BR'), 20, y);
+    this.todosAtendimentos.forEach(item => {
+      doc.text(new Date(item.data_hora_atendimento || item.created_at).toLocaleDateString('pt-BR'), 20, y);
       doc.text(item.paciente_nome, 50, y);
-      doc.text(item.profissional, 100, y);
-      doc.text(item.procedimento, 140, y);
+      doc.text(item.usuario_id || '', 100, y);
+      doc.text(item.procedencia || item.procedimento || '', 140, y);
       y += 8;
-      doc.text(item.observacoes, 20, y);
+      doc.text(item.observacoes || '', 20, y);
       y += 10;
       if (y > 270) {
         doc.addPage();

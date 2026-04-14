@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-slate-100">
-  <div class="max-w-7xl mx-auto p-6">
+  <div class="w-full px-4 py-4">
 
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-4">
@@ -8,36 +8,76 @@
         <p class="text-xs text-slate-500">Gestão de atendimentos</p>
       </div>
       <div class="flex gap-2">
-        <button class="btn-outline" (click)="gerarRelatorioSimples()" [disabled]="relatorio.length === 0">PDF Simples</button>
-        <button class="btn-primary" (click)="gerarRelatorioDetalhado()" [disabled]="relatorio.length === 0">PDF Detalhado</button>
+        <button class="btn-outline" (click)="gerarRelatorioSimples()" [disabled]="todosAtendimentos.length === 0">PDF Simples</button>
+        <button class="btn-primary" (click)="gerarRelatorioDetalhado()" [disabled]="todosAtendimentos.length === 0">PDF Detalhado</button>
       </div>
     </div>
 
     <!-- FILTROS -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-4">
-      <form [formGroup]="filtrosForm" (ngSubmit)="buscarRelatorio()" class="flex flex-wrap items-center gap-2">
+      <form [formGroup]="filtrosForm" (ngSubmit)="aplicarFiltrosLocais()" class="flex flex-wrap items-center gap-2">
 
-        <input type="date" class="input-sm w-[130px]" formControlName="dataInicial" appDateInputLimiter>
-        <input type="date" class="input-sm w-[130px]" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value" appDateInputLimiter>
+        <input type="date" class="input-sm w-[140px]" formControlName="dataInicial" appDateInputLimiter placeholder="Data Inicial">
+        <input type="date" class="input-sm w-[140px]" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value" appDateInputLimiter placeholder="Data Final">
 
-        <select class="input-sm w-[110px]" formControlName="status">
-          <option value="">Todos</option>
-          <option value="encaminhado_para_triagem">Enc. Triagem</option>
-          <option value="em_triagem">Em Triagem</option>
-          <option value="encaminhado_para_sala_medica">Enc. Sala Médica</option>
-          <option value="em_atendimento_medico">Em Atend. Médico</option>
-          <option value="encaminhado_para_ambulatorio">Enc. Ambulatório</option>
-          <option value="em_atendimento_ambulatorial">Em Atend. Ambulat.</option>
-          <option value="em_observacao">Em Observação</option>
-          <option value="encaminhado_para_exames">Enc. Exames</option>
-          <option value="atendimento_concluido">Concluído / Alta</option>
-          <option value="interrompido">Interrompido</option>
-          <option value="abandonado">Abandonado</option>
+        <select class="input-sm w-[120px]" formControlName="sexo">
+          <option value="">Sexo</option>
+          <option value="M">Masculino</option>
+          <option value="F">Feminino</option>
         </select>
 
-        <input type="text" placeholder="Nome do Paciente" class="input-sm flex-1 min-w-[150px]" formControlName="nomePaciente">
+        <input type="text" placeholder="Município" class="input-sm flex-1 min-w-[150px]" formControlName="municipio">
 
-        <input type="text" placeholder="Observações" class="input-sm flex-1 min-w-[150px]" formControlName="observacoes">
+        <select class="input-sm w-[100px]" formControlName="uf">
+          <option value="">UF</option>
+          <option value="AC">AC</option>
+          <option value="AL">AL</option>
+          <option value="AP">AP</option>
+          <option value="AM">AM</option>
+          <option value="BA">BA</option>
+          <option value="CE">CE</option>
+          <option value="DF">DF</option>
+          <option value="ES">ES</option>
+          <option value="GO">GO</option>
+          <option value="MA">MA</option>
+          <option value="MT">MT</option>
+          <option value="MS">MS</option>
+          <option value="MG">MG</option>
+          <option value="PA">PA</option>
+          <option value="PB">PB</option>
+          <option value="PR">PR</option>
+          <option value="PE">PE</option>
+          <option value="PI">PI</option>
+          <option value="RJ">RJ</option>
+          <option value="RN">RN</option>
+          <option value="RS">RS</option>
+          <option value="RO">RO</option>
+          <option value="RR">RR</option>
+          <option value="SC">SC</option>
+          <option value="SP">SP</option>
+          <option value="SE">SE</option>
+          <option value="TO">TO</option>
+        </select>
+
+        <select class="input-sm w-[140px]" formControlName="estadoCivil">
+          <option value="">Estado Civil</option>
+          <option value="solteiro">Solteiro(a)</option>
+          <option value="casado">Casado(a)</option>
+          <option value="divorciado">Divorciado(a)</option>
+          <option value="viuvo">Viúvo(a)</option>
+          <option value="uniao_estavel">União Estável</option>
+        </select>
+
+        <select class="input-sm w-[150px]" formControlName="escolaridade">
+          <option value="">Escolaridade</option>
+          <option value="fundamental_incompleto">Fundamental Incompleto</option>
+          <option value="fundamental_completo">Fundamental Completo</option>
+          <option value="medio_incompleto">Médio Incompleto</option>
+          <option value="medio_completo">Médio Completo</option>
+          <option value="superior_incompleto">Superior Incompleto</option>
+          <option value="superior_completo">Superior Completo</option>
+          <option value="pos_graduacao">Pós-Graduação</option>
+        </select>
 
         <div class="flex gap-2 ml-auto">
           <button type="button" class="btn-light" (click)="limparFiltros()">Limpar</button>
@@ -49,7 +89,7 @@
 
     <!-- TOPO -->
     <div class="flex justify-between items-center mb-3">
-      <span class="text-sm text-slate-500">{{ relatorio.length }} registros encontrados</span>
+      <span class="text-sm text-slate-500">{{ relatorio.length }} de {{ todosAtendimentos.length }} registros encontrados</span>
       <input type="text" placeholder="🔍 Buscar paciente..." class="input-search" (input)="filtrarPorBusca($event)">
     </div>
 
@@ -59,7 +99,7 @@
 
         <div class="tab-indicator" #tabIndicator></div>
 
-        <button #tabButton class="tab" [class.active]="abaAtiva === 'todas'" (click)="setAba('todas', $event)">Todas ({{ relatorio.length }})</button>
+        <button #tabButton class="tab" [class.active]="abaAtiva === 'todas'" (click)="setAba('todas', $event)">Todas ({{ todosAtendimentos.length }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'triagem_pendente'" (click)="setAba('triagem_pendente', $event)">Triagem Pendente ({{ getAtendimentosEncaminhadosTriagem() }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'em_triagem'" (click)="setAba('em_triagem', $event)">Em Triagem ({{ getAtendimentosEmTriagem() }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'aguardando_medico'" (click)="setAba('aguardando_medico', $event)">Aguardando Médico ({{ getAtendimentosAguardandoMedico() }})</button>

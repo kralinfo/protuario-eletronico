@@ -41,4 +41,8 @@ export class AtendimentoService {
   listarTodosAtendimentos() {
     return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/todos`);
   }
+
+  listarAtendimentosPorStatus(status: string) {
+    return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/por-status?status=${encodeURIComponent(status)}`);
+  }
 }
