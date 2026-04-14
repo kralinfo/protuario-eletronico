@@ -142,12 +142,19 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
         // Normaliza e salva TODOS os atendimentos (NUNCA muda)
         this.todosAtendimentos = atendimentos.map(a => ({
           ...a,
-          createdAt: a.data_hora_atendimento
-            ? new Date(a.data_hora_atendimento)
-            : (a.created_at ? new Date(a.created_at) : null),
+          createdAt: a.data_criacao ? new Date(a.data_criacao) : (a.data_hora_atendimento ? new Date(a.data_hora_atendimento) : null),
+          data: a.data_hora_atendimento ? new Date(a.data_hora_atendimento) : (a.data_criacao ? new Date(a.data_criacao) : null),
           paciente_nome: a.paciente_nome || '',
           observacoes: a.observacoes || '',
-          status: (a.status || '').toLowerCase().trim()
+          status: (a.status || '').toLowerCase().trim(),
+          sexo: a.paciente_sexo || '',
+          municipio: a.paciente_municipio || '',
+          uf: a.paciente_uf || '',
+          estadoCivil: a.paciente_estado_civil || '',
+          escolaridade: a.paciente_escolaridade || '',
+          procedimento: a.procedimento || a.procedencia || '-'
+        }));
+        this.aplicarFiltrosLocais();
         }));
 
         // Aplica o filtro inicial (aba "todas")
@@ -238,12 +245,16 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
 
     // Mapear para o formato de exibição (tabela)
     this.relatorio = filtrados.map((a: any) => ({
+      ...a,
       data: a.createdAt || new Date(),
       paciente_nome: a.paciente_nome || '',
-      profissional: a.usuario_id || '',
-      procedimento: a.procedencia || a.procedimento || '',
-      observacoes: a.observacoes || '',
-      status: a.status || ''
+      status: a.status || '',
+      sexo: a.paciente_sexo || '',
+      municipio: a.paciente_municipio || '',
+      uf: a.paciente_uf || '',
+      estadoCivil: a.paciente_estado_civil || '',
+      escolaridade: a.paciente_escolaridade || '',
+      procedimento: a.procedimento || a.procedencia || '-'
     }));
 
     this.currentPage = 0;

@@ -120,18 +120,26 @@
           <tr>
             <th class="p-3 text-left">Data</th>
             <th class="p-3 text-left">Paciente</th>
+            <th class="p-3 text-left">Sexo</th>
+            <th class="p-3 text-left">Município/UF</th>
             <th class="p-3 text-left">Status</th>
             <th class="p-3 text-left">Procedimento</th>
-            <th class="p-3 text-left">Observações</th>
+            <th class="p-3 text-left">Escolaridade</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let item of paginatedRelatorio" class="border-t hover:bg-blue-50 cursor-pointer">
-            <td class="p-3">{{ item.data | date:'dd/MM/yyyy' }}</td>
+            <td class="p-3 text-nowrap">{{ item.data | date:'dd/MM/yyyy' }}</td>
             <td class="p-3 font-medium">{{ item.paciente_nome }}</td>
-            <td class="p-3">{{ item.status | titlecase }}</td>
-            <td class="p-3">{{ item.procedimento }}</td>
-            <td class="p-3">{{ item.observacoes }}</td>
+            <td class="p-3">{{ item.sexo || '-' }}</td>
+            <td class="p-3">{{ item.municipio || '-' }}{{ item.uf ? '/' + item.uf : '' }}</td>
+            <td class="p-3">
+              <span class="px-2 py-1 rounded-full text-[10px] font-semibold uppercase bg-slate-100 text-slate-600">
+                {{ item.status || 'Pendente' }}
+              </span>
+            </td>
+            <td class="p-3">{{ item.procedimento || '-' }}</td>
+            <td class="p-3 text-xs text-slate-500">{{ (item.escolaridade || '-') | titlecase | replace:'_':' ' }}</td>
           </tr>
         </tbody>
       </table>
