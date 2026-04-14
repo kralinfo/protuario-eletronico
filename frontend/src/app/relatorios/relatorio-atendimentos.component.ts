@@ -1,5 +1,5 @@
 import * as jsPDF from 'jspdf';
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { AtendimentoService } from '../services/atendimento.service';
 
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
@@ -16,7 +16,7 @@ import { PaginationComponent } from '../shared/components/pagination/pagination.
   templateUrl: './relatorio-atendimentos.component.html',
   styleUrls: ['./relatorio-atendimentos.component.scss', '../shared/styles/table-footer.css']
 })
-export class RelatorioAtendimentosComponent implements OnInit {
+export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   filtrosForm: FormGroup;
   get dataInicial() { return this.filtrosForm.get('dataInicial')?.value; }
   get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
@@ -50,6 +50,11 @@ export class RelatorioAtendimentosComponent implements OnInit {
 
   loading = false;
 
+  // Abas com indicador animado
+  abaAtiva = 'todas';
+  @ViewChild('tabIndicator') tabIndicator!: ElementRef<HTMLElement>;
+  @ViewChildren('tabButton') tabButtons!: QueryList<ElementRef<HTMLElement>>;
+
   constructor(private fb: FormBuilder, private atendimentoService: AtendimentoService) {
     this.filtrosForm = this.fb.group({
       dataInicial: ['', [dataMaxHojeValidator]],
@@ -62,6 +67,33 @@ export class RelatorioAtendimentosComponent implements OnInit {
 
   ngOnInit() {
     this.carregarAtendimentosReais();
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      const firstTab = this.tabButtons.first;
+      if (firstTab) this.updateIndicator(firstTab.nativeElement);
+    });
+  }
+
+  setAba(aba: string, event: MouseEvent) {
+    this.abaAtiva = aba;
+    this.updateIndicator(event.currentTarget as HTMLElement);
+  }
+
+  private updateIndicator(el: HTMLElement) {
+    if (!this.tabIndicator) return;
+    const indicator = this.tabIndicator.nativeElement;
+
+    const rect = el.getBoundingClientRect();
+    const parentRect = el.parentElement!.getBoundingClientRect();
+
+    indicator.style.width = rect.width + 'px';
+    indicator.style.left = (rect.left - parentRect.left) + 'px';
+  }
+
+  filtrarPorBusca(event: Event) {
+    // Placeholder para busca local futura
   }
 
   carregarAtendimentosReais() {

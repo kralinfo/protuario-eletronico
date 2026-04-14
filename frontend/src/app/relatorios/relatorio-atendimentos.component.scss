@@ -1,27 +1,131 @@
-.relatorio-atendimentos-table th, .relatorio-atendimentos-table td {
-  padding: 0.75rem 1rem;
-}
-.relatorio-atendimentos-table th {
-  background: #f1f5f9;
-  color: #1e293b;
-  font-weight: 600;
-}
-.relatorio-atendimentos-table tr {
-  border-bottom: 1px solid #e5e7eb;
+/* ===== TABS ===== */
+.tabs-container {
+  position: relative;
 }
 
-.filtros-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
+.tab {
+  position: relative;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #475569;
+  border-radius: 8px;
+  z-index: 1;
+  transition: color 0.2s;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: none;
 }
 
-.filtros-form .space-y-0 {
-  flex: 1;
-  min-width: 150px;
+.tab:hover {
+  color: #2563eb;
+  background: #eff6ff;
 }
 
-.filtros-form .flex {
-  justify-content: flex-end;
+.tab.active {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* INDICADOR */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background: #2563eb;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  left: 0;
+  width: 0;
+}
+
+/* ===== INPUTS ===== */
+.input-sm {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.input-sm:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.input-search {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  width: 220px;
+}
+
+.input-search:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* ===== BOTÕES ===== */
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-primary:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: #eff6ff;
+}
+
+.btn-outline:disabled {
+  border-color: #cbd5e1;
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.btn-light {
+  background: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-light:hover {
+  background: #cbd5e1;
+}
+
+/* ===== PAGINAÇÃO ===== */
+.page {
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.page.active {
+  background: #2563eb;
+  color: white;
 }
