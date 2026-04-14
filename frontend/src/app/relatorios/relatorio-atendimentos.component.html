@@ -17,18 +17,18 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-4">
       <form [formGroup]="filtrosForm" (ngSubmit)="aplicarFiltrosLocais()" class="flex flex-wrap items-center gap-2">
 
-        <input type="date" class="input-sm w-[140px]" formControlName="dataInicial" appDateInputLimiter placeholder="Data Inicial">
-        <input type="date" class="input-sm w-[140px]" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value" appDateInputLimiter placeholder="Data Final">
+        <input type="date" class="input-sm w-[140px]" formControlName="dataInicial" appDateInputLimiter placeholder="Data Inicial" (change)="aplicarFiltrosLocais()">
+        <input type="date" class="input-sm w-[140px]" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value" appDateInputLimiter placeholder="Data Final" (change)="aplicarFiltrosLocais()">
 
-        <select class="input-sm w-[120px]" formControlName="sexo">
+        <select class="input-sm w-[120px]" formControlName="sexo" (change)="aplicarFiltrosLocais()">
           <option value="">Sexo</option>
           <option value="M">Masculino</option>
           <option value="F">Feminino</option>
         </select>
 
-        <input type="text" placeholder="Município" class="input-sm flex-1 min-w-[150px]" formControlName="municipio">
+        <input type="text" placeholder="Município" class="input-sm flex-1 min-w-[150px]" formControlName="municipio" (input)="aplicarFiltrosLocais()">
 
-        <select class="input-sm w-[100px]" formControlName="uf">
+        <select class="input-sm w-[100px]" formControlName="uf" (change)="aplicarFiltrosLocais()">
           <option value="">UF</option>
           <option value="AC">AC</option>
           <option value="AL">AL</option>
@@ -59,7 +59,7 @@
           <option value="TO">TO</option>
         </select>
 
-        <select class="input-sm w-[140px]" formControlName="estadoCivil">
+        <select class="input-sm w-[140px]" formControlName="estadoCivil" (change)="aplicarFiltrosLocais()">
           <option value="">Estado Civil</option>
           <option value="solteiro">Solteiro(a)</option>
           <option value="casado">Casado(a)</option>
@@ -68,7 +68,7 @@
           <option value="uniao_estavel">União Estável</option>
         </select>
 
-        <select class="input-sm w-[150px]" formControlName="escolaridade">
+        <select class="input-sm w-[150px]" formControlName="escolaridade" (change)="aplicarFiltrosLocais()">
           <option value="">Escolaridade</option>
           <option value="fundamental_incompleto">Fundamental Incompleto</option>
           <option value="fundamental_completo">Fundamental Completo</option>
@@ -79,10 +79,7 @@
           <option value="pos_graduacao">Pós-Graduação</option>
         </select>
 
-        <div class="flex gap-2 ml-auto">
-          <button type="button" class="btn-light" (click)="limparFiltros()">Limpar</button>
-          <button type="submit" class="btn-primary">Filtrar</button>
-        </div>
+        <button type="button" class="btn-light ml-auto" (click)="limparFiltros()">Limpar</button>
 
       </form>
     </div>

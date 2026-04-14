@@ -7,6 +7,7 @@ import {
 
 @Directive({
   selector: '[appDateInputLimiter]',
+  standalone: true,
 })
 export class DateInputLimiterDirective implements OnInit {
 

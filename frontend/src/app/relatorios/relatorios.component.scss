@@ -1,22 +1,136 @@
-// Estilos específicos do componente de relatórios
-
-// Animação de fade in para os cards
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ===== TABS ===== */
+.tabs-container {
+  position: relative;
 }
 
-.fade-in-up {
-  animation: fadeInUp 0.5s ease-out;
+.tab {
+  position: relative;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #475569;
+  border-radius: 8px;
+  z-index: 1;
+  transition: color 0.2s;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: none;
 }
 
-// Estilos para impressão
+.tab:hover {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.tab.active {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* INDICADOR */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background: #2563eb;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  left: 0;
+  width: 0;
+}
+
+/* ===== INPUTS ===== */
+.input-sm {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.input-sm:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.input-search {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  width: 220px;
+}
+
+.input-search:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* ===== BOTÕES ===== */
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-primary:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: #eff6ff;
+}
+
+.btn-outline:disabled {
+  border-color: #cbd5e1;
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.btn-light {
+  background: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-light:hover {
+  background: #cbd5e1;
+}
+
+/* ===== PAGINAÇÃO ===== */
+.page {
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.page.active {
+  background: #2563eb;
+  color: white;
+}
+
+/* Estilos para impressão */
 @media print {
   .no-print {
     display: none !important;

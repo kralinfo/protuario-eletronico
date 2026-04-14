@@ -21,13 +21,13 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   get dataInicial() { return this.filtrosForm.get('dataInicial')?.value; }
   get dataFinal() { return this.filtrosForm.get('dataFinal')?.value; }
   get status() { return this.filtrosForm.get('status')?.value; }
-  
+
   // Dados brutos (TODOS os atendimentos - usados para contadores fixos)
   todosAtendimentos: any[] = [];
-  
+
   // Dados filtrados (exibidos na tabela)
   relatorio: any[] = [];
-  
+
   pageSizeOptions = [10, 25, 50];
   pageSize = 10;
   currentPage = 0;
@@ -136,10 +136,11 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
    */
   carregarTodosAtendimentos() {
     this.loading = true;
-    this.atendimentoService.listarTodosAtendimentos().subscribe({
-      next: (atendimentos: any[]) => {
+    this.atendimentoService.listarTodosParaRelatorio().subscribe({
+      next: (response: any) => {
+        const atendimentos: any[] = response.data || response || [];
         // Normaliza e salva TODOS os atendimentos (NUNCA muda)
-        this.todosAtendimentos = (atendimentos || []).map(a => ({
+        this.todosAtendimentos = atendimentos.map(a => ({
           ...a,
           createdAt: a.data_hora_atendimento
             ? new Date(a.data_hora_atendimento)
@@ -148,7 +149,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
           observacoes: a.observacoes || '',
           status: (a.status || '').toLowerCase().trim()
         }));
-        
+
         // Aplica o filtro inicial (aba "todas")
         this.aplicarFiltrosLocais();
       },
@@ -244,7 +245,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
       observacoes: a.observacoes || '',
       status: a.status || ''
     }));
-    
+
     this.currentPage = 0;
     this.loading = false;
   }
@@ -277,7 +278,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   filtrarPorBusca(event: Event) {
     const input = event.target as HTMLInputElement;
     const termo = input.value.toLowerCase().trim();
-    
+
     if (!termo) {
       // Se não há termo de busca, aplicar filtros normais
       this.aplicarFiltrosLocais();
@@ -285,7 +286,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     }
 
     // Filtrar por nome do paciente
-    const filtrados = this.todosAtendimentos.filter(a => 
+    const filtrados = this.todosAtendimentos.filter(a =>
       (a.paciente_nome || '').toLowerCase().includes(termo)
     );
 
@@ -297,17 +298,16 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
       observacoes: a.observacoes || '',
       status: a.status || ''
     }));
-    
+
     this.currentPage = 0;
   }
 
   carregarAtendimentosReais() {
     this.loading = true;
-    this.atendimentoService.listarTodosAtendimentos().subscribe({
-      next: (atendimentos: any[]) => {
-        console.log('Total de atendimentos retornados pela API:', atendimentos.length);
+    this.atendimentoService.listarTodosParaRelatorio().subscribe({
+      next: (response: any) => {
+        const atendimentos: any[] = response.data || response || [];
         this.relatorio = atendimentos.map((a: any) => ({
-          // Usa data_hora_atendimento (data real do atendimento) com fallback para created_at
           data: a.data_hora_atendimento ? new Date(a.data_hora_atendimento) : (a.created_at ? new Date(a.created_at) : new Date()),
           paciente_nome: a.paciente_nome || '',
           profissional: a.usuario_id || '',
@@ -315,7 +315,6 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
           observacoes: a.observacoes || '',
           status: a.status || ''
         }));
-        console.log('Total de atendimentos processados:', this.relatorio.length);
         this.loading = false;
       },
       error: (error: any) => {
@@ -365,7 +364,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   private contarPorStatus(aba: string): number {
     const statusList = this.STATUS_MAP[aba] || [];
     if (statusList.length === 0) return 0;
-    
+
     return this.todosAtendimentos.filter(a => {
       const statusLower = (a.status || '').toLowerCase().trim();
       return statusList.some(s => statusLower === s.toLowerCase());
@@ -420,14 +419,14 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
 
   limparFiltros() {
     // Reseta o formulário de filtros e recarrega todos os atendimentos
-    this.filtrosForm.reset({ 
-      dataInicial: '', 
-      dataFinal: '', 
-      sexo: '', 
-      municipio: '', 
-      uf: '', 
-      estadoCivil: '', 
-      escolaridade: '' 
+    this.filtrosForm.reset({
+      dataInicial: '',
+      dataFinal: '',
+      sexo: '',
+      municipio: '',
+      uf: '',
+      estadoCivil: '',
+      escolaridade: ''
     });
     this.abaAtiva = 'todas'; // Resetar aba para "todas"
     this.currentPage = 0;

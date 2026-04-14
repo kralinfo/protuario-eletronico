@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '../../environments/environment';
@@ -43,13 +43,71 @@ export interface FiltrosRelatorio {
   styleUrls: ['./relatorios.component.scss', '../shared/styles/table-footer.css'],
   standalone: false
 })
-export class RelatoriosComponent implements OnInit {
+export class RelatoriosComponent implements OnInit, AfterViewInit {
   filtrosForm: FormGroup;
   pacientes: Paciente[] = [];
   pacientesFiltrados: Paciente[] = [];
   atendimentos: any[] = []; // Adiciona array para atendimentos
   carregando = false;
   acessoNegado = false;
+
+  // Dados brutos (nunca mudam após carga)
+  todosPacientes: Paciente[] = [];
+
+  // Mapeamento de ABA → STATUS(S) do banco (igual ao relatorio-atendimentos)
+  private readonly STATUS_MAP: Record<string, string[]> = {
+    todas: [],
+    triagem_pendente: [
+      'encaminhado para triagem',
+      'encaminhado_para_triagem',
+      'triagem pendente',
+      'triagem_pendente'
+    ],
+    em_triagem: ['em triagem', 'em_triagem'],
+    aguardando_medico: [
+      'aguardando medico',
+      'aguardando médico',
+      'aguardando_medico',
+      'encaminhado para sala medica',
+      'encaminhado para sala médica',
+      'encaminhado_para_sala_medica',
+      '3 - encaminhado para sala médica',
+      'aguardando',
+      'aguardando_atendimento',
+      'aguardando atendimento'
+    ],
+    em_atendimento: [
+      'em atendimento',
+      'em atendimento médico',
+      'em atendimento medico',
+      'em_atendimento',
+      'em_atendimento_medico',
+      'em atendimento ambulatorial',
+      'em_atendimento_ambulatorial',
+      '4 - em atendimento médico'
+    ],
+    finalizados: [
+      'atendimento concluido',
+      'atendimento concluído',
+      'atendimento_concluido',
+      'finalizado',
+      'alta medica',
+      'alta médica',
+      'alta_medica',
+      'alta ambulatorial',
+      'alta_ambulatorial',
+      'encaminhado para exames',
+      'encaminhado_para_exames',
+      '7 - encaminhado para exames',
+      '8 - atendimento concluído'
+    ],
+    interrompidos: ['interrompido', 'abandonado']
+  };
+
+  // Abas com indicador animado
+  abaAtiva = 'todas';
+  @ViewChild('tabIndicator') tabIndicator!: ElementRef<HTMLElement>;
+  @ViewChildren('tabButton') tabButtons!: QueryList<ElementRef<HTMLElement>>;
 
   // Propriedades de paginação
   currentPage = 0;
@@ -139,6 +197,78 @@ export class RelatoriosComponent implements OnInit {
     this.carregarEstadosCivisDoBanco();
     this.carregarEscolaridadesDoBanco();
     this.carregarPacientes();
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      const firstTab = this.tabButtons.first;
+      if (firstTab) this.updateIndicator(firstTab.nativeElement);
+    });
+  }
+
+  setAba(aba: string, event: MouseEvent) {
+    this.abaAtiva = aba;
+    this.currentPage = 0;
+    this.updateIndicator(event.currentTarget as HTMLElement);
+    this.aplicarFiltrosLocais();
+  }
+
+  private updateIndicator(el: HTMLElement) {
+    if (!this.tabIndicator) return;
+    const indicator = this.tabIndicator.nativeElement;
+
+    const rect = el.getBoundingClientRect();
+    const parentRect = el.parentElement!.getBoundingClientRect();
+
+    indicator.style.width = rect.width + 'px';
+    indicator.style.left = (rect.left - parentRect.left) + 'px';
+  }
+
+  /**
+   * Filtra os pacientes baseado na aba ativa (status de atendimento)
+   */
+  getDadosFiltradosPorAba(): Paciente[] {
+    if (this.abaAtiva === 'todas') return this.pacientesFiltrados;
+
+    // Mapeia status para cada aba
+    const statusMap: Record<string, string[]> = {
+      triagem_pendente: ['triagem pendente', 'encaminhado para triagem'],
+      em_triagem: ['em_triagem', 'em triagem'],
+      aguardando_medico: [
+        'encaminhado_para_sala_medica',
+        'encaminhado para sala médica',
+        'aguardando',
+        'aguardando_atendimento',
+        'aguardando atendimento'
+      ],
+      em_atendimento: [
+        'em_atendimento_medico',
+        'em atendimento médico',
+        'em_atendimento',
+        'em atendimento',
+        'em_atendimento_ambulatorial',
+        'em atendimento ambulatorial'
+      ],
+      finalizados: [
+        'atendimento_concluido',
+        'atendimento concluido',
+        'finalizado',
+        'alta_ambulatorial',
+        'encaminhado_para_exames',
+        'encaminhado para exames'
+      ],
+      interrompidos: ['interrompido', 'abandonado']
+    };
+
+    const statusDaAba = statusMap[this.abaAtiva] || [];
+    if (statusDaAba.length === 0) return this.pacientesFiltrados;
+
+    // Filtra pacientes que têm atendimentos com o status da aba
+    const pacientesComStatus = this.atendimentos
+      .filter(a => statusDaAba.some(s => a.status.toLowerCase() === s.toLowerCase()))
+      .map(a => a.paciente_id);
+
+    return this.pacientesFiltrados.filter(p => pacientesComStatus.includes(p.id));
   }
 
   carregarEstadosCivisDoBanco() {
@@ -264,22 +394,23 @@ export class RelatoriosComponent implements OnInit {
     this.carregando = true;
     const token = this.authService.getToken();
 
-    // Carrega dados de atendimentos para os contadores de status
+    // Carrega atendimentos e pacientes em paralelo
     this.http.get<any>(`${environment.apiUrl}/atendimentos/reports`, {
       headers: { 'Authorization': `Bearer ${token}` }
     }).subscribe({
-      next: (response) => {
-        // A resposta deve conter os atendimentos
-        this.atendimentos = response.data || response || [];
-        console.log('Atendimentos carregados:', this.atendimentos.length);
+      next: (respAtend) => {
+        this.atendimentos = (respAtend.data || respAtend || []).map((a: any) => ({
+          ...a,
+          status: (a.status || '').toLowerCase().trim()
+        }));
 
-        // Carrega pacientes para o relatório
         this.http.get<any>(`${environment.apiUrl}/pacientes/reports`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).subscribe({
-          next: (response) => {
-            this.pacientes = response.data || [];
-            this.aplicarFiltros();
+          next: (respPac) => {
+            this.todosPacientes = respPac.data || [];
+            this.pacientes = this.todosPacientes;
+            this.aplicarFiltrosLocais();
             this.carregando = false;
           },
           error: (error) => {
@@ -296,38 +427,86 @@ export class RelatoriosComponent implements OnInit {
   }
 
   aplicarFiltros() {
-    this.carregando = true;
+    this.aplicarFiltrosLocais();
+  }
+
+  /**
+   * Filtra localmente (sem chamar a API) - igual ao relatorio-atendimentos
+   */
+  aplicarFiltrosLocais() {
     const filtros = this.filtrosForm.value;
-    const token = this.authService.getToken();
-    const params = new URLSearchParams();
-    if (filtros.dataInicio) params.append('dataInicio', filtros.dataInicio);
-    if (filtros.dataFim) params.append('dataFim', filtros.dataFim);
-    if (filtros.sexo) params.append('sexo', filtros.sexo);
-    if (filtros.municipio) params.append('municipio', filtros.municipio);
-    if (filtros.uf) params.append('uf', filtros.uf);
-    if (filtros.estadoCivil) params.append('estadoCivil', filtros.estadoCivil);
-    if (filtros.escolaridade) params.append('escolaridade', filtros.escolaridade);
-    const queryString = params.toString();
-    const url = `${environment.apiUrl}/pacientes/reports${queryString ? '?' + queryString : ''}`;
-    this.http.get<any>(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    }).subscribe({
-      next: (response) => {
-        this.pacientesFiltrados = response.data || [];
-        this.carregando = false;
-        this.updatePagination();
-        console.log(`Filtros aplicados: ${this.pacientesFiltrados.length} pacientes encontrados`);
-      },
-      error: (error) => {
-        console.error('Erro ao aplicar filtros:', error);
-        this.carregando = false;
-      }
-    });
+    let lista = [...this.todosPacientes];
+
+    // Helper: parse date input como data local
+    const parseDateLocal = (input: string): Date | null => {
+      if (!input) return null;
+      const m = input.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      return null;
+    };
+
+    // Filtro por Data Inicial (data de cadastro do paciente)
+    const dataInicio = parseDateLocal(filtros.dataInicio);
+    if (dataInicio) {
+      dataInicio.setHours(0, 0, 0, 0);
+      lista = lista.filter(p => {
+        if (!p.created_at) return false;
+        const d = new Date(p.created_at);
+        return d >= dataInicio!;
+      });
+    }
+
+    // Filtro por Data Final
+    const dataFim = parseDateLocal(filtros.dataFim);
+    if (dataFim) {
+      dataFim.setHours(23, 59, 59, 999);
+      lista = lista.filter(p => {
+        if (!p.created_at) return false;
+        const d = new Date(p.created_at);
+        return d <= dataFim!;
+      });
+    }
+
+    // Filtro por Sexo
+    if (filtros.sexo) {
+      lista = lista.filter(p => p.sexo === filtros.sexo);
+    }
+
+    // Filtro por Município (parcial)
+    if (filtros.municipio) {
+      const mun = String(filtros.municipio).toLowerCase();
+      lista = lista.filter(p => (p.municipio || '').toLowerCase().includes(mun));
+    }
+
+    // Filtro por UF
+    if (filtros.uf) {
+      lista = lista.filter(p => (p.uf || '').toUpperCase() === filtros.uf.toUpperCase());
+    }
+
+    // Filtro por Estado Civil
+    if (filtros.estadoCivil) {
+      lista = lista.filter(p => {
+        const ec = (p.estadoCivil || '').toLowerCase().trim();
+        return ec === filtros.estadoCivil.toLowerCase();
+      });
+    }
+
+    // Filtro por Escolaridade
+    if (filtros.escolaridade) {
+      lista = lista.filter(p => {
+        const esc = (p.escolaridade || '').toLowerCase().trim();
+        return esc === filtros.escolaridade.toLowerCase();
+      });
+    }
+
+    this.pacientesFiltrados = lista;
+    this.currentPage = 0;
+    this.updatePagination();
   }
 
   limparFiltros() {
     this.filtrosForm.reset();
-    this.aplicarFiltros();
+    this.aplicarFiltrosLocais();
   }
 
   gerarRelatorioSimples() {
@@ -545,6 +724,160 @@ export class RelatoriosComponent implements OnInit {
     ).length;
   }
 
+  /**
+   * Conta atendimentos por lista de status (para os contadores das abas - igual aos cards antigos)
+   */
+  private contarAtendimentosPorStatus(statusList: string[]): number {
+    return this.atendimentos.filter(a =>
+      statusList.some(s => (a.status || '').toLowerCase().trim() === s.toLowerCase())
+    ).length;
+  }
+
+  /**
+   * Retorna o total de pacientes (todos, para o label da aba Todas)
+   */
+  getTotal(): number {
+    return this.todosPacientes.length;
+  }
+
+  /**
+   * Retorna atendimentos com status Triagem Pendente (igual ao card antigo)
+   */
+  getTriagemPendente(): number {
+    return this.contarAtendimentosPorStatus(['triagem pendente', 'encaminhado para triagem']);
+  }
+
+  /**
+   * Retorna atendimentos com status Em Triagem (igual ao card antigo)
+   */
+  getEmTriagem(): number {
+    return this.contarAtendimentosPorStatus(['em_triagem', 'em triagem']);
+  }
+
+  /**
+   * Retorna atendimentos com status Aguardando Médico (igual ao card antigo)
+   */
+  getAguardandoMedico(): number {
+    return this.contarAtendimentosPorStatus([
+      'encaminhado_para_sala_medica',
+      'encaminhado para sala médica',
+      'aguardando',
+      'aguardando_atendimento',
+      'aguardando atendimento'
+    ]);
+  }
+
+  /**
+   * Retorna atendimentos com status Em Atendimento (igual ao card antigo)
+   */
+  getEmAtendimento(): number {
+    return this.contarAtendimentosPorStatus([
+      'em_atendimento_medico',
+      'em atendimento médico',
+      'em_atendimento',
+      'em atendimento',
+      'em_atendimento_ambulatorial',
+      'em atendimento ambulatorial'
+    ]);
+  }
+
+  /**
+   * Retorna atendimentos com status Finalizados (igual ao card antigo)
+   */
+  getFinalizados(): number {
+    return this.contarAtendimentosPorStatus([
+      'atendimento_concluido',
+      'atendimento concluido',
+      'finalizado',
+      'alta_ambulatorial',
+      'encaminhado_para_exames',
+      'encaminhado para exames'
+    ]);
+  }
+
+  /**
+   * Retorna atendimentos com status Interrompidos (igual ao card antigo)
+   */
+  getInterrompidos(): number {
+    return this.contarAtendimentosPorStatus(['interrompido', 'abandonado']);
+  }
+
+  /**
+   * Função principal que processa todos os dados em ordem:
+   * 1. Filtros do formulário
+   * 2. Aba selecionada
+   * 3. Busca por texto
+   */
+  getDadosProcessados(): Paciente[] {
+    let lista = [...this.pacientesFiltrados];
+
+    // 1. Aplicar filtros do formulário (já aplicados pelo backend em pacientesFiltrados)
+    // Os filtros de data, sexo, município, UF, estado civil e escolaridade já vêm do backend
+
+    // 2. Aplicar filtro por aba (status de atendimento)
+    lista = this.aplicarFiltroAba(lista);
+
+    // 3. Aplicar busca por texto (se houver)
+    lista = this.aplicarBusca(lista);
+
+    return lista;
+  }
+
+  /**
+   * Aplica filtro de aba baseado no status de atendimento (usa STATUS_MAP)
+   */
+  private aplicarFiltroAba(lista: Paciente[]): Paciente[] {
+    if (this.abaAtiva === 'todas') return lista;
+
+    const statusDaAba = this.STATUS_MAP[this.abaAtiva] || [];
+    if (statusDaAba.length === 0) return lista;
+
+    const pacientesComStatus = this.atendimentos
+      .filter(a => statusDaAba.some(s => (a.status || '').toLowerCase().trim() === s.toLowerCase()))
+      .map(a => a.paciente_id);
+
+    return lista.filter(p => pacientesComStatus.includes(p.id));
+  }
+
+  /**
+   * Aplica busca por texto no nome do paciente
+   */
+  private aplicarBusca(lista: Paciente[]): Paciente[] {
+    if (!this.termoBusca || this.termoBusca.trim() === '') return lista;
+
+    const termo = this.termoBusca.toLowerCase().trim();
+    return lista.filter(p => p.nome.toLowerCase().includes(termo));
+  }
+
+  /**
+   * Retorna o número de pacientes filtrados pela aba ativa (usado nas abas)
+   */
+  getPacientesPorAba(aba: string): number {
+    switch (aba) {
+      case 'todas': return this.getTotal();
+      case 'triagem_pendente': return this.getTriagemPendente();
+      case 'em_triagem': return this.getEmTriagem();
+      case 'aguardando_medico': return this.getAguardandoMedico();
+      case 'em_atendimento': return this.getEmAtendimento();
+      case 'finalizados': return this.getFinalizados();
+      case 'interrompidos': return this.getInterrompidos();
+      default: return 0;
+    }
+  }
+
+  // Termo de busca
+  termoBusca = '';
+
+  /**
+   * Aplica busca por texto
+   */
+  aplicarBuscaTexto(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.termoBusca = input.value;
+    this.currentPage = 0;
+    this.updatePagination();
+  }
+
   private gerarHtmlResumo(): string {
     let html = `
       <h1>Resumo de Pacientes</h1>
@@ -583,7 +916,8 @@ export class RelatoriosComponent implements OnInit {
 
   // Métodos de paginação
   updatePagination() {
-    this.totalPages = Math.ceil(this.pacientesFiltrados.length / this.pageSize);
+    const dadosProcessados = this.getDadosProcessados();
+    this.totalPages = Math.ceil(dadosProcessados.length / this.pageSize);
     if (this.currentPage >= this.totalPages) {
       this.currentPage = Math.max(0, this.totalPages - 1);
     }
@@ -591,9 +925,10 @@ export class RelatoriosComponent implements OnInit {
   }
 
   updatePaginatedData() {
+    const dadosProcessados = this.getDadosProcessados();
     const startIndex = this.currentPage * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.paginatedPacientes = this.pacientesFiltrados.slice(startIndex, endIndex);
+    this.paginatedPacientes = dadosProcessados.slice(startIndex, endIndex);
   }
 
   onPageSizeChange(event: any) {

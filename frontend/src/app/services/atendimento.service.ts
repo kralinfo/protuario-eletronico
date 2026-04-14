@@ -42,6 +42,10 @@ export class AtendimentoService {
     return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/todos`);
   }
 
+  listarTodosParaRelatorio() {
+    return this.http.get<any>(`${environment.apiUrl}/atendimentos/reports`);
+  }
+
   listarAtendimentosPorStatus(status: string) {
     return this.http.get<any[]>(`${environment.apiUrl}/atendimentos/por-status?status=${encodeURIComponent(status)}`);
   }

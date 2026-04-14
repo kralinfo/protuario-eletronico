@@ -47,6 +47,7 @@ import { PaginationComponent } from './shared/components/pagination/pagination.c
 import { NotificationContainerComponent } from './shared/components/notification-container.component';
 import { RealtimeStatusComponent } from './shared/components/realtime-status.component';
 import { FilaComponent } from './fila/fila.component';
+import { DateInputLimiterDirective } from './shared/directives/data.directive';
 
 @NgModule({
   declarations: [
@@ -95,6 +96,7 @@ import { FilaComponent } from './fila/fila.component';
     NotificationContainerComponent,
     RealtimeStatusComponent,
     FilaComponent,
+    DateInputLimiterDirective,
 
     // Remover diretivas e componentes dos imports, manter apenas módulos
     // Removido CommonModule daqui, pois BrowserModule já inclui CommonModule para AppModule
