@@ -97,7 +97,7 @@
 
         <div class="tab-indicator" #tabIndicator></div>
 
-        <button #tabButton class="tab" [class.active]="abaAtiva === 'todas'" (click)="setAba('todas', $event)">Todas ({{ getTotal() }})</button>
+        <button #tabButton class="tab" [class.active]="abaAtiva === 'todas'" (click)="setAba('todas', $event)">Todos ({{ getTotal() }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'triagem_pendente'" (click)="setAba('triagem_pendente', $event)">Triagem Pendente ({{ getTriagemPendente() }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'em_triagem'" (click)="setAba('em_triagem', $event)">Em Triagem ({{ getEmTriagem() }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'aguardando_medico'" (click)="setAba('aguardando_medico', $event)">Aguardando Médico ({{ getAguardandoMedico() }})</button>
@@ -122,17 +122,19 @@
             <th class="p-3 text-left">Nome</th>
             <th class="p-3 text-left">Sexo</th>
             <th class="p-3 text-left">Nascimento</th>
-            <th class="p-3 text-left">Município</th>
-            <th class="p-3 text-left">UF</th>
+            <th class="p-3 text-left">Município/UF</th>
+            <th class="p-3 text-left">Estado Civil</th>
+            <th class="p-3 text-left">Escolaridade</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let paciente of paginatedPacientes" class="border-t hover:bg-blue-50 cursor-pointer">
             <td class="p-3 font-medium">{{ paciente.nome }}</td>
-            <td class="p-3">{{ paciente.sexo }}</td>
-            <td class="p-3">{{ paciente.nascimento | date:'dd/MM/yyyy' }}</td>
-            <td class="p-3">{{ paciente.municipio }}</td>
-            <td class="p-3">{{ paciente.uf }}</td>
+            <td class="p-3">{{ paciente.sexo || '-' }}</td>
+            <td class="p-3 text-nowrap">{{ paciente.nascimento | date:'dd/MM/yyyy' }}</td>
+            <td class="p-3">{{ paciente.municipio || '-' }}{{ paciente.uf ? '/' + paciente.uf : '' }}</td>
+            <td class="p-3">{{ (paciente.estadoCivil || '-').split('_').join(' ') | titlecase }}</td>
+            <td class="p-3 text-xs text-slate-500">{{ (paciente.escolaridade || '-').split('_').join(' ') | titlecase }}</td>
           </tr>
         </tbody>
       </table>

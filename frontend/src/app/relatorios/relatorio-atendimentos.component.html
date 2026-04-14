@@ -96,7 +96,7 @@
 
         <div class="tab-indicator" #tabIndicator></div>
 
-        <button #tabButton class="tab" [class.active]="abaAtiva === 'todas'" (click)="setAba('todas', $event)">Todas ({{ todosAtendimentos.length }})</button>
+        <button #tabButton class="tab" [class.active]="abaAtiva === 'todas'" (click)="setAba('todas', $event)">Todos ({{ todosAtendimentos.length }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'triagem_pendente'" (click)="setAba('triagem_pendente', $event)">Triagem Pendente ({{ getAtendimentosEncaminhadosTriagem() }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'em_triagem'" (click)="setAba('em_triagem', $event)">Em Triagem ({{ getAtendimentosEmTriagem() }})</button>
         <button #tabButton class="tab" [class.active]="abaAtiva === 'aguardando_medico'" (click)="setAba('aguardando_medico', $event)">Aguardando Médico ({{ getAtendimentosAguardandoMedico() }})</button>
@@ -139,7 +139,7 @@
               </span>
             </td>
             <td class="p-3">{{ item.procedimento || '-' }}</td>
-            <td class="p-3 text-xs text-slate-500">{{ (item.escolaridade || '-') | titlecase | replace:'_':' ' }}</td>
+            <td class="p-3 text-xs text-slate-500">{{ (item.escolaridade || '-').split('_').join(' ') | titlecase }}</td>
           </tr>
         </tbody>
       </table>

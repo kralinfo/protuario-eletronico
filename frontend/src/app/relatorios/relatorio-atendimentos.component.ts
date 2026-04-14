@@ -155,10 +155,6 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
           procedimento: a.procedimento || a.procedencia || '-'
         }));
         this.aplicarFiltrosLocais();
-        }));
-
-        // Aplica o filtro inicial (aba "todas")
-        this.aplicarFiltrosLocais();
       },
       error: (error: any) => {
         console.error('Erro ao buscar atendimentos:', error);
@@ -213,33 +209,31 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
 
     // Filtro por Sexo
     if (filtros.sexo) {
-      filtrados = filtrados.filter((a: any) => a.paciente_sexo === filtros.sexo);
+      filtrados = filtrados.filter((a: any) => a.sexo === filtros.sexo);
     }
 
     // Filtro por Município
     if (filtros.municipio) {
       const municipioLower = String(filtros.municipio).toLowerCase();
-      filtrados = filtrados.filter((a: any) => (a.paciente_municipio || '').toLowerCase().includes(municipioLower));
+      filtrados = filtrados.filter((a: any) => (a.municipio || '').toLowerCase().includes(municipioLower));
     }
 
     // Filtro por UF
     if (filtros.uf) {
-      filtrados = filtrados.filter((a: any) => (a.paciente_uf || '').toUpperCase() === filtros.uf.toUpperCase());
+      filtrados = filtrados.filter((a: any) => (a.uf || '').toUpperCase() === filtros.uf.toUpperCase());
     }
 
     // Filtro por Estado Civil
     if (filtros.estadoCivil) {
       filtrados = filtrados.filter((a: any) => {
-        const estadoCivilPaciente = (a.paciente_estado_civil || '').toLowerCase().trim();
-        return estadoCivilPaciente === filtros.estadoCivil.toLowerCase();
+        return (a.estadoCivil || '').toLowerCase().trim() === filtros.estadoCivil.toLowerCase();
       });
     }
 
     // Filtro por Escolaridade
     if (filtros.escolaridade) {
       filtrados = filtrados.filter((a: any) => {
-        const escolaridadePaciente = (a.paciente_escolaridade || '').toLowerCase().trim();
-        return escolaridadePaciente === filtros.escolaridade.toLowerCase();
+        return (a.escolaridade || '').toLowerCase().trim() === filtros.escolaridade.toLowerCase();
       });
     }
 
