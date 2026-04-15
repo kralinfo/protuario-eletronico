@@ -18,6 +18,16 @@ import {
   FiltroDashboard
 } from '../../../services/dashboard.service';
 import { normalizeStatus, getStatusLabel } from '../../../utils/normalize-status';
+import { MatDialog } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import { HistoricoAtendimentoDetalheComponent } from '../../../pacientes/historico-atendimento-detalhe.component';
+import { AuthService } from '../../../auth/auth.service';
+import { AtendimentoService } from '../../../services/atendimento.service';
+import { AbandonoDialogComponent } from '../../../shared/abandono-dialog/abandono-dialog.component';
+import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { FeedbackDialogComponent } from '../../../shared/feedback-dialog/feedback-dialog.component';
 
 @Component({
   selector: 'app-dashboard-atendimentos-table',
@@ -30,8 +40,12 @@ import { normalizeStatus, getStatusLabel } from '../../../utils/normalize-status
     MatSortModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
-  ]
+    MatTooltipModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatDividerModule
+  ],
+  providers: []
 })
 export class DashboardAtendimentosTableComponent implements OnChanges, AfterViewInit, OnDestroy {
 
@@ -45,15 +59,22 @@ export class DashboardAtendimentosTableComponent implements OnChanges, AfterView
   pageSize = 10;
   carregando = true;
 
-  readonly colunas = ['paciente', 'status', 'risco', 'medico', 'dataHora', 'duracao'];
+  readonly colunas = ['acoes', 'paciente', 'status', 'risco', 'medico', 'dataHora', 'duracao'];
   readonly itensPorPagina = [5, 10, 25, 50];
 
   private readonly destroy$ = new Subject<void>();
   private readonly carregarPage$ = new Subject<void>();
 
+  get isEditor(): boolean {
+    return this.authService.isEditor;
+  }
+
   constructor(
     private dashboardService: DashboardService,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
+    private authService: AuthService,
+    private atendimentoService: AtendimentoService
   ) {
     this.carregarPage$.pipe(
       switchMap(() => {
@@ -108,6 +129,74 @@ export class DashboardAtendimentosTableComponent implements OnChanges, AfterView
 
   abrirFicha(row: AtendimentoDashboard): void {
     this.router.navigate(['/atendimento', row.id]);
+  }
+
+  isStatusFinal(status: string): boolean {
+    const finais = ['atendimento_concluido', 'alta_medica', 'alta_ambulatorial', 'abandonado'];
+    return finais.includes((status || '').toLowerCase());
+  }
+
+  visualizarDetalhes(row: AtendimentoDashboard): void {
+    this.dialog.open(HistoricoAtendimentoDetalheComponent, {
+      data: { atendimentoId: row.id },
+      width: '90%',
+      maxWidth: '1000px'
+    });
+  }
+
+  registrarAbandono(row: AtendimentoDashboard): void {
+    const ref = this.dialog.open(AbandonoDialogComponent, {
+      data: { atendimento: row },
+      width: '500px'
+    });
+    ref.afterClosed().subscribe((result: any) => {
+      if (result) {
+        this.atendimentoService.registrarAbandono(row.id, result).subscribe({
+          next: () => {
+            this.carregarPage$.next();
+            const fb = this.dialog.open(FeedbackDialogComponent, {
+              data: { title: 'Abandono Registrado', message: 'Atendimento marcado como abandonado com sucesso!', type: 'success' }
+            });
+            setTimeout(() => fb.close(), 2000);
+          },
+          error: () => {
+            const fb = this.dialog.open(FeedbackDialogComponent, {
+              data: { title: 'Erro', message: 'Falha ao registrar abandono. Tente novamente.', type: 'error' }
+            });
+            setTimeout(() => fb.close(), 2500);
+          }
+        });
+      }
+    });
+  }
+
+  registrarConclusao(row: AtendimentoDashboard): void {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Registrar Conclusão',
+        message: `Confirma a conclusão do atendimento do paciente ${(row as any).pacienteNome || ''}?`
+      }
+    });
+    ref.afterClosed().subscribe((result: any) => {
+      if (result) {
+        const dados = { motivo: (row as any).motivo, status: 'atendimento_concluido' };
+        this.atendimentoService.atualizarAtendimento(row.id, dados as any).subscribe({
+          next: () => {
+            this.carregarPage$.next();
+            const fb = this.dialog.open(FeedbackDialogComponent, {
+              data: { title: 'Sucesso', message: 'Atendimento concluído com sucesso!', type: 'success' }
+            });
+            setTimeout(() => fb.close(), 2000);
+          },
+          error: (err: any) => {
+            const fb = this.dialog.open(FeedbackDialogComponent, {
+              data: { title: 'Erro', message: err?.error?.message || 'Erro ao concluir atendimento.', type: 'error' }
+            });
+            setTimeout(() => fb.close(), 2500);
+          }
+        });
+      }
+    });
   }
 
   abrirConsulta(row: AtendimentoDashboard): void {

@@ -9,6 +9,7 @@ import { AbandonoDialogComponent } from '../shared/abandono-dialog/abandono-dial
 import { AuthService } from '../auth/auth.service';
 import { DatePipe } from '@angular/common';
 import { getStatusLabel } from '../utils/normalize-status';
+import { HistoricoAtendimentoDetalheComponent } from '../pacientes/historico-atendimento-detalhe.component';
 
 @Component({
   selector: 'app-atendimentos-dia',
@@ -673,6 +674,14 @@ export class AtendimentosDiaComponent implements OnInit {
       error: (error: any) => {
         console.error('Erro ao abrir dialog de confirmação de finalização:', error);
       }
+    });
+  }
+
+  visualizarDetalhes(atendimento: any) {
+    this.dialog.open(HistoricoAtendimentoDetalheComponent, {
+      data: { atendimentoId: atendimento.id },
+      width: '90%',
+      maxWidth: '1000px'
     });
   }
 
