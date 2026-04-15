@@ -66,6 +66,7 @@ import Atendimento from '../models/Atendimento.js';
 import Paciente from '../models/Paciente.js';
 import db from '../config/database.js';
 import PatientEventService from '../services/PatientEventService.js';
+import { normalizeStatus } from '../utils/normalizeStatus.js';
 
 const registrar = async (req, res) => {
   try {
@@ -96,7 +97,7 @@ const registrar = async (req, res) => {
       observacoes, 
       acompanhante, 
       procedencia, 
-      status: status || 'encaminhado para triagem', // Garante status correto
+      status: normalizeStatus(status || 'encaminhado_para_triagem'),
       motivo_interrupcao 
     });
     return res.status(201).json(atendimento);
@@ -123,17 +124,18 @@ const atualizarStatus = async (req, res) => {
     if (!status) {
       return res.status(400).json({ error: 'Status é obrigatório.' });
     }
+    const statusNorm = normalizeStatus(status);
     // Se status for interrompido, motivo_interrupcao deve ser informado
-    if (status === 'interrompido' && (!motivo_interrupcao || motivo_interrupcao.trim() === '')) {
+    if (statusNorm === 'interrompido' && (!motivo_interrupcao || motivo_interrupcao.trim() === '')) {
       return res.status(400).json({ error: 'Motivo da interrupção é obrigatório quando status for interrompido.' });
     }
-    const atendimento = await Atendimento.atualizarStatus(id, status, status === 'interrompido' ? motivo_interrupcao : 'N/A');
+    const atendimento = await Atendimento.atualizarStatus(id, statusNorm, statusNorm === 'interrompido' ? motivo_interrupcao : 'N/A');
     if (!atendimento) {
       return res.status(404).json({ error: 'Atendimento não encontrado.' });
     }
 
     // Se começou o atendimento agora, avisar o sistema de fila para limpar o banner "Chamado"
-    if (status === 'em atendimento médico' || status === 'em_atendimento_medico') {
+    if (statusNorm === 'em_atendimento_medico') {
       PatientEventService.emitAtendimentoStarted({
         patientId: id,
         patientName: atendimento.paciente_nome || 'Paciente',
@@ -142,8 +144,8 @@ const atualizarStatus = async (req, res) => {
       }).catch(err => console.error('[REALTIME] Erro ao emitir atendimento_started via atualizarStatus:', err.message));
     }
 
-    // Limpar card do médico no painel de fila assim que o status sair de 'em atendimento médico'
-    if (status !== 'em atendimento médico' && status !== 'em_atendimento_medico') {
+    // Limpar card do médico no painel de fila assim que o status sair de 'em_atendimento_medico'
+    if (statusNorm !== 'em_atendimento_medico') {
       PatientEventService.emitAtendimentoFinished({
         patientId: id,
         patientName: '',
@@ -199,7 +201,7 @@ const registrarAbandono = async (req, res) => {
       });
     }
     
-    if (atendimentoExistente.rows[0].status === 'concluido') {
+    if (atendimentoExistente.rows[0].status === 'atendimento_concluido') {
       return res.status(400).json({ 
         error: 'Não é possível abandonar um atendimento já concluído.' 
       });
@@ -327,25 +329,8 @@ const salvarDadosMedico = async (req, res) => {
       status_destino,
       observacoes
     } = dadosMedico;
-    // Corrige status se vier com hífen
-    let statusCorrigido = dadosMedico.status;
-    if (statusCorrigido === 'encaminhado_para_sala_medica') {
-      statusCorrigido = 'encaminhado para sala médica';
-    } else if (statusCorrigido === 'em_atendimento_medico') {
-      statusCorrigido = 'em atendimento médico';
-    } else if (statusCorrigido === 'encaminhado_para_ambulatorio') {
-      statusCorrigido = 'encaminhado para ambulatório';
-    } else if (statusCorrigido === 'em_atendimento_ambulatorial') {
-      statusCorrigido = 'em atendimento ambulatorial';
-    } else if (statusCorrigido === 'encaminhado_para_exames') {
-      statusCorrigido = 'encaminhado para exames';
-    } else if (statusCorrigido === 'atendimento_concluido') {
-      statusCorrigido = 'atendimento concluido';
-    }
-    // Se não vier, mantém padrão
-    if (!statusCorrigido) {
-      statusCorrigido = 'em atendimento médico';
-    }
+    // Corrige status usando normalizeStatus
+    let statusCorrigido = normalizeStatus(dadosMedico.status || 'em_atendimento_medico');
     const result = await db.query(
         `UPDATE atendimentos SET 
           motivo = $2,
@@ -365,7 +350,7 @@ const salvarDadosMedico = async (req, res) => {
     }
 
     // Notifica o painel de TV quando o médico inicia o atendimento
-    if (statusCorrigido === 'em atendimento médico' || statusCorrigido === 'em_atendimento_medico') {
+    if (statusCorrigido === 'em_atendimento_medico') {
       (async () => {
         try {
           const pacNomeRes = await db.query(

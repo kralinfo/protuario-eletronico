@@ -636,11 +636,11 @@ export class AtendimentosDiaComponent implements OnInit {
     dialogRef.afterClosed().subscribe({
       next: (result) => {
         if (result) {
-          // Atualizar status para 'concluido', mantendo outros dados
+          // Atualizar status para 'atendimento_concluido', mantendo outros dados
           const dadosAtualizacao = {
             motivo: atendimento.motivo,
             observacoes: atendimento.observacoes,
-            status: 'concluido',
+            status: 'atendimento_concluido',
             procedencia: atendimento.procedencia,
             acompanhante: atendimento.acompanhante
           };

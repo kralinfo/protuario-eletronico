@@ -152,7 +152,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
     this.medicoService.getAtendimento(String(this.atendimentoId)).subscribe({
       next: (dados) => {
         this.statusAnterior = dados?.status || null;
-        this.medicoService.atualizarStatus(String(this.atendimentoId), 'em atendimento médico').subscribe({
+        this.medicoService.atualizarStatus(String(this.atendimentoId), 'em_atendimento_medico').subscribe({
           next: () => {
             this.carregarDadosAtendimento();
           },
@@ -163,7 +163,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       },
       error: () => {
         // Fallback: atualiza o status mesmo sem saber o anterior
-        this.medicoService.atualizarStatus(String(this.atendimentoId), 'em atendimento médico').subscribe({
+        this.medicoService.atualizarStatus(String(this.atendimentoId), 'em_atendimento_medico').subscribe({
           next: () => {
             this.carregarDadosAtendimento();
           },
@@ -303,7 +303,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
       temperatura: [''],
       frequencia_cardiaca: [''],
       saturacao_oxigenio: [''],
-      status_destino: ['encaminhado para ambulatório', Validators.required],
+      status_destino: ['encaminhado_para_ambulatorio', Validators.required],
 
       // Novos campos detalhados
       medicamentos_prescritos: [''],
@@ -494,7 +494,7 @@ export class RealizarAtendimentoMedicoComponent implements OnInit {
   voltar() {
     // Se abriu um atendimento ativo (não é visualização) e temos o status anterior,
     // reverte o status para que o paciente volte à posição correta na fila
-    if (!this.consultaRealizada && this.statusAnterior && this.statusAnterior !== 'em atendimento médico') {
+    if (!this.consultaRealizada && this.statusAnterior && this.statusAnterior !== 'em_atendimento_medico') {
       this.medicoService.atualizarStatus(String(this.atendimentoId), this.statusAnterior).subscribe({
         complete: () => this._navegarVoltar()
       });

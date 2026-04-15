@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { AmbulatorioService } from '../ambulatorio.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 
 @Component({
   selector: 'app-dashboard-ambulatorio',
@@ -27,14 +28,13 @@ export class DashboardAmbulatorioComponent implements OnInit {
 
   // Status que devem ser monitorados para alertas (todos os status do fluxo antes do ambulatório)
   private readonly STATUS_ALERTAS = new Set<string>([
-    'encaminhado para triagem', '1 - Encaminhado para triagem', 'encaminhado_para_triagem',
-    'em triagem', '2 - Em triagem', 'em_triagem',
-    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-    'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-    'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-    'em atendimento ambulatorial', 'em_atendimento_ambulatorial',
-    'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-    'aguardando exames'
+    'encaminhado_para_triagem',
+    'em_triagem',
+    'encaminhado_para_sala_medica',
+    'em_atendimento_medico',
+    'encaminhado_para_ambulatorio',
+    'em_atendimento_ambulatorial',
+    'encaminhado_para_exames'
   ]);
 
   estatisticas: any = {
@@ -132,7 +132,7 @@ export class DashboardAmbulatorioComponent implements OnInit {
         return diffHoras <= 24;
       });
       // Filtrar atendimentos com status 'em_observacao'
-      const emObservacao = atendimentos24h.filter(a => (a.status || '').toLowerCase() === 'em_observacao');
+      const emObservacao = atendimentos24h.filter(a => normalizeStatus(a.status) === 'em_observacao');
       emObservacao.forEach(p => {
         p.tempo_espera = this.calcularTempoDecorrido(p);
       });
@@ -153,15 +153,9 @@ export class DashboardAmbulatorioComponent implements OnInit {
 
       // Filtrar atendimentos para fila: "em atendimento ambulatorial" + "encaminhado para ambulatório"
       const filaAtendimento = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase().trim();
-        const isFilaStatus = status === 'em atendimento ambulatorial' ||
-               status === 'encaminhado para ambulatório' ||
-               status === '5 - encaminhado para ambulatório' ||
-               status === 'encaminhado_para_ambulatorio' ||
-               status === 'em_atendimento_ambulatorial' ||
-               status.includes('encaminhado') && status.includes('ambulatório') ||
-               status.includes('encaminhado') && status.includes('ambulatorio') ||
-               status.includes('atendimento') && status.includes('ambulatorial');
+        const statusNorm = normalizeStatus(a.status);
+        const isFilaStatus = statusNorm === 'em_atendimento_ambulatorial' ||
+               statusNorm === 'encaminhado_para_ambulatorio';
 
         if (isFilaStatus) {
           console.log(`🏥 Paciente na fila: ID=${a.id}, status="${a.status}"`);
@@ -178,28 +172,17 @@ export class DashboardAmbulatorioComponent implements OnInit {
       this.filaDisponiveisPreview = this.ordenarPorClassificacaoETempo(filaAtendimento).slice(0, 5);
 
       // Contador "Atendimentos com Alta" (status: atendimento_concluido)
-      this.consultasEncaminhadas = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
-        return status === 'atendimento_concluido';
-      }).length;
+      this.consultasEncaminhadas = atendimentos24h.filter(a => normalizeStatus(a.status) === 'atendimento_concluido').length;
 
       // Contador "Em Atendimento" (status: encaminhado para ambulatório, em atendimento ambulatorial)
       this.consultasEmAtendimento = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase().trim();
-        return status === 'encaminhado para ambulatório' ||
-               status === 'em atendimento ambulatorial' ||
-               status === 'encaminhado_para_ambulatorio' ||
-               status === 'em_atendimento_ambulatorial' ||
-               status.includes('encaminhado') && status.includes('ambulatório') ||
-               status.includes('encaminhado') && status.includes('ambulatorio') ||
-               status.includes('atendimento') && status.includes('ambulatorial');
+        const statusNorm = normalizeStatus(a.status);
+        return statusNorm === 'encaminhado_para_ambulatorio' ||
+               statusNorm === 'em_atendimento_ambulatorial';
       }).length;
 
       // Contador "Em Observação" (status: em_observacao)
-      this.consultasEmObservacao = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
-        return status === 'em_observacao';
-      }).length;
+      this.consultasEmObservacao = atendimentos24h.filter(a => normalizeStatus(a.status) === 'em_observacao').length;
     });
   }
 
@@ -234,7 +217,7 @@ export class DashboardAmbulatorioComponent implements OnInit {
           // Log para debug
           console.log(`🔍 Paciente ${p.id}: status="${p.status}", risco="${risco}", tempo=${tempoDecorrido}min, monitorado=${this.STATUS_ALERTAS.has(p.status)}, passou_por_medico=${p.passou_por_atendimento_medico}`);
 
-          if (!this.STATUS_ALERTAS.has(p.status)) continue;
+          if (!this.STATUS_ALERTAS.has(normalizeStatus(p.status))) continue;
           if (!risco || limite === undefined) continue;
 
           // Adicionar o tempo_espera calculado ao objeto
@@ -297,39 +280,14 @@ export class DashboardAmbulatorioComponent implements OnInit {
       });
 
       // Calcular pacientes aguardando (encaminhados para ambulatório)
-      const aguardando = atendimentosUltimas24h.filter(a => {
-        const status = (a.status || '').toLowerCase().trim();
-        return status.includes('encaminhado_para_ambulatorio') ||
-               status.includes('encaminhado para ambulatório') ||
-               status === '5 - encaminhado para ambulatório' ||
-               (status.includes('encaminhado') && status.includes('ambulatório')) ||
-               (status.includes('encaminhado') && status.includes('ambulatorio'));
-      });
+      const aguardando = atendimentosUltimas24h.filter(a => normalizeStatus(a.status) === 'encaminhado_para_ambulatorio');
 
       // Calcular pacientes em atendimento ambulatorial
-      const emAtendimento = atendimentosUltimas24h.filter(a => {
-        const status = (a.status || '').toLowerCase().trim();
-        return status.includes('em atendimento ambulatorial') ||
-               status.includes('em_atendimento_ambulatorial') ||
-               (status.includes('atendimento') && status.includes('ambulatorial'));
-      });
+      const emAtendimento = atendimentosUltimas24h.filter(a => normalizeStatus(a.status) === 'em_atendimento_ambulatorial');
 
       // Calcular consultas concluídas (que saíram do ambulatório)
-      const concluidasUltimas24h = atendimentosUltimas24h.filter(a => {
-        const status = (a.status || '').toLowerCase().trim();
-        return status.includes('alta_ambulatorial') ||
-               status.includes('alta ambulatorial') ||
-               status.includes('encaminhado_para_exames') ||
-               status.includes('encaminhado para exames') ||
-               status.includes('encaminhado_para_internacao') ||
-               status.includes('encaminhado para internação') ||
-               status.includes('atendimento_concluido') ||
-               status.includes('atendimento concluido') ||
-               status.includes('transferido') ||
-               status.includes('óbito') ||
-               status.includes('obito') ||
-               (status.includes('alta') && status.includes('ambulatorial'));
-      });
+      const statusConcluidos = new Set(['alta_ambulatorial', 'encaminhado_para_exames', 'encaminhado_para_internacao', 'atendimento_concluido', 'transferido', 'obito']);
+      const concluidasUltimas24h = atendimentosUltimas24h.filter(a => statusConcluidos.has(normalizeStatus(a.status)));
 
       // Calcular estatísticas por classificação de risco (últimas 24h)
       const por_classificacao = {
@@ -368,15 +326,7 @@ export class DashboardAmbulatorioComponent implements OnInit {
   }
 
   getDescricaoStatus(status: string): string {
-    const map: any = {
-      aguardando: 'Aguardando',
-      em_atendimento: 'Em Atendimento',
-      finalizado: 'Finalizado',
-      em_sala_medica: 'Em Sala Médica',
-      encaminhado: 'Encaminhado',
-      consulta: 'Consulta'
-    };
-    return map[status] || status;
+    return getStatusLabel(normalizeStatus(status));
   }
 
   getCorStatus(status: string): string {

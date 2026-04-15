@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { normalizeStatus, VALID_STATUSES } from '../utils/normalizeStatus.js';
 
 
 class Atendimento {
@@ -10,11 +11,12 @@ class Atendimento {
     return result.rows[0];
   }
 
-  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'encaminhado para triagem', motivo_interrupcao = 'N/A' }) {
+  static async criar({ pacienteId, motivo, observacoes, acompanhante, procedencia, status = 'encaminhado_para_triagem', motivo_interrupcao = 'N/A' }) {
+    const statusNorm = normalizeStatus(status);
     const result = await db.query(
       `INSERT INTO atendimentos (paciente_id, motivo, status, motivo_interrupcao, observacoes, acompanhante, procedencia, data_hora_atendimento)
        VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) RETURNING *`,
-      [pacienteId, motivo, status, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null]
+      [pacienteId, motivo, statusNorm, motivo_interrupcao, observacoes || null, acompanhante || null, procedencia || null]
     );
     return result.rows[0];
   }
@@ -38,26 +40,14 @@ class Atendimento {
   }
 
   static async atualizarStatus(id, status, motivo_interrupcao = 'N/A') {
-    const validStatuses = [
-      'recepcao',
-      'encaminhado para triagem',
-      'em_triagem',
-      'triagem_finalizada',
-      'encaminhado para sala médica',
-      'em atendimento médico',
-      'encaminhado para ambulatório',
-      'em atendimento ambulatorial',
-      'encaminhado para exames',
-      'atendimento_concluido'
-    ];
-
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Status inválido: ${status}`);
+    const statusNorm = normalizeStatus(status);
+    if (!VALID_STATUSES.includes(statusNorm)) {
+      throw new Error(`Status inválido: ${status} (normalizado: ${statusNorm})`);
     }
 
     const result = await db.query(
       `UPDATE atendimentos SET status = $1, motivo_interrupcao = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *`,
-      [status, motivo_interrupcao, id]
+      [statusNorm, motivo_interrupcao, id]
     );
     return result.rows[0];
   }
@@ -72,7 +62,7 @@ class Atendimento {
               p.sexo as paciente_sexo
        FROM atendimentos a
        JOIN pacientes p ON p.id = a.paciente_id
-       WHERE a.status = 'encaminhado para triagem'
+       WHERE a.status = 'encaminhado_para_triagem'
          AND DATE(a.data_hora_atendimento) = CURRENT_DATE
        ORDER BY 
          a.prioridade ASC NULLS LAST,
@@ -97,19 +87,14 @@ class Atendimento {
            OR (
              -- Itens disponíveis para triagem (mantém lógica anterior para o card de disponíveis)
              a.status IN (
-               'encaminhado para triagem',
                'encaminhado_para_triagem',
-               '1 - Encaminhado para triagem',
-               'em_triagem',
-               'em triagem',
-               '2 - Em triagem',
-               '2 - Em Triagem'
+               'em_triagem'
              )
              AND a.data_hora_atendimento >= NOW() - INTERVAL '24 hours'
            )
            ORDER BY 
              CASE 
-               WHEN a.status = 'encaminhado para triagem' THEN 1
+               WHEN a.status = 'encaminhado_para_triagem' THEN 1
                WHEN a.status = 'em_triagem' THEN 2
                ELSE 3
              END,
@@ -126,7 +111,7 @@ class Atendimento {
            triagem_realizada_por = $2,
            data_inicio_triagem = CURRENT_TIMESTAMP,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1 AND status = 'encaminhado para triagem'
+       WHERE id = $1 AND status = 'encaminhado_para_triagem'
        RETURNING *`,
       [id, usuarioId]
     );
@@ -200,7 +185,8 @@ class Atendimento {
     return result.rows[0];
   }
 
-  static async finalizarTriagem(id, statusDestino = 'encaminhado para sala médica') {
+  static async finalizarTriagem(id, statusDestino = 'encaminhado_para_sala_medica') {
+    const statusNorm = normalizeStatus(statusDestino);
     const result = await db.query(
       `UPDATE atendimentos 
        SET status = $2,
@@ -208,7 +194,7 @@ class Atendimento {
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1
        RETURNING *`,
-      [id, statusDestino]
+      [id, statusNorm]
     );
     return result.rows[0];
   }
@@ -237,7 +223,7 @@ class Atendimento {
       [
         motivo,
         observacoes || null,
-        status || 'encaminhado para triagem',
+        normalizeStatus(status || 'encaminhado_para_triagem'),
         procedencia || null,
         acompanhante || null,
         queixa_principal || null,

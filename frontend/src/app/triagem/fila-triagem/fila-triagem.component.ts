@@ -18,6 +18,7 @@ import { TriagemService } from 'src/app/services/triagem.service';
 import { RealtimeService } from 'src/app/services/realtime.service';
 import { FilaService } from 'src/app/services/fila.service';
 import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 
 interface PacienteTriagem {
   id: number;
@@ -65,7 +66,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     tempo_medio_espera: 0
   };
   carregando = true;
-  filtroStatus: string = 'encaminhado para triagem'; // Ajustado para corresponder ao valor retornado pela API
+  filtroStatus: string = 'encaminhado_para_triagem';
   chamandoPaciente: Record<number, boolean> = {};
 
   private atualizacaoSubscription?: Subscription;
@@ -136,7 +137,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       }
 
       // Escolhe o endpoint adequado: quando filtrando por "encaminhado para triagem", usa a fila específica
-      const usarFilaEndpoint = this.filtroStatus ? this.getStatusAliases('encaminhado para triagem').has(this.filtroStatus) : false;
+      const usarFilaEndpoint = this.filtroStatus ? this.getStatusAliases('encaminhado_para_triagem').has(this.filtroStatus) : false;
       const [pacientes, estatisticas] = await Promise.all([
         firstValueFrom(usarFilaEndpoint
           ? this.triagemService.listarFilaTriagem()
@@ -152,8 +153,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       if (!this.filtroStatus) {
         this.pacientes = lista;
       } else {
-        const aliases = this.getStatusAliases(this.filtroStatus);
-        this.pacientes = lista.filter(p => aliases.has(p.status));
+        this.pacientes = lista.filter(p => normalizeStatus(p.status) === this.filtroStatus);
       }
 
       this.estatisticas = (estatisticas as Estatisticas) || this.estatisticas;
@@ -169,47 +169,8 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
   }
 
   private getStatusAliases(statusBase: string): Set<string> {
-    // Mapeia filtros para variações de status vindas do backend
-    const map: Record<string, string[]> = {
-      'encaminhado para triagem': [
-        'encaminhado para triagem', 'encaminhado_para_triagem', '1 - Encaminhado para triagem'
-      ],
-      'em_triagem': [
-        'em_triagem', 'em triagem', '2 - Em triagem'
-      ],
-      'encaminhado para sala médica': [
-        'encaminhado para sala médica', 'encaminhado_para_sala_medica', '3 - Encaminhado para sala médica'
-      ],
-      'em atendimento médico': [
-        'em atendimento médico', 'em_atendimento_medico', '4 - Em atendimento médico'
-      ],
-      'encaminhado para ambulatório': [
-        'encaminhado para ambulatório', 'encaminhado_para_ambulatorio', '5 - Encaminhado para ambulatório'
-      ],
-      'em atendimento ambulatorial': [
-        'em atendimento ambulatorial', 'em_atendimento_ambulatorial', '6 - Em atendimento ambulatorial'
-      ],
-      'encaminhado para exames': [
-        'encaminhado para exames', 'encaminhado_para_exames', '7 - Encaminhado para exames'
-      ],
-      'aguardando exames': [
-        'aguardando exames'
-      ],
-      'exames concluídos': [
-        'exames concluídos'
-      ],
-      'alta médica': [
-        'alta médica'
-      ],
-      'transferido': [
-        'transferido'
-      ],
-      'óbito': [
-        'óbito'
-      ]
-    };
-    const arr = map[statusBase] || [statusBase];
-    return new Set(arr);
+    // Com normalizeStatus, cada status canônico mapeia apenas para si mesmo
+    return new Set([statusBase]);
   }
 
   chamarPaciente(paciente: PacienteTriagem): void {
@@ -331,62 +292,20 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
-      '1 - Encaminhado para triagem': '#2196F3',
       'encaminhado_para_triagem': '#2196F3',
-      'encaminhado para triagem': '#2196F3',
-      '2 - Em triagem': '#4CAF50',
       'em_triagem': '#4CAF50',
-      'em triagem': '#4CAF50',
-      '3 - Encaminhado para sala médica': '#FF9800',
       'encaminhado_para_sala_medica': '#FF9800',
-      'encaminhado para sala médica': '#FF9800',
-      '4 - Em atendimento médico': '#FF5722',
       'em_atendimento_medico': '#FF5722',
-      'em atendimento médico': '#FF5722',
-      '5 - Encaminhado para ambulatório': '#9C27B0',
       'encaminhado_para_ambulatorio': '#9C27B0',
-      'encaminhado para ambulatório': '#9C27B0',
-      '6 - Em atendimento ambulatorial': '#3F51B5',
       'em_atendimento_ambulatorial': '#3F51B5',
-      'em atendimento ambulatorial': '#3F51B5',
-      '7 - Encaminhado para exames': '#009688',
       'encaminhado_para_exames': '#009688',
-      'encaminhado para exames': '#009688',
-      '8 - Atendimento concluído': '#4CAF50',
-      'atendimento_concluido': '#4CAF50',
-      'atendimento concluído': '#4CAF50'
+      'atendimento_concluido': '#4CAF50'
     };
-    return cores[status] || '#757575';
+    return cores[normalizeStatus(status)] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
-    const descricoes: Record<string, string> = {
-      '1 - Encaminhado para triagem': '1 - Encaminhado para Triagem',
-      'encaminhado_para_triagem': '1 - Encaminhado para Triagem',
-      'encaminhado para triagem': '1 - Encaminhado para Triagem',
-      '2 - Em triagem': '2 - Em Triagem',
-      'em_triagem': '2 - Em Triagem',
-      'em triagem': '2 - Em Triagem',
-      '3 - Encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
-      'encaminhado_para_sala_medica': '3 - Encaminhado para Sala Médica',
-      'encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
-      '4 - Em atendimento médico': '4 - Em Atendimento Médico',
-      'em_atendimento_medico': '4 - Em Atendimento Médico',
-      'em atendimento médico': '4 - Em Atendimento Médico',
-      '5 - Encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
-      'encaminhado_para_ambulatorio': '5 - Encaminhado para Ambulatório',
-      'encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
-      '6 - Em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial',
-      'em_atendimento_ambulatorial': '6 - Em Atendimento Ambulatorial',
-      'em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial',
-      '7 - Encaminhado para exames': '7 - Encaminhado para Exames',
-      'encaminhado_para_exames': '7 - Encaminhado para Exames',
-      'encaminhado para exames': '7 - Encaminhado para Exames',
-      '8 - Atendimento concluído': '8 - Atendimento Concluído',
-      'atendimento_concluido': '8 - Atendimento Concluído',
-      'atendimento concluído': '8 - Atendimento Concluído'
-    };
-    return descricoes[status] || status;
+    return getStatusLabel(normalizeStatus(status));
   }
 
   getIniciais(nome: string): string {
@@ -422,10 +341,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   // Métodos para contar pacientes por status
   contarPacientesAguardando(): number {
-    return this.pacientes.filter(p =>
-      p.status === 'encaminhado para triagem' ||
-      p.status === '1 - Encaminhado para triagem'
-    ).length;
+    return this.pacientes.filter(p => normalizeStatus(p.status) === 'encaminhado_para_triagem').length;
   }
 
   contarPacientesEmTriagem(): number {

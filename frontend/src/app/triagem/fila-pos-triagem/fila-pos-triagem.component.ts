@@ -10,6 +10,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { interval, Subscription, firstValueFrom } from 'rxjs';
 import { TriagemService, PacienteTriagem } from '../../services/triagem.service';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 
 @Component({
   selector: 'app-fila-pos-triagem',
@@ -64,17 +65,17 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
       console.log('[Pós-Triagem] Primeiros 3 registros:', pacientes?.slice(0, 3));
 
       const POS_TRIAGEM = new Set([
-        'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-        'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-        'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-        'em atendimento ambulatorial', '6 - Em atendimento ambulatorial', 'em_atendimento_ambulatorial',
-        'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-        'aguardando exames', 'exames concluídos', 'alta médica', 'transferido', 'óbito'
+        'encaminhado_para_sala_medica',
+        'em_atendimento_medico',
+        'encaminhado_para_ambulatorio',
+        'em_atendimento_ambulatorial',
+        'encaminhado_para_exames',
+        'aguardando_exames', 'exames_concluidos', 'alta_medica', 'transferido', 'obito'
       ]);
 
       const lista = (pacientes || [])
-        .filter(p => p && POS_TRIAGEM.has(p.status))
-        .filter(p => !this.filtroStatus || p.status === this.filtroStatus)
+        .filter(p => p && POS_TRIAGEM.has(normalizeStatus(p.status)))
+        .filter(p => !this.filtroStatus || normalizeStatus(p.status) === this.filtroStatus)
         .sort((a, b) => (b.tempo_espera || 0) - (a.tempo_espera || 0));
 
       console.log('[Pós-Triagem] Após filtro de status:', lista.length);
@@ -97,11 +98,11 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
 
     // Define restricted statuses for editing
     const RESTRICTED_STATUSES = new Set([
-      'alta médica', 'transferido', 'óbito'
+      'alta_medica', 'transferido', 'obito'
     ]);
 
     // Check if the patient's status is restricted
-    if (RESTRICTED_STATUSES.has(paciente.status)) {
+    if (RESTRICTED_STATUSES.has(normalizeStatus(paciente.status))) {
       this.snackBar.open('Edição não permitida para este status.', 'Fechar', { duration: 5000 });
       return;
     }
@@ -117,21 +118,21 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
 
   contarEncaminhados(): number {
     const ENCAMINHADOS = new Set([
-      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-      'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-      'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-      'aguardando exames'
+      'encaminhado_para_sala_medica',
+      'encaminhado_para_ambulatorio',
+      'encaminhado_para_exames',
+      'aguardando_exames'
     ]);
-    return (this.pacientes || []).filter(p => p && ENCAMINHADOS.has(p.status)).length;
+    return (this.pacientes || []).filter(p => p && ENCAMINHADOS.has(normalizeStatus(p.status))).length;
   }
 
   contarEmAtendimento(): number {
     const EM_ATENDIMENTO = new Set([
-      'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-      'em atendimento ambulatorial', '6 - Em atendimento ambulatorial', 'em_atendimento_ambulatorial',
-      'em_triagem', 'em triagem', '2 - Em triagem'
+      'em_atendimento_medico',
+      'em_atendimento_ambulatorial',
+      'em_triagem'
     ]);
-    return (this.pacientes || []).filter(p => p && EM_ATENDIMENTO.has(p.status)).length;
+    return (this.pacientes || []).filter(p => p && EM_ATENDIMENTO.has(normalizeStatus(p.status))).length;
   }
 
   getIniciais(nome: string): string {
@@ -165,66 +166,24 @@ export class FilaPosTriagemComponent implements OnInit, OnDestroy {
 
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
-      '1 - Encaminhado para triagem': '#2196F3',
       'encaminhado_para_triagem': '#2196F3',
-      'encaminhado para triagem': '#2196F3',
-      '2 - Em triagem': '#4CAF50',
       'em_triagem': '#4CAF50',
-      'em triagem': '#4CAF50',
-      '3 - Encaminhado para sala médica': '#FF9800',
       'encaminhado_para_sala_medica': '#FF9800',
-      'encaminhado para sala médica': '#FF9800',
-      '4 - Em atendimento médico': '#FF5722',
       'em_atendimento_medico': '#FF5722',
-      'em atendimento médico': '#FF5722',
-      '5 - Encaminhado para ambulatório': '#9C27B0',
       'encaminhado_para_ambulatorio': '#9C27B0',
-      'encaminhado para ambulatório': '#9C27B0',
-      '6 - Em atendimento ambulatorial': '#3F51B5',
       'em_atendimento_ambulatorial': '#3F51B5',
-      'em atendimento ambulatorial': '#3F51B5',
-      '7 - Encaminhado para exames': '#009688',
       'encaminhado_para_exames': '#009688',
-      'encaminhado para exames': '#009688',
-      'aguardando exames': '#607D8B',
-      'exames concluídos': '#4CAF50',
-      'alta médica': '#2E7D32',
+      'aguardando_exames': '#607D8B',
+      'exames_concluidos': '#4CAF50',
+      'alta_medica': '#2E7D32',
       'transferido': '#6D4C41',
-      'óbito': '#263238'
+      'obito': '#263238'
     };
-    return cores[status] || '#757575';
+    return cores[normalizeStatus(status)] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
-    const descricoes: Record<string, string> = {
-      '1 - Encaminhado para triagem': '1 - Encaminhado para Triagem',
-      'encaminhado_para_triagem': '1 - Encaminhado para Triagem',
-      'encaminhado para triagem': '1 - Encaminhado para Triagem',
-      '2 - Em triagem': '2 - Em Triagem',
-      'em_triagem': '2 - Em Triagem',
-      'em triagem': '2 - Em Triagem',
-      '3 - Encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
-      'encaminhado_para_sala_medica': '3 - Encaminhado para Sala Médica',
-      'encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
-      '4 - Em atendimento médico': '4 - Em Atendimento Médico',
-      'em_atendimento_medico': '4 - Em Atendimento Médico',
-      'em atendimento médico': '4 - Em Atendimento Médico',
-      '5 - Encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
-      'encaminhado_para_ambulatorio': '5 - Encaminhado para Ambulatório',
-      'encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
-      '6 - Em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial',
-      'em_atendimento_ambulatorial': '6 - Em Atendimento Ambulatorial',
-      'em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial',
-      '7 - Encaminhado para exames': '7 - Encaminhado para Exames',
-      'encaminhado_para_exames': '7 - Encaminhado para Exames',
-      'encaminhado para exames': '7 - Encaminhado para Exames',
-      'aguardando exames': 'Aguardando Exames',
-      'exames concluídos': 'Exames Concluídos',
-      'alta médica': 'Alta Médica',
-      'transferido': 'Transferido',
-      'óbito': 'Óbito'
-    };
-    return descricoes[status] || status;
+    return getStatusLabel(normalizeStatus(status));
   }
 
 }

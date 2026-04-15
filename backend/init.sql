@@ -46,7 +46,7 @@ CREATE TABLE atendimentos (
   data_hora_atendimento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   motivo VARCHAR(255),
   descricao TEXT,
-  status VARCHAR(50) NOT NULL DEFAULT 'triagem pendente',
+  status VARCHAR(50) NOT NULL DEFAULT 'encaminhado_para_triagem',
   observacoes TEXT,
   motivo_interrupcao VARCHAR(255) DEFAULT 'N/A',
   acompanhante VARCHAR(100),

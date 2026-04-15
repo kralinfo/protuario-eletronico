@@ -13,6 +13,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { RealtimeService } from 'src/app/services/realtime.service';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 
 interface PacienteAmbulatorio {
   id: number;
@@ -104,14 +105,9 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
 
             // Filtrar apenas os status que pertencem à fila do ambulatório
             lista = lista.filter((a: any) => {
-              const status = (a.status || '').toString().toLowerCase();
-              return status === 'encaminhado_para_ambulatorio' ||
-                     status === 'encaminhado para ambulatório' ||
-                     status === '5 - encaminhado para ambulatório' ||
-                     status === 'em atendimento ambulatorial' ||
-                     status === 'em_atendimento_ambulatorial' ||
-                     (status.includes('encaminhado') && status.includes('ambulatorio')) ||
-                     (status.includes('atendimento') && status.includes('ambulatorial'));
+              const normalized = normalizeStatus(a.status);
+              return normalized === 'encaminhado_para_ambulatorio' ||
+                     normalized === 'em_atendimento_ambulatorial';
             });
 
             // Deduplicar por id (mantendo a primeira ocorrência)
@@ -198,19 +194,9 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
       }
     });
     // Calcula tempo médio de espera considerando apenas pacientes encaminhados para ambulatório
-    const statusVariants = ['encaminhado_para_ambulatorio', 'encaminhado para ambulatorio', '5 - Encaminhado para ambulatório'];
-    const agora = new Date();
     const aguardando = this.pacientes.filter(p => {
-      const status = (p.status || '').toString().toLowerCase();
-      // filtra variantes que representam encaminhado para ambulatório
-      const isEncaminhado = statusVariants.some(v => status.includes(v.replace(/_/g, ' ')) || status === v);
-      if (!isEncaminhado) return false;
-      // opcional: considerar só últimos 24h quando data estiver disponível
-      const campoData = (p as any).created_at || p.data_hora_atendimento;
-      if (!campoData) return true; // se não tiver data, incluímos
-      const data = new Date(campoData);
-      const diffHoras = (agora.getTime() - data.getTime()) / (1000 * 60 * 60);
-      return diffHoras <= 24;
+      const normalized = normalizeStatus(p.status);
+      return normalized === 'encaminhado_para_ambulatorio';
     });
 
     // calcula média de tempo_espera (em minutos) se disponível
@@ -236,24 +222,17 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
 
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
-      'encaminhado para ambulatorio': '#2196F3',
-      'em atendimento ambulatorial': '#4CAF50',
-      'alta médica': '#9E9E9E',
+      'encaminhado_para_ambulatorio': '#2196F3',
+      'em_atendimento_ambulatorial': '#4CAF50',
+      'alta_medica': '#9E9E9E',
       'transferido': '#673AB7',
-      'óbito': '#000000'
+      'obito': '#000000'
     };
-    return cores[status] || '#757575';
+    return cores[normalizeStatus(status)] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
-    const descricoes: Record<string, string> = {
-      'encaminhado para ambulatorio': 'Encaminhado para Ambulatório',
-      'em atendimento ambulatorial': 'Em Atendimento',
-      'alta médica': 'Alta Médica',
-      'transferido': 'Transferido',
-      'óbito': 'Óbito'
-    };
-    return descricoes[status] || status;
+    return getStatusLabel(normalizeStatus(status));
   }
 
   getIdade(nascimento: string): number {
@@ -285,22 +264,13 @@ export class FilaAtendimentosAmbulatorioComponent implements OnInit, OnDestroy {
   }
 
   contarPacientesAguardando(): number {
-    const statusVariants = ['encaminhado_para_ambulatorio', 'encaminhado para ambulatorio', '5 - Encaminhado para ambulatório'];
-    const agora = new Date();
     return this.pacientes.filter(a => {
-      const status = (a.status || '').toString().toLowerCase();
-      const isEncaminhado = statusVariants.some(v => status.includes(v.replace(/_/g, ' ')) || status === v);
-      if (!isEncaminhado) return false;
-      const campoData = (a as any).created_at || a.data_hora_atendimento;
-      if (!campoData) return true;
-      const data = new Date(campoData);
-      const diffHoras = (agora.getTime() - data.getTime()) / (1000 * 60 * 60);
-      return diffHoras <= 24;
+      return normalizeStatus(a.status) === 'encaminhado_para_ambulatorio';
     }).length;
   }
 
   isStatusEmAtendimentoAmbulatorial(status: string): boolean {
-    return status === 'em atendimento ambulatorial';
+    return normalizeStatus(status) === 'em_atendimento_ambulatorial';
   }
 
   iniciarAtendimento(paciente: PacienteAmbulatorio) {

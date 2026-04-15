@@ -234,7 +234,7 @@ class TriagemController {
         });
       }
 
-      const { status_destino = 'encaminhado para sala médica' } = req.body;
+      const { status_destino = 'encaminhado_para_sala_medica' } = req.body;
       
       console.log('DEBUG - Finalizando triagem:');
       console.log('ID:', id);
@@ -263,9 +263,9 @@ class TriagemController {
       
       // Mapear status destino para módulo
       const statusToModuleMap = {
-        'encaminhado para sala médica': 'medico',
-        'encaminhado para ambulatório': 'ambulatorio',
-        'encaminhado para exames': 'exames',
+        'encaminhado_para_sala_medica': 'medico',
+        'encaminhado_para_ambulatorio': 'ambulatorio',
+        'encaminhado_para_exames': 'exames',
         'atendimento_concluido': 'conclusao'
       };
 
@@ -328,9 +328,9 @@ class TriagemController {
   // Obter opções de status de destino após triagem
   static async obterStatusDestino(req, res) {
     const statusDestino = {
-      'encaminhado para sala médica': 'Encaminhado para Sala Médica',
-      'encaminhado para ambulatório': 'Encaminhado para Ambulatório', 
-      'encaminhado para exames': 'Encaminhado para Exames',
+      'encaminhado_para_sala_medica': 'Encaminhado para Sala Médica',
+      'encaminhado_para_ambulatorio': 'Encaminhado para Ambulatório', 
+      'encaminhado_para_exames': 'Encaminhado para Exames',
       'atendimento_concluido': 'Atendimento Concluído (Alta)'
     };
     
@@ -345,7 +345,7 @@ class TriagemController {
       // 1. Pacientes aguardando triagem (hoje)
       const aguardandoQuery = await db.query(
         `SELECT COUNT(*) as total FROM atendimentos 
-         WHERE status = 'encaminhado para triagem' 
+         WHERE status = 'encaminhado_para_triagem' 
          AND DATE(data_hora_atendimento) = CURRENT_DATE`
       );
       const pacientesAguardando = parseInt(aguardandoQuery.rows[0].total) || 0;
@@ -371,7 +371,7 @@ class TriagemController {
         const tempoQuery = await db.query(
           `SELECT AVG(EXTRACT(EPOCH FROM (NOW() - data_hora_atendimento))/60) as tempo_medio
            FROM atendimentos 
-           WHERE status = 'encaminhado para triagem' 
+           WHERE status = 'encaminhado_para_triagem' 
            AND DATE(data_hora_atendimento) = CURRENT_DATE`
         );
         tempoMedioEspera = Math.round(parseFloat(tempoQuery.rows[0].tempo_medio) || 0);
@@ -382,7 +382,7 @@ class TriagemController {
         `SELECT classificacao_risco, COUNT(*) as total
          FROM atendimentos
          WHERE (
-           status IN ('encaminhado para triagem', 'em_triagem')
+           status IN ('encaminhado_para_triagem', 'em_triagem')
            OR (data_fim_triagem IS NOT NULL AND data_fim_triagem >= (NOW() - INTERVAL '24 hours'))
          )
          AND classificacao_risco IS NOT NULL

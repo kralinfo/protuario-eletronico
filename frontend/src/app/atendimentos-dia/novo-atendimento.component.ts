@@ -46,7 +46,7 @@ export class NovoAtendimentoComponent {
   mensagem: string = '';
   acompanhante: string = '';
   procedencia: string = '';
-  status: string = 'encaminhado para triagem';
+  status: string = 'encaminhado_para_triagem';
   motivo_interrupcao: string = '';
   exibirCadastroPaciente: boolean = false;
   horario: string = '';
@@ -115,7 +115,7 @@ export class NovoAtendimentoComponent {
     this.observacoes = atendimento.observacao || atendimento.observacoes || '';
     this.acompanhante = atendimento.acompanhante || '';
     this.procedencia = atendimento.procedimento || atendimento.procedencia || '';
-    this.status = atendimento.status || 'encaminhado para triagem';
+    this.status = atendimento.status || 'encaminhado_para_triagem';
     this.motivo_interrupcao = atendimento.motivo_interrupcao || '';
 
     // Para edição, precisamos simular a seleção do paciente
@@ -270,7 +270,7 @@ export class NovoAtendimentoComponent {
           this.pacienteSelecionado = null;
           this.filtroPaciente = '';
           this.pacientesFiltrados = [];
-          this.status = 'encaminhado para triagem';
+          this.status = 'encaminhado_para_triagem';
           this.motivo_interrupcao = '';
         },
         error: (err) => {

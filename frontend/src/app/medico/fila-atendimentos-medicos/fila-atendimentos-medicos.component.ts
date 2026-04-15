@@ -15,6 +15,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 
 @Component({
   selector: 'app-fila-atendimentos-medicos',
@@ -37,13 +38,8 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
   };
   getEncaminhadosParaAmbulatorioCount(): number {
     const hoje = new Date();
-    const statusList = [
-      'encaminhado para ambulatório',
-      'encaminhado_para_ambulatorio',
-      '5 - Encaminhado para ambulatório'
-    ];
     return this.atendimentos?.filter(a => {
-      if (!statusList.includes(a.status)) return false;
+      if (normalizeStatus(a.status) !== 'encaminhado_para_ambulatorio') return false;
       let campoData = a.created_at || a.data_hora_atendimento;
       if (!campoData) return false;
       const data = new Date(campoData);
@@ -52,7 +48,7 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
         data.getFullYear() === hoje.getFullYear();
     })?.length || 0;
   }
-  filtroStatus: string = 'encaminhado para sala médica';
+  filtroStatus: string = 'encaminhado_para_sala_medica';
   chamandoPaciente: Record<number, boolean> = {};
 
   constructor(
@@ -89,26 +85,14 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
 
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
-      'em_sala_medica': '#FF9800',
       'encaminhado_para_sala_medica': '#FF9800',
-      'encaminhado para sala médica': '#FF9800',
-      '3 - Encaminhado para sala médica': '#FF9800',
       'em_atendimento_medico': '#FF5722',
-      'em atendimento médico': '#FF5722',
     };
-    return cores[status] || '#757575';
+    return cores[normalizeStatus(status)] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
-    const descricoes: Record<string, string> = {
-      'em_sala_medica': 'Em Sala Médica',
-      'encaminhado_para_sala_medica': 'Encaminhado para Sala Médica',
-      'encaminhado para sala médica': 'Encaminhado para Sala Médica',
-      '3 - Encaminhado para sala médica': 'Encaminhado para Sala Médica',
-      'em_atendimento_medico': 'Em Atendimento Médico',
-      'em atendimento médico': 'Em Atendimento Médico',
-    };
-    return descricoes[status] || status;
+    return getStatusLabel(normalizeStatus(status));
   }
 
   getIniciais(nome: string): string {
@@ -150,7 +134,7 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
     getAguardandoAtendimentoCount(): number {
       const hoje = new Date();
       return this.atendimentos?.filter(a => {
-        if (a.status !== 'encaminhado para sala médica') return false;
+        if (normalizeStatus(a.status) !== 'encaminhado_para_sala_medica') return false;
         let campoData = a.created_at || a.data_hora_atendimento;
         if (!campoData) return false;
         const data = new Date(campoData);
@@ -171,10 +155,10 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
       const diffHoras = diffMs / (1000 * 60 * 60);
       // Filtro por status
       if (this.filtroStatus) {
-        if (this.filtroStatus === 'alta médica' || this.filtroStatus === 'Alta Médica') {
-          if (atendimento.status !== 'atendimento_concluido') return false;
+        if (this.filtroStatus === 'alta_medica') {
+          if (normalizeStatus(atendimento.status) !== 'atendimento_concluido') return false;
         } else {
-          if (atendimento.status !== this.filtroStatus) return false;
+          if (normalizeStatus(atendimento.status) !== this.filtroStatus) return false;
         }
       }
       return diffHoras < 24;
@@ -208,9 +192,7 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
   }
 
   carregarDados(): void {
-    this.medicoService.getAtendimentosPorStatus([
-      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
-    ]).subscribe((atendimentos: any[]) => {
+    this.medicoService.getAtendimentosPorStatus(['encaminhado_para_sala_medica']).subscribe((atendimentos: any[]) => {
       const agora = new Date();
       const atendimentos24h = (atendimentos || []).filter(a => {
         let campoData = a.created_at || a.data_hora_atendimento;
@@ -220,22 +202,19 @@ export class FilaAtendimentosMedicosComponent implements OnInit, OnDestroy {
         return diffHoras <= 24;
       });
 
-      this.quantidadeEncaminhados = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase().replace(/_/g, ' ').replace(/-/g, ' ');
-        return status.includes('encaminhado para sala médica');
-      }).length;
+      this.quantidadeEncaminhados = atendimentos24h.filter(a => normalizeStatus(a.status) === 'encaminhado_para_sala_medica').length;
       this.cdr.detectChanges();
     });
 
     const statusList = [
-      'encaminhado para sala médica',
-      'em atendimento médico',
+      'encaminhado_para_sala_medica',
+      'em_atendimento_medico',
       'encaminhado_para_ambulatorio',
       'encaminhado_para_exames',
-      'alta médica',
+      'alta_medica',
       'atendimento_concluido',
       'transferido',
-      'óbito'
+      'obito'
     ];
 
     this.medicoService.getAtendimentosPorStatus(statusList).subscribe((data: any[]) => {

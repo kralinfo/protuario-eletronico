@@ -8,6 +8,7 @@ import { Subject, interval, takeUntil } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ClassificacaoDialogComponent } from 'src/app/classificacao-dialog/classificacao-dialog.component';
 import { FilaService } from '../../services/fila.service';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 interface EstatisticasTriagem {
@@ -68,28 +69,18 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
         default: return '#d1d5db';
       }
     }
-  // Centralização dos conjuntos de status (aliases) para cada card
+  // Centralização dos conjuntos de status canônicos (snake_case) para cada card
   private readonly STATUS = {
-    DISPONIVEIS: new Set<string>([
-      'encaminhado para triagem',
-      'encaminhado_para_triagem',
-      '1 - Encaminhado para triagem'
-    ]),
-    EM_TRIAGEM: new Set<string>([
-      'em_triagem',
-      'em triagem',
-      '2 - Em triagem',
-      '2 - Em Triagem'
-    ]),
+    DISPONIVEIS: new Set<string>(['encaminhado_para_triagem']),
+    EM_TRIAGEM: new Set<string>(['em_triagem']),
     ENCAMINHADOS: new Set<string>([
-      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-      'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-      'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-      'aguardando exames'
+      'encaminhado_para_sala_medica',
+      'encaminhado_para_ambulatorio',
+      'encaminhado_para_exames'
     ]),
     EM_ATENDIMENTO: new Set<string>([
-      'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-      'em atendimento ambulatorial', '6 - Em atendimento ambulatorial', 'em_atendimento_ambulatorial'
+      'em_atendimento_medico',
+      'em_atendimento_ambulatorial'
     ])
   } as const;
 
@@ -216,9 +207,9 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
   };
 
   private readonly STATUS_ALERTAS = new Set<string>([
-    'encaminhado para triagem', '1 - Encaminhado para triagem', 'encaminhado_para_triagem',
-    'em triagem', '2 - Em triagem', 'em_triagem',
-    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica'
+    'encaminhado_para_triagem',
+    'em_triagem',
+    'encaminhado_para_sala_medica'
   ]);
 
   private classificacaoOrder(risco: string): number {
@@ -266,7 +257,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
           const limite = this.LIMITES_RISCO[risco];
           let tempoDecorrido = Math.floor((agora.getTime() - dataAtendimento.getTime()) / 60000);
 
-          if (!this.STATUS_ALERTAS.has(p.status)) continue;
+          if (!this.STATUS_ALERTAS.has(normalizeStatus(p.status))) continue;
           if (!risco || limite === undefined) continue;
 
           if (limite <= 0) {
@@ -398,7 +389,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
         const agora = new Date().getTime();
         const lista = (pacientes || [])
           .filter(p => {
-            if (!p || !this.STATUS.DISPONIVEIS.has(p.status)) return false;
+            if (!p || !this.STATUS.DISPONIVEIS.has(normalizeStatus(p.status))) return false;
             const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
             return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
           });
@@ -425,8 +416,8 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
 
   // Contador total de pós-triagem igual ao de triagens concluídas hoje
   this.totalPosTriagem = this.estatisticas.triagens_concluidas;
-        this.posEncaminhados = lista.filter(p => p && this.STATUS.ENCAMINHADOS.has(p.status)).length;
-        this.posEmAtendimento = lista.filter(p => p && this.STATUS.EM_ATENDIMENTO.has(p.status)).length;
+        this.posEncaminhados = lista.filter(p => p && this.STATUS.ENCAMINHADOS.has(normalizeStatus(p.status))).length;
+        this.posEmAtendimento = lista.filter(p => p && this.STATUS.EM_ATENDIMENTO.has(normalizeStatus(p.status))).length;
       },
       error: (err) => console.error('❌ Dashboard: Erro ao carregar pós-triagem preview:', err)
     });
@@ -438,7 +429,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
         const agora = new Date().getTime();
         const lista = (pacientes || [])
           .filter(p => {
-            if (!p || !this.STATUS.EM_TRIAGEM.has(p.status)) return false;
+            if (!p || !this.STATUS.EM_TRIAGEM.has(normalizeStatus(p.status))) return false;
             const dataAtendimento = new Date(p.data_hora_atendimento).getTime();
             return (agora - dataAtendimento) <= 24 * 60 * 60 * 1000;
           });
@@ -457,7 +448,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     if (!p || !p.id) return;
     // Se está disponível para triagem, abre a triagem normalmente
     const DISPONIVEIS = this.STATUS.DISPONIVEIS;
-    if (DISPONIVEIS.has(p.status)) {
+    if (DISPONIVEIS.has(normalizeStatus(p.status))) {
       this.router.navigate(['/triagem/realizar', p.id]);
     } else {
       // Se não está disponível, abre em modo visualização
@@ -488,7 +479,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
     if (!p || !p.id) return;
     const DISPONIVEIS = this.STATUS.DISPONIVEIS;
     // Se está disponível para iniciar, dispara a abertura (iniciar triagem) e navega
-    if (DISPONIVEIS.has(p.status)) {
+    if (DISPONIVEIS.has(normalizeStatus(p.status))) {
       console.log('Dashboard: Iniciando triagem para', p.id);
       const statusAnterior = p.status; // Salva o status atual para reverter se o usuário voltar sem salvar
       this.triagemService.iniciarTriagem(p.id).subscribe({
@@ -515,7 +506,7 @@ export class DashboardTriagemComponent implements OnInit, OnDestroy {
 
     // Caso contrário, apenas navega para a tela de triagem (edição/consulta)
   const EM_TRIAGEM = this.STATUS.EM_TRIAGEM;
-    const state: any = EM_TRIAGEM.has(p.status) ? { state: { modoEdicao: true } } : undefined;
+    const state: any = EM_TRIAGEM.has(normalizeStatus(p.status)) ? { state: { modoEdicao: true } } : undefined;
     console.log('Dashboard: Navegando para triagem do atendimento', p.id, 'status:', p.status);
     if (state) {
       this.router.navigate(['/triagem/realizar', p.id], { ...state, state: { ...(state as any).state, prefill: {
@@ -570,57 +561,20 @@ Este protocolo é usado para priorizar o atendimento com base na gravidade clín
   }
 
   getDescricaoStatus(status: string): string {
-    const descricoes: Record<string, string> = {
-      '1 - Encaminhado para triagem': '1 - Encaminhado para Triagem',
-      'encaminhado_para_triagem': '1 - Encaminhado para Triagem',
-      'encaminhado para triagem': '1 - Encaminhado para Triagem',
-      '2 - Em triagem': '2 - Em Triagem',
-      'em_triagem': '2 - Em Triagem',
-      'em triagem': '2 - Em Triagem',
-      '3 - Encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
-      'encaminhado_para_sala_medica': '3 - Encaminhado para Sala Médica',
-      'encaminhado para sala médica': '3 - Encaminhado para Sala Médica',
-  '4 - Em atendimento médico': '4 - Em Atendimento Médico',
-  'em_atendimento_medico': '4 - Em Atendimento Médico',
-  'em atendimento médico': '4 - Em Atendimento Médico',
-      '5 - Encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
-      'encaminhado_para_ambulatorio': '5 - Encaminhado para Ambulatório',
-      'encaminhado para ambulatório': '5 - Encaminhado para Ambulatório',
-      '7 - Encaminhado para exames': '7 - Encaminhado para Exames',
-  'encaminhado_para_exames': '7 - Encaminhado para Exames',
-  'encaminhado para exames': '7 - Encaminhado para Exames',
-  '6 - Em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial',
-  'em_atendimento_ambulatorial': '6 - Em Atendimento Ambulatorial',
-  'em atendimento ambulatorial': '6 - Em Atendimento Ambulatorial'
-    };
-    return descricoes[status] || status;
+    return getStatusLabel(normalizeStatus(status));
   }
 
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
-      '1 - Encaminhado para triagem': '#2196F3',
       'encaminhado_para_triagem': '#2196F3',
-      'encaminhado para triagem': '#2196F3',
-      '2 - Em triagem': '#4CAF50',
       'em_triagem': '#4CAF50',
-      'em triagem': '#4CAF50',
-      '3 - Encaminhado para sala médica': '#FF9800',
       'encaminhado_para_sala_medica': '#FF9800',
-      'encaminhado para sala médica': '#FF9800',
-  '4 - Em atendimento médico': '#FF5722',
-  'em_atendimento_medico': '#FF5722',
-  'em atendimento médico': '#FF5722',
-      '5 - Encaminhado para ambulatório': '#9C27B0',
+      'em_atendimento_medico': '#FF5722',
       'encaminhado_para_ambulatorio': '#9C27B0',
-      'encaminhado para ambulatório': '#9C27B0',
-      '7 - Encaminhado para exames': '#009688',
-      'encaminhado_para_exames': '#009688',
-  'encaminhado para exames': '#009688',
-  '6 - Em atendimento ambulatorial': '#3F51B5',
-  'em_atendimento_ambulatorial': '#3F51B5',
-  'em atendimento ambulatorial': '#3F51B5'
+      'em_atendimento_ambulatorial': '#3F51B5',
+      'encaminhado_para_exames': '#009688'
     };
-    return cores[status] || '#757575';
+    return cores[normalizeStatus(status)] || '#757575';
   }
 
   getBoadTarde(): string {

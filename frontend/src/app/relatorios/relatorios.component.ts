@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import * as jsPDF from 'jspdf';
 import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validators-util';
+import { normalizeStatus } from '../utils/normalize-status';
 
 export interface Paciente {
   id?: number;
@@ -54,53 +55,14 @@ export class RelatoriosComponent implements OnInit, AfterViewInit {
   // Dados brutos (nunca mudam após carga)
   todosPacientes: Paciente[] = [];
 
-  // Mapeamento de ABA → STATUS(S) do banco (igual ao relatorio-atendimentos)
+  // Mapeamento de ABA → STATUS(S) canônicos (snake_case)
   private readonly STATUS_MAP: Record<string, string[]> = {
     todas: [],
-    triagem_pendente: [
-      'encaminhado para triagem',
-      'encaminhado_para_triagem',
-      'triagem pendente',
-      'triagem_pendente'
-    ],
-    em_triagem: ['em triagem', 'em_triagem'],
-    aguardando_medico: [
-      'aguardando medico',
-      'aguardando médico',
-      'aguardando_medico',
-      'encaminhado para sala medica',
-      'encaminhado para sala médica',
-      'encaminhado_para_sala_medica',
-      '3 - encaminhado para sala médica',
-      'aguardando',
-      'aguardando_atendimento',
-      'aguardando atendimento'
-    ],
-    em_atendimento: [
-      'em atendimento',
-      'em atendimento médico',
-      'em atendimento medico',
-      'em_atendimento',
-      'em_atendimento_medico',
-      'em atendimento ambulatorial',
-      'em_atendimento_ambulatorial',
-      '4 - em atendimento médico'
-    ],
-    finalizados: [
-      'atendimento concluido',
-      'atendimento concluído',
-      'atendimento_concluido',
-      'finalizado',
-      'alta medica',
-      'alta médica',
-      'alta_medica',
-      'alta ambulatorial',
-      'alta_ambulatorial',
-      'encaminhado para exames',
-      'encaminhado_para_exames',
-      '7 - encaminhado para exames',
-      '8 - atendimento concluído'
-    ],
+    triagem_pendente: ['encaminhado_para_triagem'],
+    em_triagem: ['em_triagem'],
+    aguardando_medico: ['encaminhado_para_sala_medica'],
+    em_atendimento: ['em_atendimento_medico', 'em_atendimento_ambulatorial'],
+    finalizados: ['atendimento_concluido', 'alta_medica', 'alta_ambulatorial', 'encaminhado_para_exames'],
     interrompidos: ['interrompido', 'abandonado']
   };
 
@@ -230,43 +192,13 @@ export class RelatoriosComponent implements OnInit, AfterViewInit {
   getDadosFiltradosPorAba(): Paciente[] {
     if (this.abaAtiva === 'todas') return this.pacientesFiltrados;
 
-    // Mapeia status para cada aba
-    const statusMap: Record<string, string[]> = {
-      triagem_pendente: ['triagem pendente', 'encaminhado para triagem'],
-      em_triagem: ['em_triagem', 'em triagem'],
-      aguardando_medico: [
-        'encaminhado_para_sala_medica',
-        'encaminhado para sala médica',
-        'aguardando',
-        'aguardando_atendimento',
-        'aguardando atendimento'
-      ],
-      em_atendimento: [
-        'em_atendimento_medico',
-        'em atendimento médico',
-        'em_atendimento',
-        'em atendimento',
-        'em_atendimento_ambulatorial',
-        'em atendimento ambulatorial'
-      ],
-      finalizados: [
-        'atendimento_concluido',
-        'atendimento concluido',
-        'finalizado',
-        'alta_ambulatorial',
-        'encaminhado_para_exames',
-        'encaminhado para exames'
-      ],
-      interrompidos: ['interrompido', 'abandonado']
-    };
-
-    const statusDaAba = statusMap[this.abaAtiva] || [];
+    const statusDaAba = this.STATUS_MAP[this.abaAtiva] || [];
     if (statusDaAba.length === 0) return this.pacientesFiltrados;
 
     // Filtra pacientes que têm atendimentos com o status da aba
     const pacientesComStatus = this.atendimentos
-      .filter(a => statusDaAba.some(s => a.status.toLowerCase() === s.toLowerCase()))
-      .map(a => a.paciente_id);
+      .filter((a: any) => statusDaAba.includes(a.status))
+      .map((a: any) => a.paciente_id);
 
     return this.pacientesFiltrados.filter(p => pacientesComStatus.includes(p.id));
   }
@@ -401,7 +333,7 @@ export class RelatoriosComponent implements OnInit, AfterViewInit {
       next: (respAtend) => {
         this.atendimentos = (respAtend.data || respAtend || []).map((a: any) => ({
           ...a,
-          status: (a.status || '').toLowerCase().trim()
+          status: normalizeStatus(a.status)
         }));
 
         this.http.get<any>(`${environment.apiUrl}/pacientes/reports`, {
@@ -672,48 +604,30 @@ export class RelatoriosComponent implements OnInit, AfterViewInit {
 
   // Novos métodos para contadores de status de atendimentos
   getAtendimentosTriagemPendente(): number {
-    return this.atendimentos.filter(a =>
-      a.status === 'triagem pendente' ||
-      a.status === 'encaminhado para triagem'
-    ).length;
+    return this.atendimentos.filter(a => a.status === 'encaminhado_para_triagem').length;
   }
 
   getAtendimentosEmTriagem(): number {
-    return this.atendimentos.filter(a =>
-      a.status === 'em_triagem' ||
-      a.status === 'em triagem'
-    ).length;
+    return this.atendimentos.filter(a => a.status === 'em_triagem').length;
   }
 
   getAtendimentosAguardandoMedico(): number {
-    return this.atendimentos.filter(a =>
-      a.status === 'encaminhado_para_sala_medica' ||
-      a.status === 'encaminhado para sala médica' ||
-      a.status === 'aguardando' ||
-      a.status === 'aguardando_atendimento' ||
-      a.status === 'aguardando atendimento'
-    ).length;
+    return this.atendimentos.filter(a => a.status === 'encaminhado_para_sala_medica').length;
   }
 
   getAtendimentosEmAtendimento(): number {
     return this.atendimentos.filter(a =>
       a.status === 'em_atendimento_medico' ||
-      a.status === 'em atendimento médico' ||
-      a.status === 'em_atendimento' ||
-      a.status === 'em atendimento' ||
-      a.status === 'em_atendimento_ambulatorial' ||
-      a.status === 'em atendimento ambulatorial'
+      a.status === 'em_atendimento_ambulatorial'
     ).length;
   }
 
   getAtendimentosFinalizados(): number {
     return this.atendimentos.filter(a =>
       a.status === 'atendimento_concluido' ||
-      a.status === 'atendimento concluido' ||
-      a.status === 'finalizado' ||
+      a.status === 'alta_medica' ||
       a.status === 'alta_ambulatorial' ||
-      a.status === 'encaminhado_para_exames' ||
-      a.status === 'encaminhado para exames'
+      a.status === 'encaminhado_para_exames'
     ).length;
   }
 
@@ -728,9 +642,7 @@ export class RelatoriosComponent implements OnInit, AfterViewInit {
    * Conta atendimentos por lista de status (para os contadores das abas - igual aos cards antigos)
    */
   private contarAtendimentosPorStatus(statusList: string[]): number {
-    return this.atendimentos.filter(a =>
-      statusList.some(s => (a.status || '').toLowerCase().trim() === s.toLowerCase())
-    ).length;
+    return this.atendimentos.filter(a => statusList.includes(a.status)).length;
   }
 
   /**
@@ -744,27 +656,21 @@ export class RelatoriosComponent implements OnInit, AfterViewInit {
    * Retorna atendimentos com status Triagem Pendente (igual ao card antigo)
    */
   getTriagemPendente(): number {
-    return this.contarAtendimentosPorStatus(['triagem pendente', 'encaminhado para triagem']);
+    return this.contarAtendimentosPorStatus(['encaminhado_para_triagem']);
   }
 
   /**
    * Retorna atendimentos com status Em Triagem (igual ao card antigo)
    */
   getEmTriagem(): number {
-    return this.contarAtendimentosPorStatus(['em_triagem', 'em triagem']);
+    return this.contarAtendimentosPorStatus(['em_triagem']);
   }
 
   /**
    * Retorna atendimentos com status Aguardando Médico (igual ao card antigo)
    */
   getAguardandoMedico(): number {
-    return this.contarAtendimentosPorStatus([
-      'encaminhado_para_sala_medica',
-      'encaminhado para sala médica',
-      'aguardando',
-      'aguardando_atendimento',
-      'aguardando atendimento'
-    ]);
+    return this.contarAtendimentosPorStatus(['encaminhado_para_sala_medica']);
   }
 
   /**
@@ -773,11 +679,7 @@ export class RelatoriosComponent implements OnInit, AfterViewInit {
   getEmAtendimento(): number {
     return this.contarAtendimentosPorStatus([
       'em_atendimento_medico',
-      'em atendimento médico',
-      'em_atendimento',
-      'em atendimento',
-      'em_atendimento_ambulatorial',
-      'em atendimento ambulatorial'
+      'em_atendimento_ambulatorial'
     ]);
   }
 
@@ -787,11 +689,9 @@ export class RelatoriosComponent implements OnInit, AfterViewInit {
   getFinalizados(): number {
     return this.contarAtendimentosPorStatus([
       'atendimento_concluido',
-      'atendimento concluido',
-      'finalizado',
+      'alta_medica',
       'alta_ambulatorial',
-      'encaminhado_para_exames',
-      'encaminhado para exames'
+      'encaminhado_para_exames'
     ]);
   }
 

@@ -10,6 +10,7 @@ import { AmbulatorioService } from '../ambulatorio.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
+import { normalizeStatus } from '../../utils/normalize-status';
 
 interface ConsultaAmbulatorial {
   id: number;
@@ -46,7 +47,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   filtroStatus = 'encaminhados'; // valor padrão: Encaminhados para ambulatorio
   carregando = false;
 
-  estatisticas: { 
+  estatisticas: {
     por_classificacao: Record<string, number>,
     tempo_medio_espera: number
   } = {
@@ -97,27 +98,19 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
               filtrados = atendimentos24h;
               break;
             case 'encaminhados':
-              filtrados = atendimentos24h.filter(a => {
-                const status = (a.status || '').toLowerCase();
-                return status.includes('encaminhado para ambulatório') ||
-                       status.includes('encaminhado_para_ambulatorio') ||
-                       status === '5 - encaminhado para ambulatório';
-              });
+              filtrados = atendimentos24h.filter(a => normalizeStatus(a.status) === 'encaminhado_para_ambulatorio');
               break;
             case 'em_atendimento':
-              filtrados = atendimentos24h.filter(a => {
-                const status = (a.status || '').toLowerCase();
-                return status === 'em atendimento ambulatorial' || status === 'em_atendimento_ambulatorial';
-              });
+              filtrados = atendimentos24h.filter(a => normalizeStatus(a.status) === 'em_atendimento_ambulatorial');
               break;
             case 'em_observacao':
-              filtrados = atendimentos24h.filter(a => (a.status || '').toLowerCase() === 'em_observacao');
+              filtrados = atendimentos24h.filter(a => normalizeStatus(a.status) === 'em_observacao');
               break;
             case 'alta':
-              filtrados = atendimentos24h.filter(a => (a.status || '').toLowerCase() === 'atendimento_concluido');
+              filtrados = atendimentos24h.filter(a => normalizeStatus(a.status) === 'atendimento_concluido');
               break;
             case 'reencaminhado':
-              filtrados = atendimentos24h.filter(a => (a.status || '').toLowerCase() === 'retornar_atendimento_medico');
+              filtrados = atendimentos24h.filter(a => normalizeStatus(a.status) === 'retornar_atendimento_medico');
               break;
             default:
               filtrados = atendimentos24h;

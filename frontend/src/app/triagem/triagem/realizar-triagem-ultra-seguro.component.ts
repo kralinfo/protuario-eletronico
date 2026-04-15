@@ -110,7 +110,7 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
       queixa_principal: ['', Validators.required],
       historia_atual: [''],
       observacoes_triagem: [''],
-      status_destino: ['encaminhado para sala médica', Validators.required]
+      status_destino: ['encaminhado_para_sala_medica', Validators.required]
     });
   }
 
@@ -145,7 +145,7 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
           queixa_principal: dadosTriagem.queixa_principal || '',
           historia_atual: dadosTriagem.historia_atual || '',
           observacoes_triagem: dadosTriagem.observacoes_triagem || '',
-          status_destino: dadosTriagem.status_destino || 'encaminhado para sala médica'
+          status_destino: dadosTriagem.status_destino || 'encaminhado_para_sala_medica'
         });
 
         // Desabilitar formulário se for triagem realizada e edição não estiver habilitada
@@ -206,8 +206,11 @@ export class RealizarTriagemUltraSeguroComponent implements OnInit {
 
       // Mapear status_destino para o formato correto
       const statusMapping: { [key: string]: string } = {
-        'encaminhado para sala médica': 'encaminhado para sala médica',
+        'encaminhado_para_sala_medica': 'encaminhado_para_sala_medica',
+        'encaminhado para sala médica': 'encaminhado_para_sala_medica',
+        'encaminhado_para_ambulatorio': 'encaminhado_para_ambulatorio',
         'encaminhado para ambulatório': 'encaminhado_para_ambulatorio',
+        'encaminhado_para_exames': 'encaminhado_para_exames',
         'encaminhado para exames': 'encaminhado_para_exames'
       };
 

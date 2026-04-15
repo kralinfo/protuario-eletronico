@@ -135,7 +135,7 @@ export class AtendimentoAmbulatorioModalComponent implements OnInit {
       conduta_ambulatorio: this.condutaMedicamentos,
       exames_ambulatorio: this.examesProcedimentos,
       informacoes_complementares: this.informacoesComplementares,
-      status: 'em atendimento ambulatorial'
+      status: 'em_atendimento_ambulatorial'
     };
 
     this.ambulatorioService.salvarAtendimentoAmbulatorio(this.atendimento.id, dadosAmbulatorio).subscribe({

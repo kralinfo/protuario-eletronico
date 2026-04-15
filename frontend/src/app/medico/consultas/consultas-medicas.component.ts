@@ -10,6 +10,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { MedicoService } from '../medico.service';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 
 @Component({
   selector: 'app-consultas-medicas',
@@ -81,23 +82,14 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
           }
 
           // Incluir todos os status que representam consultas realizadas (mesma lógica do dashboard)
-          const status = (consulta.status || '').toLowerCase();
-     const statusValido = status.includes('atendimento_concluido') ||
-       status.includes('atendimento concluido') ||
-       status.includes('atendimento concluído') ||
-       status.includes('alta_medica') ||
-       status.includes('alta médica') ||
-       status.includes('alta medica') ||
-       status.includes('encaminhado_para_ambulatorio') ||
-       status.includes('encaminhado para ambulatório') ||
-       status.includes('encaminhado para ambulatorio') ||
-       status.includes('encaminhado_para_exames') ||
-       status.includes('encaminhado para exame') ||
-       status.includes('encaminhado para exames') ||
-       status.includes('transferido') ||
-       status.includes('óbito') ||
-       status.includes('obito') ||
-       status.includes('retornar_atendimento_medico');
+          const statusNorm = normalizeStatus(consulta.status);
+          const statusValido = statusNorm === 'atendimento_concluido' ||
+            statusNorm === 'alta_medica' ||
+            statusNorm === 'encaminhado_para_ambulatorio' ||
+            statusNorm === 'encaminhado_para_exames' ||
+            statusNorm === 'transferido' ||
+            statusNorm === 'obito' ||
+            statusNorm === 'retornar_atendimento_medico';
 
           if (!statusValido) {
             console.log(`❌ Status inválido para consulta ${consulta.id}: "${consulta.status}"`);
@@ -160,17 +152,17 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
     this.obitos = 0;
 
     for (const consulta of this.consultas) {
-      const status = (consulta.status || '').toLowerCase();
+      const statusNorm = normalizeStatus(consulta.status);
 
-      if (status.includes('alta_medica') || status.includes('alta médica') || status.includes('alta medica')) {
+      if (statusNorm === 'alta_medica') {
         this.altasMedicas++;
-      } else if (status.includes('encaminhado_para_ambulatorio') || status.includes('encaminhado para ambulatório') || status.includes('encaminhado para ambulatorio')) {
+      } else if (statusNorm === 'encaminhado_para_ambulatorio') {
         this.encaminhadosAmbulatorio++;
-      } else if (status.includes('encaminhado_para_exames') || status.includes('encaminhado para exames') || status.includes('encaminhado para exame')) {
+      } else if (statusNorm === 'encaminhado_para_exames') {
         this.encaminhadosExames++;
-      } else if (status.includes('transferido')) {
+      } else if (statusNorm === 'transferido') {
         this.transferidos++;
-      } else if (status.includes('óbito') || status.includes('obito')) {
+      } else if (statusNorm === 'obito') {
         this.obitos++;
       }
     }
@@ -182,34 +174,29 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
     }
 
     return this.consultas.filter(consulta => {
-      const statusOriginal = consulta.status || '';
-      const status = statusOriginal.toLowerCase();
+      const statusNorm = normalizeStatus(consulta.status);
       const filtro = this.filtroStatus.toLowerCase();
 
-      // Verificação específica para cada status
       if (filtro === 'alta médica') {
-        return status.includes('alta médica') || status.includes('alta_medica') || status.includes('atendimento_concluido') || status.includes('atendimento concluido') || status.includes('atendimento concluído');
+        return statusNorm === 'alta_medica' || statusNorm === 'atendimento_concluido';
       }
       if (filtro === 'encaminhado para ambulatório') {
-        return status.includes('encaminhado para ambulatório') || status.includes('encaminhado_para_ambulatorio');
+        return statusNorm === 'encaminhado_para_ambulatorio';
       }
       if (filtro === 'encaminhado para exames') {
-        return status.includes('encaminhado para exames') ||
-               status.includes('encaminhado_para_exames') ||
-               status.includes('encaminhado para exame');
+        return statusNorm === 'encaminhado_para_exames';
       }
       if (filtro === 'transferido') {
-        return status.includes('transferido');
+        return statusNorm === 'transferido';
       }
       if (filtro === 'óbito') {
-        return status.includes('óbito') || status.includes('obito');
+        return statusNorm === 'obito';
       }
       if (filtro === 'reencaminhado para sala médica') {
-        return status.includes('retornar_atendimento_medico');
+        return statusNorm === 'retornar_atendimento_medico';
       }
 
-      // Fallback: busca genérica
-      return status.includes(filtro.replace(/ /g, '_')) || status.includes(filtro);
+      return statusNorm.includes(filtro.replace(/ /g, '_'));
     });
   }
 
@@ -231,53 +218,20 @@ export class ConsultasMedicasComponent implements OnInit, OnDestroy {
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
       'encaminhado_para_sala_medica': '#FF9800',
-      'encaminhado para sala médica': '#FF9800',
-      '3 - Encaminhado para sala médica': '#FF9800',
       'em_atendimento_medico': '#FF5722',
-      'em atendimento médico': '#FF5722',
-      '4 - Em atendimento médico': '#FF5722',
       'atendimento_concluido': '#4CAF50',
-      '8 - Atendimento Concluído': '#4CAF50',
       'alta_medica': '#2196F3',
-      'alta médica': '#2196F3',
       'encaminhado_para_ambulatorio': '#9C27B0',
-      'encaminhado para ambulatório': '#9C27B0',
-      '5 - Encaminhado para ambulatório': '#9C27B0',
       'encaminhado_para_exames': '#673AB7',
-      'encaminhado para exames': '#673AB7',
-      'encaminhado para exame': '#673AB7',
-      '7 - Encaminhado para exames': '#673AB7',
       'transferido': '#795548',
       'obito': '#424242',
-      'óbito': '#424242'
+      'retornar_atendimento_medico': '#FF9800'
     };
-    return cores[status] || '#757575';
+    return cores[normalizeStatus(status)] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
-    const descricoes: Record<string, string> = {
-      'encaminhado_para_sala_medica': 'Encaminhado para Sala Médica',
-      'encaminhado para sala médica': 'Encaminhado para Sala Médica',
-      '3 - Encaminhado para sala médica': 'Encaminhado para Sala Médica',
-      'em_atendimento_medico': 'Em Atendimento Médico',
-      'em atendimento médico': 'Em Atendimento Médico',
-      '4 - Em atendimento médico': 'Em Atendimento Médico',
-      'atendimento_concluido': 'Atendimento Concluído',
-      '8 - Atendimento Concluído': 'Atendimento Concluído',
-      'alta_medica': 'Alta Médica',
-      'alta médica': 'Alta Médica',
-      'encaminhado_para_ambulatorio': 'Encaminhado para Ambulatório',
-      'encaminhado para ambulatório': 'Encaminhado para Ambulatório',
-      '5 - Encaminhado para ambulatório': 'Encaminhado para Ambulatório',
-      'encaminhado_para_exames': 'Encaminhado para Exames',
-      'encaminhado para exames': 'Encaminhado para Exames',
-      'encaminhado para exame': 'Encaminhado para Exames',
-      '7 - Encaminhado para exames': 'Encaminhado para Exames',
-      'transferido': 'Transferido',
-      'obito': 'Óbito',
-      'óbito': 'Óbito'
-    };
-    return descricoes[status] || status;
+    return getStatusLabel(normalizeStatus(status));
   }
 
   getCor(classificacao?: string): string {

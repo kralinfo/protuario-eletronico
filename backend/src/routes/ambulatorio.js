@@ -1,5 +1,6 @@
 import express from 'express';
 import knex from '../db.js';
+import { normalizeStatus } from '../utils/normalizeStatus.js';
 const router = express.Router();
 
 router.get('/estatisticas', async (req, res) => {
@@ -16,16 +17,16 @@ router.get('/estatisticas', async (req, res) => {
       por_classificacao[cl] = atendimentosDia.filter(a => a.classificacao_risco === cl).length;
     });
 
-    // Status específicos do ambulatório
-    const encaminhadoVariants = ['encaminhado_para_ambulatorio', 'encaminhado para ambulatório', '5 - Encaminhado para ambulatório'];
-    const emAtendimentoVariants = ['em atendimento ambulatorial', 'em_atendimento_ambulatorial'];
+    // Status específicos do ambulatório (canônicos)
+    const encaminhadoVariants = ['encaminhado_para_ambulatorio'];
+    const emAtendimentoVariants = ['em_atendimento_ambulatorial'];
 
-    const pacientes_aguardando = atendimentosDia.filter(a => encaminhadoVariants.includes(a.status)).length;
-    const pacientes_em_atendimento = atendimentosDia.filter(a => emAtendimentoVariants.includes(a.status)).length;
+    const pacientes_aguardando = atendimentosDia.filter(a => encaminhadoVariants.includes(normalizeStatus(a.status))).length;
+    const pacientes_em_atendimento = atendimentosDia.filter(a => emAtendimentoVariants.includes(normalizeStatus(a.status))).length;
     
     // Para consultas concluídas, vamos considerar atendimentos que saíram do ambulatório
     const concluidaVariants = ['alta_ambulatorial', 'encaminhado_para_exames', 'encaminhado_para_internacao'];
-    const consultas_concluidas = atendimentosDia.filter(a => concluidaVariants.includes(a.status)).length;
+    const consultas_concluidas = atendimentosDia.filter(a => concluidaVariants.includes(normalizeStatus(a.status))).length;
 
     res.json({
       estatisticas: {
@@ -45,9 +46,6 @@ router.get('/atendimentos', async (req, res) => {
   try {
     const statusAmbulatorio = [
       'encaminhado_para_ambulatorio',
-      'encaminhado para ambulatório',
-      '5 - Encaminhado para ambulatório',
-      'em atendimento ambulatorial',
       'em_atendimento_ambulatorial'
     ];
     
@@ -126,10 +124,7 @@ router.post('/consulta/:id', async (req, res) => {
     // APENAS atualizar status se o status_destino for diferente de 'em_atendimento_ambulatorial'
     // Isso significa que o paciente está sendo encaminhado para outro setor ou recebendo alta
     if (status_destino && status_destino !== 'em_atendimento_ambulatorial') {
-      let statusToSave = status_destino;
-      if (statusToSave === 'em_observacao' || statusToSave === 'Em Observação') {
-        statusToSave = 'em_observacao';
-      }
+      let statusToSave = normalizeStatus(status_destino);
       await knex('atendimentos')
         .where('id', req.params.id)
         .update({ 

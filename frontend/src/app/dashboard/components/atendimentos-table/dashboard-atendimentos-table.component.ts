@@ -17,6 +17,7 @@ import {
   AtendimentoDashboard,
   FiltroDashboard
 } from '../../../services/dashboard.service';
+import { normalizeStatus } from '../../../utils/normalize-status';
 
 @Component({
   selector: 'app-dashboard-atendimentos-table',
@@ -128,28 +129,22 @@ export class DashboardAtendimentosTableComponent implements OnChanges, AfterView
   formatarStatus(status: string): string {
     const mapa: Record<string, string> = {
       'recepcao':                         'Recepção',
-      'encaminhado para triagem':         'Aguard. Triagem',
       'encaminhado_para_triagem':         'Aguard. Triagem',
       'em_triagem':                       'Em Triagem',
-      'em triagem':                       'Em Triagem',
-      'em atendimento de triagem':        'Em Triagem',
-      'encaminhado para médico':          'Pós-Triagem',
-      'encaminhado_para_medico':          'Pós-Triagem',
-      'encaminhado para ambulatorio':     'Pós-Triagem',
+      'encaminhado_para_sala_medica':     'Pós-Triagem',
       'encaminhado_para_ambulatorio':     'Pós-Triagem',
-      'em atendimento médico':            'Em Atendimento',
       'em_atendimento_medico':            'Em Atendimento',
-      'em atendimento ambulatorial':      'Em Atendimento',
       'em_atendimento_ambulatorial':      'Em Atendimento',
       'atendimento_concluido':            'Concluído',
     };
-    return mapa[status] ?? status ?? '—';
+    return mapa[normalizeStatus(status)] ?? status ?? '—';
   }
 
   getStatusClass(status: string): string {
-    if (status === 'atendimento_concluido') return 'bg-green-100 text-green-800';
-    if (status?.includes('atendimento')) return 'bg-blue-100 text-blue-800';
-    if (status?.includes('triagem')) return 'bg-yellow-100 text-yellow-800';
+    const normalized = normalizeStatus(status);
+    if (normalized === 'atendimento_concluido') return 'bg-green-100 text-green-800';
+    if (normalized?.includes('atendimento')) return 'bg-blue-100 text-blue-800';
+    if (normalized?.includes('triagem')) return 'bg-yellow-100 text-yellow-800';
     return 'bg-gray-100 text-gray-700';
   }
 

@@ -1,10 +1,10 @@
 /**
  * EXEMPLO DE IMPLEMENTAÇÃO COMPLETA
  * Como integrar RealtimeService e NotificationSerivce em um componente existente
- * 
+ *
  * Este arquivo mostra:
  * 1. Imports necessários
- * 2. Injeção de dependências 
+ * 2. Injeção de dependências
  * 3. Setup no ngOnInit
  * 4. Escuta de eventos WebSocket
  * 5. Gerenciamento de unsubscription
@@ -54,7 +54,7 @@ interface Estatisticas {
 
 /**
  * ===== VERSÃO INTEGRADA COM REALTIME =====
- * 
+ *
  * Alterações:
  * ✅ Injeta RealtimeService e NotificationService
  * ✅ Conecta ao módulo de triagem na inicialização
@@ -77,8 +77,7 @@ interface Estatisticas {
     MatSnackBarModule,
     MatTooltipModule
   ],
-  templateUrl: './fila-triagem.component.html',
-  styleUrls: ['./fila-triagem.component.scss']
+  template: ''
 })
 export class FilaTriagemComponent implements OnInit, OnDestroy {
   // ===== Estado do componente =====
@@ -89,11 +88,11 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     tempo_medio_espera: 0
   };
   carregando = true;
-  filtroStatus: string = 'encaminhado para triagem';
+  filtroStatus: string = 'encaminhado_para_triagem';
 
   // ===== Novo: controle de unsubscription =====
   private destroy$ = new Subject<void>();
-  private atualizacaoSubscription?: Subscription;
+  private atualizacaoSubscription?: ReturnType<typeof setInterval>;
 
   // ===== Cores para classificação de risco =====
   private coresPrioridade: Record<string, string> = {
@@ -117,7 +116,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   /**
    * ngOnInit - Inicialização do componente
-   * 
+   *
    * Alterações:
    * - Setup de conexão WebSocket com módulo 'triagem'
    * - Configuração de listeners para eventos em tempo real
@@ -140,7 +139,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
   /**
    * Setup de conexão em tempo real
    * Método privado que centraliza toda a lógica realtime
-   * 
+   *
    * @private
    */
   private _setupRealtimeConnection(): void {
@@ -166,7 +165,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((data: PatientArrivedEvent) => {
         console.log('📥 Novo paciente chegou em triagem:', data);
-        
+
         // Se o módulo de destino é triagem, atualizar fila
         if (data.destinationModule === 'triagem') {
           this._onNewPatientArrived(data);
@@ -178,10 +177,10 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((data: any) => {
         console.log('✅ Triagem finalizada:', data);
-        
+
         // Decrement badge
         this.notificationService.decrementBadge('triagem');
-        
+
         // Recarregar fila
         this.carregarFila();
       });
@@ -191,7 +190,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((data: any) => {
         console.log('📊 Fila atualizada:', data);
-        
+
         // Atualizar badge com informação da fila
         this.notificationService.addBadge(
           'triagem',
@@ -205,7 +204,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((error: string) => {
         console.error('🔴 Erro de conexão WebSocket:', error);
-        
+
         this.notificationService.error(
           'Erro de Conexão',
           `Problema ao conectar com servidor: ${error}`,
@@ -218,7 +217,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((status: any) => {
         console.log('🔗 Status de conexão:', status);
-        
+
         if (!status.connected && status.module !== 'idle') {
           // Se desconectou, mostrar warning
           this.notificationService.warning(
@@ -232,7 +231,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   /**
    * Callback quando novo paciente chega
-   * 
+   *
    * @private
    * @param data - Dados do paciente que chegou
    */
@@ -266,12 +265,12 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
   async carregarFila(): Promise<void> {
     try {
       this.carregando = true;
-      
+
       // Chamar API para obter fila
       const response = await firstValueFrom(
         this.triagemService.listarFilaTriagem()
       );
-      
+
       this.pacientes = response;
       this.estatisticas.pacientes_aguardando = response.length;
 
@@ -285,7 +284,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
       console.log(`📊 Fila carregada: ${response.length} pacientes`);
     } catch (error) {
       console.error('❌ Erro ao carregar fila:', error);
-      
+
       this.notificationService.error(
         'Erro ao Carregar Fila',
         'Não foi possível carregar a lista de pacientes'
@@ -310,7 +309,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
   /**
    * ngOnDestroy - Limpeza ao destruir componente
-   * 
+   *
    * Alterações:
    * - Unsubscribe de todos os observables
    * - Limpar timer
@@ -331,13 +330,13 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
     // Opcional: Deixar o módulo de triagem
     // Para deixar o módulo mas manter conexão:
     // this.realtimeService.switchModule('idle');
-    
+
     // Para desconectar completamente:
     // this.realtimeService.disconnect();
   }
 
   // ===== Métodos auxiliares (existentes) =====
-  
+
   getCorPrioridade(classificacao?: string): string {
     return this.coresPrioridade[classificacao || 'azul'] || '#4299E1';
   }
@@ -356,7 +355,7 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
 
 /**
  * ===== RESUMO DE ALTERAÇÕES =====
- * 
+ *
  * ✅ Adicionado imports de RealtimeService e NotificationService
  * ✅ Injetado RealtimeService e NotificationService no constructor
  * ✅ Adicionado destroy$ subject para gerenciar unsubscriptions
@@ -365,9 +364,9 @@ export class FilaTriagemComponent implements OnInit, OnDestroy {
  * ✅ Adicionado ngOnDestroy com unsubscription correta
  * ✅ Mantida toda a funcionalidade existente
  * ✅ Recursos de WebSocket são opcionais, não quebram funcionalidade
- * 
+ *
  * ===== FLUXO =====
- * 
+ *
  * 1. Componente inicializa
  * 2. Fila é carregada via HTTP (como antes)
  * 3. Conexão WebSocket é estabelecida

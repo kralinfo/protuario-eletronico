@@ -13,6 +13,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { Subscription } from 'rxjs';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -97,12 +98,11 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
   };
 
   private readonly STATUS_ALERTAS = new Set<string>([
-    'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-    'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
+    'encaminhado_para_sala_medica',
+    'em_atendimento_medico',
     'retornar_atendimento_medico',
-    'encaminhado para ambulatório', '5 - Encaminhado para ambulatório', 'encaminhado_para_ambulatorio',
-    'encaminhado para exames', '7 - Encaminhado para exames', 'encaminhado_para_exames',
-    'aguardando exames'
+    'encaminhado_para_ambulatorio',
+    'encaminhado_para_exames'
   ]);
 
   carregarAlertasTempo() {
@@ -121,7 +121,7 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
         const risco = typeof p.classificacao_risco === 'string' ? p.classificacao_risco.toLowerCase() : '';
         const limite = this.LIMITES_RISCO[risco];
         let tempoDecorrido = Math.floor((agora.getTime() - dataAtendimento.getTime()) / 60000);
-  if (p.status !== 'encaminhado para sala médica' && p.status !== 'em atendimento médico') continue;
+  if (normalizeStatus(p.status) !== 'encaminhado_para_sala_medica' && normalizeStatus(p.status) !== 'em_atendimento_medico') continue;
         if (!risco || limite === undefined) continue;
         if (limite <= 0) {
           if (tempoDecorrido > 0) criticos.push(p);
@@ -332,24 +332,21 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
 
       // Filtrar atendimentos para fila: "em atendimento médico" + "encaminhado para sala médica"
       const filaAtendimento = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
-        return status === 'em atendimento médico' ||
-               status === 'encaminhado para sala médica' ||
-               status === 'retornar_atendimento_medico';
+        const statusNorm = normalizeStatus(a.status);
+        return statusNorm === 'em_atendimento_medico' ||
+               statusNorm === 'encaminhado_para_sala_medica' ||
+               statusNorm === 'retornar_atendimento_medico';
       });
       this.filaSalaMedicaPreview = this.ordenarPorClassificacaoETempo(filaAtendimento).slice(0, 5);
 
-      // Contador "Encaminhados" (esquerda) - "encaminhado para sala médica" ou "retornar_atendimento_medico"
+      // Contador "Encaminhados" (esquerda) - "encaminhado para sala medica" ou "retornar_atendimento_medico"
       this.quantidadeEncaminhados = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
-        return status === 'encaminhado para sala médica' || status === 'retornar_atendimento_medico';
+        const statusNorm = normalizeStatus(a.status);
+        return statusNorm === 'encaminhado_para_sala_medica' || statusNorm === 'retornar_atendimento_medico';
       }).length;
 
       // Contador "Em Atendimento Médico" (direita) - apenas "em atendimento médico"
-      this.quantidadeEmAtendimentoMedico = atendimentos24h.filter(a => {
-        const status = (a.status || '').toLowerCase();
-        return status === 'em atendimento médico';
-      }).length;
+      this.quantidadeEmAtendimentoMedico = atendimentos24h.filter(a => normalizeStatus(a.status) === 'em_atendimento_medico').length;
 
       // Card "Aguardando Atendimento" - manter como estava
       this.estatisticas.pacientes_aguardando = this.quantidadeEncaminhados;
@@ -359,7 +356,7 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
   getAguardandoSalaMedicaHoje(): number {
     const hoje = new Date();
     return this.filaSalaMedicaPreview?.filter(a => {
-      if (a.status !== 'encaminhado para sala médica') return false;
+      if (normalizeStatus(a.status) !== 'encaminhado_para_sala_medica') return false;
       let campoData = a.created_at || a.data_hora_atendimento;
       if (!campoData) return false;
       const data = new Date(campoData);
@@ -382,22 +379,13 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
         if (diffHoras > 24) return false;
 
         // Incluir todos os status que representam consultas realizadas
-        const status = (a.status || '').toLowerCase();
-        const statusValido = status.includes('atendimento_concluido') ||
-               status.includes('atendimento concluido') ||
-               status.includes('atendimento concluído') ||
-               status.includes('alta_medica') ||
-               status.includes('alta médica') ||
-               status.includes('alta medica') ||
-               status.includes('encaminhado_para_ambulatorio') ||
-               status.includes('encaminhado para ambulatório') ||
-               status.includes('encaminhado para ambulatorio') ||
-               status.includes('encaminhado_para_exames') ||
-               status.includes('encaminhado para exame') ||
-               status.includes('encaminhado para exames') ||
-               status.includes('transferido') ||
-               status.includes('óbito') ||
-               status.includes('obito');
+        const statusNorm = normalizeStatus(a.status);
+        const statusValido = statusNorm === 'atendimento_concluido' ||
+               statusNorm === 'alta_medica' ||
+               statusNorm === 'encaminhado_para_ambulatorio' ||
+               statusNorm === 'encaminhado_para_exames' ||
+               statusNorm === 'transferido' ||
+               statusNorm === 'obito';
 
         return statusValido;
       });
@@ -434,16 +422,11 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
 
     // Status que permitem edição no card de consultas
     const statusPermiteEdicao = [
-      'em atendimento médico',
       'em_atendimento_medico',
-      'encaminhado para atendimento médico',
-      'encaminhado_para_atendimento_medico',
-      'retorno para atendimento médico',
-      'retornar_atendimento_medico',
-      'retorno_atendimento_medico'
+      'retornar_atendimento_medico'
     ];
 
-    const podeEditar = statusPermiteEdicao.includes(consulta.status?.toLowerCase().trim());
+    const podeEditar = statusPermiteEdicao.includes(normalizeStatus(consulta.status));
 
     console.log('🔍 Status permite edição:', podeEditar);
 
@@ -480,7 +463,7 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
     console.log('📋 Status original antes do modal:', statusOriginal);
 
     // Alterar o status para "em atendimento médico"
-    this.medicoService.atualizarStatus(String(consulta.id), 'em atendimento médico').subscribe({
+    this.medicoService.atualizarStatus(String(consulta.id), 'em_atendimento_medico').subscribe({
       next: () => {
         console.log('✅ Status alterado para: em atendimento médico');
 
@@ -516,27 +499,17 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
   }
 
   getDescricaoStatus(status: string): string {
-    const map: any = {
-      aguardando: 'Aguardando',
-      em_atendimento: 'Em Atendimento',
-      finalizado: 'Finalizado',
-      em_sala_medica: 'Em Sala Médica',
-      encaminhado: 'Encaminhado',
-      consulta: 'Consulta',
-      'encaminhado para sala médica': 'Encaminhado para Sala Médica',
-      'em atendimento médico': 'Em Atendimento Médico'
-    };
-    return map[status] || status;
+    return getStatusLabel(normalizeStatus(status));
   }
 
   getCorStatus(status: string): string {
-    switch (status) {
-      case 'aguardando': return '#4299e1';
-      case 'consulta': return '#3b82f6';
-      case 'encaminhado para sala médica': return '#FF9800';
-      case 'em atendimento médico': return '#FF5722';
-      default: return '#a0aec0';
-    }
+    const cores: Record<string, string> = {
+      'encaminhado_para_sala_medica': '#FF9800',
+      'em_atendimento_medico': '#FF5722',
+      'encaminhado_para_triagem': '#2196F3',
+      'em_triagem': '#4CAF50'
+    };
+    return cores[normalizeStatus(status)] || '#a0aec0';
   }
 
   getCorClassificacao(classificacao: string): string {
@@ -634,17 +607,14 @@ export class DashboardMedicoComponent implements OnInit, OnDestroy {
       const temConsultaRealizada = (atendimento.hipotese_diagnostica &&
                     atendimento.hipotese_diagnostica.trim() !== '');
 
-      const status = (atendimento.status || '').toLowerCase();
-      const statusPosConsulta = status === 'encaminhado_para_ambulatorio' ||
-                  status === 'encaminhado para ambulatório' ||
-                  status === 'em atendimento ambulatorial' ||
-                  status === 'em_atendimento_ambulatorial' ||
-                  status === 'encaminhado_para_exames' ||
-                  status === 'atendimento_concluido' ||
-                  status === 'alta_medica' ||
-                  status === 'alta médica' ||
-                  status === 'transferido' ||
-                  status === 'em_observacao';
+      const statusNorm = normalizeStatus(atendimento.status);
+      const statusPosConsulta = statusNorm === 'encaminhado_para_ambulatorio' ||
+                  statusNorm === 'em_atendimento_ambulatorial' ||
+                  statusNorm === 'encaminhado_para_exames' ||
+                  statusNorm === 'atendimento_concluido' ||
+                  statusNorm === 'alta_medica' ||
+                  statusNorm === 'transferido' ||
+                  statusNorm === 'em_observacao';
 
       return temConsultaRealizada || statusPosConsulta;
     }).map(consulta => {

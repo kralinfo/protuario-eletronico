@@ -42,7 +42,7 @@ export class MedicoService {
    * Mantém compatibilidade: busca apenas atendimentos em sala médica
    */
   getAtendimentosSalaMedica(): Observable<any[]> {
-    return this.getAtendimentosPorStatus(['encaminhado para sala médica']);
+    return this.getAtendimentosPorStatus(['encaminhado_para_sala_medica']);
   }
 
   getConsulta(id: string): Observable<any> {
@@ -68,13 +68,13 @@ export class MedicoService {
    */
   getConsultasMedicas(): Observable<any[]> {
     const statusMedicos = [
-      'encaminhado para sala médica', '3 - Encaminhado para sala médica', 'encaminhado_para_sala_medica',
-      'em atendimento médico', '4 - Em atendimento médico', 'em_atendimento_medico',
-      'atendimento_concluido', '8 - Atendimento Concluído',
-      'alta_medica', 'alta médica',
-      'encaminhado_para_ambulatorio', 'encaminhado para ambulatório',
-      'encaminhado_para_exames', 'encaminhado para exames', '7 - Encaminhado para exames',
-      'transferido', 'óbito'
+      'encaminhado_para_sala_medica',
+      'em_atendimento_medico',
+      'atendimento_concluido',
+      'alta_medica',
+      'encaminhado_para_ambulatorio',
+      'encaminhado_para_exames',
+      'transferido', 'obito'
     ];
     return this.getAtendimentosPorStatus(statusMedicos);
   }

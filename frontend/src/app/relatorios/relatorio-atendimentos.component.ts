@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { DateInputLimiterDirective } from '../shared/directives/data.directive';
 import { PaginationComponent } from '../shared/components/pagination/pagination.component';
+import { normalizeStatus, getStatusLabel } from '../utils/normalize-status';
 
 @Component({
   selector: 'app-relatorio-atendimentos',
@@ -32,58 +33,15 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   pageSize = 10;
   currentPage = 0;
 
-  // Mapeamento de ABA → STATUS(S) do banco
+  // Mapeamento de ABA → STATUS(S) canônicos (snake_case)
   private readonly STATUS_MAP: Record<string, string[]> = {
     todas: [],
-    triagem_pendente: [
-      'encaminhado para triagem',
-      'encaminhado_para_triagem',
-      'triagem pendente',
-      'triagem_pendente'
-    ],
-    em_triagem: [
-      'em triagem',
-      'em_triagem'
-    ],
-    aguardando_medico: [
-      'aguardando medico',
-      'aguardando médico',
-      'aguardando_medico',
-      'encaminhado para sala medica',
-      'encaminhado para sala médica',
-      'encaminhado_para_sala_medica',
-      'encaminhado para sala médica',
-      '3 - encaminhado para sala médica'
-    ],
-    em_atendimento: [
-      'em atendimento',
-      'em atendimento médico',
-      'em atendimento medico',
-      'em_atendimento',
-      'em_atendimento_medico',
-      'em atendimento ambulatorial',
-      'em_atendimento_ambulatorial',
-      '4 - em atendimento médico'
-    ],
-    finalizados: [
-      'atendimento concluido',
-      'atendimento concluído',
-      'atendimento_concluido',
-      'finalizado',
-      'alta medica',
-      'alta médica',
-      'alta_medica',
-      'alta ambulatorial',
-      'alta_ambulatorial',
-      'encaminhado para exames',
-      'encaminhado_para_exames',
-      '7 - encaminhado para exames',
-      '8 - atendimento concluído'
-    ],
-    interrompidos: [
-      'interrompido',
-      'abandonado'
-    ]
+    triagem_pendente: ['encaminhado_para_triagem'],
+    em_triagem: ['em_triagem'],
+    aguardando_medico: ['encaminhado_para_sala_medica'],
+    em_atendimento: ['em_atendimento_medico', 'em_atendimento_ambulatorial'],
+    finalizados: ['atendimento_concluido', 'alta_medica', 'alta_ambulatorial', 'encaminhado_para_exames'],
+    interrompidos: ['interrompido', 'abandonado']
   };
 
   get paginatedRelatorio() {
@@ -146,7 +104,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
           data: a.data_hora_atendimento ? new Date(a.data_hora_atendimento) : (a.data_criacao ? new Date(a.data_criacao) : null),
           paciente_nome: a.paciente_nome || '',
           observacoes: a.observacoes || '',
-          status: (a.status || '').toLowerCase().trim(),
+          status: normalizeStatus(a.status),
           sexo: a.paciente_sexo || '',
           municipio: a.paciente_municipio || '',
           uf: a.paciente_uf || '',
@@ -175,7 +133,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     // Filtrar por status da aba (se não for "todas")
     if (this.abaAtiva !== 'todas' && statusDaAba.length > 0) {
       filtrados = filtrados.filter(a => {
-        return statusDaAba.some(s => a.status === s.toLowerCase());
+        return statusDaAba.includes(a.status);
       });
     }
 
@@ -241,13 +199,6 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     this.relatorio = filtrados.map((a: any) => ({
       ...a,
       data: a.createdAt || new Date(),
-      paciente_nome: a.paciente_nome || '',
-      status: a.status || '',
-      sexo: a.paciente_sexo || '',
-      municipio: a.paciente_municipio || '',
-      uf: a.paciente_uf || '',
-      estadoCivil: a.paciente_estado_civil || '',
-      escolaridade: a.paciente_escolaridade || '',
       procedimento: a.procedimento || a.procedencia || '-'
     }));
 

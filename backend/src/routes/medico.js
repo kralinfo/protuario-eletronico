@@ -1,6 +1,7 @@
 import express from 'express';
 import knex from '../db.js';
 import PatientEventService from '../services/PatientEventService.js';
+import { normalizeStatus } from '../utils/normalizeStatus.js';
 const router = express.Router();
 router.get('/estatisticas', async (req, res) => {
   try {
@@ -16,14 +17,14 @@ router.get('/estatisticas', async (req, res) => {
       por_classificacao[cl] = atendimentosDia.filter(a => a.classificacao_risco === cl).length;
     });
 
-  // Outras estatísticas (considera variantes)
-  const aguardandoVariants = ['aguardando', 'aguardando_atendimento', 'aguardando atendimento'];
-  const emAtendimentoVariants = ['em_atendimento', 'em atendimento', 'em_atendimento_medico', 'em atendimento médico'];
-  const concluidaVariants = ['concluida', 'concluído', 'atendimento_concluido', 'atendimento concluido'];
+  // Outras estatísticas (usa status canônicos)
+  const aguardandoVariants = ['encaminhado_para_sala_medica'];
+  const emAtendimentoVariants = ['em_atendimento_medico'];
+  const concluidaVariants = ['atendimento_concluido'];
 
-  const pacientes_aguardando = atendimentosDia.filter(a => aguardandoVariants.includes(a.status)).length;
-  const pacientes_em_atendimento = atendimentosDia.filter(a => emAtendimentoVariants.includes(a.status)).length;
-  const consultas_concluidas = atendimentosDia.filter(a => concluidaVariants.includes(a.status)).length;
+  const pacientes_aguardando = atendimentosDia.filter(a => aguardandoVariants.includes(normalizeStatus(a.status))).length;
+  const pacientes_em_atendimento = atendimentosDia.filter(a => emAtendimentoVariants.includes(normalizeStatus(a.status))).length;
+  const consultas_concluidas = atendimentosDia.filter(a => concluidaVariants.includes(normalizeStatus(a.status))).length;
 
     res.json({
       estatisticas: {
@@ -42,10 +43,7 @@ router.get('/estatisticas', async (req, res) => {
 router.get('/atendimentos', async (req, res) => {
   try {
     const statusSalaMedica = [
-      'em_sala_medica',
-      'encaminhado_para_sala_medica',
-      'encaminhado para sala médica',
-      '3 - Encaminhado para sala médica'
+      'encaminhado_para_sala_medica'
     ];
     const atendimentos = await knex('atendimentos')
       .whereIn('status', statusSalaMedica)
@@ -166,25 +164,13 @@ router.post('/consulta', async (req, res) => {
     
     // APENAS atualizar status se o status_destino for diferente de 'em_atendimento_medico'
     // Isso significa que o paciente está sendo encaminhado para outro setor
-    if (payload.atendimento_id && payload.status_destino && payload.status_destino !== 'em_atendimento_medico') {
-      // Normaliza status para ambulatorio
-      let statusToSave = payload.status_destino;
-      if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
-        statusToSave = 'encaminhado_para_ambulatorio';
-      }
-      if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
-        statusToSave = 'encaminhado_para_exames';
-      }
-      if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
-        statusToSave = 'atendimento_concluido';
-      }
+    if (payload.atendimento_id && payload.status_destino && normalizeStatus(payload.status_destino) !== 'em_atendimento_medico') {
+      const statusToSave = normalizeStatus(payload.status_destino);
       
-      // Atualizar apenas quando o paciente está sendo encaminhado/finalizado
       await knex('atendimentos')
         .where('id', payload.atendimento_id)
         .update({ status: statusToSave, status_destino: statusToSave });
 
-      // Emitir evento para limpar card do médico no painel de fila (qualquer destino diferente de em_atendimento_medico)
       PatientEventService.emitAtendimentoFinished({
         patientId: payload.atendimento_id,
         patientName: '',
@@ -237,25 +223,13 @@ router.put('/consulta/:id', async (req, res) => {
       
     // APENAS atualizar status se o status_destino for diferente de 'em_atendimento_medico'
     // Isso significa que o paciente está sendo encaminhado para outro setor
-    if (payload.atendimento_id && payload.status_destino && payload.status_destino !== 'em_atendimento_medico') {
-      // Normaliza status para ambulatorio
-      let statusToSave = payload.status_destino;
-      if (statusToSave === 'encaminhado para ambulatório' || statusToSave === 'Ambulatório') {
-        statusToSave = 'encaminhado_para_ambulatorio';
-      }
-      if (statusToSave === 'encaminhado para exames' || statusToSave === 'Exames') {
-        statusToSave = 'encaminhado_para_exames';
-      }
-      if (statusToSave === 'alta médica' || statusToSave === 'Alta' || statusToSave === 'Alta Médica' || statusToSave === 'atendimento_concluido') {
-        statusToSave = 'atendimento_concluido';
-      }
+    if (payload.atendimento_id && payload.status_destino && normalizeStatus(payload.status_destino) !== 'em_atendimento_medico') {
+      const statusToSave = normalizeStatus(payload.status_destino);
       
-      // Atualizar apenas quando o paciente está sendo encaminhado/finalizado
       await knex('atendimentos')
         .where('id', payload.atendimento_id)
         .update({ status: statusToSave, status_destino: statusToSave });
 
-      // Emitir evento para limpar card do médico no painel de fila (qualquer destino diferente de em_atendimento_medico)
       PatientEventService.emitAtendimentoFinished({
         patientId: payload.atendimento_id,
         patientName: '',
