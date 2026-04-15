@@ -15,10 +15,24 @@
 
     <!-- FILTROS -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-4">
+      
+      <!-- FILTROS RÁPIDOS DE DATA -->
+      <div class="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-slate-200">
+        <span class="text-sm font-medium text-slate-600">Filtro Rápido:</span>
+        <button type="button" class="btn-sm" [class.btn-primary]="filtroRapidoAtivo === 'hoje'" [class.btn-outline]="filtroRapidoAtivo !== 'hoje'" (click)="setFiltroRapido('hoje')">Hoje</button>
+        <button type="button" class="btn-sm" [class.btn-primary]="filtroRapidoAtivo === '7dias'" [class.btn-outline]="filtroRapidoAtivo !== '7dias'" (click)="setFiltroRapido('7dias')">Últimos 7 dias</button>
+        <button type="button" class="btn-sm" [class.btn-primary]="filtroRapidoAtivo === '30dias'" [class.btn-outline]="filtroRapidoAtivo !== '30dias'" (click)="setFiltroRapido('30dias')">Últimos 30 dias</button>
+        <button type="button" class="btn-sm btn-outline" [class.btn-light]="filtroRapidoAtivo === 'personalizado'" [class.btn-outline]="filtroRapidoAtivo !== 'personalizado'" (click)="setFiltroRapido('personalizado')">Período Personalizado</button>
+        <button type="button" class="btn-sm btn-ghost text-slate-400" (click)="limparFiltros()">Limpar Filtros</button>
+      </div>
+
+      <!-- FILTROS PERSONALIZADOS (visível apenas quando período personalizado selecionado) -->
       <form [formGroup]="filtrosForm" (ngSubmit)="aplicarFiltrosLocais()" class="flex flex-wrap items-center gap-2">
 
-        <input type="date" class="input-sm w-[140px]" formControlName="dataInicial" appDateInputLimiter placeholder="Data Inicial" (change)="aplicarFiltrosLocais()">
-        <input type="date" class="input-sm w-[140px]" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value" appDateInputLimiter placeholder="Data Final" (change)="aplicarFiltrosLocais()">
+        <ng-container *ngIf="filtroRapidoAtivo === 'personalizado' || filtroRapidoAtivo === ''">
+          <input type="date" class="input-sm w-[140px]" formControlName="dataInicial" appDateInputLimiter placeholder="Data Inicial" (change)="aplicarFiltrosLocais()">
+          <input type="date" class="input-sm w-[140px]" formControlName="dataFinal" [min]="filtrosForm.get('dataInicial')?.value" appDateInputLimiter placeholder="Data Final" (change)="aplicarFiltrosLocais()">
+        </ng-container>
 
         <select class="input-sm w-[120px]" formControlName="sexo" (change)="aplicarFiltrosLocais()">
           <option value="">Sexo</option>
@@ -68,19 +82,6 @@
           <option value="uniao_estavel">União Estável</option>
         </select>
 
-        <select class="input-sm w-[150px]" formControlName="escolaridade" (change)="aplicarFiltrosLocais()">
-          <option value="">Escolaridade</option>
-          <option value="fundamental_incompleto">Fundamental Incompleto</option>
-          <option value="fundamental_completo">Fundamental Completo</option>
-          <option value="medio_incompleto">Médio Incompleto</option>
-          <option value="medio_completo">Médio Completo</option>
-          <option value="superior_incompleto">Superior Incompleto</option>
-          <option value="superior_completo">Superior Completo</option>
-          <option value="pos_graduacao">Pós-Graduação</option>
-        </select>
-
-        <button type="button" class="btn-light ml-auto" (click)="limparFiltros()">Limpar</button>
-
       </form>
     </div>
 
@@ -124,7 +125,7 @@
             <th class="p-3 text-left">Município/UF</th>
             <th class="p-3 text-left">Status</th>
             <th class="p-3 text-left">Procedimento</th>
-            <th class="p-3 text-left">Escolaridade</th>
+            <th class="p-3 text-left">Hipótese Diagnóstica</th>
           </tr>
         </thead>
         <tbody>
@@ -139,7 +140,7 @@
               </span>
             </td>
             <td class="p-3">{{ item.procedimento || '-' }}</td>
-            <td class="p-3 text-xs text-slate-500">{{ (item.escolaridade || '-').split('_').join(' ') | titlecase }}</td>
+            <td class="p-3 text-xs max-w-[200px] truncate" title="{{ item.hipotese_diagnostica || '-' }}">{{ item.hipotese_diagnostica || '-' }}</td>
           </tr>
         </tbody>
       </table>

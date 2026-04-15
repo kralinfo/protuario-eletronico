@@ -10,7 +10,9 @@ const reports = async (req, res) => {
     // Montar SELECT dinamicamente conforme existência da coluna
     const abandonoSelect = hasAbandonado ? 'a.abandonado, a.data_abandono,' : "false as abandonado, NULL as data_abandono,";
 
-    let query = `SELECT a.id, a.paciente_id, a.created_at as data_criacao, p.nome as paciente_nome, a.data_hora_atendimento, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, ${abandonoSelect} p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio, p.mae as paciente_mae, p.estado_civil as paciente_estado_civil, p.profissao as paciente_profissao, p.escolaridade as paciente_escolaridade, p.raca as paciente_raca, p.endereco as paciente_endereco, p.bairro as paciente_bairro, p.uf as paciente_uf, p.cep as paciente_cep, p.telefone as paciente_telefone, p.sus as paciente_sus
+    let query = `SELECT a.id, a.paciente_id, a.created_at as data_criacao, p.nome as paciente_nome, a.data_hora_atendimento, a.procedencia as procedimento, a.motivo as motivo, a.observacoes as observacao, a.status, a.motivo_interrupcao, 
+      (SELECT cm.hipotese_diagnostica FROM consultas_medicas cm WHERE cm.atendimento_id = a.id ORDER BY cm.created_at DESC LIMIT 1) as hipotese_diagnostica, 
+      ${abandonoSelect} p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.municipio as paciente_municipio, p.mae as paciente_mae, p.estado_civil as paciente_estado_civil, p.profissao as paciente_profissao, p.escolaridade as paciente_escolaridade, p.raca as paciente_raca, p.endereco as paciente_endereco, p.bairro as paciente_bairro, p.uf as paciente_uf, p.cep as paciente_cep, p.telefone as paciente_telefone, p.sus as paciente_sus
       FROM atendimentos a
       JOIN pacientes p ON p.id = a.paciente_id
       WHERE 1=1`;

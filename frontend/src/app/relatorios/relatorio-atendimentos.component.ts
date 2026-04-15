@@ -68,6 +68,9 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
 
   loading = false;
 
+  // Filtros rápidos de data
+  filtroRapidoAtivo: 'hoje' | '7dias' | '30dias' | 'personalizado' | '' = '';
+
   // Abas com indicador animado
   abaAtiva = 'todas';
   @ViewChild('tabIndicator') tabIndicator!: ElementRef<HTMLElement>;
@@ -80,8 +83,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
       sexo: [''],
       municipio: [''],
       uf: [''],
-      estadoCivil: [''],
-      escolaridade: ['']
+      estadoCivil: ['']
     }, { validators: datasInicioFimValidator });
   }
 
@@ -110,8 +112,17 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
           uf: a.paciente_uf || '',
           estadoCivil: a.paciente_estado_civil || '',
           escolaridade: a.paciente_escolaridade || '',
+          hipotese_diagnostica: a.hipotese_diagnostica || '',
           procedimento: a.procedimento || a.procedencia || '-'
         }));
+        
+        // Ordenar do mais novo para o mais velho
+        this.todosAtendimentos.sort((a, b) => {
+          const dateA = a.createdAt?.getTime() || 0;
+          const dateB = b.createdAt?.getTime() || 0;
+          return dateB - dateA; // Descrescente: mais recente primeiro
+        });
+        
         this.aplicarFiltrosLocais();
       },
       error: (error: any) => {
@@ -185,13 +196,6 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     if (filtros.estadoCivil) {
       filtrados = filtrados.filter((a: any) => {
         return (a.estadoCivil || '').toLowerCase().trim() === filtros.estadoCivil.toLowerCase();
-      });
-    }
-
-    // Filtro por Escolaridade
-    if (filtros.escolaridade) {
-      filtrados = filtrados.filter((a: any) => {
-        return (a.escolaridade || '').toLowerCase().trim() === filtros.escolaridade.toLowerCase();
       });
     }
 
@@ -381,12 +385,68 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
       sexo: '',
       municipio: '',
       uf: '',
-      estadoCivil: '',
-      escolaridade: ''
+      estadoCivil: ''
     });
+    this.filtroRapidoAtivo = '';
     this.abaAtiva = 'todas'; // Resetar aba para "todas"
     this.currentPage = 0;
     // Aplica filtros locais (irá mostrar todos os dados)
+    this.aplicarFiltrosLocais();
+  }
+
+  /**
+   * Aplica filtro rápido de data
+   */
+  setFiltroRapido(tipo: 'hoje' | '7dias' | '30dias' | 'personalizado') {
+    this.filtroRapidoAtivo = tipo;
+    const hoje = new Date();
+    hoje.setHours(23, 59, 59, 999);
+
+    let dataInicial: Date | null = null;
+    let dataFinal: Date | null = null;
+
+    switch (tipo) {
+      case 'hoje':
+        dataInicial = new Date(hoje);
+        dataInicial.setHours(0, 0, 0, 0);
+        dataFinal = new Date(hoje);
+        break;
+      case '7dias':
+        dataInicial = new Date(hoje);
+        dataInicial.setDate(dataInicial.getDate() - 6);
+        dataInicial.setHours(0, 0, 0, 0);
+        dataFinal = new Date(hoje);
+        break;
+      case '30dias':
+        dataInicial = new Date(hoje);
+        dataInicial.setDate(dataInicial.getDate() - 29);
+        dataInicial.setHours(0, 0, 0, 0);
+        dataFinal = new Date(hoje);
+        break;
+      case 'personalizado':
+        // Mantém os campos de data visíveis, mas limpa os valores para mostrar tudo
+        this.filtrosForm.patchValue({
+          dataInicial: '',
+          dataFinal: ''
+        });
+        this.aplicarFiltrosLocais();
+        return;
+    }
+
+    // Formata as datas para o formato YYYY-MM-DD
+    const formatDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // Atualiza o formulário com as datas calculadas
+    this.filtrosForm.patchValue({
+      dataInicial: formatDate(dataInicial),
+      dataFinal: formatDate(dataFinal)
+    });
+
     this.aplicarFiltrosLocais();
   }
   gerarRelatorioSimples() {
@@ -394,17 +454,30 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     doc.setFontSize(16);
     doc.text('Relatório Simples de Atendimentos', 20, 20);
     doc.setFontSize(12);
-    let y = 35;
+    
+    // Adiciona informações do filtro
+    if (this.filtroRapidoAtivo) {
+      doc.setFontSize(10);
+      const filtroTexto = this.getFiltroRapidoTexto();
+      doc.text(`Filtro: ${filtroTexto}`, 20, 30);
+    }
+    
+    let y = this.filtroRapidoAtivo ? 38 : 35;
+    doc.setFontSize(12);
+    
     doc.text('Data', 20, y);
     doc.text('Paciente', 60, y);
-    doc.text('Profissional', 130, y);
+    doc.text('Hipótese Diagnóstica', 120, y);
     y += 8;
     doc.setLineWidth(0.2);
     doc.line(20, y - 5, 190, y - 5);
-    this.todosAtendimentos.forEach(item => {
+    
+    const dados = this.relatorio.length > 0 ? this.relatorio : this.todosAtendimentos;
+    dados.forEach(item => {
       doc.text(new Date(item.data_hora_atendimento || item.created_at).toLocaleDateString('pt-BR'), 20, y);
-      doc.text(item.paciente_nome, 60, y);
-      doc.text(item.usuario_id || '', 130, y);
+      doc.text(item.paciente_nome.substring(0, 25), 60, y);
+      const hipotese = item.hipotese_diagnostica ? item.hipotese_diagnostica.substring(0, 30) : '-';
+      doc.text(hipotese, 120, y);
       y += 8;
       if (y > 270) {
         doc.addPage();
@@ -419,23 +492,35 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     doc.setFontSize(16);
     doc.text('Relatório Detalhado de Atendimentos', 20, 20);
     doc.setFontSize(12);
-    let y = 35;
+    
+    // Adiciona informações do filtro
+    if (this.filtroRapidoAtivo) {
+      doc.setFontSize(10);
+      const filtroTexto = this.getFiltroRapidoTexto();
+      doc.text(`Filtro: ${filtroTexto}`, 20, 30);
+    }
+    
+    let y = this.filtroRapidoAtivo ? 38 : 35;
+    doc.setFontSize(12);
+    
     doc.text('Data', 20, y);
     doc.text('Paciente', 50, y);
-    doc.text('Profissional', 100, y);
-    doc.text('Procedimento', 140, y);
-    y += 8;
-    doc.text('Observações', 20, y);
+    doc.text('Procedimento', 100, y);
+    doc.text('Hipótese', 145, y);
     y += 8;
     doc.setLineWidth(0.2);
-    doc.line(20, y - 13, 190, y - 13);
-    this.todosAtendimentos.forEach(item => {
+    doc.line(20, y - 5, 190, y - 5);
+    
+    const dados = this.relatorio.length > 0 ? this.relatorio : this.todosAtendimentos;
+    dados.forEach(item => {
       doc.text(new Date(item.data_hora_atendimento || item.created_at).toLocaleDateString('pt-BR'), 20, y);
-      doc.text(item.paciente_nome, 50, y);
-      doc.text(item.usuario_id || '', 100, y);
-      doc.text(item.procedencia || item.procedimento || '', 140, y);
+      doc.text(item.paciente_nome.substring(0, 20), 50, y);
+      doc.text((item.procedencia || item.procedimento || '-').substring(0, 20), 100, y);
+      const hipotese = item.hipotese_diagnostica ? item.hipotese_diagnostica.substring(0, 20) : '-';
+      doc.text(hipotese, 145, y);
       y += 8;
-      doc.text(item.observacoes || '', 20, y);
+      doc.text('Obs:', 20, y);
+      doc.text((item.observacoes || '').substring(0, 80), 30, y);
       y += 10;
       if (y > 270) {
         doc.addPage();
@@ -443,6 +528,29 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
       }
     });
     doc.save('relatorio-detalhado-atendimentos.pdf');
+  }
+
+  /**
+   * Retorna texto descritivo para o filtro rápido ativo
+   */
+  getFiltroRapidoTexto(): string {
+    switch (this.filtroRapidoAtivo) {
+      case 'hoje':
+        return 'Atendimentos de Hoje';
+      case '7dias':
+        return 'Últimos 7 dias';
+      case '30dias':
+        return 'Últimos 30 dias';
+      case 'personalizado':
+        const dataIni = this.filtrosForm.get('dataInicial')?.value;
+        const dataFin = this.filtrosForm.get('dataFinal')?.value;
+        if (dataIni && dataFin) {
+          return `Período: ${dataIni} até ${dataFin}`;
+        }
+        return 'Período personalizado';
+      default:
+        return 'Todos os atendimentos';
+    }
   }
 
   min(a: number, b: number): number {
