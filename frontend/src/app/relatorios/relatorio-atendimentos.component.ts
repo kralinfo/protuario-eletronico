@@ -1,6 +1,7 @@
 import * as jsPDF from 'jspdf';
-import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { AtendimentoService } from '../services/atendimento.service';
+import { AuthService } from '../auth/auth.service';
 
 import { FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
 import { dataMaxHojeValidator, datasInicioFimValidator } from '../utils/validators-util';
@@ -9,11 +10,21 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { DateInputLimiterDirective } from '../shared/directives/data.directive';
 import { PaginationComponent } from '../shared/components/pagination/pagination.component';
 import { normalizeStatus, getStatusLabel } from '../utils/normalize-status';
+import { MatDialog } from '@angular/material/dialog';
+import { AbandonoDialogComponent } from '../shared/abandono-dialog/abandono-dialog.component';
+import { ConfirmDialogComponent } from '../shared/confirm-dialog/confirm-dialog.component';
+import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dialog.component';
+import { HistoricoAtendimentoDetalheComponent } from '../pacientes/historico-atendimento-detalhe.component';
 
 @Component({
   selector: 'app-relatorio-atendimentos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DateInputLimiterDirective, PaginationComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    DateInputLimiterDirective,
+    PaginationComponent
+  ],
   templateUrl: './relatorio-atendimentos.component.html',
   styleUrls: ['./relatorio-atendimentos.component.scss', '../shared/styles/table-footer.css']
 })
@@ -71,12 +82,20 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   // Filtros rápidos de data
   filtroRapidoAtivo: 'hoje' | '7dias' | '30dias' | 'personalizado' | '' = '';
 
+  // Menu de ações
+  openMenuId: number | null = null;
+
   // Abas com indicador animado
   abaAtiva = 'todas';
   @ViewChild('tabIndicator') tabIndicator!: ElementRef<HTMLElement>;
   @ViewChildren('tabButton') tabButtons!: QueryList<ElementRef<HTMLElement>>;
 
-  constructor(private fb: FormBuilder, private atendimentoService: AtendimentoService) {
+  constructor(
+    private fb: FormBuilder,
+    private atendimentoService: AtendimentoService,
+    private authService: AuthService,
+    private dialog: MatDialog
+  ) {
     this.filtrosForm = this.fb.group({
       dataInicial: ['', [dataMaxHojeValidator]],
       dataFinal: ['', [dataMaxHojeValidator]],
@@ -85,6 +104,22 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
       uf: [''],
       estadoCivil: ['']
     }, { validators: datasInicioFimValidator });
+  }
+
+  // Verificar se o usuário é editor (admin ou editor)
+  get isEditor(): boolean {
+    return this.authService.isEditor;
+  }
+
+  /**
+   * Fecha o menu ao clicar fora
+   */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.relative.inline-block')) {
+      this.closeMenu();
+    }
   }
 
   ngOnInit() {
@@ -551,6 +586,142 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
       default:
         return 'Todos os atendimentos';
     }
+  }
+
+  /**
+   * Toggle do menu de ações
+   */
+  toggleMenu(event: Event, atendimentoId: number, index: number) {
+    event.stopPropagation();
+    if (this.openMenuId === atendimentoId) {
+      this.closeMenu();
+    } else {
+      this.openMenuId = atendimentoId;
+    }
+  }
+
+  /**
+   * Fecha o menu de ações
+   */
+  closeMenu() {
+    this.openMenuId = null;
+  }
+
+  /**
+   * Verifica se o status é um status final (não permite mais ações)
+   */
+  isStatusFinal(status: string): boolean {
+    const statusFinal = [
+      'atendimento_concluido',
+      'alta_medica',
+      'alta_ambulatorial',
+      'encaminhado_para_exames'
+    ];
+    const statusLower = (status || '').toLowerCase().trim();
+    return statusFinal.some(s => statusLower === s.toLowerCase());
+  }
+
+  /**
+   * Registra abandono do atendimento
+   */
+  registrarAbandono(atendimento: any) {
+    const dialogRef = this.dialog.open(AbandonoDialogComponent, {
+      data: { atendimento: atendimento },
+      width: '500px'
+    });
+
+    dialogRef.afterClosed().subscribe({
+      next: (result) => {
+        if (result) {
+          this.atendimentoService.registrarAbandono(atendimento.id, result).subscribe({
+            next: () => {
+              this.carregarTodosAtendimentos();
+              this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Abandono Registrado',
+                  message: 'Atendimento marcado como abandonado com sucesso!',
+                  type: 'success'
+                }
+              });
+              setTimeout(() => this.dialog.closeAll(), 2000);
+            },
+            error: (error: any) => {
+              console.error('Erro ao registrar abandono:', error);
+              this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Erro',
+                  message: 'Falha ao registrar abandono. Tente novamente.',
+                  type: 'error'
+                }
+              });
+              setTimeout(() => this.dialog.closeAll(), 2500);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Finaliza o atendimento (muda status para atendimento_concluido)
+   */
+  finalizarAtendimento(atendimento: any) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Finalizar Atendimento',
+        message: `Confirma a finalização do atendimento do paciente ${atendimento.paciente_nome}?`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe({
+      next: (result) => {
+        if (result) {
+          const dadosAtualizacao = {
+            motivo: atendimento.motivo,
+            observacoes: atendimento.observacoes,
+            status: 'atendimento_concluido',
+            procedencia: atendimento.procedencia,
+            acompanhante: atendimento.acompanhante
+          };
+
+          this.atendimentoService.atualizarAtendimento(atendimento.id, dadosAtualizacao).subscribe({
+            next: () => {
+              this.carregarTodosAtendimentos();
+              this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Sucesso',
+                  message: 'Atendimento finalizado com sucesso!',
+                  type: 'success'
+                }
+              });
+              setTimeout(() => this.dialog.closeAll(), 2000);
+            },
+            error: (err: any) => {
+              this.dialog.open(FeedbackDialogComponent, {
+                data: {
+                  title: 'Erro',
+                  message: err?.error?.message || 'Erro ao finalizar atendimento.',
+                  type: 'error'
+                }
+              });
+              setTimeout(() => this.dialog.closeAll(), 2500);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Visualiza a ficha completa do atendimento
+   */
+  visualizarDetalhes(atendimento: any) {
+    this.dialog.open(HistoricoAtendimentoDetalheComponent, {
+      data: { atendimentoId: atendimento.id },
+      width: '90%',
+      maxWidth: '1200px',
+      maxHeight: '90vh'
+    });
   }
 
   min(a: number, b: number): number {

@@ -1,54 +1,82 @@
-<div class="detalhe-container" style="position:relative;">
-  <button type="button" (click)="fechar()" class="close-btn" title="Fechar" style="position:absolute;top:16px;right:16px;z-index:10;background:none;border:none;cursor:pointer;padding:4px;">
-    <mat-icon>close</mat-icon>
-  </button>
-  <h2>Dados do Atendimento</h2>
-  <div *ngIf="carregando" class="loading">
-    <mat-spinner diameter="32"></mat-spinner>
-    Carregando dados...
-  </div>
-  <div *ngIf="erro" class="erro">{{ erro }}</div>
+﻿<div class="detalhe-container">
 
-  <div *ngIf="atendimento">
-    <div class="cards-container-horizontal">
-      <div class="card-group">
+  <button (click)="fechar()" class="close-btn">
+    ✕
+  </button>
+
+  <div class="header">
+    <h2>Dados do Atendimento</h2>
+    <span class="status-badge">
+      {{ atendimento?.status ? getStatusLabel(atendimento.status) : '' }}
+    </span>
+  </div>
+
+  <div *ngIf="carregando" class="loading">
+    Carregando...
+  </div>
+
+  <div *ngIf="atendimento" class="content">
+
+    <!-- GRID PRINCIPAL -->
+    <div class="grid">
+
+      <!-- DADOS GERAIS -->
+      <div class="card">
         <h3>Dados Gerais</h3>
-        <div class="grid-row"><span class="grid-label">Data:</span> <span class="grid-value">{{ atendimento.data_hora_atendimento | date:'short' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Status:</span> <span class="grid-value">{{ atendimento.status ? getStatusLabel(atendimento.status) : '' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Motivo:</span> <span class="grid-value">{{ atendimento.motivo }}</span></div>
-        <div class="grid-row"><span class="grid-label">Procedência:</span> <span class="grid-value">{{ atendimento.procedencia }}</span></div>
-        <div class="grid-row"><span class="grid-label">Queixa Principal:</span> <span class="grid-value">{{ atendimento.queixa_principal }}</span></div>
-        <div class="grid-row"><span class="grid-label">História Atual:</span> <span class="grid-value">{{ atendimento.historia_atual }}</span></div>
-        <div class="grid-row"><span class="grid-label">Observações:</span> <span class="grid-value">{{ atendimento.observacoes }}</span></div>
-        <div class="grid-row"><span class="grid-label">Observações Triagem:</span> <span class="grid-value">{{ atendimento.observacoes_triagem }}</span></div>
+
+        <div class="item"><label>Data</label><span>{{ atendimento.data_hora_atendimento | date:'short' }}</span></div>
+        <div class="item"><label>Motivo</label><span>{{ atendimento.motivo }}</span></div>
+        <div class="item"><label>Procedência</label><span>{{ atendimento.procedencia }}</span></div>
+        <div class="item"><label>Queixa</label><span>{{ atendimento.queixa_principal }}</span></div>
+        <div class="item"><label>História</label><span>{{ atendimento.historia_atual }}</span></div>
+        <div class="item"><label>Observações</label><span>{{ atendimento.observacoes }}</span></div>
+
       </div>
-      <div class="card-group">
+
+      <!-- SINAIS VITAIS -->
+      <div class="card">
         <h3>Sinais Vitais</h3>
-        <div class="grid-row"><span class="grid-label">Classificação de Risco:</span> <span class="grid-value">{{ atendimento.classificacao_risco }}</span></div>
-        <div class="grid-row"><span class="grid-label">Prioridade:</span> <span class="grid-value">{{ atendimento.prioridade }}</span></div>
-        <div class="grid-row"><span class="grid-label">Temperatura:</span> <span class="grid-value">{{ atendimento.temperatura }}</span></div>
-        <div class="grid-row"><span class="grid-label">Pressão Arterial:</span> <span class="grid-value">{{ atendimento.pressao_arterial }}</span></div>
-        <div class="grid-row"><span class="grid-label">Frequência Cardíaca:</span> <span class="grid-value">{{ atendimento.frequencia_cardiaca }}</span></div>
-        <div class="grid-row"><span class="grid-label">Frequência Respiratória:</span> <span class="grid-value">{{ atendimento.frequencia_respiratoria }}</span></div>
-        <div class="grid-row"><span class="grid-label">Saturação de Oxigênio:</span> <span class="grid-value">{{ atendimento.saturacao_oxigenio }}</span></div>
-        <div class="grid-row"><span class="grid-label">Peso:</span> <span class="grid-value">{{ atendimento.peso }}</span></div>
-        <div class="grid-row"><span class="grid-label">Altura:</span> <span class="grid-value">{{ atendimento.altura }}</span></div>
+
+        <div class="item"><label>Classificação</label><span>{{ atendimento.classificacao_risco }}</span></div>
+        <div class="item"><label>Prioridade</label><span>{{ atendimento.prioridade }}</span></div>
+        <div class="item"><label>Temperatura</label><span>{{ atendimento.temperatura }}</span></div>
+        <div class="item"><label>Pressão</label><span>{{ atendimento.pressao_arterial }}</span></div>
+        <div class="item"><label>FC</label><span>{{ atendimento.frequencia_cardiaca }}</span></div>
+        <div class="item"><label>FR</label><span>{{ atendimento.frequencia_respiratoria }}</span></div>
+        <div class="item"><label>SpO₂</label><span>{{ atendimento.saturacao_oxigenio }}</span></div>
+        <div class="item"><label>Peso</label><span>{{ atendimento.peso }}</span></div>
+        <div class="item"><label>Altura</label><span>{{ atendimento.altura }}</span></div>
+
       </div>
-      <div class="card-group">
+
+      <!-- OUTROS -->
+      <div class="card">
         <h3>Outros</h3>
-        <div class="grid-row"><span class="grid-label">Acompanhante:</span> <span class="grid-value">{{ atendimento.acompanhante }}</span></div>
-        <div class="grid-row"><span class="grid-label">Medicamentos em Uso:</span> <span class="grid-value">{{ atendimento.medicamentos_uso }}</span></div>
-        <div class="grid-row"><span class="grid-label">Alergias:</span> <span class="grid-value">{{ atendimento.alergias }}</span></div>
-        <div class="grid-row"><span class="grid-label">Abandonado:</span> <span class="grid-value">{{ atendimento.abandonado ? 'Sim' : 'Não' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Motivo Abandono:</span> <span class="grid-value">{{ atendimento.motivo_abandono }}</span></div>
-        <div class="grid-row"><span class="grid-label">Data Abandono:</span> <span class="grid-value">{{ atendimento.data_abandono | date:'short' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Assinado:</span> <span class="grid-value">{{ atendimento.assinado ? 'Sim' : 'Não' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Assinatura Digital:</span> <span class="grid-value">{{ atendimento.assinatura_digital }}</span></div>
-        <div class="grid-row"><span class="grid-label">Data Assinatura:</span> <span class="grid-value">{{ atendimento.data_assinatura | date:'short' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Data Início Triagem:</span> <span class="grid-value">{{ atendimento.data_inicio_triagem | date:'short' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Data Fim Triagem:</span> <span class="grid-value">{{ atendimento.data_fim_triagem | date:'short' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Triagem Realizada Por:</span> <span class="grid-value">{{ atendimento.triagem_realizada_por }}</span></div>
-        <div class="grid-row"><span class="grid-label">Motivo Interrupção:</span> <span class="grid-value">{{ atendimento.motivo_interrupcao }}</span></div>
+
+        <div class="item"><label>Acompanhante</label><span>{{ atendimento.acompanhante }}</span></div>
+        <div class="item"><label>Medicamentos</label><span>{{ atendimento.medicamentos_uso }}</span></div>
+        <div class="item"><label>Alergias</label><span>{{ atendimento.alergias }}</span></div>
+        <div class="item"><label>Abandonado</label><span>{{ atendimento.abandonado ? 'Sim' : 'Não' }}</span></div>
+        <div class="item"><label>Assinado</label><span>{{ atendimento.assinado ? 'Sim' : 'Não' }}</span></div>
+        <div class="item"><label>Triagem</label><span>{{ atendimento.triagem_realizada_por }}</span></div>
+
+      </div>
+
+    </div>
+
+    <!-- CONSULTA MÉDICA -->
+    <div class="card full" *ngIf="atendimento.hipotese_diagnostica || atendimento.exame_fisico">
+      <h3>Consulta Médica</h3>
+
+      <div class="grid-consulta">
+        <div class="item"><label>Motivo</label><span>{{ atendimento.motivo_consulta || '-' }}</span></div>
+        <div class="item"><label>Exame</label><span>{{ atendimento.exame_fisico || '-' }}</span></div>
+        <div class="item destaque"><label>Diagnóstico</label><span>{{ atendimento.hipotese_diagnostica || '-' }}</span></div>
+        <div class="item"><label>Conduta</label><span>{{ atendimento.conduta_prescricao || '-' }}</span></div>
+        <div class="item"><label>Orientações</label><span>{{ atendimento.orientacoes || '-' }}</span></div>
+        <div class="item"><label>Retorno</label><span>{{ atendimento.data_retorno | date:'short' }}</span></div>
       </div>
     </div>
+
   </div>
+</div>

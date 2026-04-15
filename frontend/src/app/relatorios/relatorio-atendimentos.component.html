@@ -119,6 +119,7 @@
       <table class="w-full text-sm">
         <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
           <tr>
+            <th class="p-3 text-left">Ações</th>
             <th class="p-3 text-left">Data</th>
             <th class="p-3 text-left">Paciente</th>
             <th class="p-3 text-left">Sexo</th>
@@ -129,7 +130,53 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of paginatedRelatorio" class="border-t hover:bg-blue-50 cursor-pointer">
+          <tr *ngFor="let item of paginatedRelatorio; let i = index" class="border-t hover:bg-blue-50 cursor-pointer">
+            <td class="p-3">
+              <div class="relative inline-block">
+                <button
+                  (click)="toggleMenu($event, item.id, i)"
+                  class="p-1 rounded hover:bg-gray-200"
+                  title="Ações"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="5" cy="12" r="1.5"/>
+                    <circle cx="12" cy="12" r="1.5"/>
+                    <circle cx="19" cy="12" r="1.5"/>
+                  </svg>
+                </button>
+                <div *ngIf="openMenuId === item.id"
+                     class="absolute z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+                     style="min-width: 200px;">
+                  <ng-container *ngIf="isEditor">
+                    <button *ngIf="!item.abandonado && !isStatusFinal(item.status)"
+                            (click)="finalizarAtendimento(item); closeMenu()"
+                            class="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-50 text-green-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Finalizar Atendimento</span>
+                    </button>
+                    <button *ngIf="!item.abandonado && !isStatusFinal(item.status)"
+                            (click)="registrarAbandono(item); closeMenu()"
+                            class="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-50 text-orange-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span>Registrar Abandono</span>
+                    </button>
+                  </ng-container>
+                  <div class="h-px bg-gray-200"></div>
+                  <button (click)="visualizarDetalhes(item); closeMenu()"
+                          class="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <span>Visualizar Ficha Completa</span>
+                  </button>
+                </div>
+              </div>
+            </td>
             <td class="p-3 text-nowrap">{{ item.data | date:'dd/MM/yyyy' }}</td>
             <td class="p-3 font-medium">{{ item.paciente_nome }}</td>
             <td class="p-3">{{ item.sexo || '-' }}</td>

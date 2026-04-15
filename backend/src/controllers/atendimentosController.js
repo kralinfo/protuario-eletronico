@@ -503,10 +503,14 @@ const buscarPorId = async (req, res) => {
     }
     
     const result = await db.query(`
-      SELECT a.*, p.nome as paciente_nome, p.id as paciente_id, p.mae as paciente_mae, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.estado_civil as paciente_estado_civil, p.profissao as paciente_profissao, p.escolaridade as paciente_escolaridade, p.raca as paciente_raca, p.endereco as paciente_endereco, p.bairro as paciente_bairro, p.municipio as paciente_municipio, p.uf as paciente_uf, p.cep as paciente_cep, p.telefone as paciente_telefone, p.sus as paciente_sus
+      SELECT a.*, p.nome as paciente_nome, p.id as paciente_id, p.mae as paciente_mae, p.nascimento as paciente_nascimento, p.sexo as paciente_sexo, p.estado_civil as paciente_estado_civil, p.profissao as paciente_profissao, p.escolaridade as paciente_escolaridade, p.raca as paciente_raca, p.endereco as paciente_endereco, p.bairro as paciente_bairro, p.municipio as paciente_municipio, p.uf as paciente_uf, p.cep as paciente_cep, p.telefone as paciente_telefone, p.sus as paciente_sus,
+      cm.id as consulta_medica_id, cm.motivo_consulta, cm.exame_fisico, cm.hipotese_diagnostica, cm.conduta_prescricao, cm.status_destino
       FROM atendimentos a
       JOIN pacientes p ON p.id = a.paciente_id
+      LEFT JOIN consultas_medicas cm ON cm.atendimento_id = a.id
       WHERE a.id = $1
+      ORDER BY cm.created_at DESC
+      LIMIT 1
     `, [id]);
     
     if (result.rowCount === 0) {
