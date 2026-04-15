@@ -108,7 +108,9 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
 
   // Verificar se o usuário é editor (admin ou editor)
   get isEditor(): boolean {
-    return this.authService.isEditor;
+    const result = this.authService.isEditor;
+    console.log('[DEBUG] isEditor:', result, '| nivel:', this.authService.user?.nivel);
+    return result;
   }
 
   /**
@@ -150,14 +152,14 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
           hipotese_diagnostica: a.hipotese_diagnostica || '',
           procedimento: a.procedimento || a.procedencia || '-'
         }));
-        
+
         // Ordenar do mais novo para o mais velho
         this.todosAtendimentos.sort((a, b) => {
           const dateA = a.createdAt?.getTime() || 0;
           const dateB = b.createdAt?.getTime() || 0;
           return dateB - dateA; // Descrescente: mais recente primeiro
         });
-        
+
         this.aplicarFiltrosLocais();
       },
       error: (error: any) => {
@@ -489,24 +491,24 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     doc.setFontSize(16);
     doc.text('Relatório Simples de Atendimentos', 20, 20);
     doc.setFontSize(12);
-    
+
     // Adiciona informações do filtro
     if (this.filtroRapidoAtivo) {
       doc.setFontSize(10);
       const filtroTexto = this.getFiltroRapidoTexto();
       doc.text(`Filtro: ${filtroTexto}`, 20, 30);
     }
-    
+
     let y = this.filtroRapidoAtivo ? 38 : 35;
     doc.setFontSize(12);
-    
+
     doc.text('Data', 20, y);
     doc.text('Paciente', 60, y);
     doc.text('Hipótese Diagnóstica', 120, y);
     y += 8;
     doc.setLineWidth(0.2);
     doc.line(20, y - 5, 190, y - 5);
-    
+
     const dados = this.relatorio.length > 0 ? this.relatorio : this.todosAtendimentos;
     dados.forEach(item => {
       doc.text(new Date(item.data_hora_atendimento || item.created_at).toLocaleDateString('pt-BR'), 20, y);
@@ -527,17 +529,17 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     doc.setFontSize(16);
     doc.text('Relatório Detalhado de Atendimentos', 20, 20);
     doc.setFontSize(12);
-    
+
     // Adiciona informações do filtro
     if (this.filtroRapidoAtivo) {
       doc.setFontSize(10);
       const filtroTexto = this.getFiltroRapidoTexto();
       doc.text(`Filtro: ${filtroTexto}`, 20, 30);
     }
-    
+
     let y = this.filtroRapidoAtivo ? 38 : 35;
     doc.setFontSize(12);
-    
+
     doc.text('Data', 20, y);
     doc.text('Paciente', 50, y);
     doc.text('Procedimento', 100, y);
@@ -545,7 +547,7 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
     y += 8;
     doc.setLineWidth(0.2);
     doc.line(20, y - 5, 190, y - 5);
-    
+
     const dados = this.relatorio.length > 0 ? this.relatorio : this.todosAtendimentos;
     dados.forEach(item => {
       doc.text(new Date(item.data_hora_atendimento || item.created_at).toLocaleDateString('pt-BR'), 20, y);

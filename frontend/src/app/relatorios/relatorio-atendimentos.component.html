@@ -15,7 +15,7 @@
 
     <!-- FILTROS -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-4">
-      
+
       <!-- FILTROS RÁPIDOS DE DATA -->
       <div class="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-slate-200">
         <span class="text-sm font-medium text-slate-600">Filtro Rápido:</span>
@@ -165,7 +165,7 @@
                       <span>Registrar Abandono</span>
                     </button>
                   </ng-container>
-                  <div class="h-px bg-gray-200"></div>
+                  <div *ngIf="!item.abandonado && !isStatusFinal(item.status)" class="h-px bg-gray-200"></div>
                   <button (click)="visualizarDetalhes(item); closeMenu()"
                           class="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

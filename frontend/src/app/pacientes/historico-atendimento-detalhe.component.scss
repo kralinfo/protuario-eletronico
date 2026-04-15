@@ -116,3 +116,36 @@
     grid-template-columns: 1fr;
   }
 }
+
+.acoes {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+
+  button {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 0.85; }
+  }
+
+  .btn-abandono {
+    background: #fff3e0;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+  }
+
+  .btn-conclusao {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+}
