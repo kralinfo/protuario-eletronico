@@ -14,7 +14,7 @@
       <div class="card-group">
         <h3>Dados Gerais</h3>
         <div class="grid-row"><span class="grid-label">Data:</span> <span class="grid-value">{{ atendimento.data_hora_atendimento | date:'short' }}</span></div>
-        <div class="grid-row"><span class="grid-label">Status:</span> <span class="grid-value">{{ atendimento.status }}</span></div>
+        <div class="grid-row"><span class="grid-label">Status:</span> <span class="grid-value">{{ atendimento.status ? getStatusLabel(atendimento.status) : '' }}</span></div>
         <div class="grid-row"><span class="grid-label">Motivo:</span> <span class="grid-value">{{ atendimento.motivo }}</span></div>
         <div class="grid-row"><span class="grid-label">Procedência:</span> <span class="grid-value">{{ atendimento.procedencia }}</span></div>
         <div class="grid-row"><span class="grid-label">Queixa Principal:</span> <span class="grid-value">{{ atendimento.queixa_principal }}</span></div>

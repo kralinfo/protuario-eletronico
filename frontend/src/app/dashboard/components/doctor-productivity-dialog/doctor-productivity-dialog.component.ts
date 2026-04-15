@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { DashboardService, AtendimentoMedicoDetalhe, MedicoProdutividade, FiltroDashboard } from '../../../services/dashboard.service';
+import { getStatusLabel } from '../../../utils/normalize-status';
 
 @Component({
   selector: 'app-doctor-productivity-dialog',
@@ -184,7 +185,7 @@ export class DoctorProductivityDialogComponent implements OnInit, AfterViewInit 
 
   formatarStatus(status: string): string {
     if (!status) return '-';
-    return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return getStatusLabel(status);
   }
 
   getColorClass(risco: string): string {

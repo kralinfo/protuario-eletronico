@@ -15,6 +15,7 @@ import {
   DadosOperacional,
   AlertaCritico
 } from '../../services/dashboard.service';
+import { getStatusLabel } from '../../utils/normalize-status';
 
 const INTERVALO_POLLING_MS = 30_000;
 
@@ -139,5 +140,9 @@ export class DashboardOperacionalComponent implements OnInit, OnDestroy {
 
   trackByAlerta(_: number, alerta: AlertaCritico): number {
     return alerta.id;
+  }
+
+  formatarStatus(status: string): string {
+    return getStatusLabel(status);
   }
 }

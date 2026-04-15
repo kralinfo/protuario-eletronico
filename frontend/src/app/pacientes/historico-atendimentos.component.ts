@@ -2,6 +2,7 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+import { getStatusLabel } from '../utils/normalize-status';
 
 @Component({
   selector: 'app-historico-atendimentos',
@@ -42,4 +43,6 @@ export class HistoricoAtendimentosComponent implements OnInit {
       }
     });
   }
+
+  getStatusLabel = getStatusLabel;
 }

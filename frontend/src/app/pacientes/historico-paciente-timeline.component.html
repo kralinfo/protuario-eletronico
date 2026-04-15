@@ -20,7 +20,7 @@
         <div class="timeline-content" (click)="abrirDetalheAtendimento(atendimento.id)" style="cursor:pointer">
           <strong>{{ atendimento.tipo || atendimento.motivo }}</strong>
           <div>Profissional: {{ atendimento.profissional }}</div>
-          <div>Status: {{ atendimento.status }}</div>
+          <div>Status: {{ atendimento.status ? getStatusLabel(atendimento.status) : '' }}</div>
           <div>Resumo: {{ atendimento.resumo || atendimento.observacao }}</div>
         </div>
       </li>

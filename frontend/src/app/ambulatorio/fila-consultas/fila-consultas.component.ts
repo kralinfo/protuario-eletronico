@@ -10,7 +10,7 @@ import { AmbulatorioService } from '../ambulatorio.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
-import { normalizeStatus } from '../../utils/normalize-status';
+import { normalizeStatus, getStatusLabel } from '../../utils/normalize-status';
 
 interface ConsultaAmbulatorial {
   id: number;
@@ -179,22 +179,18 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
 
   getCorStatus(status: string): string {
     const cores: Record<string, string> = {
-      agendada: '#FFC107',
-      'em consulta': '#2196F3',
-      finalizada: '#4CAF50',
-      cancelada: '#F44336'
+      'encaminhado_para_ambulatorio': '#FFC107',
+      'em_atendimento_ambulatorial': '#2196F3',
+      'atendimento_concluido': '#4CAF50',
+      'em_observacao': '#009688',
+      'alta_medica': '#4CAF50',
+      'alta_ambulatorial': '#4CAF50'
     };
-    return cores[status] || '#757575';
+    return cores[normalizeStatus(status)] || '#757575';
   }
 
   getDescricaoStatus(status: string): string {
-    const descricoes: Record<string, string> = {
-      agendada: 'Agendada',
-      'em consulta': 'Em Consulta',
-      finalizada: 'Finalizada',
-      cancelada: 'Cancelada'
-    };
-    return descricoes[status] || status;
+    return getStatusLabel(status);
   }
 
   getIdade(nascimento: string): number {

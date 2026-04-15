@@ -448,4 +448,6 @@ export class RelatorioAtendimentosComponent implements OnInit, AfterViewInit {
   min(a: number, b: number): number {
     return Math.min(a, b);
   }
+
+  getStatusLabel = getStatusLabel;
 }

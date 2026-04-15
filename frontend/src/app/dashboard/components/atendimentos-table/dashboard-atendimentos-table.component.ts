@@ -17,7 +17,7 @@ import {
   AtendimentoDashboard,
   FiltroDashboard
 } from '../../../services/dashboard.service';
-import { normalizeStatus } from '../../../utils/normalize-status';
+import { normalizeStatus, getStatusLabel } from '../../../utils/normalize-status';
 
 @Component({
   selector: 'app-dashboard-atendimentos-table',
@@ -137,7 +137,7 @@ export class DashboardAtendimentosTableComponent implements OnChanges, AfterView
       'em_atendimento_ambulatorial':      'Em Atendimento',
       'atendimento_concluido':            'Concluído',
     };
-    return mapa[normalizeStatus(status)] ?? status ?? '—';
+    return mapa[normalizeStatus(status)] ?? getStatusLabel(status) ?? '—';
   }
 
   getStatusClass(status: string): string {

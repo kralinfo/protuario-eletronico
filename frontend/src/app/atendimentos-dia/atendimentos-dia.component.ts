@@ -8,6 +8,7 @@ import { FeedbackDialogComponent } from '../shared/feedback-dialog/feedback-dial
 import { AbandonoDialogComponent } from '../shared/abandono-dialog/abandono-dialog.component';
 import { AuthService } from '../auth/auth.service';
 import { DatePipe } from '@angular/common';
+import { getStatusLabel } from '../utils/normalize-status';
 
 @Component({
   selector: 'app-atendimentos-dia',
@@ -710,5 +711,9 @@ export class AtendimentosDiaComponent implements OnInit {
       const fim = new Date(this.dataFinal + 'T00:00:00').toLocaleDateString('pt-BR');
       return `${inicio} até ${fim}`;
     }
+  }
+
+  formatarStatusLabel(status: string): string {
+    return getStatusLabel(status);
   }
 }

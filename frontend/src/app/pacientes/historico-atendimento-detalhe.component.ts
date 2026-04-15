@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { environment } from '../../environments/environment';
+import { getStatusLabel } from '../utils/normalize-status';
 
 @Component({
   selector: 'app-historico-atendimento-detalhe',
@@ -48,4 +49,6 @@ export class HistoricoAtendimentoDetalheComponent implements OnInit {
       }
     });
   }
+
+  getStatusLabel = getStatusLabel;
 }

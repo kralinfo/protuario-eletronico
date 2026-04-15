@@ -22,7 +22,7 @@
       <tr *ngFor="let atendimento of historico">
         <td>{{ atendimento.data_hora_atendimento | date:'short' }}</td>
         <td>{{ atendimento.motivo }}</td>
-        <td>{{ atendimento.status }}</td>
+        <td>{{ getStatusLabel(atendimento.status) }}</td>
         <td>{{ atendimento.medico_nome || '-' }}</td>
       </tr>
     </tbody>

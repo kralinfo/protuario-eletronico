@@ -158,11 +158,11 @@
                         <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         <span>Gerar PDF</span>
                       </button>
-                      <button *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido'" (click)="registrarAbandono(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#1e293b;font-size:.9rem;">
+                      <button *ngIf="!atendimento.abandonado && atendimento.status !== 'atendimento_concluido'" (click)="registrarAbandono(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#1e293b;font-size:.9rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                         <span>Registrar Abandono</span>
                       </button>
-                      <button *ngIf="!atendimento.abandonado && atendimento.status !== 'concluido' && podeFinalizarAtendimento" (click)="finalizarAtendimento(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#16a34a;font-size:.9rem;">
+                      <button *ngIf="!atendimento.abandonado && atendimento.status !== 'atendimento_concluido' && podeFinalizarAtendimento" (click)="finalizarAtendimento(atendimento); openMenuId = null" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;cursor:pointer;color:#16a34a;font-size:.9rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span>Finalizar</span>
                       </button>
@@ -193,12 +193,12 @@
                   <span
                     [ngClass]="{
                       'bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.abandonado,
-                      'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.status === 'concluido',
+                      'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.status === 'atendimento_concluido',
                       'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.status === 'recepcao',
-                      'bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.status === 'triagem'
+                      'bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold': atendimento.status === 'em_triagem'
                     }"
                   >
-                    {{ atendimento.abandonado ? 'ABANDONADO' : atendimento.status?.toUpperCase() }}
+                    {{ atendimento.abandonado ? 'ABANDONADO' : formatarStatusLabel(atendimento.status) }}
                   </span>
                 </td>
               </tr>

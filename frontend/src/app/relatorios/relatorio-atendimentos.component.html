@@ -135,7 +135,7 @@
             <td class="p-3">{{ item.municipio || '-' }}{{ item.uf ? '/' + item.uf : '' }}</td>
             <td class="p-3">
               <span class="px-2 py-1 rounded-full text-[10px] font-semibold uppercase bg-slate-100 text-slate-600">
-                {{ item.status || 'Pendente' }}
+                {{ getStatusLabel(item.status) || 'Pendente' }}
               </span>
             </td>
             <td class="p-3">{{ item.procedimento || '-' }}</td>

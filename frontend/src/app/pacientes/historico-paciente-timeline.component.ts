@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { environment } from '../../environments/environment';
 import { HistoricoAtendimentoDetalheComponent } from './historico-atendimento-detalhe.component';
+import { getStatusLabel } from '../utils/normalize-status';
 
 @Component({
   selector: 'app-historico-paciente-timeline',
@@ -57,4 +58,6 @@ export class HistoricoPacienteTimelineComponent implements OnInit {
       }
     });
   }
+
+  getStatusLabel = getStatusLabel;
 }

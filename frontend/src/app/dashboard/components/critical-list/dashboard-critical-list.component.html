@@ -42,7 +42,7 @@
       <!-- Dados do paciente -->
       <div class="flex-1 min-w-0">
         <p class="text-sm font-semibold text-gray-800 truncate">{{ alerta.paciente_nome }}</p>
-        <p class="text-xs text-gray-400 truncate capitalize">{{ alerta.status }}</p>
+        <p class="text-xs text-gray-400 truncate">{{ getStatusLabel(alerta.status) }}</p>
       </div>
 
       <!-- Badge classificação -->

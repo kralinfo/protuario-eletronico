@@ -332,7 +332,7 @@
               class="hover:bg-gray-50 transition-colors"
             >
               <td class="px-6 py-3 font-medium text-gray-800">{{ alerta.paciente_nome }}</td>
-              <td class="px-6 py-3 text-gray-600 capitalize">{{ alerta.status }}</td>
+              <td class="px-6 py-3 text-gray-600">{{ formatarStatus(alerta.status) }}</td>
               <td class="px-6 py-3">
                 <span
                   class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold capitalize"

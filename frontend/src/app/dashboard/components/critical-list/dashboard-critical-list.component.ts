@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { RouterModule } from '@angular/router';
 import { AlertaCritico } from '../../../services/dashboard.service';
+import { getStatusLabel } from '../../../utils/normalize-status';
 
 @Component({
   selector: 'app-dashboard-critical-list',
@@ -48,4 +49,6 @@ export class DashboardCriticalListComponent {
   }
 
   trackByAlerta(_: number, a: AlertaCritico): number { return a.id; }
+
+  getStatusLabel = getStatusLabel;
 }
